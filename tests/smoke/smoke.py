@@ -128,9 +128,11 @@ def _epubcheck(pfad):
     kandidaten = []
     if shutil.which("epubcheck"):
         kandidaten.append(["epubcheck", pfad])
-    for jar in glob.glob(os.path.join(LESER, "tools", "epubcheck*", "epubcheck.jar")):
-        if shutil.which("java"):
-            kandidaten.append(["java", "-jar", jar, pfad])
+    java = shutil.which("java") or next(iter(sorted(glob.glob(
+        r"C:\Program Files\Eclipse Adoptium\*\bin\java.exe"), reverse=True)), None)
+    for jar in sorted(glob.glob(os.path.join(LESER, "tools", "epubcheck*", "epubcheck.jar")), reverse=True):
+        if java:
+            kandidaten.append([java, "-jar", jar, pfad])
     if not kandidaten:
         return False, "epubcheck nicht installiert (weder PATH noch tools\\epubcheck*\\epubcheck.jar + java)"
     r = subprocess.run(kandidaten[0], capture_output=True, text=True, encoding="utf-8", errors="replace")
