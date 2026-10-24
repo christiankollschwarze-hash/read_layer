@@ -40,3 +40,6 @@ authors/**/images/
 authors/**/output/
 authors/**/_alt_*/
 *.epub
+
+# Werkzeug epubcheck (lokal, nicht versioniert)
+tools/epubcheck-*/
