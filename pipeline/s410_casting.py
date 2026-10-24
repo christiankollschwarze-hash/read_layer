@@ -522,7 +522,8 @@ if __name__ == "__main__":
     bid = args[0]
     opt = lambda k: args[args.index(k) + 1] if k in args and args.index(k) + 1 < len(args) else None
     if "--freigeben" in args:
-        freigeben(bid)
+        # 24.10.2026 (Smoke #5): Exit != 0, wenn das Tor nicht auf "freigegeben" geht
+        sys.exit(0 if freigeben(bid) else 1)
     elif "--trennung" in args:
         trennung_pruefen(bid, ueberschreiben="--neu" in args)
     else:
