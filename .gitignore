@@ -43,3 +43,6 @@ authors/**/_alt_*/
 
 # Werkzeug epubcheck (lokal, nicht versioniert)
 tools/epubcheck-*/
+
+# Ergänzt 24.10.: TTS-Werkordner (Pakete/Messungen je Lauf), Code unter gpu_tts/*.py bleibt versioniert
+gpu_tts/*/

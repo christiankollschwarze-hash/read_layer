@@ -49,6 +49,9 @@ if exist "%WD%" rmdir /s /q "%WD%"
 
 %S% bericht %W% >> %LOG% 2>&1
 set RC=%ERRORLEVEL%
+rem Aufraeumen (Smoke #9): TTS-Werkordner des Testwerks entfernen
+if exist gpu_tts\%W%_de rmdir /s /q gpu_tts\%W%_de
+if exist gpu_tts\%W%_en rmdir /s /q gpu_tts\%W%_en
 echo === SMOKE-TEST ENDE rc=%RC% %date% %time% === >> %LOG%
 type cockpit\logs\smoke_test_bericht.txt
 if not "%SMOKE_NOPAUSE%"=="1" pause
@@ -57,6 +60,9 @@ exit /b %RC%
 :fehler
 echo === SMOKE-TEST ABBRUCH %date% %time% === >> %LOG%
 %S% bericht %W% >> %LOG% 2>&1
+rem Aufraeumen (Smoke #9): TTS-Werkordner des Testwerks entfernen
+if exist gpu_tts\%W%_de rmdir /s /q gpu_tts\%W%_de
+if exist gpu_tts\%W%_en rmdir /s /q gpu_tts\%W%_en
 findstr /C:"=== SCHRITT" /C:"[STOPP]" /C:"[FEHLER]" /C:"Traceback" /C:"Error" %LOG%
 type cockpit\logs\smoke_test_bericht.txt
 if not "%SMOKE_NOPAUSE%"=="1" pause
