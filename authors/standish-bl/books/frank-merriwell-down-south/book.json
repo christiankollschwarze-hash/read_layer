@@ -1,0 +1,39 @@
+{
+  "book_slug": "frank-merriwell-down-south",
+  "author_slug": "standish-bl",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "",
+  "publisher": "<eigenes-label>",
+  "titel_original": "Frank Merriwell Down South",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "22424",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "Frank Merriwell Down South",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Frank Merriwell im Süden",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:26:15"
+}

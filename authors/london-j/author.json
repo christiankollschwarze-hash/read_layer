@@ -1,0 +1,30 @@
+{
+  "wikidata_id": "Q45765",
+  "verified": true,
+  "name_display": "Jack London",
+  "name_sort": "",
+  "geburtsjahr": 1876,
+  "todesjahr": 1916,
+  "geburtsort": "San Francisco",
+  "wirkungssprache": "en",
+  "notable_works": [
+    "The Call of the Wild",
+    "The People of the Abyss",
+    "The Sea-Wolf",
+    "White Fang",
+    "The Roads",
+    "To Build a Fire",
+    "Martin Eden",
+    "The Valley of the Moon",
+    "The Star Rover",
+    "The Road"
+  ],
+  "epoche": "",
+  "stilrichtung": [],
+  "bedeutung_kurz": "",
+  "quelle_weich": "https://en.wikipedia.org/wiki/Jack_London",
+  "werke_im_bestand": [
+    "call-of-the-wild",
+    "white-fang"
+  ]
+}

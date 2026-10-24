@@ -1,0 +1,39 @@
+{
+  "book_slug": "the-notebooks-of-leonardo-da-vinci-complete",
+  "author_slug": "leonardo-dv",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The Notebooks of Leonardo Da Vinci — Complete",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "5000",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The Notebooks of Leonardo Da Vinci — Complete",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Die Notizbücher des Leonardo da Vinci – Vollständige Ausgabe",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:28:37"
+}

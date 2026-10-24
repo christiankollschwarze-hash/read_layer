@@ -1,0 +1,39 @@
+{
+  "book_slug": "the-arbiter-a-novel",
+  "author_slug": "bell-feeol",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q64619627",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The Arbiter: A Novel",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "24794",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The Arbiter: A Novel",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Der Schiedsrichter: Roman",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:26:03"
+}

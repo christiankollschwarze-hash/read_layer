@@ -1,0 +1,39 @@
+{
+  "book_slug": "the-mysteries-of-udolpho",
+  "author_slug": "radcliffe-aw",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q2600909",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The Mysteries of Udolpho",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "3268",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The Mysteries of Udolpho",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Udolphos Geheimnisse",
+      "titel_quelle": "wikidata",
+      "titel_pruefen": false
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:28:40"
+}

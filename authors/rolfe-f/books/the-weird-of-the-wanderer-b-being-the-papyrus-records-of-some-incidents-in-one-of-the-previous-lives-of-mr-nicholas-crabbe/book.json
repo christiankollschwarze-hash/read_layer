@@ -1,0 +1,39 @@
+{
+  "book_slug": "the-weird-of-the-wanderer-b-being-the-papyrus-records-of-some-incidents-in-one-of-the-previous-lives-of-mr-nicholas-crabbe",
+  "author_slug": "rolfe-f",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q136395924",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The weird of the wanderer : $b Being the papyrus records of some incidents in one of the previous lives of  Mr. Nicholas Crabbe",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "78126",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The weird of the wanderer : $b Being the papyrus records of some incidents in one of the previous lives of  Mr. Nicholas Crabbe",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Das seltsame Schicksal des Wanderers: Die Papyrusaufzeichnungen einiger Begebenheiten aus einem früheren Leben des Mr. Nicholas Crabbe",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:26:21"
+}

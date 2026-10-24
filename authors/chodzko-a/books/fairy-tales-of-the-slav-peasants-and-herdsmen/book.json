@@ -1,0 +1,39 @@
+{
+  "book_slug": "fairy-tales-of-the-slav-peasants-and-herdsmen",
+  "author_slug": "chodzko-a",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "",
+  "publisher": "<eigenes-label>",
+  "titel_original": "Fairy Tales of the Slav Peasants and Herdsmen",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "25555",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "Fairy Tales of the Slav Peasants and Herdsmen",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Märchen der slawischen Bauern und Hirten",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:25:44"
+}

@@ -1,0 +1,23 @@
+{
+ "lang": "en",
+ "jobs": [
+  {
+   "id": "t1_01_01",
+   "stimme": "herr_a",
+   "figur": "Klappentext",
+   "text": "In November, the Elbe gives nothing up willingly."
+  },
+  {
+   "id": "t1_01_02",
+   "stimme": "herr_a",
+   "figur": "Klappentext",
+   "text": "What it does spit out, it has kept long enough."
+  },
+  {
+   "id": "t2_01_01",
+   "stimme": "herr_a",
+   "figur": "Klappentext",
+   "text": "A dark, atmospheric psychological thriller set in and around Hamburg in 2024: twin sisters from different social backgrounds swap identities – until one of them disappears and the other becomes entangled in a web of lies, revenge, and a death on the Elbe."
+  }
+ ]
+}

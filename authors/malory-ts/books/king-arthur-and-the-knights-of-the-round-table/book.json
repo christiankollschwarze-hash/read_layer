@@ -1,0 +1,39 @@
+{
+  "book_slug": "king-arthur-and-the-knights-of-the-round-table",
+  "author_slug": "malory-ts",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q20591570",
+  "publisher": "<eigenes-label>",
+  "titel_original": "King Arthur and the Knights of the Round Table",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "36462",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "King Arthur and the Knights of the Round Table",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "König Artus und die Ritter der Tafelrunde",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:26:51"
+}

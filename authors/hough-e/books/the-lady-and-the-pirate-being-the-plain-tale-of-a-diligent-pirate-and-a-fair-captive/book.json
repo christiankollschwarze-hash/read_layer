@@ -1,0 +1,39 @@
+{
+  "book_slug": "the-lady-and-the-pirate-being-the-plain-tale-of-a-diligent-pirate-and-a-fair-captive",
+  "author_slug": "hough-e",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The Lady and the Pirate: Being the Plain Tale of a Diligent Pirate and a Fair Captive",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "24907",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The Lady and the Pirate: Being the Plain Tale of a Diligent Pirate and a Fair Captive",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Die Dame und der Pirat: Eine schlichte Geschichte von einem eifrigen Piraten und einer holden Gefangenen",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:26:44"
+}

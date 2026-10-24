@@ -1,0 +1,18 @@
+# ANFORDERUNGEN — Schnittstelle zwischen den Rollen
+Regel: Rollen tragen ein, Pipeline/Frontend setzen um und pflegen Status. Kosten > 100 € -> „CFO prüfen“.
+Status: offen | in Arbeit | erledigt | zurückgestellt | Rückfrage
+
+| ID | Datum | Von | Adressat | Prio | Anforderung | Zweck | Termin | Status | Notiz |
+|---|---|---|---|---|---|---|---|---|---|
+| M-01 | 17.10.2026 | Marketing | Frontend | A | Web-Demo ohne Konto: Alice Kap. 1 (EN+DE, Karaoke, Upps!!, Umschalter Erzähler/Hörspiel) im Browser unter taella.io, mobil nutzbar | Ziel aller Kampagnen, QR-Code | 31.12.2026 | offen | |
+| M-02 | 17.10.2026 | Marketing | Frontend | A | Aufnahmemodus: sauberer Bildschirm ohne Debug-/Entwickler-Elemente, Hochformat 9:16, feste Schriftgröße | Screen-Recording für Social-Clips | 15.11.2026 | offen | |
+| M-03 | 17.10.2026 | Marketing | Pipeline | A | Der Graf von Monte Christo als Schaufenster: Gesamttext EN+DE zweisprachig, ausgewählte Kapitel (Vorschlag CK) als Hörspiel mit Klangteppich | Flaggschiff Leipzig, Gründungspaten | 15.02.2027 | offen | CFO 17.10.: freigegeben bis 300 $ (Text 42 $, Voll EN+DE 162 $). PD Übersetzer prüfen (nicht in Startliste) |
+| M-04 | 17.10.2026 | Marketing | Frontend | A | Offline-Demo auf Tablet (Android) mit Alice, Baskerville, Monte Christo, ohne Netz lauffähig | Handdemo Leipzig (kein Stand) | 01.03.2027 | offen | baut auf Punkt 10 PROJEKTSTAND (Capacitor) |
+| M-05 | 17.10.2026 | Marketing | Frontend | B | Wartelisten-Seite auf taella.io: E-Mail-Erfassung (Double-Opt-in, DSGVO), Feld „Gründungspate Monte Christo vormerken“ | Nachfrage messen, Kennzahl Nr. 1 | 30.11.2026 | offen | Anbieter-Wahl (z. B. Brevo) offen |
+| M-06 | 17.10.2026 | Marketing | Pipeline | B | Clip-Renderer: aus Satz-WAVs + Wortzeiten automatisch MP4 9:16 (EN-Karaoke, DE darunter, Logo mit rotem Punkt), Eingabe = Werk + Satzbereich | Clips ohne Handarbeit, wöchentliche Serie | 15.12.2026 | offen | |
+| V-01 | 17.10.2026 | Vertrieb | Pipeline | A | Export EPUB 3 mit Media Overlays (SMIL je Kapitel aus Satz-IDs + Wortzeiten), epubcheck + Ace ohne Fehler; Test Apple Books + Thorium | Kernprodukt Verlage (BFSG-Kür), Beweisstück Leipzig | 15.01.2027 | offen | Vorbild Call of the Wild (BOARD_bfsg) |
+| V-02 | 17.10.2026 | Vertrieb | Pipeline | A | Alignment-Modus für Fremd-Hörbücher: Verlags-Audio (MP3/WAV je Kapitel) + Verlags-EPUB → Wortzeiten, ohne eigene Vertonung | Paket P1 „Mitlesen“ für Bestands-Hörbücher | 15.02.2027 | offen | Basis stage_58_3rd_prty (LibriVox-Strom-Modus) |
+| V-03 | 17.10.2026 | Vertrieb | Pipeline | B | Kostenvoranschlag aus EPUB: Zeichen, Wörter, geschätzte Audiostunden, Dialoganteil, Preis je Paket, Lieferzeit (aus Kostenlog) | Angebot in Minuten statt Stunden | 31.01.2027 | offen | CFO 17.10.: Preis = Paketpreis lt. VERTRIEB.md; Direktkosten aus Kostenlog nur als Kontrollzeile (≈2,5 $/Audio-h) |
+| V-04 | 17.10.2026 | Vertrieb | Pipeline | B | Lieferpaket Audio nach Händlerspezifikation (MP3 CBR 192 kbit/s, RMS -23…-18 dB, Peak ≤ -3 dB, Raumton Anfang/Ende, je Kapitel eine Datei, Metadaten) | Verlag kann direkt bei Audible/Google/Bookwire hochladen | 15.02.2027 | offen | |
+| V-05 | 17.10.2026 | Vertrieb | Frontend | B | Verlagsvorschau: nicht öffentlicher Link je Verlagstitel (Web-Demo wie M-01, mit Ablaufdatum) | Pilotkunde prüft Ergebnis ohne App-Installation | 31.01.2027 | offen | baut auf M-01 |
+| V-06 | 17.10.2026 | Vertrieb | Pipeline | B | Herkunftsnachweis je Titel: verwendete Stimmen (Rechtekette), Modelle, KI-Kennzeichnung in Metadaten/Abspann, Bestätigung „kein Training mit Verlagsdaten“ | Vertragsanlage, Vertrauen der Verlage, AI-Act-Transparenz | 15.01.2027 | offen | juristische Prüfung (Merkliste PROJEKTSTAND) |

@@ -1,0 +1,39 @@
+{
+  "book_slug": "a-tale-of-two-cities",
+  "author_slug": "dickens-c",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q308918",
+  "publisher": "<eigenes-label>",
+  "titel_original": "A Tale of Two Cities",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "98",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "A Tale of Two Cities",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Eine Geschichte aus zwei Städten",
+      "titel_quelle": "wikidata",
+      "titel_pruefen": false
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:28:07"
+}

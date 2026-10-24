@@ -1,0 +1,39 @@
+{
+  "book_slug": "the-blue-lagoon-a-romance",
+  "author_slug": "stacpoole-hdvdv",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q3822730",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The Blue Lagoon: A Romance",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "393",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The Blue Lagoon: A Romance",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Die blaue Lagune",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:25:45"
+}

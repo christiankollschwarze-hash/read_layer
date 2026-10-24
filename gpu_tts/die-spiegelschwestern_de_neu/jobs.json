@@ -1,0 +1,231 @@
+{
+ "werk": "die-spiegelschwestern",
+ "lang": "de",
+ "ref": "m_mittel_tief_ruhig",
+ "jobs": [
+  {
+   "id": "c002_00011_s",
+   "kap": "neu",
+   "text": "Vier Jahre Em Ai Ti.",
+   "stil": "w_jung_mittel_verschmitzt"
+  },
+  {
+   "id": "c002_00062_s",
+   "kap": "neu",
+   "text": "Ich verliere den Faden bei Pe gegen En Pe, ausgerechnet dort.",
+   "stil": "w_jung_mittel_verschmitzt"
+  },
+  {
+   "id": "c003_00083_s",
+   "kap": "neu",
+   "text": "Von dem Satay-Spieß auf einem Empfang der Bank meines Vaters, als ich acht war, und von den drei Tagen danach im U Ka E.",
+   "stil": "w_jung_mittel_verschmitzt"
+  },
+  {
+   "id": "c007_00030_s",
+   "kap": "neu",
+   "text": "Mitte September kommt die Mail der Lindkwist-Stiftung.",
+   "stil": "w_jung_mittel_verschmitzt"
+  },
+  {
+   "id": "c007_00038_s",
+   "kap": "neu",
+   "text": "Maximilian ist erst wütend, wegen der E Te Ha, dann stolz.",
+   "stil": "w_jung_mittel_verschmitzt"
+  },
+  {
+   "id": "c007_00071_s",
+   "kap": "neu",
+   "text": "Die Elbe bei Blankeneese im Morgennebel.",
+   "stil": "w_jung_mittel_verschmitzt"
+  },
+  {
+   "id": "c009_00003_s",
+   "kap": "neu",
+   "text": "Hamburg, El Ka A / Steilshohp, sechsten bis siebten November 2024",
+   "stil": "m_mittel_tief_ruhig"
+  },
+  {
+   "id": "c009_00066_s",
+   "kap": "neu",
+   "text": "Ich rufe Aidenn noch einmal an.",
+   "stil": "m_mittel_tief_ruhig"
+  },
+  {
+   "id": "c010_00068_s",
+   "kap": "neu",
+   "text": "Frau Okkafohr reicht ihr ein Taschentuch.",
+   "stil": "m_mittel_tief_ruhig"
+  },
+  {
+   "id": "c010_00104_s",
+   "kap": "neu",
+   "text": "Die De En A.",
+   "stil": "m_mittel_tief_ruhig"
+  },
+  {
+   "id": "c011_00004_s",
+   "kap": "neu",
+   "text": "Werner Koslowski erhängt sich in der Nacht zum elften November in der Untersuchungshaftanstalt am Holstenglaßie.",
+   "stil": "m_mittel_tief_ruhig"
+  },
+  {
+   "id": "c011_00008_s",
+   "kap": "neu",
+   "text": "Sie soll aufhören.",
+   "stil": "m_mittel_tief_ruhig"
+  }
+ ],
+ "ziel": "work/_cb_probe/de/neu",
+ "gruende": {
+  "c001_00003_s": [
+   "lexikon"
+  ],
+  "c002_00010_s": [
+   "lexikon"
+  ],
+  "c002_00011_s": [
+   "lexikon"
+  ],
+  "c002_00062_s": [
+   "lexikon"
+  ],
+  "c002_00071_s": [
+   "lexikon"
+  ],
+  "c003_00048_s": [
+   "lexikon"
+  ],
+  "c003_00072_s": [
+   "lexikon"
+  ],
+  "c003_00073_s": [
+   "lexikon"
+  ],
+  "c003_00083_s": [
+   "lexikon"
+  ],
+  "c003_00121_s": [
+   "lexikon"
+  ],
+  "c004_00057_s": [
+   "lexikon"
+  ],
+  "c005_00003_s": [
+   "lexikon"
+  ],
+  "c006_00003_s": [
+   "lexikon"
+  ],
+  "c006_00053_s": [
+   "lexikon"
+  ],
+  "c006_00116_s": [
+   "lexikon"
+  ],
+  "c007_00030_s": [
+   "lexikon"
+  ],
+  "c007_00032_s": [
+   "lexikon"
+  ],
+  "c007_00038_s": [
+   "lexikon"
+  ],
+  "c007_00071_s": [
+   "lexikon"
+  ],
+  "c007_00085_dl": [
+   "lexikon"
+  ],
+  "c008_00003_s": [
+   "lexikon"
+  ],
+  "c008_00013_s": [
+   "lexikon"
+  ],
+  "c009_00003_s": [
+   "lexikon"
+  ],
+  "c009_00004_s": [
+   "lexikon"
+  ],
+  "c009_00012_s": [
+   "lexikon"
+  ],
+  "c009_00015_dl": [
+   "lexikon"
+  ],
+  "c009_00017_dl": [
+   "lexikon"
+  ],
+  "c009_00053_s": [
+   "lexikon"
+  ],
+  "c009_00066_s": [
+   "lexikon"
+  ],
+  "c009_00076_s": [
+   "lexikon"
+  ],
+  "c010_00010_s": [
+   "lexikon"
+  ],
+  "c010_00028_s": [
+   "lexikon"
+  ],
+  "c010_00045_s": [
+   "lexikon"
+  ],
+  "c010_00050_s": [
+   "lexikon"
+  ],
+  "c010_00056_dl": [
+   "lexikon"
+  ],
+  "c010_00068_s": [
+   "lexikon"
+  ],
+  "c010_00096_s": [
+   "lexikon"
+  ],
+  "c010_00104_s": [
+   "lexikon"
+  ],
+  "c010_00105_s": [
+   "lexikon"
+  ],
+  "c011_00004_s": [
+   "lexikon"
+  ],
+  "c011_00008_s": [
+   "lexikon"
+  ],
+  "c011_00042_s": [
+   "lexikon"
+  ],
+  "c012_00065_s": [
+   "lexikon"
+  ],
+  "c013_00003_s": [
+   "lexikon"
+  ],
+  "c013_00011_s": [
+   "lexikon"
+  ],
+  "c013_00012_s": [
+   "lexikon"
+  ],
+  "c013_00017_s": [
+   "lexikon"
+  ]
+ },
+ "probe": true,
+ "lora": "mix_v1",
+ "ms_je_zeichen": 0.0425,
+ "tempo": "0.76",
+ "refs": {
+  "w_jung_mittel_verschmitzt": "ref_w_jung_mittel_verschmitzt.wav",
+  "m_mittel_tief_ruhig": "ref_m_mittel_tief_ruhig.wav"
+ }
+}

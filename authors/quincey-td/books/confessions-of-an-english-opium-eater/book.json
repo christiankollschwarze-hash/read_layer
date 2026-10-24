@@ -1,0 +1,39 @@
+{
+  "book_slug": "confessions-of-an-english-opium-eater",
+  "author_slug": "quincey-td",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q1610128",
+  "publisher": "<eigenes-label>",
+  "titel_original": "Confessions of an English Opium-Eater",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "2040",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "Confessions of an English Opium-Eater",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Bekenntnisse eines englischen Opiumessers",
+      "titel_quelle": "wikidata",
+      "titel_pruefen": false
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:24:14"
+}

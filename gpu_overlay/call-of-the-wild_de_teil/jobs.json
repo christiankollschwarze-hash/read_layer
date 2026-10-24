@@ -1,0 +1,266 @@
+{
+ "werk": "call-of-the-wild",
+ "lang": "de",
+ "jobs": [
+  {
+   "id": "c005_00269_dl__0",
+   "tag": "c005_00269_dl",
+   "figur": "John Thornton",
+   "stimme": "m_mittel_hoeher_thornton_2",
+   "text": "„Und da haben sie die Wahrheit gesagt“,",
+   "t0": 0.02,
+   "t1": 1.742,
+   "lang": "de"
+  },
+  {
+   "id": "c005_00269_dl__2",
+   "tag": "c005_00269_dl",
+   "figur": "John Thornton",
+   "stimme": "m_mittel_hoeher_thornton_2",
+   "text": "„Das Eis kann jeden Augenblick nachgeben. Nur Narren, mit dem blinden Glück der Narren, haben es schaffen können. Ich sage es euch frei heraus: Ich würde mein Fell nicht für alles Gold Alaskas auf dieses Eis riskieren.“",
+   "t0": 3.785,
+   "t1": 15.961,
+   "lang": "de"
+  },
+  {
+   "id": "c005_00314_dl__0",
+   "tag": "c005_00314_dl",
+   "figur": "John Thornton",
+   "stimme": "m_mittel_hoeher_thornton_2",
+   "text": "„Wenn du diesen Hund noch einmal schlägst, bringe ich dich um“,",
+   "t0": 0.04,
+   "t1": 3.024,
+   "lang": "de"
+  },
+  {
+   "id": "c005_00341_dl__0",
+   "tag": "c005_00341_dl",
+   "figur": "John Thornton",
+   "stimme": "m_mittel_hoeher_thornton_2",
+   "text": "„Du armer Teufel“,",
+   "t0": 0.02,
+   "t1": 0.942,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00027_s__1",
+   "tag": "c006_00027_s",
+   "figur": "John Thornton",
+   "stimme": "m_mittel_hoeher_thornton_2",
+   "text": "»Gott! Dir fehlt ja nur noch die Sprache!«",
+   "t0": 12.217,
+   "t1": 14.36,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00082_s__0",
+   "tag": "c006_00082_s",
+   "figur": "John Thornton",
+   "stimme": "m_mittel_hoeher_thornton_2",
+   "text": "»Spring, Buck!«",
+   "t0": 0.0,
+   "t1": 0.741,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00087_dl__0",
+   "tag": "c006_00087_dl",
+   "figur": "John Thornton",
+   "stimme": "m_mittel_hoeher_thornton_2",
+   "text": "»Nein, es ist großartig, und es ist auch furchtbar.",
+   "t0": 0.02,
+   "t1": 3.448,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00088_dl__0",
+   "tag": "c006_00088_dl",
+   "figur": "John Thornton",
+   "stimme": "m_mittel_hoeher_thornton_2",
+   "text": "Wisst ihr, manchmal macht es mir Angst.«",
+   "t0": 0.0,
+   "t1": 2.134,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00122_s__1",
+   "tag": "c006_00122_s",
+   "figur": "John Thornton",
+   "stimme": "m_mittel_hoeher_thornton_2",
+   "text": "»Los, Buck! Los!«",
+   "t0": 7.215,
+   "t1": 8.418,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00153_dl__0",
+   "tag": "c006_00153_dl",
+   "figur": "John Thornton",
+   "stimme": "m_mittel_hoeher_thornton_2",
+   "text": "„Damit ist die Sache entschieden“,",
+   "t0": 0.0,
+   "t1": 1.363,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00154_dl__0",
+   "tag": "c006_00154_dl",
+   "figur": "John Thornton",
+   "stimme": "m_mittel_hoeher_thornton_2",
+   "text": "„Wir lagern genau hier.“",
+   "t0": 0.0,
+   "t1": 1.429,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00163_dl__0",
+   "tag": "c006_00163_dl",
+   "figur": "John Thornton",
+   "stimme": "m_mittel_hoeher_thornton_2",
+   "text": "„Pah! Pah!“",
+   "t0": 0.0,
+   "t1": 0.863,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00163_dl__2",
+   "tag": "c006_00163_dl",
+   "figur": "John Thornton",
+   "stimme": "m_mittel_hoeher_thornton_2",
+   "text": "„Buck kann tausend Pfund in Bewegung setzen.“",
+   "t0": 2.611,
+   "t1": 4.92,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00165_dl__0",
+   "tag": "c006_00165_dl",
+   "figur": "John Thornton",
+   "stimme": "m_mittel_hoeher_thornton_2",
+   "text": "„Und ihn losbrechen und hundert Yards damit davongehen“,",
+   "t0": 0.04,
+   "t1": 2.809,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00189_dl__0",
+   "tag": "c006_00189_dl",
+   "figur": "John Thornton",
+   "stimme": "m_mittel_hoeher_thornton_2",
+   "text": "„Kannst du mir tausend leihen?“,",
+   "t0": 0.0,
+   "t1": 1.206,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00240_dl__0",
+   "tag": "c006_00240_dl",
+   "figur": "John Thornton",
+   "stimme": "m_mittel_hoeher_thornton_2",
+   "text": "„So lieb du mich hast, Buck.",
+   "t0": 0.021,
+   "t1": 1.291,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00241_dl__0",
+   "tag": "c006_00241_dl",
+   "figur": "John Thornton",
+   "stimme": "m_mittel_hoeher_thornton_2",
+   "text": "So lieb du mich hast“,",
+   "t0": 0.04,
+   "t1": 1.104,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00251_dl__0",
+   "tag": "c006_00251_dl",
+   "figur": "John Thornton",
+   "stimme": "m_mittel_hoeher_thornton_2",
+   "text": "»Jetzt, Buck«",
+   "t0": 0.02,
+   "t1": 0.603,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00256_dl__0",
+   "tag": "c006_00256_dl",
+   "figur": "John Thornton",
+   "stimme": "m_mittel_hoeher_thornton_2",
+   "text": "»Hott!«",
+   "t0": 0.04,
+   "t1": 0.321,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00261_dl__0",
+   "tag": "c006_00261_dl",
+   "figur": "John Thornton",
+   "stimme": "m_mittel_hoeher_thornton_2",
+   "text": "»Hü!«",
+   "t0": 0.0,
+   "t1": 0.181,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00268_dl__0",
+   "tag": "c006_00268_dl",
+   "figur": "John Thornton",
+   "stimme": "m_mittel_hoeher_thornton_2",
+   "text": "»Jetzt, MUSH!«",
+   "t0": 0.001,
+   "t1": 1.028,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00296_dl__0",
+   "tag": "c006_00296_dl",
+   "figur": "John Thornton",
+   "stimme": "m_mittel_hoeher_thornton_2",
+   "text": "„Sir,“",
+   "t0": 0.04,
+   "t1": 0.341,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00296_dl__2",
+   "tag": "c006_00296_dl",
+   "figur": "John Thornton",
+   "stimme": "m_mittel_hoeher_thornton_2",
+   "text": "„nein, Sir.",
+   "t0": 2.633,
+   "t1": 3.175,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00297_dl__0",
+   "tag": "c006_00297_dl",
+   "figur": "John Thornton",
+   "stimme": "m_mittel_hoeher_thornton_2",
+   "text": "Sie können zur Hölle fahren, Sir.",
+   "t0": 0.021,
+   "t1": 1.376,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00298_dl__0",
+   "tag": "c006_00298_dl",
+   "figur": "John Thornton",
+   "stimme": "m_mittel_hoeher_thornton_2",
+   "text": "Das ist das Beste, was ich für Sie tun kann, Sir.“",
+   "t0": 0.0,
+   "t1": 1.714,
+   "lang": "de"
+  },
+  {
+   "id": "c007_00139_dl__0",
+   "tag": "c007_00139_dl",
+   "figur": "John Thornton",
+   "stimme": "m_mittel_hoeher_thornton_2",
+   "text": "»So einen Hund hat es noch nie gegeben«,",
+   "t0": 0.02,
+   "t1": 1.925,
+   "lang": "de"
+  }
+ ]
+}

@@ -1,0 +1,39 @@
+{
+  "book_slug": "barnaby-rudge-a-tale-of-the-riots-of-eighty",
+  "author_slug": "dickens-c",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q2362527",
+  "publisher": "<eigenes-label>",
+  "titel_original": "Barnaby Rudge: A Tale of the Riots of 'Eighty",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "917",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "Barnaby Rudge: A Tale of the Riots of 'Eighty",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Barnaby Rudge",
+      "titel_quelle": "wikidata",
+      "titel_pruefen": false
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:28:38"
+}

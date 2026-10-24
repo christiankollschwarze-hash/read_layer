@@ -1,0 +1,51 @@
+{
+  "book_slug": "alice-s-adventures-in-wonderland",
+  "author_slug": "carroll-l",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q92640",
+  "publisher": "<eigenes-label>",
+  "titel_original": "Alice's Adventures in Wonderland",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "11",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "Alice's Adventures in Wonderland",
+      "titel_quelle": "original",
+      "audio_quelle": "librivox_archiv",
+      "sprecher": "Kara Shallenberg (1969-2023)",
+      "reader_url": "https://librivox.org/reader/19",
+      "librivox_url": "https://librivox.org/alices-adventures-in-wonderland-by-lewis-carroll-4/",
+      "archive_url": "https://www.archive.org/details/alices_adventures_1003",
+      "sprecher_urteil": "gut",
+      "credit": "Recording: Kara Shallenberg (1969-2023) / LibriVox",
+      "source_disclaimer": "This is a LibriVox recording. All LibriVox recordings are in the public domain. For more information, or to volunteer, please visit librivox.org.",
+      "deaktiviert": "2026-10-11: LibriVox ersetzt durch designte Stimmen",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Alice im Wunderland",
+      "titel_quelle": "wikidata",
+      "titel_pruefen": false
+    }
+  ],
+  "zurueckgesetzt_librivox": "2026-10-10",
+  "librivox_geprueft": "treffer",
+  "librivox_geprueft_am": "2026-10-10T20:30:54",
+  "besetzung_modus": "ensemble",
+  "stimmen_freigabe": "nachtraeglich (CK 12.10.2026: vor dem Freigabe-Tor vertont)"
+}

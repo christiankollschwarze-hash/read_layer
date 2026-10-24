@@ -1,0 +1,48 @@
+{
+  "book_slug": "the-house-on-the-borderland",
+  "author_slug": "hodgson-wh",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q740473",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The House on the Borderland",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "10002",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The House on the Borderland",
+      "titel_quelle": "original",
+      "audio_quelle": "librivox_archiv",
+      "sprecher": "John Van Stan",
+      "reader_url": "https://librivox.org/reader/9017",
+      "librivox_url": "https://librivox.org/the-house-on-the-borderland-2-by-william-hope-hodgson/",
+      "archive_url": "https://archive.org/details/house_onthe_borderland_1910_librivox",
+      "sprecher_urteil": "gut",
+      "credit": "Recording: John Van Stan / LibriVox",
+      "source_disclaimer": "This is a LibriVox recording. All LibriVox recordings are in the public domain. For more information, or to volunteer, please visit librivox.org.",
+      "deaktiviert": "2026-10-11: LibriVox ersetzt durch designte Stimmen",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Das Haus an der Grenze",
+      "titel_quelle": "wikidata",
+      "titel_pruefen": false
+    }
+  ],
+  "librivox_geprueft": "treffer",
+  "librivox_geprueft_am": "2026-10-10T19:25:20"
+}

@@ -1,0 +1,49 @@
+{
+  "book_slug": "die-spiegelschwestern",
+  "author_slug": "unbekannt",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "",
+  "publisher": "<eigenes-label>",
+  "titel_original": "Die Spiegelschwestern",
+  "originalsprache": "de",
+  "erscheinungsjahr": 2026,
+  "gutenberg_id": "",
+  "rechte": "eigene",
+  "rechte_hinweis": "Eigenes Werk, nicht gemeinfrei. Keine PD-/Todesjahr-Pruefung, keine Wikidata-Abfrage.",
+  "herkunft": "eigenwerk",
+  "quelle": "https://claude.ai/artifact/AuG739m52MPogV1JMefprr",
+  "quelle_datei": "die-spiegelschwestern.md",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "umfang": {
+    "kapitel": 13,
+    "absaetze": 408,
+    "zeichen": 48358,
+    "einheiten_50k": 1
+  },
+  "fassungen": [
+    {
+      "sprache": "de",
+      "titel": "Die Spiegelschwestern",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "en",
+      "titel": "The Mirror Sisters",
+      "titel_quelle": "ck",
+      "titel_pruefen": false
+    }
+  ],
+  "angelegt": "2026-10-22T14:00:25"
+}

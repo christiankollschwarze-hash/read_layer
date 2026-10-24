@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="de"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Read Layer Cockpit</title>
+<style>
+:root{--bg:#faf8f4;--card:#fff;--ink:#23201b;--mut:#7a736a;--line:#e3ddd2;
+ --ok:#2e7d4f;--wait:#b78900;--bad:#b23b3b;--acc:#3b5b8c;--soft:#f1ede5}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,"Segoe UI",Roboto,sans-serif}
+header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:10px 16px}
+.top{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+h1{font-size:16px;margin:0;letter-spacing:.02em}
+nav button{font:inherit;border:0;background:none;padding:6px 10px;border-radius:6px;cursor:pointer;color:var(--mut)}
+nav button.on{background:var(--ink);color:#fff}
+.badge{display:inline-block;min-width:18px;padding:0 5px;border-radius:9px;background:var(--wait);color:#fff;font-size:11px;text-align:center;margin-left:4px}
+.runinfo{margin-left:auto;font-size:12px;color:var(--mut)}
+main{padding:14px 16px 60px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px;font-size:13px}
+input[type=search],input[type=text],select{font:inherit;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:#fff}
+button.b{font:inherit;padding:6px 12px;border:1px solid var(--line);border-radius:6px;background:#fff;cursor:pointer}
+button.b:disabled{opacity:.45;cursor:default}
+button.b.pri{background:var(--acc);color:#fff;border-color:var(--acc)}
+button.b.ok{background:var(--ok);color:#fff;border-color:var(--ok)}
+button.b.bad{background:#fff;color:var(--bad);border-color:var(--bad)}
+.mut{color:var(--mut)}
+.tblwrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{font-size:11px;color:var(--mut);font-weight:600;position:sticky;top:0;background:var(--card)}
+td.t{white-space:normal;min-width:220px}
+td.c{text-align:center;font-size:13px;padding:6px 1px;width:22px}
+th.v{padding:6px 1px;vertical-align:bottom;text-align:center;width:22px}
+th.v span{writing-mode:vertical-rl;transform:rotate(180deg);display:inline-block;white-space:nowrap;font-size:11px;line-height:1}
+th.v.tor span{color:var(--wait)}
+td.t{white-space:normal;min-width:180px;max-width:260px}
+td.next{white-space:normal;min-width:150px;max-width:230px;font-size:12px}
+.st-ok{color:var(--ok)} .st-wait{color:var(--wait);font-weight:700} .st-bad{color:var(--bad);font-weight:700} .st-no{color:#c9c2b6}
+.amp{display:inline-block;width:9px;height:9px;border-radius:50%}
+.amp.gruen{background:var(--ok)} .amp.gelb{background:var(--wait)} .amp.rot{background:var(--bad)}
+.next{font-size:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px;position:relative}
+.card.off{opacity:.45}
+.card h3{font-size:14px;margin:0 0 2px;padding-right:26px}
+.card .sel{position:absolute;top:10px;right:10px;width:18px;height:18px}
+.card img{width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:4px;background:var(--soft);margin:6px 0}
+.card p{margin:6px 0;font-size:13px}
+.pair{border-top:1px dashed var(--line);padding-top:6px;margin-top:6px;font-size:12.5px}
+.pair .s{float:right;font-weight:700;color:var(--wait)}
+.warn{background:#fff4e0;border:1px solid #f0d9a8;border-radius:6px;padding:4px 8px;font-size:12px;display:inline-block}
+audio{width:100%;height:32px;margin:3px 0}
+.list .card{display:grid;grid-template-columns:1fr;}
+pre.log.mini{max-height:140px;font-size:11px;margin:6px 0 0}
+pre.log{background:#1f1d1a;color:#e8e2d6;padding:10px;border-radius:8px;max-height:55vh;overflow:auto;font-size:12px;white-space:pre-wrap}
+.gatebar{position:sticky;top:52px;z-index:4;background:var(--bg);padding:8px 0;border-bottom:1px solid var(--line);margin-bottom:12px}
+.empty{padding:40px;text-align:center;color:var(--mut)}
+.hs-werk{margin-bottom:22px}
+.hs-kopf{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;margin:0 0 8px}
+.hs-kopf h2{font-size:15px;margin:0}
+.hs .grid{align-items:start}
+.hs .card{display:grid;gap:6px;align-content:start}
+.hs .card h3{display:flex;align-items:center;gap:7px}
+.hs .amp{width:12px;height:12px}
+.hs dl{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;margin:0;font-size:12.5px}
+.hs dt{color:var(--mut)} .hs dd{margin:0;font-variant-numeric:tabular-nums}
+.hs .urteil{font-weight:700} .hs .urteil.ok{color:var(--ok)} .hs .urteil.nachrunde{color:var(--wait)} .hs .urteil.umbesetzen{color:var(--bad)}
+.hs .lab{font-size:11px;color:var(--mut);margin-top:2px}
+.hs .knoepfe{display:flex;gap:6px;flex-wrap:wrap}
+.hs .knoepfe .b{padding:4px 9px;font-size:12.5px}
+.hs .ent{font-size:12px;padding:3px 7px;border-radius:5px;background:var(--soft);display:inline-block}
+@media (max-width:600px){.runinfo{width:100%;margin:0}}
+</style></head>
+<body>
+<header><div class="top">
+ <h1>READ LAYER · Cockpit</h1>
+ <nav id="nav"></nav>
+ <div class="runinfo" id="runinfo"></div>
+</div></header>
+<main id="main"></main>
+
+<script>
+const GATES=[["pd","PD"],["uebersetzung","Übersetzung"],["cover","Cover + Klappentext"],
+ ["audio_de_pruefung","Audio DE"],["export_pruefung","Export"]];
+let LAUF=null, VIEW="katalog", KAT=null, SEL=new Set(), FILT={q:"",reif:true,batch:false,nur:""};
+const BATCH1=["1952","11","43","215","921","35","55","1063","41","551"];
+
+const api=(p,b)=>fetch(p,b?{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)}:{}).then(r=>r.json());
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const datei=p=>"/datei?p="+encodeURIComponent(p);
+
+function nav(){
+  const counts={};
+  if(KAT) for(const w of KAT.werke){for(const g of (w.tore_offen||[])) counts[g]=(counts[g]||0)+1;}
+  const items=[["katalog","Katalog"],...GATES.map(([g,l])=>["tor:"+g,l]),["hoerspiel","Hörspiel-Prüfung"],["sprache","Sprachprüfung"],["lauf","Lauf"]];
+  document.getElementById("nav").innerHTML=items.map(([k,l])=>{
+    const c=k.startsWith("tor:")?counts[k.slice(4)]:(k==="hoerspiel"&&KAT?KAT.hoerspiel_offen:0);
+    return `<button class="${VIEW===k?"on":""}" onclick="go('${k}')">${l}${c?`<span class="badge">${c}</span>`:""}</button>`}).join("");
+}
+function go(v){VIEW=v;render()}
+
+async function render(){
+  [KAT,LAUF]=await Promise.all([api("/api/katalog"),api("/api/lauf")]); nav();
+  if(VIEW==="katalog") return katalog();
+  if(VIEW==="lauf") return lauf();
+  if(VIEW==="hoerspiel") return hoerspiel();
+  if(VIEW==="sprache") return sprache();
+  return tor(VIEW.slice(4));
+}
+
+/* ---------------- Katalog ---------------- */
+function cell(w,k,typ){
+  const s=w.status[k];
+  if(typ==="s"){
+    if(s) return `<td class="c st-ok" title="fertig">✓</td>`;
+    if(k==="audio_de"&&w.audio_de_gemischt) return `<td class="c st-bad" title="Gemini-Teilvertonung – manuell entscheiden">${w.audio_de_fortschritt[0]}/${w.audio_de_fortschritt[1]} G</td>`;
+    if(k==="audio_de"&&w.audio_de_fortschritt&&w.audio_de_fortschritt[0]) return `<td class="c st-wait" title="teilweise">${w.audio_de_fortschritt[0]}/${w.audio_de_fortschritt[1]}</td>`;
+    return `<td class="c st-no">·</td>`;
+  }
+  if(s==="frei") return `<td class="c st-ok" title="freigegeben">◆</td>`;
+  if(s==="abgelehnt") return `<td class="c st-bad" title="abgelehnt">✕</td>`;
+  if((w.tore_offen||[]).includes(k)) return `<td class="c st-wait" title="wartet auf Freigabe">●</td>`;
+  return `<td class="c st-no">◇</td>`;
+}
+function filtered(){
+  const q=FILT.q.toLowerCase();
+  return KAT.werke.filter(w=>{
+    if(FILT.reif&&!w.produktionsreif&&!w.slug) return false;
+    if(FILT.batch&&!BATCH1.includes(w.gutenberg_id)) return false;
+    if(FILT.nur==="angelegt"&&!w.slug) return false;
+    if(FILT.nur==="wartet"&&!(w.tore_offen||[]).length) return false;
+    if(q&&!(w.titel+" "+w.autor).toLowerCase().includes(q)) return false;
+    return true});
+}
+function nextTxt(w){
+  const L=Object.fromEntries(KAT.flow.map(f=>[f[0],f[2]]));
+  const jobs=LAUF?LAUF.lanes.map(l=>l.job).filter(j=>j&&j.key===w.key):[];
+  const tore=(w.tore_offen||[]).map(g=>L[g]);
+  if(jobs.length) return `<span class="st-ok"><b>läuft:</b> ${jobs.map(j=>L[j.step]||j.step).join(" + ")}</span>`+(tore.length?`<br><span class="st-wait">Tor: ${tore.join(", ")}</span>`:"");
+  const inAuftrag=LAUF&&LAUF.queue.includes(w.key);
+  const [k,v]=w.naechster;
+  if(inAuftrag&&k==="step") return `<span class="mut">im Auftrag · als Nächstes: ${L[v]}</span>`;
+  if(k==="fertig") return `<span class="st-ok">fertig</span>`;
+  if(k==="gate") return `<span class="st-wait">Tor: ${L[v]}</span>`;
+  if(k==="blockiert") return `<span class="st-bad">abgelehnt: ${L[v]}</span>`;
+  return `<span class="mut">als Nächstes: ${L[v]}</span>`;
+}
+function katalog(){
+  const rows=filtered();
+  const KURZ={pd:"PD",anlegen:"Anlegen",lv_pruefung:"LV-Prüfung",titel:"Titel",lv_audio:"LV-MP3",text:"Text",
+    uebersetzung:"Übersetzung",woerter:"Wortanker",audio_en:"Audio EN",wortzeit_en:"Wortzeit EN",
+    klappentext_cover:"Klappe+Cover",cover_final:"Cover final",cover:"Cover",audio_de:"Audio DE",audio_de_pruefung:"Audio DE",
+    wortzeit_de:"Wortzeit DE",export:"Export",export_pruefung:"Export",demo:"Demo"};
+  const head=KAT.flow.map(f=>`<th class="v${f[1]==="t"?" tor":""}" title="${f[2]}${f[1]==="t"?" (Tor)":""}"><span>${f[1]==="t"?"◇ ":""}${KURZ[f[0]]||f[2]}</span></th>`).join("");
+  document.getElementById("main").innerHTML=`
+   <div class="bar">
+    <input type="search" placeholder="Titel / Autor" value="${esc(FILT.q)}" oninput="FILT.q=this.value;katalog()">
+    <label><input type="checkbox" ${FILT.reif?"checked":""} onchange="FILT.reif=this.checked;katalog()"> nur produktionsreif</label>
+    <label><input type="checkbox" ${FILT.batch?"checked":""} onchange="FILT.batch=this.checked;katalog()"> Batch 1</label>
+    <select onchange="FILT.nur=this.value;katalog()">
+      <option value="">alle</option><option value="angelegt" ${FILT.nur==="angelegt"?"selected":""}>angelegt</option>
+      <option value="wartet" ${FILT.nur==="wartet"?"selected":""}>wartet an Tor</option></select>
+    <span class="mut">${rows.length} Werke · ${SEL.size} markiert</span>
+    <span style="flex:1"></span>
+    <label title="DeepSeek-Schritte nur in der Nebenzeit (halber Preis)"><input type="checkbox" id="nz" checked> nur Nebenzeit</label>
+    ${LAUF&&LAUF.n_laufend?`<span class="mut">▶ ${LAUF.n_laufend} Job(s) laufen</span>`:""}
+    <button class="b pri" onclick="starten()" ${SEL.size?"":"disabled"}>${SEL.size?SEL.size+" Werk(e) in Auftrag geben":"Werke markieren"}</button>
+   </div>
+   <div class="tblwrap"><table>
+    <thead><tr><th><input type="checkbox" onchange="alle(this.checked)"></th><th>Prio</th><th>Titel</th><th>Wörter</th><th></th>${head}<th title="gezaehlte API-Kosten (Schaetzung) seit 10.10.2026">Kosten</th><th>Stand</th></tr></thead>
+    <tbody>${rows.map(w=>`<tr>
+      <td><input type="checkbox" ${SEL.has(w.key)?"checked":""} onchange="sel('${w.key}',this.checked)"></td>
+      <td class="mut">${w.prio<999?w.prio:"–"}</td>
+      <td class="t"><b>${esc(w.titel)}</b><br><span class="mut">${esc(w.autor)}${w.flags?" · "+esc(w.flags):""}</span></td>
+      <td class="mut">${w.woerter?w.woerter.toLocaleString("de-DE"):""}</td>
+      <td><span class="amp ${w.ampel}"></span></td>
+      ${KAT.flow.map(f=>cell(w,f[0],f[1])).join("")}
+      <td class="mut" title="${w.kosten?esc(Object.entries(w.kosten.stages).map(([s,u])=>s+": $"+u).join(" · ")+" · Token "+w.kosten.in.toLocaleString("de-DE")+" ein / "+w.kosten.out.toLocaleString("de-DE")+" aus"):""}">${w.kosten?"$"+w.kosten.usd.toFixed(2):""}</td>
+      <td class="next">${nextTxt(w)}</td></tr>`).join("")}</tbody></table></div>
+   <p class="mut" style="font-size:12px">✓ Schritt fertig · ◆ freigegeben · ● wartet auf Freigabe · ✕ abgelehnt · ◇ Tor offen (Tor-Spalten orange beschriftet)</p>`;
+}
+function sel(k,on){on?SEL.add(k):SEL.delete(k);katalog()}
+function alle(on){for(const w of filtered()) on?SEL.add(w.key):SEL.delete(w.key);katalog()}
+async function starten(){
+  if(!SEL.size) return alert("Erst Werke markieren.");
+  await api("/api/lauf",{keys:[...SEL],nebenzeit:document.getElementById("nz").checked});
+  SEL.clear(); go("lauf");
+}
+
+/* ---------------- Tore ---------------- */
+let TSEL={};
+async function tor(g){
+  const items=await api("/api/tor?g="+g);
+  TSEL={}; items.forEach(i=>TSEL[i.key]=(g!=="pd"||(i.vorschlag&&i.ampel!=="rot")));
+  const m=document.getElementById("main");
+  if(!items.length){m.innerHTML=`<div class="empty">Kein Werk wartet an diesem Tor.</div>`;return}
+  m.innerHTML=`
+   <div class="gatebar bar">
+     <b>${items.length} Werke warten</b>
+     <button class="b" onclick="tsAll(true)">alle markieren</button><button class="b" onclick="tsAll(false)">keine</button>
+     <input type="text" id="notiz" placeholder="Notiz (bei Ablehnung)" style="flex:1;min-width:160px">
+     <button class="b ok" onclick="entscheiden('${g}','frei')">Markierte freigeben</button>
+     <button class="b bad" onclick="entscheiden('${g}','abgelehnt')">Markierte ablehnen</button>
+   </div>
+   <div class="grid">${items.map(i=>card(g,i)).join("")}</div>`;
+}
+function tsAll(on){for(const k in TSEL)TSEL[k]=on;document.querySelectorAll(".card").forEach(c=>{c.classList.toggle("off",!on);c.querySelector(".sel").checked=on})}
+function tsOne(k,on,el){TSEL[k]=on;el.closest(".card").classList.toggle("off",!on)}
+function card(g,i){
+  let body="";
+  if(i.fehler) body=`<p class="st-bad">${esc(i.fehler)}</p>`;
+  else if(g==="pd") body=`<p>Todesjahr: <b>${i.todesjahr??"unbekannt"}</b>${i.uebersetzung?` · <span class="warn">Übersetzung – Übersetzer prüfen</span>`:""}</p>
+      <p>${i.vorschlag?`<span class="st-ok">gemeinfrei (Autor +70)</span>`:`<span class="st-bad">nicht sicher gemeinfrei</span>`}</p>
+      <p class="mut"><span class="amp ${i.ampel}"></span> ${i.woerter?i.woerter.toLocaleString("de-DE")+" Wörter":""} ${i.flags?"· "+esc(i.flags):""}</p>`;
+  else if(g==="cover") body=`${i.cover_final&&i.cover_final.de?`<img src="${datei(i.cover_final.de)}" loading="lazy">`:(i.cover?`<img src="${datei(i.cover)}" loading="lazy"><p class="mut">nur Illustration – Cover final fehlt</p>`:`<p class="st-bad">kein Cover</p>`)}
+      ${(i.kt_fehler||[]).length?`<p class="st-bad" style="font-size:12px">Klappentext: ${i.kt_fehler.map(esc).join("; ")}</p>`:""}
+      ${(i.kt_hinweise||[]).length?`<p class="warn" style="font-size:12px">Hinweis: ${i.kt_hinweise.map(esc).join("; ")}</p>`:""}
+      ${i.titel_de?`<p><b>DE-Titel:</b> ${esc(i.titel_de)}${i.titel_pruefen?' <span class="warn">geraten – prüfen</span>':""}</p>`:'<p class="mut">DE-Titel fehlt noch</p>'}
+      ${i.sicherheit&&i.sicherheit!=="ok"?`<span class="warn">Sicherheit: ${esc(i.sicherheit)}</span>`:""}
+      ${i.inhaltshinweise?.length?`<p class="mut" style="font-size:12px">Hinweise: ${i.inhaltshinweise.map(esc).join(", ")}</p>`:""}
+      <p>${esc(i.einordnung_de||i.einordnung_en)}</p>
+      ${i.koeder_de?`<p class="mut"><i>„${esc(i.koeder_de)}“</i></p>`:""}`;
+  else if(g==="uebersetzung") body=`<p>Ø Score <b>${i.avg??"–"}</b> · ${i.n_flagged??0} von ${i.n??"–"} Sätzen unter ${i.schwelle??90}</p>
+      ${(i.beispiele||[]).map(b=>`<div class="pair"><span class="s">${b.score}</span><div class="mut">${esc(b.en)}</div><div>${esc(b.de)}</div></div>`).join("")}`;
+  else if(g==="audio_de_pruefung") body=`
+      ${i.stt?`<p class="mut">STT geprüft: ${i.stt.geprueft??"–"} · offene Auffälligkeiten: <b>${i.stt.flags??"–"}</b></p>`:""}
+      ${(i.proben||[]).map(p=>`<audio controls preload="none" src="${datei(p)}"></audio>`).join("")||`<p class="mut">keine Proben</p>`}`;
+  else if(g==="export_pruefung") body=(i.dateien||[]).map(d=>`<p><a href="${datei(d.pfad)}">${esc(d.pfad.split("/").pop())}</a> <span class="mut">${d.kb} KB · ${d.pfad.includes("/de/")?"DE":"EN"}</span></p>`).join("");
+  const on=TSEL[i.key];
+  return `<div class="card${on?"":" off"}"><input type="checkbox" class="sel" ${on?"checked":""} onchange="tsOne('${i.key}',this.checked,this)">
+    <h3>${esc(i.titel)}</h3><div class="mut" style="font-size:12px">${esc(i.autor||"")}${i.prio<999?" · Prio "+i.prio:""}</div>${body}</div>`;
+}
+async function entscheiden(g,status){
+  const keys=Object.keys(TSEL).filter(k=>TSEL[k]);
+  if(!keys.length) return;
+  const notiz=document.getElementById("notiz").value;
+  if(status==="abgelehnt"&&!notiz&&!confirm("Ohne Notiz ablehnen?")) return;
+  await api("/api/freigabe",{gate:g,status,keys,notiz});
+  render();
+}
+
+/* ---------------- Hörspiel-Prüfung (nach dem Overlay) ---------------- */
+const HS_AMP={ok:"gruen",nachrunde:"gelb",umbesetzen:"rot"};
+const HS_TXT={freigeben:"freigegeben",nachrunde:"Nachrunde",umbesetzen:"umbesetzen"};
+const zahl=(x,n=2)=>x==null?"–":Number(x).toFixed(n).replace(".",",");
+const proz=x=>x==null?"–":Math.round(100*x)+" %";
+async function hoerspiel(){
+  const items=await api("/api/hoerspiel"), m=document.getElementById("main");
+  if(!items.length){m.innerHTML=`<div class="empty">Noch keine Hörspiel-Prüfung.<br>Start nach dem Overlay: <code>start_trennung_messen.bat &lt;werk&gt; &lt;lg&gt;</code></div>`;return}
+  m.innerHTML=`<p class="mut" style="font-size:12px;margin-top:0">Ampel aus der jüngsten Runde: <span class="amp gruen"></span> getrennt (ECAPA) und näher an der Zielstimme · <span class="amp gelb"></span> Nachrunde (Formant eine Stufe weiter) · <span class="amp rot"></span> umbesetzen (Grenze 0,94–1,10 erreicht, nach der Nachrunde oder weg von der Zielstimme).</p>`
+   +items.map(hsWerk).join("");
+}
+function hsWerk(w){
+  const offen=w.figuren.filter(f=>!f.entscheidung).length, oks=w.figuren.filter(f=>f.urteil==="ok"&&!f.entscheidung).map(f=>f.figur);
+  return `<section class="hs-werk hs"><div class="hs-kopf"><h2>${esc(w.titel)} <span class="mut">[${w.lg.toUpperCase()}]</span></h2>
+    <span class="mut">Runde ${esc(w.runde||"vc")} · ${esc(w.datum||"")} · Tor: <b class="${w.tor==="frei"?"st-ok":w.tor==="offen"?"st-wait":""}">${esc(w.tor)}</b> · ${offen} offen</span>
+    ${w.bericht?`<a href="${datei(w.bericht)}" target="_blank" style="font-size:12px">Bericht</a>`:""}
+    <span style="flex:1"></span>
+    ${oks.length?`<button class="b ok" onclick='hsEnt(${JSON.stringify(w.slug)},"${w.lg}",${JSON.stringify(oks).replace(/'/g,"&#39;")},"freigeben")'>alle grünen freigeben (${oks.length})</button>`:""}</div>
+    <div class="grid">${w.figuren.map(f=>hsFigur(w,f)).join("")}</div></section>`;
+}
+function hsFigur(w,f){
+  const e=f.ecapa||{}, d=f.D||{}, py=f.pyannote||{}, h=f.hoerprobe||{}, ent=f.entscheidung;
+  const arg=a=>`hsEnt(${JSON.stringify(w.slug)},"${w.lg}",[${JSON.stringify(f.figur)}],"${a}")`.replace(/"/g,"&quot;");
+  const korr=f.korrektur&&Math.abs(f.korrektur-1)>1e-3?zahl(f.korrektur):"keine";
+  return `<div class="card"><h3><span class="amp ${HS_AMP[f.urteil]||""}"></span>${esc(f.figur)}</h3>
+    <div class="mut" style="font-size:12px">${esc(f.stimme||"")}</div>
+    <dl><dt>ECAPA</dt><dd>${zahl(e.vorher)} → <b>${zahl(e.jetzt)}</b> (Schwelle ${zahl(e.schwelle,3)})${e.naeher_an_ziel===false?' · <span class="st-bad">weg von Zielstimme</span>':""}</dd>
+     <dt>pyannote</dt><dd>${proz(py.vorher)} → <b>${proz(py.jetzt)}</b> getrennt</dd>
+     <dt>D (F0×VTL)</dt><dd>Casting ${zahl(d.casting)} · VC ${zahl(d.vorher)} → ${zahl(d.jetzt)} (Ziel ≥ 4,06)</dd>
+     <dt>Korrektur</dt><dd>Formant ${korr}${f.korrektur_neu?` → <b>${zahl(f.korrektur_neu)}</b>`:""}</dd></dl>
+    <div class="urteil ${f.urteil}">${esc(f.urteil)}</div><div class="mut" style="font-size:12px">${esc(f.grund||"")}</div>
+    ${h.erzaehler?`<div class="lab">Erzähler daneben</div><audio controls preload="none" src="${datei(h.erzaehler)}"></audio>`:""}
+    ${h.vorher?`<div class="lab">Figur vorher (VC roh)</div><audio controls preload="none" src="${datei(h.vorher)}"></audio>`:""}
+    ${h.nachher?`<div class="lab">Figur nachher (Runde ${esc(f.runde)})</div><audio controls preload="none" src="${datei(h.nachher)}"></audio>`:""}
+    ${hsUmb(w,f)}
+    ${ent?`<div><span class="ent">${HS_TXT[ent.aktion]||ent.aktion} · ${esc(ent.zeit.slice(5,16).replace("T"," "))}</span> <button class="b" style="padding:2px 7px;font-size:12px" onclick="${arg("offen")}">zurück</button></div>`
+      :`<div class="knoepfe"><button class="b ok" onclick="${arg("freigeben")}">Freigeben</button><button class="b" onclick="${arg("nachrunde")}">Nachrunde</button><button class="b bad" onclick="${arg("umbesetzen")}">Umbesetzen</button></div>`}
+  </div>`;
+}
+function hsUmb(w,f){
+  const u=f.umbesetzung;
+  if(!u||!(u.kandidaten||[]).length) return f.urteil==="umbesetzen"&&!(f.entscheidung&&f.entscheidung.aktion==="freigeben")
+    ?`<div class="mut" style="font-size:12px">Kandidaten designen: <code>start_umbesetzen.bat ${esc(w.slug)} ${w.lg} "${esc(f.figur)}"</code></div>`:"";
+  const st={ok:"st-ok",knapp:"st-wait",zu_nah:"st-bad"};
+  return `<div class="pair"><b>Umbesetzung</b> <span class="mut">· alt ${esc(u.alt||"")} · Ziel D ≥ ${zahl(u.D_ziel)}</span>
+    ${u.kandidaten.map(k=>`<div style="margin-top:6px"><b>${esc(k.stimme)}</b> <span class="mut">${esc(k.richtung)}</span>
+      · D <b class="${st[k.status]||""}">${zahl(k.D)}</b> <span class="mut">(F0 ${zahl(k.dF0_ht,1)} HT, VTL ${zahl(k.dVTL_proz,1)} %)</span>
+      ${u.gewaehlt===k.stimme?'<span class="ent">gewählt</span>':`<button class="b" style="padding:2px 8px;font-size:12px" onclick="${`hsWahl(${JSON.stringify(w.slug)},"${w.lg}",${JSON.stringify(f.figur)},${JSON.stringify(k.stimme)})`.replace(/"/g,"&quot;")}">wählen</button>`}
+      <audio controls preload="none" src="${datei(k.hoerprobe)}"></audio></div>`).join("")}
+    ${u.gewaehlt?`<div class="mut" style="font-size:12px">Weiter: <code>start_overlay_teil.bat ${esc(w.slug)} ${w.lg} "${esc(f.figur)}"</code>, dann <code>start_trennung_messen.bat ${esc(w.slug)} ${w.lg}</code></div>`:""}</div>`;
+}
+async function hsWahl(slug,lg,figur,stimme){
+  if(!confirm(figur+" mit "+stimme+" besetzen?")) return;
+  const r=await api("/api/hoerspiel",{slug,lg,figuren:[figur],aktion:"waehlen",stimme});
+  if(r.fehler) alert(r.fehler); else if(r.meldung) alert(r.meldung.join("\n"));
+  render();
+}
+async function hsEnt(slug,lg,figuren,aktion){
+  const r=await api("/api/hoerspiel",{slug,lg,figuren,aktion});
+  if(r.fehler) alert(r.fehler); else if(r.meldung&&r.meldung.length) alert(r.meldung.join("\n"));
+  render();
+}
+
+/* ---------------- Sprachprüfung (kippt die Aussprache?) ---------------- */
+let SP_N=80;
+async function sprache(){
+  const items=await api("/api/sprache?n="+SP_N), m=document.getElementById("main");
+  if(!items.length){m.innerHTML=`<div class="empty">Noch keine Sprachprüfung.<br>Start: <code>start_sprachpruefung.bat &lt;werk&gt; &lt;lg&gt;</code></div>`;return}
+  m.innerHTML=items.map(spWerk).join("")+`<p><button class="b" onclick="SP_N+=80;sprache()">mehr Sätze zeigen</button></p>`;
+}
+function spWerk(w){
+  const st=w.stufen||{}, u=w.urteile||{};
+  return `<section class="hs-werk hs"><div class="hs-kopf"><h2>${esc(w.titel)} <span class="mut">[${w.lg.toUpperCase()}]</span></h2>
+   <span class="mut">${w.n} Sätze · <b class="st-bad">${st.gekippt||0} gekippt</b> · <b class="st-wait">${st.verdacht||0} Verdacht</b> · ${st.ok||0} ok · auffällig mit Eigenname ${proz(w.quote_mit_namen)}, ohne ${proz(w.quote_ohne_namen)} · deine Urteile: ${u.kippt} kippt / ${u.ok} ok</span></div>
+   <details${w.namen.length?" open":""}><summary class="mut" style="font-size:12px;cursor:pointer">Namen nach Kipp-Quote</summary>
+   <div class="tblwrap" style="max-width:520px;margin:6px 0 12px"><table><thead><tr><th>Name</th><th>Sätze</th><th>auffällig</th><th>Quote</th></tr></thead><tbody>
+   ${w.namen.map(n=>`<tr><td>${esc(n.name)}</td><td>${n.saetze}</td><td>${n.auffaellig}</td><td class="${n.quote>=.5?"st-bad":n.quote>=.25?"st-wait":""}">${proz(n.quote)}</td></tr>`).join("")}</tbody></table></div></details>
+   <div class="tblwrap"><table><thead><tr><th></th><th>Satz</th><th>p(${w.lg})</th><th>en / fr</th><th>Text · Whisper hört</th><th>Hören</th><th>Urteil</th></tr></thead><tbody>
+   ${w.liste.map(s=>spZeile(w,s)).join("")}</tbody></table></div></section>`;
+}
+function spZeile(w,s){
+  const a=(u)=>`spUrteil(${JSON.stringify(w.slug)},"${w.lg}","${s.tag}",${u?`"${u}"`:"null"})`.replace(/"/g,"&quot;");
+  const farbe={gekippt:"rot",verdacht:"gelb",ok:"gruen"}[s.stufe];
+  return `<tr><td><span class="amp ${farbe}"></span></td><td class="mut" style="font-size:12px">${esc(s.tag)}${s.kurz?"<br>kurz":""}</td>
+   <td>${zahl(s.p_ziel)}</td><td class="mut">${zahl(s.p_en)} / ${zahl(s.p_fr)}</td>
+   <td class="t" style="max-width:520px;font-size:12.5px">${esc(s.soll)}${s.namen&&s.namen.length?`<br><span class="warn">${s.namen.map(esc).join(", ")}</span>`:""}
+     <br><span class="mut">Whisper (${esc(s.top)}): ${esc(s.text_frei)}</span></td>
+   <td style="min-width:200px"><audio controls preload="none" src="${datei(s.audio)}"></audio></td>
+   <td>${s.urteil?`<span class="ent">${s.urteil}</span> <button class="b" style="padding:2px 6px;font-size:12px" onclick="${a(null)}">×</button>`
+      :`<button class="b bad" style="padding:3px 8px" onclick="${a("kippt")}">kippt</button> <button class="b" style="padding:3px 8px" onclick="${a("ok")}">ok</button>`}</td></tr>`;
+}
+async function spUrteil(slug,lg,tag,urteil){await api("/api/sprache",{slug,lg,tag,urteil});sprache()}
+
+/* ---------------- Lauf ---------------- */
+let LT=null;
+async function lauf(){
+  const s=await api("/api/lauf");
+  const name=k=>{const w=KAT.werke.find(x=>x.key===k);return w?w.titel:k};
+  document.getElementById("main").innerHTML=`
+   <div class="bar"><b>${s.n_laufend?s.n_laufend+" Job(s) laufen":"Kein Job aktiv"}</b>
+     <span class="mut">${s.nebenzeit_jetzt?"DeepSeek: Nebenzeit (halber Preis)":"DeepSeek: Spitzenzeit"+(s.nebenzeit?" – Text-Jobs warten":"")}</span>
+     <span style="flex:1"></span>${(s.laeuft||s.queue.length)?`<button class="b bad" onclick="stopp()">Keine neuen Jobs starten</button>`:""}</div>
+   <div class="grid lanes">${s.lanes.map(l=>`<div class="card">
+       <h3>${esc(l.name)}</h3>
+       ${l.job?`<p><b>${esc(l.job.titel)}</b><br><span class="mut">${esc(l.job.step)} · seit ${l.job.start}</span></p>
+         <pre class="log mini">${esc(l.log.split("\n").slice(-8).join("\n"))}</pre>`:`<p class="mut">frei – gerade nichts zu tun</p>`}
+     </div>`).join("")}</div>
+   ${s.queue.length?`<p class="mut">Warteschlange (kürzeste zuerst je Bahn): ${s.queue.map(k=>esc(name(k))).join(" · ")}</p>`:""}
+   ${s.wartend.length?`<p class="mut">An einem Tor: ${s.wartend.map(k=>esc(name(k))).join(" · ")}</p>`:""}
+   <h3 style="font-size:13px">Verlauf</h3>
+   <div class="tblwrap"><table><tbody>${s.history.slice().reverse().map(h=>`<tr><td class="mut">${h.zeit}</td><td>${esc(h.titel)}</td><td>${esc(h.msg)}</td></tr>`).join("")||`<tr><td class="mut">noch nichts</td></tr>`}</tbody></table></div>`;
+  clearTimeout(LT); if(VIEW==="lauf") LT=setTimeout(()=>{if(VIEW==="lauf")lauf()},3000);
+}
+async function stopp(){await api("/api/stop",{});lauf()}
+
+async function runinfo(){
+  try{const s=await api("/api/lauf");
+   document.getElementById("runinfo").textContent=s.n_laufend?`▶ ${s.n_laufend} Job(s): `+s.lanes.filter(l=>l.job).map(l=>l.job.titel.slice(0,22)+" · "+l.job.step).join(" | "):(s.nebenzeit_jetzt?"DeepSeek-Nebenzeit":"DeepSeek-Spitzenzeit");}catch(e){}
+  setTimeout(runinfo,5000);
+}
+render(); runinfo();
+</script>
+</body></html>

@@ -1,0 +1,39 @@
+{
+  "book_slug": "the-riddle-of-the-sands",
+  "author_slug": "childers-e",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q1170204",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The Riddle of the Sands",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "2360",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The Riddle of the Sands",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Das Rätsel der Sandbank",
+      "titel_quelle": "wikidata",
+      "titel_pruefen": false
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:27:00"
+}

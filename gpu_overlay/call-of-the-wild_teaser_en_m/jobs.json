@@ -1,0 +1,47 @@
+{
+ "lang": "en",
+ "jobs": [
+  {
+   "id": "t1_01_01",
+   "stimme": "herr_a",
+   "figur": "Klappentext",
+   "text": "Buck did not read the newspapers, or he would have known that trouble was brewing, not alone for himself, but for every tide-water dog, strong of muscle and with warm, long hair, from Puget Sound to San Diego."
+  },
+  {
+   "id": "t1_01_02",
+   "stimme": "herr_a",
+   "figur": "Klappentext",
+   "text": "Because men, groping in the Arctic darkness, had found a yellow metal, and because steamship and transportation companies were booming the find, thousands of men were rushing into the Northland."
+  },
+  {
+   "id": "t2_01_01",
+   "stimme": "herr_a",
+   "figur": "Klappentext",
+   "text": "Stolen from a sunny Californian estate and sold into the frozen North, Buck must learn the law of club and fang to survive."
+  },
+  {
+   "id": "t2_02_01",
+   "stimme": "herr_a",
+   "figur": "Klappentext",
+   "text": "Amid the Klondike gold rush, the domesticated dog slowly rediscovers the instincts of his wild ancestors."
+  },
+  {
+   "id": "t2_03_01",
+   "stimme": "herr_a",
+   "figur": "Klappentext",
+   "text": "A raw, elemental adventure about loyalty, endurance and the pull of the wilderness."
+  },
+  {
+   "id": "t3_01_01",
+   "stimme": "herr_a",
+   "figur": "Klappentext",
+   "text": "Jack London (1876–1916) was born in San Francisco."
+  },
+  {
+   "id": "t3_02_01",
+   "stimme": "herr_a",
+   "figur": "Klappentext",
+   "text": "Besides The Call of the Wild, his best-known works include White Fang, The Sea-Wolf and Martin Eden."
+  }
+ ]
+}

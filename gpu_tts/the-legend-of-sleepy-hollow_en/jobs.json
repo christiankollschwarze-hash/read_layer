@@ -1,0 +1,2512 @@
+{
+ "werk": "the-legend-of-sleepy-hollow",
+ "lang": "en",
+ "ref": "chatterbox-standard",
+ "jobs": [
+  {
+   "id": "c001_00001_h",
+   "kap": "c001",
+   "text": "The Legend of Sleepy Hollow"
+  },
+  {
+   "id": "c001_00002_s",
+   "kap": "c001",
+   "text": "by Washington Irving"
+  },
+  {
+   "id": "c001_00003_qt",
+   "kap": "c001",
+   "text": "FOUND AMONG THE PAPERS OF THE LATE DIEDRICH KNICKERBOCKER."
+  },
+  {
+   "id": "c001_00005_h",
+   "kap": "c001",
+   "text": "CASTLE OF INDOLENCE."
+  },
+  {
+   "id": "c001_00007_s",
+   "kap": "c001",
+   "text": "In the heart of one of those spacious coves that indent the eastern shore of the Hudson, at that broad expansion of the river called by the old Dutch navigators the Tappan Zee, there lies a small market town or rural port."
+  },
+  {
+   "id": "c001_00008_s",
+   "kap": "c001",
+   "text": "Here, they always prudently shortened sail and prayed for the protection of St. Nicholas when they crossed."
+  },
+  {
+   "id": "c001_00009_s",
+   "kap": "c001",
+   "text": "Some call this place Greensburgh, but it is more generally and properly known as Tarry Town."
+  },
+  {
+   "id": "c001_00010_s",
+   "kap": "c001",
+   "text": "We are told that the name was given in former days by the good housewives of the neighboring countryside, because of their husbands' deep-rooted habit of lingering around the village tavern on market days."
+  },
+  {
+   "id": "c001_00011_s",
+   "kap": "c001",
+   "text": "Be that as it may, I don't vouch for the truth of it, but merely mention it for the sake of being precise and authentic."
+  },
+  {
+   "id": "c001_00012_s",
+   "kap": "c001",
+   "text": "Not far from this village, perhaps about two miles away, there is a little valley, or rather a lap of land among high hills, which is one of the quietest places in the whole world."
+  },
+  {
+   "id": "c001_00013_s",
+   "kap": "c001",
+   "text": "A small brook glides through it, with just enough murmur to lull you to sleep; and the occasional whistle of a quail or the tapping of a woodpecker is almost the only sound that ever breaks in on the uniform tranquility."
+  },
+  {
+   "id": "c001_00015_s",
+   "kap": "c001",
+   "text": "I remember that, when I was a boy, my first squirrel-shooting adventure was in a grove of tall walnut trees that shade one side of the valley."
+  },
+  {
+   "id": "c001_00016_s",
+   "kap": "c001",
+   "text": "I had wandered into it at noon, when all nature is especially quiet, and was startled by the roar of my own gun, as it broke the Sabbath stillness around and was prolonged and echoed back by the angry echoes."
+  },
+  {
+   "id": "c001_00017_s",
+   "kap": "c001",
+   "text": "If ever I should wish for a retreat where I might steal away from the world and its distractions, and dream quietly away the rest of a troubled life, I know of none more promising than this little valley."
+  },
+  {
+   "id": "c001_00019_s",
+   "kap": "c001",
+   "text": "From the dreamy quiet of the place, and the peculiar character of its inhabitants, who are descendants of the original Dutch settlers, this secluded valley has long been known by the name of SLEEPY HOLLOW."
+  },
+  {
+   "id": "c001_00020_s",
+   "kap": "c001",
+   "text": "Its rustic lads are called the Sleepy Hollow Boys throughout all the neighboring country."
+  },
+  {
+   "id": "c001_00021_s",
+   "kap": "c001",
+   "text": "A drowsy, dreamy influence seems to hang over the land and pervade the very atmosphere."
+  },
+  {
+   "id": "c001_00022_s",
+   "kap": "c001",
+   "text": "Some say that the place was bewitched by a High German doctor during the early days of the settlement; others say that an old Indian chief, the prophet or wizard of his tribe, held his powwows there before the country was discovered by Master Hendrick Hudson."
+  },
+  {
+   "id": "c001_00023_s",
+   "kap": "c001",
+   "text": "What is certain is that the place still continues under the sway of some bewitching power, which holds a spell over the minds of the good people, causing them to walk around in a constant daydream."
+  },
+  {
+   "id": "c001_00024_s",
+   "kap": "c001",
+   "text": "They are given to all kinds of marvelous beliefs, are subject to trances and visions, and frequently see strange sights and hear music and voices in the air."
+  },
+  {
+   "id": "c001_00025_s",
+   "kap": "c001",
+   "text": "The whole neighborhood abounds with local tales, haunted spots, and twilight superstitions."
+  },
+  {
+   "id": "c001_00026_s",
+   "kap": "c001",
+   "text": "Shooting stars and glaring meteors appear more often across the valley than in any other part of the country, and the nightmare, with her whole ninefold, seems to make it the favorite scene of her gambols."
+  },
+  {
+   "id": "c001_00028_s",
+   "kap": "c001",
+   "text": "However, the dominant spirit that haunts this enchanted region, and seems to be commander-in-chief of all the powers of the air, is the apparition of a headless figure on horseback."
+  },
+  {
+   "id": "c001_00029_s",
+   "kap": "c001",
+   "text": "Some say it is the ghost of a Hessian trooper, whose head was carried away by a cannon-ball in some nameless battle during the Revolutionary War."
+  },
+  {
+   "id": "c001_00030_s",
+   "kap": "c001",
+   "text": "The country folk see him now and then, hurrying along in the gloom of night as if on the wings of the wind."
+  },
+  {
+   "id": "c001_00031_s",
+   "kap": "c001",
+   "text": "His haunts are not confined to the valley, but extend at times to the nearby roads, and especially to the vicinity of a church not far away."
+  },
+  {
+   "id": "c001_00032_s",
+   "kap": "c001",
+   "text": "Indeed, some of the most reliable local historians have carefully collected and compared the scattered facts about this spectre."
+  },
+  {
+   "id": "c001_00033_s",
+   "kap": "c001",
+   "text": "They claim that the trooper’s body was buried in the churchyard, and that the ghost rides out to the battlefield nightly in search of his head."
+  },
+  {
+   "id": "c001_00034_s",
+   "kap": "c001",
+   "text": "The rushing speed with which he sometimes passes along the Hollow, like a midnight blast, is because he is running late and in a hurry to get back to the churchyard before daybreak."
+  },
+  {
+   "id": "c001_00036_s",
+   "kap": "c001",
+   "text": "Such is the general gist of this legendary superstition, which has provided material for many a wild story in that shadowy region; and the spectre is known at every country fireside as the Headless Horseman of Sleepy Hollow."
+  },
+  {
+   "id": "c001_00038_s",
+   "kap": "c001",
+   "text": "It is remarkable that the tendency to see visions I have mentioned is not confined to the native inhabitants of the valley, but is unconsciously absorbed by everyone who lives there for a time."
+  },
+  {
+   "id": "c001_00039_s",
+   "kap": "c001",
+   "text": "No matter how wide awake they may have been before they entered that sleepy region, in a little while they are sure to inhale the bewitching influence of the air, and begin to grow imaginative, to dream dreams, and to see apparitions."
+  },
+  {
+   "id": "c001_00041_s",
+   "kap": "c001",
+   "text": "I mention this peaceful spot with all possible praise."
+  },
+  {
+   "id": "c001_00042_s",
+   "kap": "c001",
+   "text": "It is in such little secluded Dutch valleys, found here and there nestled in the great State of New York, that the population, manners, and customs remain fixed, while the great torrent of migration and improvement sweeps past them unnoticed, making such incessant changes in other parts of this restless country."
+  },
+  {
+   "id": "c001_00043_s",
+   "kap": "c001",
+   "text": "They are like those little nooks of still water beside a rapid stream, where we may see straw and bubbles riding quietly at anchor, or slowly revolving in their miniature harbor, undisturbed by the rush of the passing current."
+  },
+  {
+   "id": "c001_00044_s",
+   "kap": "c001",
+   "text": "Though many years have passed since I walked the drowsy shades of Sleepy Hollow, I wonder if I would not still find the same trees and the same families vegetating in its sheltered bosom."
+  },
+  {
+   "id": "c001_00046_s",
+   "kap": "c001",
+   "text": "In this out-of-the-way spot, some thirty years ago, there lived a worthy fellow named Ichabod Crane."
+  },
+  {
+   "id": "c001_00047_s",
+   "kap": "c001",
+   "text": "He stayed—or, as he put it, “tarried”—in Sleepy Hollow to teach the local children."
+  },
+  {
+   "id": "c001_00048_s",
+   "kap": "c001",
+   "text": "He was a native of Connecticut, a state that supplies the nation with pioneers of the mind as well as pioneers of the forest, sending out every year its legions of frontier woodsmen and country schoolmasters."
+  },
+  {
+   "id": "c001_00049_s",
+   "kap": "c001",
+   "text": "The name Crane suited his appearance."
+  },
+  {
+   "id": "c001_00050_s",
+   "kap": "c001",
+   "text": "He was tall, but extremely lanky, with narrow shoulders, long arms and legs, hands that dangled a mile out of his sleeves, and feet that could have been used as shovels; his whole frame seemed loosely put together."
+  },
+  {
+   "id": "c001_00051_s",
+   "kap": "c001",
+   "text": "His head was small and flat on top, with huge ears, large glassy green eyes, and a long, snipe-like nose."
+  },
+  {
+   "id": "c001_00052_s",
+   "kap": "c001",
+   "text": "It looked like a weather vane perched on his spindly neck, showing which way the wind blew."
+  },
+  {
+   "id": "c001_00053_s",
+   "kap": "c001",
+   "text": "If you saw him striding along the ridge of a hill on a windy day, with his clothes billowing and flapping around him, you might have mistaken him for the spirit of famine descending to earth, or some scarecrow escaped from a cornfield."
+  },
+  {
+   "id": "c001_00055_s",
+   "kap": "c001",
+   "text": "His schoolhouse was a low, one-room building, roughly built of logs; the windows were partly glass and partly patched with sheets from old copybooks."
+  },
+  {
+   "id": "c001_00056_s",
+   "kap": "c001",
+   "text": "When school was out, it was cleverly secured by a flexible twig twisted around the door handle, and stakes propped against the window shutters."
+  },
+  {
+   "id": "c001_00057_s",
+   "kap": "c001",
+   "text": "This way, a thief could get in easily but would have trouble getting out—an idea the architect, Yost Van Houten, probably borrowed from the mystery of an eel trap."
+  },
+  {
+   "id": "c001_00058_s",
+   "kap": "c001",
+   "text": "The schoolhouse stood in a rather lonely but pleasant spot, right at the foot of a wooded hill, with a brook running nearby and an imposing birch tree growing at one end."
+  },
+  {
+   "id": "c001_00059_s",
+   "kap": "c001",
+   "text": "On a drowsy summer day, you could hear the low murmur of his pupils’ voices as they studied their lessons, like the hum of a beehive, interrupted now and then by the master’s authoritative voice, menacing or commanding, or perhaps by the dreadful sound of the birch stick as he prodded some lagging student along the flowery path of knowledge."
+  },
+  {
+   "id": "c001_00060_s",
+   "kap": "c001",
+   "text": "To tell the truth, he was a conscientious man and always kept in mind that golden rule: “Spare the rod and spoil the child.”"
+  },
+  {
+   "id": "c001_00061_s",
+   "kap": "c001",
+   "text": "Ichabod Crane’s pupils certainly were not spoiled."
+  },
+  {
+   "id": "c001_00063_s",
+   "kap": "c001",
+   "text": "But don’t imagine he was one of those cruel school tyrants who delight in the pain of their charges."
+  },
+  {
+   "id": "c001_00064_s",
+   "kap": "c001",
+   "text": "On the contrary, he dispensed justice with careful judgment rather than harshness, taking the burden off the backs of the weak and placing it on the strong."
+  },
+  {
+   "id": "c001_00065_s",
+   "kap": "c001",
+   "text": "A puny little boy who flinched at the slightest wave of the rod was passed over with indulgence; but justice was satisfied by giving a double dose to some tough, stubborn, broad-skirted Dutch urchin, who sulked, puffed up, and grew doggedly sullen under the birch."
+  },
+  {
+   "id": "c001_00066_s",
+   "kap": "c001",
+   "text": "All this he called “doing his duty by their parents.”"
+  },
+  {
+   "id": "c001_00067_s",
+   "kap": "c001",
+   "text": "And he never gave a punishment without then assuring the sore urchin, in what was meant to be a consoling way, that “he would remember it and thank him for it the longest day he had to live.”"
+  },
+  {
+   "id": "c001_00069_s",
+   "kap": "c001",
+   "text": "When school hours were over, he was even the companion and playmate of the larger boys."
+  },
+  {
+   "id": "c001_00070_s",
+   "kap": "c001",
+   "text": "On holiday afternoons he would escort some of the smaller ones home—those who happened to have pretty sisters, or good housewife mothers known for their well-stocked cupboards."
+  },
+  {
+   "id": "c001_00071_s",
+   "kap": "c001",
+   "text": "Indeed, he needed to stay on good terms with his pupils."
+  },
+  {
+   "id": "c001_00072_s",
+   "kap": "c001",
+   "text": "The income from his school was small, and would scarcely have been enough to provide him with daily bread, for he was a huge eater and, though lanky, had the expanding stomach of an anaconda."
+  },
+  {
+   "id": "c001_00073_s",
+   "kap": "c001",
+   "text": "But to supplement his living, he was boarded and lodged at the houses of the farmers whose children he taught, according to country custom in those parts."
+  },
+  {
+   "id": "c001_00074_s",
+   "kap": "c001",
+   "text": "He lived with these successively, a week at a time, going the rounds of the neighborhood, with all his worldly belongings tied up in a cotton handkerchief."
+  },
+  {
+   "id": "c001_00076_s",
+   "kap": "c001",
+   "text": "So that all this would not be too onerous on the purses of his rustic patrons—who tend to consider school costs a grievous burden and schoolmasters as mere drones—he had various ways of making himself both useful and agreeable."
+  },
+  {
+   "id": "c001_00077_s",
+   "kap": "c001",
+   "text": "He occasionally assisted the farmers in the lighter labors of their farms: he helped make hay, repaired fences, took horses to water, drove cows from pasture, and cut wood for the winter fire."
+  },
+  {
+   "id": "c001_00078_s",
+   "kap": "c001",
+   "text": "He also laid aside all the dominant dignity and absolute authority with which he ruled his little empire, the school, and became wonderfully gentle and ingratiating."
+  },
+  {
+   "id": "c001_00079_s",
+   "kap": "c001",
+   "text": "He found favor in the eyes of the mothers by petting the children, particularly the youngest; and like the bold lion that once magnanimously held a lamb, he would sit with a child on one knee, and rock a cradle with his foot for hours at a time."
+  },
+  {
+   "id": "c001_00081_s",
+   "kap": "c001",
+   "text": "In addition to his other jobs, he was the singing-master of the neighborhood, and earned many bright shillings by instructing the young folks in psalm-singing."
+  },
+  {
+   "id": "c001_00082_s",
+   "kap": "c001",
+   "text": "On Sundays it was a matter of no little vanity for him to take his place in front of the church gallery with a select band of singers."
+  },
+  {
+   "id": "c001_00083_s",
+   "kap": "c001",
+   "text": "There, in his own mind, he completely carried away the palm from the parson."
+  },
+  {
+   "id": "c001_00084_s",
+   "kap": "c001",
+   "text": "It is certain that his voice resounded far above all the rest of the congregation."
+  },
+  {
+   "id": "c001_00085_s",
+   "kap": "c001",
+   "text": "Peculiar quavers are still to be heard in that church, and they may even be heard half a mile off, quite to the opposite side of the millpond, on a still Sunday morning."
+  },
+  {
+   "id": "c001_00086_s",
+   "kap": "c001",
+   "text": "These quavers are said to be legitimately descended from the nose of Ichabod Crane."
+  },
+  {
+   "id": "c001_00087_s",
+   "kap": "c001",
+   "text": "Thus, by various little makeshifts, in that ingenious way commonly called “by hook and by crook,” the worthy pedagogue got on tolerably enough."
+  },
+  {
+   "id": "c001_00088_s",
+   "kap": "c001",
+   "text": "He was thought, by all who understood nothing of mental labor, to have a wonderfully easy life of it."
+  },
+  {
+   "id": "c001_00090_s",
+   "kap": "c001",
+   "text": "In a rural neighborhood, the schoolmaster is usually a man of some importance among the women."
+  },
+  {
+   "id": "c001_00091_s",
+   "kap": "c001",
+   "text": "He is seen as a somewhat idle, gentlemanly figure, with far better taste and accomplishments than the rough country lads, and in learning he is second only to the parson."
+  },
+  {
+   "id": "c001_00092_s",
+   "kap": "c001",
+   "text": "So his arrival at a farmhouse tea-table is likely to cause a little stir, and perhaps an extra dish of cakes or sweets, or even the display of a silver teapot."
+  },
+  {
+   "id": "c001_00093_s",
+   "kap": "c001",
+   "text": "Our man of letters was therefore especially happy to receive smiles from all the country girls."
+  },
+  {
+   "id": "c001_00094_s",
+   "kap": "c001",
+   "text": "How he would show off among them in the churchyard between Sunday services!"
+  },
+  {
+   "id": "c001_00095_s",
+   "kap": "c001",
+   "text": "He would gather grapes for them from the wild vines that overran the trees, recite all the epitaphs on the tombstones for their amusement, or stroll with a whole crowd of them along the banks of the nearby millpond."
+  },
+  {
+   "id": "c001_00096_s",
+   "kap": "c001",
+   "text": "Meanwhile, the shyer country bumpkins hung sheepishly back, envying his superior elegance and manners."
+  },
+  {
+   "id": "c001_00098_s",
+   "kap": "c001",
+   "text": "Because of his partly wandering life, he was also like a traveling newspaper, carrying the whole load of local gossip from house to house, so his appearance was always greeted with satisfaction."
+  },
+  {
+   "id": "c001_00099_s",
+   "kap": "c001",
+   "text": "The women esteemed him, too, as a man of great learning, for he had read several books all the way through and was a thorough master of Cotton Mather’s “History of New England Witchcraft”—in which, by the way, he believed most firmly and powerfully."
+  },
+  {
+   "id": "c001_00101_s",
+   "kap": "c001",
+   "text": "In fact, he was an odd mixture of small shrewdness and simple gullibility."
+  },
+  {
+   "id": "c001_00102_s",
+   "kap": "c001",
+   "text": "His appetite for the marvelous, and his power to digest it, were both extraordinary, and they had grown even stronger during his stay in this spellbound region."
+  },
+  {
+   "id": "c001_00103_s",
+   "kap": "c001",
+   "text": "No tale was too crude or monstrous for his limitless belief."
+  },
+  {
+   "id": "c001_00104_s",
+   "kap": "c001",
+   "text": "It was often his delight, after school was dismissed in the afternoon, to stretch out on the rich bed of clover beside the little brook that murmured by the schoolhouse, and there pore over old Mather’s dreadful tales until the deepening dusk of evening turned the page into a blur before his eyes."
+  },
+  {
+   "id": "c001_00105_s",
+   "kap": "c001",
+   "text": "Then, as he made his way by swamp and stream and gloomy woodland to the farmhouse where he happened to be lodging, every sound of nature at that witching hour set his excited imagination fluttering: the moan of the whippoorwill from the hillside, the ominous cry of the tree toad, that predictor of storm, the dreary hooting of the screech owl, or the sudden rustling of birds startled from their roost in the thicket."
+  },
+  {
+   "id": "c001_00106_s",
+   "kap": "c001",
+   "text": "The fireflies, too, which sparkled most brightly in the darkest places, now and then startled him when one of unusual brilliance would flash across his path."
+  },
+  {
+   "id": "c001_00107_s",
+   "kap": "c001",
+   "text": "If, by chance, a huge, clumsy beetle came blundering through the air and bumped into him, the poor fellow was ready to give up the ghost, thinking he had been struck by a witch’s token."
+  },
+  {
+   "id": "c001_00108_s",
+   "kap": "c001",
+   "text": "His only defense on such occasions, either to drown his thoughts or drive away evil spirits, was to sing psalm tunes."
+  },
+  {
+   "id": "c001_00109_s",
+   "kap": "c001",
+   "text": "The good people of Sleepy Hollow, sitting outside their doors in the evening, were often filled with awe as they heard his nasal melody, “in linked sweetness long drawn out,” floating from the distant hill or along the dusky road."
+  },
+  {
+   "id": "c001_00111_s",
+   "kap": "c001",
+   "text": "Another source of fearful pleasure for him was to pass long winter evenings with the old Dutch wives."
+  },
+  {
+   "id": "c001_00112_s",
+   "kap": "c001",
+   "text": "They sat spinning by the fire, with a row of apples roasting and spluttering on the hearth."
+  },
+  {
+   "id": "c001_00113_s",
+   "kap": "c001",
+   "text": "He listened to their marvelous tales of ghosts and goblins, of haunted fields, haunted brooks, haunted bridges, and haunted houses—and especially of the headless horseman, or the Galloping Hessian of the Hollow, as they sometimes called him."
+  },
+  {
+   "id": "c001_00114_s",
+   "kap": "c001",
+   "text": "He would delight them just as much with his own stories of witchcraft, and of the terrible omens and eerie sights and sounds in the air that were common in early Connecticut times."
+  },
+  {
+   "id": "c001_00115_s",
+   "kap": "c001",
+   "text": "He would frighten them badly with his theories about comets and shooting stars, and with the alarming fact that the world absolutely did turn round, so they were half the time upside-down!"
+  },
+  {
+   "id": "c001_00117_s",
+   "kap": "c001",
+   "text": "But if there was pleasure in all this—snugly cuddling in the chimney corner of a room all aglow from the crackling wood fire, where no specter dared show its face—it was paid for dearly by the terrors of his walk home."
+  },
+  {
+   "id": "c001_00118_s",
+   "kap": "c001",
+   "text": "What fearful shapes and shadows beset his path in the dim, ghastly light of a snowy night!"
+  },
+  {
+   "id": "c001_00119_s",
+   "kap": "c001",
+   "text": "With what an anxious look he eyed every trembling ray of light streaming across the empty fields from some distant window!"
+  },
+  {
+   "id": "c001_00120_s",
+   "kap": "c001",
+   "text": "How often he was terrified by a snow-covered shrub that, like a sheeted ghost, stood right in his path!"
+  },
+  {
+   "id": "c001_00121_s",
+   "kap": "c001",
+   "text": "How often he shrank with a chill of fear at the sound of his own steps on the frosty crust beneath his feet, and dreaded to look over his shoulder, lest he see some strange creature stomping close behind him!"
+  },
+  {
+   "id": "c001_00122_s",
+   "kap": "c001",
+   "text": "And how often he was thrown into utter dismay by a sudden blast howling among the trees, thinking it was the Galloping Hessian on one of his nightly rampages!"
+  },
+  {
+   "id": "c001_00124_s",
+   "kap": "c001",
+   "text": "All these, however, were mere terrors of the night, phantoms of the mind that walk in darkness."
+  },
+  {
+   "id": "c001_00125_s",
+   "kap": "c001",
+   "text": "He had seen many specters in his time, and more than once had been beset by Satan in various shapes during his lonely wanderings."
+  },
+  {
+   "id": "c001_00126_s",
+   "kap": "c001",
+   "text": "Yet daylight put an end to all these evils."
+  },
+  {
+   "id": "c001_00127_s",
+   "kap": "c001",
+   "text": "He would have passed a pleasant life, in spite of the Devil and all his works, if his path had not been crossed by a being that causes more trouble to mortal man than ghosts, goblins, and the whole race of witches put together—and that was a woman."
+  },
+  {
+   "id": "c001_00129_s",
+   "kap": "c001",
+   "text": "Among the music students who gathered one evening each week to receive his instruction in psalm-singing was Katrina Van Tassel, the daughter and only child of a well-to-do Dutch farmer."
+  },
+  {
+   "id": "c001_00130_s",
+   "kap": "c001",
+   "text": "She was a blooming girl, just eighteen."
+  },
+  {
+   "id": "c001_00131_s",
+   "kap": "c001",
+   "text": "She was plump as a partridge, and as ripe, soft, and rosy-cheeked as one of her father’s peaches."
+  },
+  {
+   "id": "c001_00132_s",
+   "kap": "c001",
+   "text": "She was known everywhere, not only for her beauty, but for her great expectations."
+  },
+  {
+   "id": "c001_00133_s",
+   "kap": "c001",
+   "text": "She was also a bit of a flirt, as you could see even in her clothes, which mixed old and new fashions to best show off her charms."
+  },
+  {
+   "id": "c001_00134_s",
+   "kap": "c001",
+   "text": "She wore ornaments of pure yellow gold that her great-great-grandmother had brought over from Saardam, a tempting stomacher from olden times, and with them a provocatively short petticoat, to display the prettiest foot and ankle in the whole countryside."
+  },
+  {
+   "id": "c001_00136_s",
+   "kap": "c001",
+   "text": "Ichabod Crane had a soft and foolish heart toward women, and it is no wonder that such a tempting morsel soon caught his eye—especially after he visited her at her father’s house."
+  },
+  {
+   "id": "c001_00137_s",
+   "kap": "c001",
+   "text": "Old Baltus Van Tassel was the perfect picture of a thriving, contented, generous farmer."
+  },
+  {
+   "id": "c001_00138_s",
+   "kap": "c001",
+   "text": "It is true that he seldom let his eyes or his thoughts wander beyond the boundaries of his own farm; but within those boundaries, everything was cozy, happy, and in good order."
+  },
+  {
+   "id": "c001_00139_s",
+   "kap": "c001",
+   "text": "He was satisfied with his wealth but not proud of it, and he prided himself on hearty abundance rather than on the style in which he lived."
+  },
+  {
+   "id": "c001_00140_s",
+   "kap": "c001",
+   "text": "His homestead was set on the banks of the Hudson, in one of those green, sheltered, fertile corners where Dutch farmers love to nestle."
+  },
+  {
+   "id": "c001_00141_s",
+   "kap": "c001",
+   "text": "A great elm spread its broad branches over the house; at its foot, a spring of the softest, sweetest water bubbled up into a little well made from a barrel, then sparkled away through the grass to a nearby brook that chattered along among alders and dwarf willows."
+  },
+  {
+   "id": "c001_00142_s",
+   "kap": "c001",
+   "text": "Nearby stood a vast barn that might have served as a church; every window and crevice seemed to burst with the treasures of the farm."
+  },
+  {
+   "id": "c001_00143_s",
+   "kap": "c001",
+   "text": "The flail resounded busily inside from morning till night; swallows and martins skimmed twittering about the eaves; and rows of pigeons were enjoying the sunshine on the roof."
+  },
+  {
+   "id": "c001_00144_s",
+   "kap": "c001",
+   "text": "Some had one eye turned up as if watching the weather, some had their heads under their wings or buried in their breasts, and others were puffing up, cooing, and bowing to their mates."
+  },
+  {
+   "id": "c001_00145_s",
+   "kap": "c001",
+   "text": "Sleek, unwieldy pigs grunted in the repose and plenty of their pens, from which troops of piglets sallied forth now and then, as if to sniff the air."
+  },
+  {
+   "id": "c001_00146_s",
+   "kap": "c001",
+   "text": "A stately squadron of snowy geese rode in an adjoining pond, escorting whole fleets of ducks; regiments of turkeys gobbled through the farmyard, and guinea fowls fretted about it like ill-tempered housewives, with their peevish, discontented cry."
+  },
+  {
+   "id": "c001_00147_s",
+   "kap": "c001",
+   "text": "Before the barn door strutted the gallant rooster, that model of a husband, a warrior, and a fine gentleman."
+  },
+  {
+   "id": "c001_00148_s",
+   "kap": "c001",
+   "text": "He clapped his glossy wings and crowed with the pride and gladness of his heart—sometimes tearing up the earth with his feet, then generously calling his ever-hungry family of wives and children to enjoy the rich morsel he had discovered."
+  },
+  {
+   "id": "c001_00150_s",
+   "kap": "c001",
+   "text": "The schoolteacher’s mouth watered as he looked upon this sumptuous promise of luxurious winter eating."
+  },
+  {
+   "id": "c001_00151_s",
+   "kap": "c001",
+   "text": "In his devouring imagination, he pictured every roasting pig running about with a pudding in its belly and an apple in its mouth; the pigeons were cozily bedded in a comfortable pie and tucked in with a crust coverlet; the geese were swimming in their own gravy; and the ducks paired cozily in dishes, like snug married couples, with a decent portion of onion sauce."
+  },
+  {
+   "id": "c001_00152_s",
+   "kap": "c001",
+   "text": "In the pigs he saw the future sleek side of bacon and the juicy, savory ham carved out; every turkey he beheld daintily trussed up, with its gizzard under its wing and perhaps a necklace of savory sausages; and even bright Chanticleer himself lay sprawling on his back in a side dish, claws lifted up, as if begging for that mercy his chivalrous spirit would never have asked for while alive."
+  },
+  {
+   "id": "c001_00154_s",
+   "kap": "c001",
+   "text": "As the delighted Ichabod imagined all this, his great green eyes roamed over the rich meadowlands, the fertile fields of wheat, rye, buckwheat, and Indian corn, and the orchards laden with red fruit that surrounded the comfortable home of Van Tassel."
+  },
+  {
+   "id": "c001_00155_s",
+   "kap": "c001",
+   "text": "His heart longed for the young woman who would inherit these lands."
+  },
+  {
+   "id": "c001_00156_s",
+   "kap": "c001",
+   "text": "His imagination expanded with the thought of how easily they could be turned into cash, and the money invested in vast tracts of wild land and wooden mansions in the wilderness."
+  },
+  {
+   "id": "c001_00157_s",
+   "kap": "c001",
+   "text": "Indeed, his busy fancy already made his hopes seem real, showing him the lovely Katrina with a whole family of children, riding on top of a wagon loaded with household odds and ends, with pots and kettles dangling underneath."
+  },
+  {
+   "id": "c001_00158_s",
+   "kap": "c001",
+   "text": "He saw himself riding a slow-gaited mare, with a colt at her heels, heading for Kentucky, Tennessee—or who knows where!"
+  },
+  {
+   "id": "c001_00160_s",
+   "kap": "c001",
+   "text": "When he entered the house, his heart was completely won."
+  },
+  {
+   "id": "c001_00161_s",
+   "kap": "c001",
+   "text": "It was one of those spacious farmhouses with high-peaked but gently sloping roofs, built in the style passed down from the first Dutch settlers."
+  },
+  {
+   "id": "c001_00162_s",
+   "kap": "c001",
+   "text": "The low, overhanging eaves formed a porch along the front that could be enclosed in bad weather."
+  },
+  {
+   "id": "c001_00163_s",
+   "kap": "c001",
+   "text": "Beneath it hung flails, harness, various farming tools, and nets for fishing in the nearby river."
+  },
+  {
+   "id": "c001_00164_s",
+   "kap": "c001",
+   "text": "Benches lined the sides for summer seating; a large spinning wheel at one end and a butter churn at the other showed the many uses this important porch could serve."
+  },
+  {
+   "id": "c001_00165_s",
+   "kap": "c001",
+   "text": "From this porch, a wondering Ichabod entered the hall, which was the center of the house and the main living area."
+  },
+  {
+   "id": "c001_00166_s",
+   "kap": "c001",
+   "text": "Here, rows of gleaming pewter dishes arranged on a long sideboard dazzled his eyes."
+  },
+  {
+   "id": "c001_00167_s",
+   "kap": "c001",
+   "text": "In one corner stood a huge bag of wool ready to be spun; in another, a bolt of linsey-woolsey fresh from the loom."
+  },
+  {
+   "id": "c001_00168_s",
+   "kap": "c001",
+   "text": "Ears of Indian corn and strings of dried apples and peaches hung in bright festoons on the walls, mixed with the flash of red peppers."
+  },
+  {
+   "id": "c001_00169_s",
+   "kap": "c001",
+   "text": "A door left ajar let him peek into the best parlor, where claw-footed chairs and dark mahogany tables shone like mirrors."
+  },
+  {
+   "id": "c001_00170_s",
+   "kap": "c001",
+   "text": "Andirons, with their shovel and tongs, glistened from behind a screen of asparagus tops."
+  },
+  {
+   "id": "c001_00171_s",
+   "kap": "c001",
+   "text": "Mock oranges and conch shells decorated the mantelpiece; strings of different-colored bird eggs hung above it."
+  },
+  {
+   "id": "c001_00172_s",
+   "kap": "c001",
+   "text": "A large ostrich egg was suspended from the center of the room, and a corner cupboard, deliberately left open, revealed vast treasures of old silver and carefully repaired china."
+  },
+  {
+   "id": "c001_00174_s",
+   "kap": "c001",
+   "text": "From the moment Ichabod laid eyes on these delightful lands, his peace of mind was shattered."
+  },
+  {
+   "id": "c001_00175_s",
+   "kap": "c001",
+   "text": "His only thought was how to win the affections of Van Tassel's incomparable daughter."
+  },
+  {
+   "id": "c001_00176_s",
+   "kap": "c001",
+   "text": "But this pursuit brought him more real difficulties than a knight-errant of old usually faced."
+  },
+  {
+   "id": "c001_00177_s",
+   "kap": "c001",
+   "text": "Those heroes rarely had to contend with anything worse than giants, sorcerers, fiery dragons, and similar easily conquered foes."
+  },
+  {
+   "id": "c001_00178_s",
+   "kap": "c001",
+   "text": "They simply had to push through iron gates, brass doors, and diamond-hard walls to reach the castle keep where their lady was imprisoned."
+  },
+  {
+   "id": "c001_00179_s",
+   "kap": "c001",
+   "text": "All of that they accomplished as easily as carving a path to the center of a Christmas pie."
+  },
+  {
+   "id": "c001_00180_s",
+   "kap": "c001",
+   "text": "Then the lady gave him her hand as a matter of course."
+  },
+  {
+   "id": "c001_00181_s",
+   "kap": "c001",
+   "text": "Ichabod, on the other hand, had to find his way into the heart of a flirtatious country girl."
+  },
+  {
+   "id": "c001_00182_s",
+   "kap": "c001",
+   "text": "She was surrounded by a maze of whims and caprices that constantly presented new obstacles."
+  },
+  {
+   "id": "c001_00183_s",
+   "kap": "c001",
+   "text": "He also had to face a crowd of very real, flesh-and-blood rivals: the many rustic admirers who guarded every entrance to her heart."
+  },
+  {
+   "id": "c001_00184_s",
+   "kap": "c001",
+   "text": "They kept a jealous, angry watch on one another, but were always ready to unite against any new competitor."
+  },
+  {
+   "id": "c001_00186_s",
+   "kap": "c001",
+   "text": "Among these rivals, the most formidable was a burly, roaring, carousing young man named Abraham, or, following the Dutch abbreviation, Brom Van Brunt."
+  },
+  {
+   "id": "c001_00187_s",
+   "kap": "c001",
+   "text": "He was the local hero, whose feats of strength and daring were famous throughout the countryside."
+  },
+  {
+   "id": "c001_00188_s",
+   "kap": "c001",
+   "text": "He was broad-shouldered and double-jointed, with short curly black hair, and a bluff but not unpleasant face, showing a mix of fun and arrogance."
+  },
+  {
+   "id": "c001_00189_s",
+   "kap": "c001",
+   "text": "Because of his Herculean build and great physical strength, he had earned the nickname BROM BONES, by which everyone knew him."
+  },
+  {
+   "id": "c001_00190_s",
+   "kap": "c001",
+   "text": "He was famous for his expert horsemanship, riding as skillfully as a Tartar."
+  },
+  {
+   "id": "c001_00191_s",
+   "kap": "c001",
+   "text": "He led all the horse races and cock fights, and since physical strength always brings authority in country life, he served as umpire in every dispute."
+  },
+  {
+   "id": "c001_00192_s",
+   "kap": "c001",
+   "text": "He would tilt his hat to one side and announce his decisions with an air that allowed no argument or appeal."
+  },
+  {
+   "id": "c001_00193_s",
+   "kap": "c001",
+   "text": "He was always ready for either a fight or a frolic, but he had more mischief than malice in his nature."
+  },
+  {
+   "id": "c001_00194_s",
+   "kap": "c001",
+   "text": "Beneath all his overbearing roughness, there was a strong dash of playful good humor at heart."
+  },
+  {
+   "id": "c001_00195_s",
+   "kap": "c001",
+   "text": "He had three or four close companions who looked up to him as their model; he led them as they roamed the countryside, showing up at every feud or festivity for miles around."
+  },
+  {
+   "id": "c001_00196_s",
+   "kap": "c001",
+   "text": "In cold weather, he was set apart by a fur cap topped with a flaunting fox’s tail."
+  },
+  {
+   "id": "c001_00197_s",
+   "kap": "c001",
+   "text": "When folks at a country gathering spotted that well-known crest in the distance, bobbing among a group of hard riders, they always prepared for a storm."
+  },
+  {
+   "id": "c001_00198_s",
+   "kap": "c001",
+   "text": "Sometimes his crew could be heard dashing past farmhouses at midnight, whooping and hallooing like a band of Don Cossacks."
+  },
+  {
+   "id": "c001_00199_s",
+   "kap": "c001",
+   "text": "Old women, startled awake, would listen until the noisy clatter had passed, and then exclaim, “Ah, there goes Brom Bones and his gang!”"
+  },
+  {
+   "id": "c001_00200_s",
+   "kap": "c001",
+   "text": "The neighbors regarded him with a mixture of awe, admiration, and goodwill."
+  },
+  {
+   "id": "c001_00201_s",
+   "kap": "c001",
+   "text": "Whenever a wild prank or country brawl happened nearby, they would shake their heads and declare that Brom Bones was behind it."
+  },
+  {
+   "id": "c001_00203_s",
+   "kap": "c001",
+   "text": "This wild hero had for some time singled out the blooming Katrina as the object of his crude advances."
+  },
+  {
+   "id": "c001_00204_s",
+   "kap": "c001",
+   "text": "Though his romantic play was something like the gentle caresses and affections of a bear, it was whispered that she did not entirely discourage his hopes."
+  },
+  {
+   "id": "c001_00205_s",
+   "kap": "c001",
+   "text": "Certainly, his advances signaled to rival suitors to back off; no one felt inclined to challenge a lion in love."
+  },
+  {
+   "id": "c001_00206_s",
+   "kap": "c001",
+   "text": "So much so, that when his horse was seen tied to Van Tassel’s fence on a Sunday night—a sure sign that its master was inside courting, or “sparking”—all other suitors passed by in despair and took their romantic efforts elsewhere."
+  },
+  {
+   "id": "c001_00208_s",
+   "kap": "c001",
+   "text": "Such was the formidable rival Ichabod Crane had to contend with."
+  },
+  {
+   "id": "c001_00209_s",
+   "kap": "c001",
+   "text": "Considering everything, a braver man would have backed away from the competition, and a wiser one would have given up."
+  },
+  {
+   "id": "c001_00210_s",
+   "kap": "c001",
+   "text": "Ichabod, however, had a fortunate blend of flexibility and perseverance."
+  },
+  {
+   "id": "c001_00211_s",
+   "kap": "c001",
+   "text": "In body and spirit, he was like a supple-jack vine—yielding, but tough; he bent, but never broke."
+  },
+  {
+   "id": "c001_00212_s",
+   "kap": "c001",
+   "text": "He bowed under the slightest pressure, but the moment it lifted—jerk!—he stood upright again and carried his head as high as ever."
+  },
+  {
+   "id": "c001_00214_s",
+   "kap": "c001",
+   "text": "To have challenged his rival openly would have been madness."
+  },
+  {
+   "id": "c001_00215_s",
+   "kap": "c001",
+   "text": "He was not a man to be thwarted in love, any more than that stormy lover, Achilles."
+  },
+  {
+   "id": "c001_00216_s",
+   "kap": "c001",
+   "text": "So Ichabod made his advances in a quiet, subtly persuasive way."
+  },
+  {
+   "id": "c001_00217_s",
+   "kap": "c001",
+   "text": "Under cover of his role as singing teacher, he visited the farmhouse often."
+  },
+  {
+   "id": "c001_00218_s",
+   "kap": "c001",
+   "text": "Not that he had anything to fear from meddlesome parents, which is so often a barrier in the path of lovers."
+  },
+  {
+   "id": "c001_00219_s",
+   "kap": "c001",
+   "text": "Balt Van Tassel was an easygoing, indulgent soul; he loved his daughter even better than his pipe, and, like a reasonable man and an excellent father, let her have her way in everything."
+  },
+  {
+   "id": "c001_00220_s",
+   "kap": "c001",
+   "text": "His industrious little wife, too, had enough to do to keep house and manage her poultry; for, as she wisely observed, ducks and geese are silly creatures and must be looked after, but girls can take care of themselves."
+  },
+  {
+   "id": "c001_00221_s",
+   "kap": "c001",
+   "text": "So while the busy woman bustled about the house or worked her spinning wheel at one end of the porch, good Balt would sit smoking his evening pipe at the other end."
+  },
+  {
+   "id": "c001_00222_s",
+   "kap": "c001",
+   "text": "He watched the exploits of a little wooden warrior who, armed with a sword in each hand, bravely fought the wind on the peak of the barn."
+  },
+  {
+   "id": "c001_00223_s",
+   "kap": "c001",
+   "text": "Meanwhile, Ichabod would court the daughter beside the spring under the great elm, or while strolling in the twilight—that hour so favorable to a lover’s eloquent words."
+  },
+  {
+   "id": "c001_00225_s",
+   "kap": "c001",
+   "text": "I admit I don’t know how women’s hearts are wooed and won."
+  },
+  {
+   "id": "c001_00226_s",
+   "kap": "c001",
+   "text": "To me they have always been riddles and objects of admiration."
+  },
+  {
+   "id": "c001_00227_s",
+   "kap": "c001",
+   "text": "Some hearts seem to have only one vulnerable point, one door of access; while others have a thousand avenues and can be captured in a thousand different ways."
+  },
+  {
+   "id": "c001_00228_s",
+   "kap": "c001",
+   "text": "Winning the first kind is a great triumph of skill."
+  },
+  {
+   "id": "c001_00229_s",
+   "kap": "c001",
+   "text": "But keeping possession of the second kind is an even greater proof of strategic command, for you must defend the fortress at every door and window."
+  },
+  {
+   "id": "c001_00230_s",
+   "kap": "c001",
+   "text": "So a man who wins a thousand ordinary hearts deserves some fame."
+  },
+  {
+   "id": "c001_00231_s",
+   "kap": "c001",
+   "text": "But a man who keeps undisputed control over the heart of a coquette is truly a hero."
+  },
+  {
+   "id": "c001_00232_s",
+   "kap": "c001",
+   "text": "Certainly, this was not the case with the formidable Brom Bones."
+  },
+  {
+   "id": "c001_00233_s",
+   "kap": "c001",
+   "text": "From the moment Ichabod Crane made his advances, Brom’s fortunes visibly declined."
+  },
+  {
+   "id": "c001_00234_s",
+   "kap": "c001",
+   "text": "His horse was no longer seen tied to the fence on Sunday nights, and a deadly feud gradually arose between him and the schoolmaster of Sleepy Hollow."
+  },
+  {
+   "id": "c001_00236_s",
+   "kap": "c001",
+   "text": "Brom had a degree of rough chivalry in his nature."
+  },
+  {
+   "id": "c001_00237_s",
+   "kap": "c001",
+   "text": "He would have preferred to bring matters to open warfare and settle their claims to the lady in the manner of those most concise and simple reasoners, the knights-errant of old—by single combat."
+  },
+  {
+   "id": "c001_00238_s",
+   "kap": "c001",
+   "text": "But Ichabod was too aware of his adversary’s superior strength to face him in a fight."
+  },
+  {
+   "id": "c001_00239_s",
+   "kap": "c001",
+   "text": "He had overheard Bones boast that he would “double the schoolmaster up, and lay him on a shelf of his own schoolhouse,” and he was too cautious to give him the chance."
+  },
+  {
+   "id": "c001_00240_s",
+   "kap": "c001",
+   "text": "This stubbornly peaceful approach was extremely provoking."
+  },
+  {
+   "id": "c001_00241_s",
+   "kap": "c001",
+   "text": "It left Brom no alternative but to draw on his stores of rustic humor and play boorish practical jokes on his rival."
+  },
+  {
+   "id": "c001_00242_s",
+   "kap": "c001",
+   "text": "Ichabod became the target of whimsical persecution by Bones and his gang of rough riders."
+  },
+  {
+   "id": "c001_00243_s",
+   "kap": "c001",
+   "text": "They raided his once peaceful domain, smoked out his singing school by blocking the chimney, broke into the schoolhouse at night despite its formidable fastenings of twigs and window stakes, and turned everything upside down."
+  },
+  {
+   "id": "c001_00244_s",
+   "kap": "c001",
+   "text": "The poor schoolmaster began to think all the witches in the country held their meetings there."
+  },
+  {
+   "id": "c001_00245_s",
+   "kap": "c001",
+   "text": "But what was even more annoying, Brom took every opportunity to ridicule him in front of his lady."
+  },
+  {
+   "id": "c001_00246_s",
+   "kap": "c001",
+   "text": "He had a scoundrel of a dog that he taught to whine in the most ludicrous way, and introduced it as a rival of Ichabod’s, to instruct her in psalmody."
+  },
+  {
+   "id": "c001_00248_s",
+   "kap": "c001",
+   "text": "Thus matters went on for some time, without any real change in the standing of the rivals."
+  },
+  {
+   "id": "c001_00249_s",
+   "kap": "c001",
+   "text": "On a fine autumn afternoon, Ichabod sat in a pensive mood, enthroned on his lofty stool."
+  },
+  {
+   "id": "c001_00250_s",
+   "kap": "c001",
+   "text": "From there he usually watched over all the affairs of his small literary realm."
+  },
+  {
+   "id": "c001_00251_s",
+   "kap": "c001",
+   "text": "In his hand he held a ruler, that scepter of despotic power; the birch rod of justice rested on three nails behind the throne, a constant terror to wrongdoers."
+  },
+  {
+   "id": "c001_00252_s",
+   "kap": "c001",
+   "text": "On the desk before him lay various contraband items and forbidden toys, confiscated from idle boys: half-eaten apples, popguns, pinwheels, fly-cages, and whole armies of lively little paper roosters."
+  },
+  {
+   "id": "c001_00253_s",
+   "kap": "c001",
+   "text": "Evidently some terrible act of discipline had just occurred, for his students were all busily focused on their books, or whispering stealthily behind them with one eye on the master."
+  },
+  {
+   "id": "c001_00254_s",
+   "kap": "c001",
+   "text": "A kind of buzzing stillness filled the schoolroom."
+  },
+  {
+   "id": "c001_00255_s",
+   "kap": "c001",
+   "text": "It was suddenly interrupted by the appearance of a black man in a coarse linen jacket and trousers, wearing a round-crowned scrap of a hat, like Mercury’s cap."
+  },
+  {
+   "id": "c001_00256_s",
+   "kap": "c001",
+   "text": "He was mounted on the back of a ragged, half-tamed wild colt, which he controlled with a rope used as a halter."
+  },
+  {
+   "id": "c001_00257_s",
+   "kap": "c001",
+   "text": "He came clattering up to the school door with an invitation for Ichabod to attend a merry-making, or “quilting frolic,” to be held that evening at Mynheer Van Tassel’s."
+  },
+  {
+   "id": "c001_00258_s",
+   "kap": "c001",
+   "text": "Having delivered his message with an air of importance and an attempt at fine language, as a black man might display on such minor missions, he dashed over the brook and was soon seen scampering away up the hollow, full of the importance and urgency of his errand."
+  },
+  {
+   "id": "c001_00260_s",
+   "kap": "c001",
+   "text": "All was now bustle and hubbub in the previously quiet schoolroom."
+  },
+  {
+   "id": "c001_00261_s",
+   "kap": "c001",
+   "text": "The students were hurried through their lessons without stopping for trifles."
+  },
+  {
+   "id": "c001_00262_s",
+   "kap": "c001",
+   "text": "Those who were nimble skipped over half with no penalty, and those who were slow got a sharp smack now and then on the backside, to quicken their speed or help them over a hard word."
+  },
+  {
+   "id": "c001_00263_s",
+   "kap": "c001",
+   "text": "Books were flung aside without being put away on the shelves, inkstands were overturned, benches thrown down."
+  },
+  {
+   "id": "c001_00264_s",
+   "kap": "c001",
+   "text": "The whole school was turned loose an hour before the usual time, bursting forth like a legion of young imps, yelping and racketing about the green in joy at their early freedom."
+  },
+  {
+   "id": "c001_00266_s",
+   "kap": "c001",
+   "text": "The gallant Ichabod now spent at least an extra half hour getting ready, brushing and polishing his best—and indeed only—suit of rusty black, and arranging his hair using a piece of broken looking-glass that hung in the schoolhouse."
+  },
+  {
+   "id": "c001_00267_s",
+   "kap": "c001",
+   "text": "So that he might appear before his lady in the true style of a cavalier, he borrowed a horse from the farmer he was staying with, a bad-tempered old Dutchman named Hans Van Ripper, and, thus gallantly mounted, rode out like a knight-errant in search of adventures."
+  },
+  {
+   "id": "c001_00268_s",
+   "kap": "c001",
+   "text": "But it is fitting, in the true spirit of a romantic story, that I give some account of the looks and equipment of my hero and his steed."
+  },
+  {
+   "id": "c001_00269_s",
+   "kap": "c001",
+   "text": "The animal he was riding was a broken-down plow-horse that had outlived almost everything except its viciousness."
+  },
+  {
+   "id": "c001_00270_s",
+   "kap": "c001",
+   "text": "He was gaunt and shaggy, with a ewe neck and a head like a hammer; his rusty mane and tail were tangled and knotted with burrs; one eye had lost its pupil and was glaring and ghostly, but the other had the gleam of a genuine devil in it."
+  },
+  {
+   "id": "c001_00271_s",
+   "kap": "c001",
+   "text": "Still, he must have had fire and mettle in his day, if we may judge from the name he carried: Gunpowder."
+  },
+  {
+   "id": "c001_00272_s",
+   "kap": "c001",
+   "text": "He had, in fact, been a favorite steed of his master, the choleric Van Ripper, who was a furious rider and had very probably poured some of his own spirit into the animal; for, old and broken-down as he looked, there was more of the lurking devil in him than in any young filly in the country."
+  },
+  {
+   "id": "c001_00274_s",
+   "kap": "c001",
+   "text": "Ichabod was a suitable figure for such a steed."
+  },
+  {
+   "id": "c001_00275_s",
+   "kap": "c001",
+   "text": "He rode with short stirrups, which brought his knees nearly up to the pommel of the saddle; his sharp elbows stuck out like a grasshopper’s; he carried his whip perpendicularly in his hand, like a sceptre."
+  },
+  {
+   "id": "c001_00276_s",
+   "kap": "c001",
+   "text": "As his horse jogged on, the motion of his arms was not unlike the flapping of a pair of wings."
+  },
+  {
+   "id": "c001_00277_s",
+   "kap": "c001",
+   "text": "A small wool hat rested on the top of his nose—for that is what his scanty strip of forehead might as well be called—and the skirts of his black coat fluttered out almost to the horse’s tail."
+  },
+  {
+   "id": "c001_00278_s",
+   "kap": "c001",
+   "text": "Such was the appearance of Ichabod and his steed as they shambled out of the gate of Hans Van Ripper, and it was altogether such an apparition as is seldom met with in broad daylight."
+  },
+  {
+   "id": "c001_00280_s",
+   "kap": "c001",
+   "text": "It was, as I have said, a fine autumn day; the sky was clear and serene, and nature wore that rich and golden uniform we always associate with the idea of abundance."
+  },
+  {
+   "id": "c001_00281_s",
+   "kap": "c001",
+   "text": "The forests had put on their sober brown and yellow, while some trees of a more delicate kind had been nipped by the frosts into brilliant shades of orange, purple, and scarlet."
+  },
+  {
+   "id": "c001_00282_s",
+   "kap": "c001",
+   "text": "Streaming lines of wild ducks began to appear high in the air; the bark of the squirrel could be heard from the groves of beech and hickory, and the pensive whistle of the quail at intervals from the neighboring stubble field."
+  },
+  {
+   "id": "c001_00284_s",
+   "kap": "c001",
+   "text": "The small birds were having their farewell feasts."
+  },
+  {
+   "id": "c001_00285_s",
+   "kap": "c001",
+   "text": "In the midst of their merrymaking, they fluttered, chirping and frolicking from bush to bush and tree to tree, unpredictable because of the sheer abundance and variety around them."
+  },
+  {
+   "id": "c001_00286_s",
+   "kap": "c001",
+   "text": "There was the honest cock robin, the favorite target of young hunters, with its loud, complaining call."
+  },
+  {
+   "id": "c001_00287_s",
+   "kap": "c001",
+   "text": "There were the chattering blackbirds flying in dark clouds."
+  },
+  {
+   "id": "c001_00288_s",
+   "kap": "c001",
+   "text": "There was the golden-winged woodpecker with his crimson crest, his broad black throat patch, and splendid plumage."
+  },
+  {
+   "id": "c001_00289_s",
+   "kap": "c001",
+   "text": "There was the cedar bird, with its red-tipped wings and yellow-tipped tail and its little monteiro cap of feathers."
+  },
+  {
+   "id": "c001_00290_s",
+   "kap": "c001",
+   "text": "And there was the blue jay, that noisy show-off, in his bright light blue coat and white underclothes, screaming and chattering, nodding, bobbing, and bowing, and pretending to be on good terms with every songbird in the grove."
+  },
+  {
+   "id": "c001_00292_s",
+   "kap": "c001",
+   "text": "As Ichabod jogged slowly on his way, his eye, always alert for any sign of food abundance, roamed with delight over the treasures of cheerful autumn."
+  },
+  {
+   "id": "c001_00293_s",
+   "kap": "c001",
+   "text": "On all sides he saw a vast store of apples; some hanging in heavy abundance on the trees; some gathered into baskets and barrels for the market; others heaped up in rich piles for the cider-press."
+  },
+  {
+   "id": "c001_00294_s",
+   "kap": "c001",
+   "text": "Further on he saw great fields of Indian corn, its golden ears peeping out from their leafy hiding places and promising cakes and hasty pudding."
+  },
+  {
+   "id": "c001_00295_s",
+   "kap": "c001",
+   "text": "Yellow pumpkins lay beneath them, turning up their fair round bellies to the sun and offering the prospect of the most luxurious pies."
+  },
+  {
+   "id": "c001_00296_s",
+   "kap": "c001",
+   "text": "Soon he passed the fragrant buckwheat fields, breathing out a honey-like scent."
+  },
+  {
+   "id": "c001_00297_s",
+   "kap": "c001",
+   "text": "As he saw them, gentle anticipation stole over his mind of dainty slapjacks, well buttered, and topped with honey or treacle, by the delicate little dimpled hand of Katrina Van Tassel."
+  },
+  {
+   "id": "c001_00299_s",
+   "kap": "c001",
+   "text": "So he fed his mind with many sweet thoughts and “sugared suppositions” as he journeyed along the side of a range of hills that looked out on some of the finest views of the mighty Hudson."
+  },
+  {
+   "id": "c001_00300_s",
+   "kap": "c001",
+   "text": "The sun slowly rolled its broad disk downward in the west."
+  },
+  {
+   "id": "c001_00301_s",
+   "kap": "c001",
+   "text": "The wide surface of the Tappan Zee lay still and glassy, except for a gentle swell here and there that rippled and stretched the blue shadow of the distant mountain."
+  },
+  {
+   "id": "c001_00302_s",
+   "kap": "c001",
+   "text": "A few amber clouds floated in the sky, without a breath of air to move them."
+  },
+  {
+   "id": "c001_00303_s",
+   "kap": "c001",
+   "text": "The horizon had a fine golden tint, changing gradually into a pure apple green, and from that into the deep blue of the mid-sky."
+  },
+  {
+   "id": "c001_00304_s",
+   "kap": "c001",
+   "text": "A slanting ray lingered on the woody crests of the precipices overhanging some parts of the river, giving greater depth to the dark gray and purple of their rocky sides."
+  },
+  {
+   "id": "c001_00305_s",
+   "kap": "c001",
+   "text": "In the distance, a sloop loitered, dropping slowly down with the tide."
+  },
+  {
+   "id": "c001_00306_s",
+   "kap": "c001",
+   "text": "Its sail hung uselessly against the mast."
+  },
+  {
+   "id": "c001_00307_s",
+   "kap": "c001",
+   "text": "As the reflection of the sky gleamed on the still water, it seemed as if the vessel was suspended in the air."
+  },
+  {
+   "id": "c001_00309_s",
+   "kap": "c001",
+   "text": "It was toward evening when Ichabod arrived at the castle of the Heer Van Tassel, which he found crowded with the pride and flower of the nearby countryside."
+  },
+  {
+   "id": "c001_00310_s",
+   "kap": "c001",
+   "text": "Old farmers were a lean, leather-faced race, in homespun coats and pants, blue stockings, huge shoes, and magnificent pewter buckles."
+  },
+  {
+   "id": "c001_00311_s",
+   "kap": "c001",
+   "text": "Their brisk, weathered little wives wore tightly crimped caps, long-waisted short gowns, and homespun petticoats, with scissors and pincushions, and bright calico pockets hanging outside."
+  },
+  {
+   "id": "c001_00312_s",
+   "kap": "c001",
+   "text": "Plump young women were almost as old-fashioned as their mothers, except where a straw hat, a fine ribbon, or perhaps a white dress hinted at city fashion."
+  },
+  {
+   "id": "c001_00313_s",
+   "kap": "c001",
+   "text": "The sons wore short, square-cut coats with rows of enormous brass buttons, and their hair was generally queued in the style of the time—especially if they could get an eel-skin for the purpose, which was valued all over the country as a powerful nourisher and strengthener of the hair."
+  },
+  {
+   "id": "c001_00315_s",
+   "kap": "c001",
+   "text": "Brom Bones, however, was the hero of the scene."
+  },
+  {
+   "id": "c001_00316_s",
+   "kap": "c001",
+   "text": "He had come to the gathering on his favorite horse, Daredevil—a creature, like himself, full of spirit and mischief, and one that nobody but himself could manage."
+  },
+  {
+   "id": "c001_00317_s",
+   "kap": "c001",
+   "text": "In fact, he was known for preferring ill-tempered animals, given to all kinds of tricks that kept the rider in constant danger of his neck."
+  },
+  {
+   "id": "c001_00318_s",
+   "kap": "c001",
+   "text": "He held a gentle, well-trained horse as unworthy of a spirited lad."
+  },
+  {
+   "id": "c001_00320_s",
+   "kap": "c001",
+   "text": "I would gladly pause to dwell on the world of charms that burst upon my hero's delighted gaze as he entered the formal parlor of Van Tassel’s mansion."
+  },
+  {
+   "id": "c001_00321_s",
+   "kap": "c001",
+   "text": "Not the charms of the bevy of plump girls, with their lavish display of rosy cheeks and white skin; but the ample charms of a genuine Dutch country tea-table, in the bountiful time of autumn."
+  },
+  {
+   "id": "c001_00322_s",
+   "kap": "c001",
+   "text": "Such heaped-up platters of cakes of various and almost indescribable kinds, known only to experienced Dutch housewives!"
+  },
+  {
+   "id": "c001_00323_s",
+   "kap": "c001",
+   "text": "There was the mighty doughnut, the tender oly koek, and the crisp and crumbling cruller; sweet cakes and short cakes, ginger cakes and honey cakes, and the whole family of cakes."
+  },
+  {
+   "id": "c001_00324_s",
+   "kap": "c001",
+   "text": "And then there were apple pies, and peach pies, and pumpkin pies; besides slices of ham and smoked beef; and moreover delectable dishes of preserved plums, and peaches, and pears, and quinces; not to mention broiled shad and roasted chickens; together with bowls of milk and cream, all mingled higgledy-piggledy, pretty much as I have enumerated them, with the motherly teapot sending up its clouds of vapor from the midst—Heaven bless the mark!"
+  },
+  {
+   "id": "c001_00325_s",
+   "kap": "c001",
+   "text": "I lack breath and time to discuss this banquet as it deserves, and am too eager to get on with my story."
+  },
+  {
+   "id": "c001_00326_s",
+   "kap": "c001",
+   "text": "Happily, Ichabod Crane was not in so great a hurry as his historian, and he did ample justice to every dainty."
+  },
+  {
+   "id": "c001_00328_s",
+   "kap": "c001",
+   "text": "He was a kind and thankful creature."
+  },
+  {
+   "id": "c001_00329_s",
+   "kap": "c001",
+   "text": "His heart swelled as his stomach filled with good cheer, and his spirits rose with eating, as some men’s do with drink."
+  },
+  {
+   "id": "c001_00330_s",
+   "kap": "c001",
+   "text": "He could not help rolling his large eyes round him as he ate, and chuckling with the possibility that he might one day be lord of all this scene of almost unimaginable luxury and splendor."
+  },
+  {
+   "id": "c001_00331_s",
+   "kap": "c001",
+   "text": "Then, he thought, how soon he’d turn his back upon the old schoolhouse; snap his fingers in the face of Hans Van Ripper and every other stingy patron; and kick any traveling pedagogue out of doors who should dare to call him comrade!"
+  },
+  {
+   "id": "c001_00333_s",
+   "kap": "c001",
+   "text": "Old Baltus Van Tassel moved among his guests with a face beaming with contentment and good humor, round and jolly as a harvest moon."
+  },
+  {
+   "id": "c001_00334_s",
+   "kap": "c001",
+   "text": "His hospitable gestures were brief but expressive: a handshake, a slap on the shoulder, a loud laugh, and an urgent invitation to \"dig in and help themselves.\""
+  },
+  {
+   "id": "c001_00336_s",
+   "kap": "c001",
+   "text": "And now the sound of music from the common room, or hall, called everyone to the dance."
+  },
+  {
+   "id": "c001_00337_s",
+   "kap": "c001",
+   "text": "The musician was an old gray-headed Black man, who had been the itinerant musician of the neighborhood for more than half a century."
+  },
+  {
+   "id": "c001_00338_s",
+   "kap": "c001",
+   "text": "His instrument was as old and battered as he was."
+  },
+  {
+   "id": "c001_00339_s",
+   "kap": "c001",
+   "text": "Most of the time he scraped away on two or three strings."
+  },
+  {
+   "id": "c001_00340_s",
+   "kap": "c001",
+   "text": "With every stroke of the bow he bobbed his head nearly to the ground, and he stamped his foot whenever a new couple were about to start."
+  },
+  {
+   "id": "c001_00342_s",
+   "kap": "c001",
+   "text": "Ichabod prided himself on his dancing as much as on his vocal powers."
+  },
+  {
+   "id": "c001_00343_s",
+   "kap": "c001",
+   "text": "Not a limb, not a fiber of his body was idle."
+  },
+  {
+   "id": "c001_00344_s",
+   "kap": "c001",
+   "text": "To see his loose-jointed frame in full motion, clattering about the room, you would have thought St. Vitus himself, the blessed patron of dance, was performing right before you in person."
+  },
+  {
+   "id": "c001_00345_s",
+   "kap": "c001",
+   "text": "He was the admiration of all the Black people, who, gathering from the farm and the neighborhood—of all ages and sizes—stood at every door and window forming a pyramid of shining black faces."
+  },
+  {
+   "id": "c001_00346_s",
+   "kap": "c001",
+   "text": "They gazed with delight at the scene, rolling their white eyes and showing rows of gleaming teeth from ear to ear."
+  },
+  {
+   "id": "c001_00347_s",
+   "kap": "c001",
+   "text": "How could the flogger of schoolboys be anything else than lively and joyful?"
+  },
+  {
+   "id": "c001_00348_s",
+   "kap": "c001",
+   "text": "The lady of his heart was his partner in the dance, smiling graciously in reply to all his amorous glances."
+  },
+  {
+   "id": "c001_00349_s",
+   "kap": "c001",
+   "text": "Meanwhile, Brom Bones, deeply smitten with love and jealousy, sat brooding by himself in one corner."
+  },
+  {
+   "id": "c001_00351_s",
+   "kap": "c001",
+   "text": "When the dance ended, Ichabod drifted toward a group of the wiser, older folks."
+  },
+  {
+   "id": "c001_00352_s",
+   "kap": "c001",
+   "text": "They sat with Old Van Tassel at one end of the veranda, smoking, gossiping about former times, and drawing out long stories about the war."
+  },
+  {
+   "id": "c001_00354_s",
+   "kap": "c001",
+   "text": "This neighborhood, at the time I am speaking of, was one of those highly favored places rich in history and great men."
+  },
+  {
+   "id": "c001_00355_s",
+   "kap": "c001",
+   "text": "The British and American line had run near it during the war; it had therefore been the scene of raids and was infested with refugees, cowboys, and all kinds of border ruffians."
+  },
+  {
+   "id": "c001_00356_s",
+   "kap": "c001",
+   "text": "Just enough time had passed for each storyteller to dress up his tale with a little becoming fiction, and, in the blur of his memory, to make himself the hero of every exploit."
+  },
+  {
+   "id": "c001_00358_s",
+   "kap": "c001",
+   "text": "There was the story of Doffue Martling, a large blue-bearded Dutchman."
+  },
+  {
+   "id": "c001_00359_s",
+   "kap": "c001",
+   "text": "He had almost captured a British frigate with an old iron nine-pounder from a mud breastwork, except that his cannon burst on the sixth shot."
+  },
+  {
+   "id": "c001_00360_s",
+   "kap": "c001",
+   "text": "And there was an old gentleman who shall remain nameless, being too rich a mynheer to be mentioned casually."
+  },
+  {
+   "id": "c001_00361_s",
+   "kap": "c001",
+   "text": "In the battle of White Plains, being an excellent master of defense, he parried a musket-ball with a smallsword—so much so that he actually felt it whiz around the blade and glance off the hilt."
+  },
+  {
+   "id": "c001_00362_s",
+   "kap": "c001",
+   "text": "As proof, he was ready at any time to show the sword, with the hilt slightly bent."
+  },
+  {
+   "id": "c001_00363_s",
+   "kap": "c001",
+   "text": "There were several others who had been equally great in the field, and not one of them was not convinced that he had played a considerable hand in bringing the war to a happy end."
+  },
+  {
+   "id": "c001_00365_s",
+   "kap": "c001",
+   "text": "But all these were nothing compared to the tales of ghosts and apparitions that followed."
+  },
+  {
+   "id": "c001_00366_s",
+   "kap": "c001",
+   "text": "The neighborhood is rich in legendary treasures of this kind."
+  },
+  {
+   "id": "c001_00367_s",
+   "kap": "c001",
+   "text": "Local tales and superstitions thrive best in these sheltered, long-settled retreats, but they are trampled underfoot by the shifting crowds that make up the population of most of our rural places."
+  },
+  {
+   "id": "c001_00368_s",
+   "kap": "c001",
+   "text": "Besides, there is no encouragement for ghosts in most of our villages."
+  },
+  {
+   "id": "c001_00369_s",
+   "kap": "c001",
+   "text": "The dead have barely had time to finish their first nap and turn over in their graves before their surviving friends have moved away from the neighborhood."
+  },
+  {
+   "id": "c001_00370_s",
+   "kap": "c001",
+   "text": "So when they rise at night to walk their rounds, they have no acquaintances left to visit."
+  },
+  {
+   "id": "c001_00371_s",
+   "kap": "c001",
+   "text": "This is perhaps the reason why we so seldom hear of ghosts except in our long-established Dutch communities."
+  },
+  {
+   "id": "c001_00373_s",
+   "kap": "c001",
+   "text": "The immediate cause, however, of the prevalence of supernatural stories in these parts was undoubtedly the nearness of Sleepy Hollow."
+  },
+  {
+   "id": "c001_00374_s",
+   "kap": "c001",
+   "text": "There was a contagion in the very air that blew from that haunted region; it breathed out an atmosphere of dreams and fancies that infected all the land."
+  },
+  {
+   "id": "c001_00375_s",
+   "kap": "c001",
+   "text": "Several of the Sleepy Hollow people were present at Van Tassel’s, and, as usual, were eagerly sharing their wild and wonderful legends."
+  },
+  {
+   "id": "c001_00376_s",
+   "kap": "c001",
+   "text": "Many dismal tales were told about funeral processions, and about mournful cries and wailings heard and seen around the great tree where the unfortunate Major André was captured."
+  },
+  {
+   "id": "c001_00377_s",
+   "kap": "c001",
+   "text": "That tree still stood in the neighborhood."
+  },
+  {
+   "id": "c001_00378_s",
+   "kap": "c001",
+   "text": "Some mention was also made of the woman in white who haunted the dark glen at Raven Rock, and who was often heard to shriek on winter nights before a storm, having perished there in the snow."
+  },
+  {
+   "id": "c001_00379_s",
+   "kap": "c001",
+   "text": "The chief part of the stories, however, centered on Sleepy Hollow’s favorite specter, the Headless Horseman."
+  },
+  {
+   "id": "c001_00380_s",
+   "kap": "c001",
+   "text": "He had been heard several times lately, patrolling the countryside, and, it was said, tethered his horse nightly among the graves in the churchyard."
+  },
+  {
+   "id": "c001_00382_s",
+   "kap": "c001",
+   "text": "The secluded situation of this church seems always to have made it a favorite haunt of troubled spirits."
+  },
+  {
+   "id": "c001_00383_s",
+   "kap": "c001",
+   "text": "It stands on a knoll, surrounded by locust trees and lofty elms, from among which its neat, whitewashed walls shine modestly forth, like Christian purity beaming through the shades of retirement."
+  },
+  {
+   "id": "c001_00384_s",
+   "kap": "c001",
+   "text": "A gentle slope descends from it to a silver sheet of water, bordered by high trees, between which one can catch peeps of the blue hills of the Hudson."
+  },
+  {
+   "id": "c001_00385_s",
+   "kap": "c001",
+   "text": "To look upon its grass-grown yard, where the sunbeams seem to sleep so quietly, one would think that there at least the dead might rest in peace."
+  },
+  {
+   "id": "c001_00386_s",
+   "kap": "c001",
+   "text": "On one side of the church extends a wide, wooded dell, along which a large brook raves among broken rocks and trunks of fallen trees."
+  },
+  {
+   "id": "c001_00387_s",
+   "kap": "c001",
+   "text": "Over a deep, black part of the stream, not far from the church, a wooden bridge was formerly thrown; the road that led to it, and the bridge itself, were thickly shaded by overhanging trees, which cast a gloom about it even in the daytime, but created a fearful darkness at night."
+  },
+  {
+   "id": "c001_00388_s",
+   "kap": "c001",
+   "text": "This was one of the favorite haunts of the Headless Horseman, and the place where he was most frequently encountered."
+  },
+  {
+   "id": "c001_00389_s",
+   "kap": "c001",
+   "text": "The tale was told of old Brouwer, a most stubborn disbeliever in ghosts, how he met the Horseman returning from a foray into Sleepy Hollow and was forced to get up behind him; how they galloped over bush and brake, over hill and swamp, until they reached the bridge; when the Horseman suddenly turned into a skeleton, threw old Brouwer into the brook, and sprang away over the treetops with a clap of thunder."
+  },
+  {
+   "id": "c001_00391_s",
+   "kap": "c001",
+   "text": "This story was immediately matched by a three-times-marvellous adventure from Brom Bones, who dismissed the Galloping Hessian as an outright fraud."
+  },
+  {
+   "id": "c001_00392_s",
+   "kap": "c001",
+   "text": "He claimed that, one night, while returning from the nearby village of Sing Sing, he was overtaken by this midnight rider; he offered to race him for a bowl of punch, and would certainly have won, for Daredevil beat the goblin horse completely—but just as they reached the church bridge, the Hessian bolted and vanished in a flash of fire."
+  },
+  {
+   "id": "c001_00394_s",
+   "kap": "c001",
+   "text": "All these tales, told in the drowsy undertone men use when talking in the dark, the listeners' faces only occasionally lit by the glow of a pipe, made a deep impression on Ichabod."
+  },
+  {
+   "id": "c001_00395_s",
+   "kap": "c001",
+   "text": "He returned the favor with long passages from his treasured author, Cotton Mather, and added many marvellous events from his home state of Connecticut, as well as fearful sights he had seen on his nightly walks around Sleepy Hollow."
+  },
+  {
+   "id": "c001_00397_s",
+   "kap": "c001",
+   "text": "The party now gradually broke up."
+  },
+  {
+   "id": "c001_00398_s",
+   "kap": "c001",
+   "text": "The old farmers gathered their families into their wagons and could be heard for some time rattling along the hollow roads and over the distant hills."
+  },
+  {
+   "id": "c001_00399_s",
+   "kap": "c001",
+   "text": "Some of the young women climbed onto pillions behind their favorite suitors, and their light-hearted laughter, mingling with the clatter of hoofs, echoed through the silent woodlands, sounding fainter and fainter until it gradually died away—and the late scene of noise and fun was all silent and deserted."
+  },
+  {
+   "id": "c001_00400_s",
+   "kap": "c001",
+   "text": "Only Ichabod lingered behind, as country lovers do, to have a private conversation with the heiress, fully convinced he was now on the fast track to success."
+  },
+  {
+   "id": "c001_00401_s",
+   "kap": "c001",
+   "text": "What passed at this interview I will not pretend to say, for in truth I do not know."
+  },
+  {
+   "id": "c001_00402_s",
+   "kap": "c001",
+   "text": "Something, however, I fear, must have gone wrong, for he certainly came out after no great interval looking quite miserable and downcast."
+  },
+  {
+   "id": "c001_00403_s",
+   "kap": "c001",
+   "text": "Oh, these women! these women!"
+  },
+  {
+   "id": "c001_00404_s",
+   "kap": "c001",
+   "text": "Could that girl have been playing any of her coquettish tricks?"
+  },
+  {
+   "id": "c001_00405_s",
+   "kap": "c001",
+   "text": "Was her encouragement of the poor schoolteacher all just a sham to secure her conquest of his rival?"
+  },
+  {
+   "id": "c001_00406_s",
+   "kap": "c001",
+   "text": "Heaven only knows, not I!"
+  },
+  {
+   "id": "c001_00407_s",
+   "kap": "c001",
+   "text": "Let it be enough to say that Ichabod stole forth with the air of one who had been raiding a henhouse, rather than a fair lady’s heart."
+  },
+  {
+   "id": "c001_00408_s",
+   "kap": "c001",
+   "text": "Without looking right or left to notice the scene of rural wealth he had so often gloated over, he went straight to the stable, and with several hearty slaps and kicks roused his horse most rudely from its comfortable quarters, where it was sleeping soundly and dreaming of mountains of corn and oats, and whole valleys of timothy and clover."
+  },
+  {
+   "id": "c001_00410_s",
+   "kap": "c001",
+   "text": "It was the bewitching hour of night when Ichabod, heavy-hearted and crestfallen, made his way home along the sides of the lofty hills that rise above Tarry Town—the same hills he had crossed so cheerfully that afternoon."
+  },
+  {
+   "id": "c001_00411_s",
+   "kap": "c001",
+   "text": "The hour was as dismal as he was."
+  },
+  {
+   "id": "c001_00412_s",
+   "kap": "c001",
+   "text": "Far below him, the Tappan Zee spread out a dark, indistinct waste of waters, dotted here and there with the tall mast of a sloop riding quietly at anchor near the shore."
+  },
+  {
+   "id": "c001_00413_s",
+   "kap": "c001",
+   "text": "In the dead hush of midnight, he could even hear the barking of a watchdog from the opposite bank of the Hudson; but the sound was so vague and faint that it only made him realize how far he was from that faithful companion of man."
+  },
+  {
+   "id": "c001_00414_s",
+   "kap": "c001",
+   "text": "Now and then, too, a rooster, accidentally awakened, would give a long, drawn-out crow far, far off from some farmhouse among the hills—but it was like a dreaming sound in his ears."
+  },
+  {
+   "id": "c001_00415_s",
+   "kap": "c001",
+   "text": "No signs of life were near him, except for the occasional melancholy chirp of a cricket, or maybe the guttural twang of a bullfrog from a neighboring marsh, as if it were sleeping uncomfortably and had turned suddenly in its bed."
+  },
+  {
+   "id": "c001_00417_s",
+   "kap": "c001",
+   "text": "All the ghost and goblin stories he had heard that afternoon now came crowding into his memory."
+  },
+  {
+   "id": "c001_00418_s",
+   "kap": "c001",
+   "text": "The night grew darker and darker; the stars seemed to sink deeper in the sky, and driving clouds would occasionally hide them from his sight."
+  },
+  {
+   "id": "c001_00419_s",
+   "kap": "c001",
+   "text": "He had never felt so lonely and dismal."
+  },
+  {
+   "id": "c001_00420_s",
+   "kap": "c001",
+   "text": "He was, moreover, approaching the very place where so many of the ghost-story scenes had been laid."
+  },
+  {
+   "id": "c001_00421_s",
+   "kap": "c001",
+   "text": "In the center of the road stood an enormous tulip tree, which towered like a giant above all the other trees of the neighborhood and formed a kind of landmark."
+  },
+  {
+   "id": "c001_00422_s",
+   "kap": "c001",
+   "text": "Its limbs were gnarled and fantastic, large enough to be trunks for ordinary trees, twisting down almost to the earth and rising again into the air."
+  },
+  {
+   "id": "c001_00423_s",
+   "kap": "c001",
+   "text": "It was tied to the tragic story of the unfortunate André, who had been taken prisoner nearby, and was universally known as Major André’s tree."
+  },
+  {
+   "id": "c001_00424_s",
+   "kap": "c001",
+   "text": "The common people regarded it with a mix of respect and superstition, partly out of sympathy for the fate of its ill-starred namesake, and partly from the tales of strange sights and mournful lamentations told about it."
+  },
+  {
+   "id": "c001_00426_s",
+   "kap": "c001",
+   "text": "As Ichabod approached this fearful tree, he began to whistle."
+  },
+  {
+   "id": "c001_00427_s",
+   "kap": "c001",
+   "text": "He thought his whistle was answered, but it was merely a blast of wind sweeping sharply through the dry branches."
+  },
+  {
+   "id": "c001_00428_s",
+   "kap": "c001",
+   "text": "Coming a little nearer, he thought he saw something white hanging in the middle of the tree."
+  },
+  {
+   "id": "c001_00429_s",
+   "kap": "c001",
+   "text": "He paused and stopped whistling; but looking more closely, he realized it was a place where the tree had been scorched by lightning and the white wood laid bare."
+  },
+  {
+   "id": "c001_00430_s",
+   "kap": "c001",
+   "text": "Suddenly he heard a groan—his teeth chattered, and his knees knocked against the saddle."
+  },
+  {
+   "id": "c001_00431_s",
+   "kap": "c001",
+   "text": "It was only the rubbing of one huge bough against another as they swayed in the breeze."
+  },
+  {
+   "id": "c001_00432_s",
+   "kap": "c001",
+   "text": "He passed the tree in safety, but new dangers lay before him."
+  },
+  {
+   "id": "c001_00434_s",
+   "kap": "c001",
+   "text": "About two hundred yards from the tree, a small brook crossed the road and ran into a marshy, thickly wooded glen known as Wiley’s Swamp."
+  },
+  {
+   "id": "c001_00435_s",
+   "kap": "c001",
+   "text": "A few rough logs laid side by side served as a bridge over this stream."
+  },
+  {
+   "id": "c001_00436_s",
+   "kap": "c001",
+   "text": "On the side of the road where the brook entered the woods, a cluster of oaks and chestnuts, thickly matted with wild grapevines, cast a cavern-like gloom over it."
+  },
+  {
+   "id": "c001_00437_s",
+   "kap": "c001",
+   "text": "Crossing this bridge was the hardest test of courage."
+  },
+  {
+   "id": "c001_00438_s",
+   "kap": "c001",
+   "text": "At this very spot the unfortunate André was captured; under the cover of those chestnuts and vines, sturdy farmers hid and surprised him."
+  },
+  {
+   "id": "c001_00439_s",
+   "kap": "c001",
+   "text": "Ever since, the stream has been considered haunted, and any schoolboy who has to pass it alone after dark feels terrible fear."
+  },
+  {
+   "id": "c001_00441_s",
+   "kap": "c001",
+   "text": "As he approached the stream, his heart began to thump."
+  },
+  {
+   "id": "c001_00442_s",
+   "kap": "c001",
+   "text": "However, he summoned all his courage, gave his horse a dozen kicks in the ribs, and tried to dash briskly across the bridge."
+  },
+  {
+   "id": "c001_00443_s",
+   "kap": "c001",
+   "text": "But instead of moving forward, the stubborn old animal veered sideways and ran broadside into the fence."
+  },
+  {
+   "id": "c001_00444_s",
+   "kap": "c001",
+   "text": "Ichabod’s fears grew with the delay."
+  },
+  {
+   "id": "c001_00445_s",
+   "kap": "c001",
+   "text": "He jerked the reins to the other side and kicked hard with the opposite foot."
+  },
+  {
+   "id": "c001_00446_s",
+   "kap": "c001",
+   "text": "It was no use."
+  },
+  {
+   "id": "c001_00447_s",
+   "kap": "c001",
+   "text": "His horse did start, but only to plunge across the road into a thicket of brambles and alder bushes."
+  },
+  {
+   "id": "c001_00448_s",
+   "kap": "c001",
+   "text": "The schoolmaster then used both whip and heel on the starved ribs of old Gunpowder."
+  },
+  {
+   "id": "c001_00449_s",
+   "kap": "c001",
+   "text": "The horse dashed forward, snuffling and snorting, but came to a sudden stop just at the bridge, nearly sending his rider sprawling over his head."
+  },
+  {
+   "id": "c001_00450_s",
+   "kap": "c001",
+   "text": "Just then a splashy footstep by the side of the bridge caught Ichabod’s sensitive ear."
+  },
+  {
+   "id": "c001_00451_s",
+   "kap": "c001",
+   "text": "In the dark shadow of the grove, on the edge of the brook, he saw something huge, misshapen, and towering."
+  },
+  {
+   "id": "c001_00452_s",
+   "kap": "c001",
+   "text": "It did not stir, but seemed to huddle in the gloom, like a gigantic monster ready to spring on the traveler."
+  },
+  {
+   "id": "c001_00454_s",
+   "kap": "c001",
+   "text": "The hair on the terrified schoolmaster’s head stood up in terror."
+  },
+  {
+   "id": "c001_00455_s",
+   "kap": "c001",
+   "text": "What was he to do?"
+  },
+  {
+   "id": "c001_00456_s",
+   "kap": "c001",
+   "text": "To turn and flee was now too late; and besides, what chance was there of escaping a ghost or goblin, if that’s what it was, that could ride on the wings of the wind?"
+  },
+  {
+   "id": "c001_00457_s",
+   "kap": "c001",
+   "text": "So, summoning a show of courage, he demanded in stammering tones, “Who are you?”"
+  },
+  {
+   "id": "c001_00458_s",
+   "kap": "c001",
+   "text": "He got no reply."
+  },
+  {
+   "id": "c001_00459_s",
+   "kap": "c001",
+   "text": "He repeated the question in an even more agitated voice."
+  },
+  {
+   "id": "c001_00460_s",
+   "kap": "c001",
+   "text": "Still no answer."
+  },
+  {
+   "id": "c001_00461_s",
+   "kap": "c001",
+   "text": "Once more he thrashed the sides of the stubborn Gunpowder, and, shutting his eyes, broke out with involuntary fervor into a psalm tune."
+  },
+  {
+   "id": "c001_00462_s",
+   "kap": "c001",
+   "text": "Just then the shadowy object of alarm set itself in motion, and with a scramble and a bound it suddenly stood in the middle of the road."
+  },
+  {
+   "id": "c001_00463_s",
+   "kap": "c001",
+   "text": "Though the night was dark and dismal, yet the shape of the unknown could now be somewhat made out."
+  },
+  {
+   "id": "c001_00464_s",
+   "kap": "c001",
+   "text": "He appeared to be a large horseman, mounted on a powerfully built black horse."
+  },
+  {
+   "id": "c001_00465_s",
+   "kap": "c001",
+   "text": "He made no move to attack or be friendly, but kept to the far side of the road, jogging along on the blind side of old Gunpowder, who had now gotten over his fright and stubbornness."
+  },
+  {
+   "id": "c001_00467_s",
+   "kap": "c001",
+   "text": "Ichabod had no liking for this strange midnight companion and remembered Brom Bones’s adventure with the Galloping Hessian."
+  },
+  {
+   "id": "c001_00468_s",
+   "kap": "c001",
+   "text": "He urged his horse faster, hoping to leave the stranger behind."
+  },
+  {
+   "id": "c001_00469_s",
+   "kap": "c001",
+   "text": "But the stranger quickened his horse to match his pace."
+  },
+  {
+   "id": "c001_00470_s",
+   "kap": "c001",
+   "text": "Ichabod pulled up and slowed to a walk, thinking to fall behind, but the other did the same."
+  },
+  {
+   "id": "c001_00471_s",
+   "kap": "c001",
+   "text": "His heart began to sink."
+  },
+  {
+   "id": "c001_00472_s",
+   "kap": "c001",
+   "text": "He tried to start his psalm tune again, but his dry tongue stuck to the roof of his mouth, and he could not sing a single note."
+  },
+  {
+   "id": "c001_00473_s",
+   "kap": "c001",
+   "text": "There was something in the sullen, stubborn silence of this persistent companion that was mysterious and appalling."
+  },
+  {
+   "id": "c001_00474_s",
+   "kap": "c001",
+   "text": "Soon, it was explained in a terrifying way."
+  },
+  {
+   "id": "c001_00475_s",
+   "kap": "c001",
+   "text": "As they climbed a rise and the fellow traveler’s figure stood out in silhouette against the sky—gigantic in height and wrapped in a cloak—Ichabod was horror-struck to see that he had no head!"
+  },
+  {
+   "id": "c001_00476_s",
+   "kap": "c001",
+   "text": "His horror grew when he noticed that the head, which should have rested on his shoulders, was carried on the pommel of his saddle in front of him."
+  },
+  {
+   "id": "c001_00477_s",
+   "kap": "c001",
+   "text": "His terror turned to desperation."
+  },
+  {
+   "id": "c001_00478_s",
+   "kap": "c001",
+   "text": "He rained a shower of kicks and blows on Gunpowder, hoping to make a sudden dash and slip away from his companion."
+  },
+  {
+   "id": "c001_00479_s",
+   "kap": "c001",
+   "text": "But the spectre leaped forward right beside him."
+  },
+  {
+   "id": "c001_00480_s",
+   "kap": "c001",
+   "text": "So away they dashed, through thick and thin—stones flying and sparks flashing with every bound."
+  },
+  {
+   "id": "c001_00481_s",
+   "kap": "c001",
+   "text": "Ichabod’s thin clothes fluttered in the air as he stretched his long, lean body forward over his horse’s head in his frantic flight."
+  },
+  {
+   "id": "c001_00483_s",
+   "kap": "c001",
+   "text": "They had now reached the road that turns off to Sleepy Hollow."
+  },
+  {
+   "id": "c001_00484_s",
+   "kap": "c001",
+   "text": "But Gunpowder, who seemed possessed by a demon, instead of staying on it, turned the opposite way and plunged headlong downhill to the left."
+  },
+  {
+   "id": "c001_00485_s",
+   "kap": "c001",
+   "text": "This road leads through a sandy hollow shaded by trees for about a quarter of a mile."
+  },
+  {
+   "id": "c001_00486_s",
+   "kap": "c001",
+   "text": "It crosses the bridge famous in goblin story, and just beyond, a green knoll swells up where the whitewashed church stands."
+  },
+  {
+   "id": "c001_00488_s",
+   "kap": "c001",
+   "text": "Until now, the horse’s panic had given the unskilful rider an apparent advantage in the chase."
+  },
+  {
+   "id": "c001_00489_s",
+   "kap": "c001",
+   "text": "But just as he got halfway through the hollow, the saddle girths broke, and he felt the saddle slipping away beneath him."
+  },
+  {
+   "id": "c001_00490_s",
+   "kap": "c001",
+   "text": "He grabbed the pommel and tried to hold it tight, but it was no use."
+  },
+  {
+   "id": "c001_00491_s",
+   "kap": "c001",
+   "text": "He just had time to save himself by throwing his arms around old Gunpowder’s neck as the saddle fell to the ground and he heard it trampled underfoot by his pursuer."
+  },
+  {
+   "id": "c001_00492_s",
+   "kap": "c001",
+   "text": "For a moment, the dread of Hans Van Ripper’s anger flashed through his mind—it was his Sunday saddle, after all."
+  },
+  {
+   "id": "c001_00493_s",
+   "kap": "c001",
+   "text": "But this was no time for small worries; the goblin was right on his heels."
+  },
+  {
+   "id": "c001_00494_s",
+   "kap": "c001",
+   "text": "And, unskilful rider that he was, he had a great struggle to stay in the saddle."
+  },
+  {
+   "id": "c001_00495_s",
+   "kap": "c001",
+   "text": "Sometimes he slipped to one side, sometimes to the other."
+  },
+  {
+   "id": "c001_00496_s",
+   "kap": "c001",
+   "text": "Sometimes he was jolted on the high ridge of his horse’s backbone with a force that he truly feared would split him in two."
+  },
+  {
+   "id": "c001_00498_s",
+   "kap": "c001",
+   "text": "An opening in the trees now cheered him, giving him hope that the church bridge was near."
+  },
+  {
+   "id": "c001_00499_s",
+   "kap": "c001",
+   "text": "The wavering reflection of a silver star in the bosom of the brook told him he was not mistaken."
+  },
+  {
+   "id": "c001_00500_s",
+   "kap": "c001",
+   "text": "He saw the church walls dimly gleaming beneath the trees beyond."
+  },
+  {
+   "id": "c001_00501_s",
+   "kap": "c001",
+   "text": "He remembered the spot where Brom Bones’s ghostly competitor had disappeared."
+  },
+  {
+   "id": "c001_00502_s",
+   "kap": "c001",
+   "text": "“If I can just reach that bridge,” thought Ichabod, “I am safe.”"
+  },
+  {
+   "id": "c001_00503_s",
+   "kap": "c001",
+   "text": "Just then he heard the black steed panting and snorting close behind him; he even imagined he felt its hot breath."
+  },
+  {
+   "id": "c001_00504_s",
+   "kap": "c001",
+   "text": "Another sudden kick in the ribs, and old Gunpowder leaped onto the bridge."
+  },
+  {
+   "id": "c001_00505_s",
+   "kap": "c001",
+   "text": "He thundered across the echoing planks and reached the other side."
+  },
+  {
+   "id": "c001_00506_s",
+   "kap": "c001",
+   "text": "Now Ichabod looked back to see if his pursuer would vanish, as the legend said, in a burst of fire and brimstone."
+  },
+  {
+   "id": "c001_00507_s",
+   "kap": "c001",
+   "text": "Just then he saw the goblin rising in his stirrups, about to hurl his head at him."
+  },
+  {
+   "id": "c001_00508_s",
+   "kap": "c001",
+   "text": "Ichabod tried to dodge the horrible missile, but it was too late."
+  },
+  {
+   "id": "c001_00509_s",
+   "kap": "c001",
+   "text": "It struck his skull with a tremendous crash."
+  },
+  {
+   "id": "c001_00510_s",
+   "kap": "c001",
+   "text": "He was tumbled headlong into the dirt, and Gunpowder, the black steed, and the goblin rider swept past like a whirlwind."
+  },
+  {
+   "id": "c001_00512_s",
+   "kap": "c001",
+   "text": "The next morning the old horse was found without his saddle, the bridle under his feet, quietly cropping the grass at his master’s gate."
+  },
+  {
+   "id": "c001_00513_s",
+   "kap": "c001",
+   "text": "Ichabod did not appear at breakfast; dinner time came, but still no Ichabod."
+  },
+  {
+   "id": "c001_00514_s",
+   "kap": "c001",
+   "text": "The boys gathered at the schoolhouse and strolled idly along the banks of the brook; but there was no schoolmaster."
+  },
+  {
+   "id": "c001_00515_s",
+   "kap": "c001",
+   "text": "Hans Van Ripper now began to feel uneasy about the fate of poor Ichabod, and his saddle."
+  },
+  {
+   "id": "c001_00516_s",
+   "kap": "c001",
+   "text": "An investigation was started, and after a thorough search they came upon his traces."
+  },
+  {
+   "id": "c001_00517_s",
+   "kap": "c001",
+   "text": "In one stretch of the road leading to the church, they found the saddle trampled into the dirt."
+  },
+  {
+   "id": "c001_00518_s",
+   "kap": "c001",
+   "text": "The tracks of horses’ hooves, deeply dented in the road and clearly made at a furious speed, were traced to the bridge."
+  },
+  {
+   "id": "c001_00519_s",
+   "kap": "c001",
+   "text": "Beyond it, on the bank of a wide part of the brook where the water ran deep and black, they found the hat of the unfortunate Ichabod, and close beside it a shattered pumpkin."
+  },
+  {
+   "id": "c001_00521_s",
+   "kap": "c001",
+   "text": "The brook was searched, but the schoolmaster’s body was not to be discovered."
+  },
+  {
+   "id": "c001_00522_s",
+   "kap": "c001",
+   "text": "Hans Van Ripper, as executor of his estate, examined the bundle that contained all his worldly possessions."
+  },
+  {
+   "id": "c001_00523_s",
+   "kap": "c001",
+   "text": "They consisted of two and a half shirts; two neck stocks; a pair or two of woolen stockings; an old pair of corduroy breeches; a rusty razor; a book of psalm tunes full of dog-ears; and a broken pitch-pipe."
+  },
+  {
+   "id": "c001_00524_s",
+   "kap": "c001",
+   "text": "The books and furniture of the schoolhouse belonged to the community, except for Cotton Mather’s “History of Witchcraft,” a “New England Almanac,” and a book of dreams and fortune-telling."
+  },
+  {
+   "id": "c001_00525_s",
+   "kap": "c001",
+   "text": "In that last book was a sheet of foolscap, much scribbled and blotted, from several fruitless attempts to compose verses in honor of the heiress of Van Tassel."
+  },
+  {
+   "id": "c001_00526_s",
+   "kap": "c001",
+   "text": "These magic books and the poetic scrawl were immediately thrown into the flames by Hans Van Ripper."
+  },
+  {
+   "id": "c001_00527_s",
+   "kap": "c001",
+   "text": "From that time forward, he determined to send his children no more to school, saying that he never knew any good to come of all this reading and writing."
+  },
+  {
+   "id": "c001_00528_s",
+   "kap": "c001",
+   "text": "Whatever money the schoolmaster had—and he had received his quarter’s pay just a day or two before—he must have had it on his person at the time of his disappearance."
+  },
+  {
+   "id": "c001_00530_s",
+   "kap": "c001",
+   "text": "The mysterious event caused much speculation at the church on the following Sunday."
+  },
+  {
+   "id": "c001_00531_s",
+   "kap": "c001",
+   "text": "Groups of onlookers and gossips gathered in the churchyard, at the bridge, and at the spot where the hat and pumpkin had been found."
+  },
+  {
+   "id": "c001_00532_s",
+   "kap": "c001",
+   "text": "The stories of Brouwer, of Bones, and a whole collection of others were called to mind."
+  },
+  {
+   "id": "c001_00533_s",
+   "kap": "c001",
+   "text": "When they had carefully considered them all, and compared them with the details of the present case, they shook their heads and came to the conclusion that Ichabod had been carried off by the Galloping Hessian."
+  },
+  {
+   "id": "c001_00534_s",
+   "kap": "c001",
+   "text": "Since he was a bachelor and owed nobody money, nobody worried about him any further."
+  },
+  {
+   "id": "c001_00535_s",
+   "kap": "c001",
+   "text": "The school was moved to a different part of the hollow, and another teacher took his place."
+  },
+  {
+   "id": "c001_00537_s",
+   "kap": "c001",
+   "text": "It is true, an old farmer who had visited New York several years later, and from whom this account of the ghostly adventure was received, brought back news that Ichabod Crane was still alive."
+  },
+  {
+   "id": "c001_00538_s",
+   "kap": "c001",
+   "text": "He had left the neighborhood partly out of fear of the goblin and Hans Van Ripper, and partly from embarrassment at being suddenly dismissed by the heiress."
+  },
+  {
+   "id": "c001_00539_s",
+   "kap": "c001",
+   "text": "He had moved to a distant part of the country, kept school and studied law at the same time, been admitted to the bar, turned to politics, campaigned, written for the newspapers, and finally became a justice of the Ten Pound Court."
+  },
+  {
+   "id": "c001_00540_s",
+   "kap": "c001",
+   "text": "Brom Bones, too, who shortly after his rival's disappearance had triumphantly led the blooming Katrina to the altar, was observed to look very knowing whenever the story of Ichabod was told."
+  },
+  {
+   "id": "c001_00541_s",
+   "kap": "c001",
+   "text": "He always burst into a hearty laugh at the mention of the pumpkin."
+  },
+  {
+   "id": "c001_00542_s",
+   "kap": "c001",
+   "text": "This led some to suspect that he knew more about the matter than he chose to tell."
+  },
+  {
+   "id": "c001_00544_s",
+   "kap": "c001",
+   "text": "The old country wives, however, who are the best judges of these matters, still maintain to this day that Ichabod was spirited away by supernatural means."
+  },
+  {
+   "id": "c001_00545_s",
+   "kap": "c001",
+   "text": "It is a favorite story often told around the winter evening fire in the neighborhood."
+  },
+  {
+   "id": "c001_00546_s",
+   "kap": "c001",
+   "text": "The bridge became more than ever an object of superstitious awe."
+  },
+  {
+   "id": "c001_00547_s",
+   "kap": "c001",
+   "text": "That may be the reason why the road has been altered in recent years, so that it approaches the church along the edge of the millpond."
+  },
+  {
+   "id": "c001_00548_s",
+   "kap": "c001",
+   "text": "The schoolhouse, being deserted, soon fell to decay."
+  },
+  {
+   "id": "c001_00549_s",
+   "kap": "c001",
+   "text": "It was rumored to be haunted by the ghost of the unfortunate teacher."
+  },
+  {
+   "id": "c001_00550_s",
+   "kap": "c001",
+   "text": "The plowboy, loitering homeward on a still summer evening, has often fancied he heard his voice at a distance, chanting a melancholy psalm tune among the tranquil solitudes of Sleepy Hollow."
+  },
+  {
+   "id": "c001_00552_h",
+   "kap": "c001",
+   "text": "Postscript."
+  },
+  {
+   "id": "c001_00553_s",
+   "kap": "c001",
+   "text": "Found in the handwriting of Mr. Knickerbocker."
+  },
+  {
+   "id": "c001_00555_s",
+   "kap": "c001",
+   "text": "The story just told is given almost word for word as I heard it at a Corporation meeting in the ancient city of Manhattoes."
+  },
+  {
+   "id": "c001_00556_s",
+   "kap": "c001",
+   "text": "Many of its wisest and most illustrious burghers were present."
+  },
+  {
+   "id": "c001_00557_s",
+   "kap": "c001",
+   "text": "The narrator was a pleasant, shabby, gentlemanly old fellow in pepper-and-salt clothes, with a sadly humorous face."
+  },
+  {
+   "id": "c001_00558_s",
+   "kap": "c001",
+   "text": "I strongly suspected he was poor—he made such efforts to be entertaining."
+  },
+  {
+   "id": "c001_00559_s",
+   "kap": "c001",
+   "text": "When he finished his story, there was much laughter and approval, especially from two or three deputy aldermen who had been asleep for most of it."
+  },
+  {
+   "id": "c001_00560_s",
+   "kap": "c001",
+   "text": "There was, however, one tall, dry-looking old gentleman with beetling eyebrows."
+  },
+  {
+   "id": "c001_00561_s",
+   "kap": "c001",
+   "text": "He kept a grave and rather severe expression throughout."
+  },
+  {
+   "id": "c001_00562_s",
+   "kap": "c001",
+   "text": "Now and then he folded his arms, inclined his head, and looked down at the floor, as if turning over a doubt in his mind."
+  },
+  {
+   "id": "c001_00563_s",
+   "kap": "c001",
+   "text": "He was one of those wary men who never laugh except on solid grounds—when they have reason and the law on their side."
+  },
+  {
+   "id": "c001_00564_s",
+   "kap": "c001",
+   "text": "When the laughter of the rest of the company had died down and silence returned, he leaned one arm on the elbow of his chair and stuck the other hand on his hip."
+  },
+  {
+   "id": "c001_00565_s",
+   "kap": "c001",
+   "text": "With a slight but exceedingly sage nod and a frown, he demanded what was the moral of the story and what it was meant to prove."
+  },
+  {
+   "id": "c001_00567_s",
+   "kap": "c001",
+   "text": "The storyteller, who was just putting a glass of wine to his lips as a refreshment after his efforts, paused for a moment."
+  },
+  {
+   "id": "c001_00568_s",
+   "kap": "c001",
+   "text": "He looked at his questioner with an air of infinite deference, and, lowering the glass slowly to the table, observed that the story was intended most logically to prove—"
+  },
+  {
+   "id": "c001_00569_dl",
+   "kap": "c001",
+   "text": "“That there is no situation in life without its advantages and pleasures—provided we will only take a joke as we find it:\n\n“That, therefore, he who runs races with goblin troopers is likely to have a rough ride of it.\n\n“Ergo, for a country schoolmaster to be refused the hand of a Dutch heiress is a sure step to high office in the state.”"
+  },
+  {
+   "id": "c001_00571_s",
+   "kap": "c001",
+   "text": "The cautious old gentleman knit his brows tenfold closer after this explanation, being sorely puzzled by the reasoning of the syllogism."
+  },
+  {
+   "id": "c001_00572_s",
+   "kap": "c001",
+   "text": "Meanwhile, I thought, the one in pepper-and-salt eyed him with something of a triumphant leer."
+  },
+  {
+   "id": "c001_00573_s",
+   "kap": "c001",
+   "text": "At length he remarked that all this was very well, but still he thought the story a little extravagant—there were one or two points on which he had his doubts."
+  },
+  {
+   "id": "c001_00574_dl",
+   "kap": "c001",
+   "text": "“Faith, sir,” replied the storyteller, “as to that matter, I don’t believe one-half of it myself.”"
+  },
+  {
+   "id": "c001_00575_s",
+   "kap": "c001",
+   "text": "D. K."
+  },
+  {
+   "id": "c001_00576_h",
+   "kap": "c001",
+   "text": "THE END."
+  }
+ ]
+}

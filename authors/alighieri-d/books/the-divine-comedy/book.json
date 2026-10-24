@@ -1,0 +1,39 @@
+{
+  "book_slug": "the-divine-comedy",
+  "author_slug": "alighieri-d",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q40185",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The divine comedy",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "8800",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The divine comedy",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Göttliche Komödie",
+      "titel_quelle": "wikidata",
+      "titel_pruefen": false
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:27:00"
+}

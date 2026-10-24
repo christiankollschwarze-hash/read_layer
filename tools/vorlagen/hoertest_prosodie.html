@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hörtest Prosodie v0.1</title>
+<style>
+:root{--bg:#f6f4ef;--fg:#1d1c1a;--mut:#6b675f;--line:#ddd8cc;--card:#fff;--acc:#2f5d8a;--b:#8a4b2f}
+@media (prefers-color-scheme:dark){:root{--bg:#181816;--fg:#ece9e2;--mut:#9a958b;--line:#34322d;--card:#22211e;--acc:#7fb0e0;--b:#e0a07f}}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 system-ui,sans-serif}
+main{max-width:980px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:8px 0 4px} .mut{color:var(--mut);font-size:13px}
+.satz{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px;margin:12px 0}
+.kopf{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}.id{font-weight:700}
+code{font-size:14px;white-space:pre-wrap;word-break:break-word}
+details{margin:6px 0;font-size:12px;color:var(--mut)}
+.reihe{display:grid;grid-template-columns:28px minmax(0,1fr) repeat(5,auto);gap:6px;align-items:center;margin-top:6px}
+.reihe b{color:var(--acc)} .reihe.b b{color:var(--b)}
+audio{width:100%;height:32px} select{font-size:13px}
+.leg{display:grid;grid-template-columns:28px minmax(0,1fr) repeat(5,48px);gap:6px;font-size:12px;color:var(--mut)}
+textarea{width:100%;box-sizing:border-box;margin-top:6px;font:13px system-ui;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:4px}
+table{border-collapse:collapse;font-size:13px}td,th{border:1px solid var(--line);padding:3px 8px;text-align:center}
+button{font:14px system-ui;padding:6px 12px;margin:4px 4px 0 0}
+@media (max-width:640px){.reihe{grid-template-columns:24px minmax(0,1fr)}.reihe select{grid-column:span 1}}
+</style></head><body><main>
+<h1>Hörtest Prosodie-Vokabelheft v0.1</h1>
+<p class="mut">A = ohne Markup, B = mit Markup (gleiche Stimme, gleicher Seed). Je Fassung 1–5: <b>V</b> Verständlichkeit · <b>S</b> Stimmung · <b>B</b> Betonung · <b>P</b> Pausen · <b>A</b> Artefakte (5 = keine). Wird im Browser gespeichert.</p>
+<div id="summe"></div>
+<button onclick="csv()">CSV speichern</button><button onclick="if(confirm('Alle Bewertungen löschen?')){R={};speichern();bauen()}">Zurücksetzen</button>
+<div id="liste"></div>
+</main><script>
+const D=/*DATEN*/[];
+const K=["V","S","B","P","A"];let R={};
+try{R=JSON.parse(localStorage.getItem("prosodie_v01")||"{}")}catch(e){}
+function speichern(){try{localStorage.setItem("prosodie_v01",JSON.stringify(R))}catch(e){}summe()}
+function sel(id,v,k){const s=document.createElement("select");s.title=k;s.innerHTML=`<option value="">${k}</option>`+[1,2,3,4,5].map(n=>`<option>${n}</option>`).join("");
+ s.value=(R[id]?.[v]?.[k])||"";s.onchange=()=>{R[id]=R[id]||{};R[id][v]=R[id][v]||{};R[id][v][k]=s.value;speichern()};return s}
+function bauen(){const L=document.getElementById("liste");L.innerHTML="";
+ for(const s of D){const c=document.createElement("div");c.className="satz";
+  c.innerHTML=`<div class="kopf"><span class="id">${s.id}</span><span class="mut">${s.label}</span></div><code></code>
+  <details><summary>Chunks (B)</summary><div>${s.chunks.map(x=>x.replace(/</g,"&lt;")).join("<br>")}</div></details>`;
+  c.querySelector("code").textContent=s.markup;
+  for(const v of ["a","b"]){const r=document.createElement("div");r.className="reihe "+v;
+   r.innerHTML=`<b>${v.toUpperCase()}</b><audio controls preload="none" src="audio/${s.id}_${v}.wav"></audio>`;
+   K.forEach(k=>r.appendChild(sel(s.id,v,k)));c.appendChild(r)}
+  const t=document.createElement("textarea");t.rows=1;t.placeholder="Notiz";t.value=R[s.id]?.notiz||"";
+  t.oninput=()=>{R[s.id]=R[s.id]||{};R[s.id].notiz=t.value;speichern()};c.appendChild(t);L.appendChild(c)}
+ summe()}
+function mittel(f){let x=[];for(const s of D.filter(f.s))for(const k of [f.k]){const w=R[s.id]?.[f.v]?.[k];if(w)x.push(+w)}return x.length?(x.reduce((a,b)=>a+b,0)/x.length).toFixed(2):"–"}
+function summe(){let h="<table><tr><th></th>"+K.map(k=>`<th colspan=2>${k}</th>`).join("")+"</tr><tr><th></th>"+K.map(()=>"<th>A</th><th>B</th>").join("")+"</tr>";
+ for(const [n,f] of [["DE",s=>s.lang=="de"],["EN",s=>s.lang=="en"],["alle",s=>true]])
+  h+=`<tr><th>${n}</th>`+K.map(k=>`<td>${mittel({s:f,v:"a",k})}</td><td>${mittel({s:f,v:"b",k})}</td>`).join("")+"</tr>";
+ const n=D.filter(s=>R[s.id]?.b&&Object.keys(R[s.id].b).length).length;
+ document.getElementById("summe").innerHTML=h+`</table><p class="mut">${n} von ${D.length} Sätzen bewertet</p>`}
+function csv(){let z=["id;sprache;label;"+K.map(k=>"A_"+k).join(";")+";"+K.map(k=>"B_"+k).join(";")+";notiz"];
+ for(const s of D){const r=R[s.id]||{};z.push([s.id,s.lang,s.label,...K.map(k=>r.a?.[k]||""),...K.map(k=>r.b?.[k]||""),(r.notiz||"").replace(/[;\n]/g," ")].join(";"))}
+ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["﻿"+z.join("\n")],{type:"text/csv"}));a.download="bewertung_prosodie_v01.csv";a.click()}
+bauen();
+</script></body></html>

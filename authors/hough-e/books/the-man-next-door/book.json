@@ -1,0 +1,39 @@
+{
+  "book_slug": "the-man-next-door",
+  "author_slug": "hough-e",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q48743628",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The Man Next Door",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "23606",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The Man Next Door",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Der Mann von nebenan",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:25:53"
+}

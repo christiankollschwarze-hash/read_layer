@@ -1,0 +1,18 @@
+{
+ "variante": "ramona_lora",
+ "ckpt": "step_01000.safetensors",
+ "stimme": "ramona",
+ "saetze": 140,
+ "audio_s": 959.5,
+ "pruefung": {
+  "ok": 140
+ },
+ "ve_aehnlich_referenz": 0.9047,
+ "ve_aehnlich_ramona": 0.9068,
+ "ve_aehnlich_sprecher": {
+  "5424": 0.7983,
+  "6507": 0.9068,
+  "9565": 0.6295
+ },
+ "gpu_min": 19.6
+}

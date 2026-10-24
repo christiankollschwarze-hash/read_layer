@@ -1,0 +1,39 @@
+{
+  "book_slug": "a-christmas-carol-in-prose-being-a-ghost-story-of-christmas",
+  "author_slug": "dickens-c",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q124080676",
+  "publisher": "<eigenes-label>",
+  "titel_original": "A Christmas Carol in Prose; Being a Ghost Story of Christmas",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "46",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "A Christmas Carol",
+      "titel_quelle": "manuell",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Eine Weihnachtsgeschichte",
+      "titel_quelle": "manuell",
+      "titel_pruefen": false
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:24:06"
+}

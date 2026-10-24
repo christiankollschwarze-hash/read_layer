@@ -1,0 +1,18 @@
+{
+ "variante": "lora_bester",
+ "ckpt": "step_01250.safetensors",
+ "stimme": "grossmutter_a",
+ "saetze": 140,
+ "audio_s": 966.0,
+ "pruefung": {
+  "ok": 140
+ },
+ "ve_aehnlich_referenz": 0.9298,
+ "ve_aehnlich_ramona": 0.7843,
+ "ve_aehnlich_sprecher": {
+  "2037": 0.7059,
+  "5424": 0.6915,
+  "9565": 0.5837
+ },
+ "gpu_min": 20.2
+}

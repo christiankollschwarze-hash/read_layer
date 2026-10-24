@@ -1,0 +1,48 @@
+{
+  "book_slug": "crime-and-punishment",
+  "author_slug": "dostoyevsky-f",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q165318",
+  "publisher": "<eigenes-label>",
+  "titel_original": "Crime and Punishment",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "2554",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "Crime and Punishment",
+      "titel_quelle": "original",
+      "audio_quelle": "librivox_archiv",
+      "sprecher": "Mark Nelson",
+      "reader_url": "https://librivox.org/reader/251",
+      "librivox_url": "https://librivox.org/crime-and-punishment-version-3-by-fyodor-dostoyevsky/",
+      "archive_url": "https://archive.org/details/crime_punishment_3_1708_librivox",
+      "sprecher_urteil": "gut",
+      "credit": "Recording: Mark Nelson / LibriVox",
+      "source_disclaimer": "This is a LibriVox recording. All LibriVox recordings are in the public domain. For more information, or to volunteer, please visit librivox.org.",
+      "deaktiviert": "2026-10-11: LibriVox ersetzt durch designte Stimmen",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Schuld und Sühne",
+      "titel_quelle": "wikidata",
+      "titel_pruefen": false
+    }
+  ],
+  "librivox_geprueft": "treffer",
+  "librivox_geprueft_am": "2026-10-10T19:28:31"
+}

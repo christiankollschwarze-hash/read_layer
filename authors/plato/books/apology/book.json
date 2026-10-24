@@ -1,0 +1,39 @@
+{
+  "book_slug": "apology",
+  "author_slug": "plato",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q273668",
+  "publisher": "<eigenes-label>",
+  "titel_original": "Apology",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "1656",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "Apology",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Apologie",
+      "titel_quelle": "wikidata",
+      "titel_pruefen": false
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:23:52"
+}

@@ -1,0 +1,39 @@
+{
+  "book_slug": "on-the-nature-of-things",
+  "author_slug": "carus-tl",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q42188605",
+  "publisher": "<eigenes-label>",
+  "titel_original": "On the Nature of Things",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "785",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "On the Nature of Things",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Über die Natur der Dinge",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:26:03"
+}

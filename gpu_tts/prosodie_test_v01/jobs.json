@@ -1,0 +1,1212 @@
+{
+ "version": "prosody-markup 0.1",
+ "seed": 1234,
+ "lora": {
+  "de": "mix_v1"
+ },
+ "tempo": 0.91,
+ "refs": {
+  "grossmutter_a|de": "ref_grossmutter_a_de.wav",
+  "w_jung_mittel_ruhig|de": "ref_w_jung_mittel_ruhig_de.wav",
+  "m_jung_mittel_ruhig|de": "ref_m_jung_mittel_ruhig_de.wav",
+  "grossmutter_a|en": "ref_grossmutter_a_en.wav",
+  "m_alt_tief_ruhig|en": "ref_m_alt_tief_ruhig_en.wav",
+  "m_jung_mittel_ruhig|en": "ref_m_jung_mittel_ruhig_en.wav"
+ },
+ "saetze": [
+  {
+   "id": "DE01",
+   "lang": "de",
+   "label": "neutral, Baseline (Satzmelodie, Rhythmus)",
+   "markup": "Am Morgen lag der Nebel noch über den Wiesen, und der Fluss zog still an den Weiden vorbei.",
+   "a": [
+    {
+     "t": "tts",
+     "text": "Am Morgen lag der Nebel noch über den Wiesen, und der Fluss zog still an den Weiden vorbei.",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ],
+   "b": [
+    {
+     "t": "tts",
+     "text": "Am Morgen lag der Nebel noch über den Wiesen, und der Fluss zog still an den Weiden vorbei.",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ]
+  },
+  {
+   "id": "DE02",
+   "lang": "de",
+   "label": "fröhlich",
+   "markup": "😄 Endlich Ferien! Wir packen die Koffer, wir nehmen den frühen Zug, und heute Abend sitzen wir am Meer.",
+   "a": [
+    {
+     "t": "tts",
+     "text": "Endlich Ferien! Wir packen die Koffer, wir nehmen den frühen Zug, und heute Abend sitzen wir am Meer.",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ],
+   "b": [
+    {
+     "t": "tts",
+     "text": "Endlich Ferien! Wir packen die Koffer, wir nehmen den frühen Zug, und heute Abend sitzen wir am Meer.",
+     "ex": 0.8,
+     "cfg": 0.45,
+     "temp": 0.85,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😄"
+    }
+   ]
+  },
+  {
+   "id": "DE03",
+   "lang": "de",
+   "label": "traurig",
+   "markup": "😢 Das Haus war leer, nur der Stuhl am Fenster stand noch dort, wo sie immer gesessen hatte.",
+   "a": [
+    {
+     "t": "tts",
+     "text": "Das Haus war leer, nur der Stuhl am Fenster stand noch dort, wo sie immer gesessen hatte.",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ],
+   "b": [
+    {
+     "t": "tts",
+     "text": "Das Haus war leer, nur der Stuhl am Fenster stand noch dort, wo sie immer gesessen hatte.",
+     "ex": 0.35,
+     "cfg": 0.3,
+     "temp": 0.75,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😢"
+    }
+   ]
+  },
+  {
+   "id": "DE04",
+   "lang": "de",
+   "label": "wütend mit Betonung",
+   "markup": "😠 Ich habe dir *gesagt*, dass du die Tür nicht offen lassen sollst, und du hast es *schon wieder* vergessen!",
+   "a": [
+    {
+     "t": "tts",
+     "text": "Ich habe dir gesagt, dass du die Tür nicht offen lassen sollst, und du hast es schon wieder vergessen!",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ],
+   "b": [
+    {
+     "t": "tts",
+     "text": "Ich habe dir",
+     "ex": 1.0,
+     "cfg": 0.3,
+     "temp": 0.85,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😠"
+    },
+    {
+     "t": "pause",
+     "ms": 0
+    },
+    {
+     "t": "tts",
+     "text": "gesagt,",
+     "ex": 1.15,
+     "cfg": 0.3,
+     "temp": 0.85,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😠"
+    },
+    {
+     "t": "pause",
+     "ms": 150
+    },
+    {
+     "t": "tts",
+     "text": "dass du die Tür nicht offen lassen sollst, und du hast es",
+     "ex": 1.0,
+     "cfg": 0.3,
+     "temp": 0.85,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😠"
+    },
+    {
+     "t": "pause",
+     "ms": 0
+    },
+    {
+     "t": "tts",
+     "text": "schon wieder",
+     "ex": 1.15,
+     "cfg": 0.3,
+     "temp": 0.85,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😠"
+    },
+    {
+     "t": "pause",
+     "ms": 0
+    },
+    {
+     "t": "tts",
+     "text": "vergessen!",
+     "ex": 1.0,
+     "cfg": 0.3,
+     "temp": 0.85,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😠"
+    }
+   ]
+  },
+  {
+   "id": "DE05",
+   "lang": "de",
+   "label": "flüsternd",
+   "markup": "🤫 Leise jetzt, || sie schlafen noch. Wenn wir die Treppe hinunter wollen, müssen wir an der dritten Stufe vorbei.",
+   "a": [
+    {
+     "t": "tts",
+     "text": "Leise jetzt, sie schlafen noch. Wenn wir die Treppe hinunter wollen, müssen wir an der dritten Stufe vorbei.",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ],
+   "b": [
+    {
+     "t": "tts",
+     "text": "Leise jetzt,",
+     "ex": 0.3,
+     "cfg": 0.3,
+     "temp": 0.7,
+     "gain_db": -6,
+     "stimme": "grossmutter_a",
+     "stimmung": "🤫"
+    },
+    {
+     "t": "pause",
+     "ms": 600
+    },
+    {
+     "t": "tts",
+     "text": "sie schlafen noch. Wenn wir die Treppe hinunter wollen, müssen wir an der dritten Stufe vorbei.",
+     "ex": 0.3,
+     "cfg": 0.3,
+     "temp": 0.7,
+     "gain_db": -6,
+     "stimme": "grossmutter_a",
+     "stimmung": "🤫"
+    }
+   ]
+  },
+  {
+   "id": "DE06",
+   "lang": "de",
+   "label": "erschrocken",
+   "markup": "😱 Hinter ihm krachte die Tür ins Schloss, und im selben Augenblick erlosch das Licht!",
+   "a": [
+    {
+     "t": "tts",
+     "text": "Hinter ihm krachte die Tür ins Schloss, und im selben Augenblick erlosch das Licht!",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ],
+   "b": [
+    {
+     "t": "tts",
+     "text": "Hinter ihm krachte die Tür ins Schloss, und im selben Augenblick erlosch das Licht!",
+     "ex": 1.1,
+     "cfg": 0.5,
+     "temp": 0.9,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😱"
+    }
+   ]
+  },
+  {
+   "id": "DE07",
+   "lang": "de",
+   "label": "nachdenklich mit Pausen",
+   "markup": "🤔 Vielleicht | war es gar nicht der Zufall, || der uns hierher geführt hat, | sondern etwas, das wir nicht sehen konnten.",
+   "a": [
+    {
+     "t": "tts",
+     "text": "Vielleicht war es gar nicht der Zufall, der uns hierher geführt hat, sondern etwas, das wir nicht sehen konnten.",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ],
+   "b": [
+    {
+     "t": "tts",
+     "text": "Vielleicht",
+     "ex": 0.4,
+     "cfg": 0.3,
+     "temp": 0.75,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "🤔"
+    },
+    {
+     "t": "pause",
+     "ms": 375
+    },
+    {
+     "t": "tts",
+     "text": "war es gar nicht der Zufall,",
+     "ex": 0.4,
+     "cfg": 0.3,
+     "temp": 0.75,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "🤔"
+    },
+    {
+     "t": "pause",
+     "ms": 900
+    },
+    {
+     "t": "tts",
+     "text": "der uns hierher geführt hat,",
+     "ex": 0.4,
+     "cfg": 0.3,
+     "temp": 0.75,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "🤔"
+    },
+    {
+     "t": "pause",
+     "ms": 375
+    },
+    {
+     "t": "tts",
+     "text": "sondern etwas, das wir nicht sehen konnten.",
+     "ex": 0.4,
+     "cfg": 0.3,
+     "temp": 0.75,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "🤔"
+    }
+   ]
+  },
+  {
+   "id": "DE08",
+   "lang": "de",
+   "label": "liebevoll",
+   "markup": "🥰 Komm her, mein Kleiner. Es ist alles gut, ich bin ja da, und morgen früh gehen wir zusammen zu den Enten.",
+   "a": [
+    {
+     "t": "tts",
+     "text": "Komm her, mein Kleiner. Es ist alles gut, ich bin ja da, und morgen früh gehen wir zusammen zu den Enten.",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ],
+   "b": [
+    {
+     "t": "tts",
+     "text": "Komm her, mein Kleiner. Es ist alles gut, ich bin ja da, und morgen früh gehen wir zusammen zu den Enten.",
+     "ex": 0.5,
+     "cfg": 0.35,
+     "temp": 0.75,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "🥰"
+    }
+   ]
+  },
+  {
+   "id": "DE09",
+   "lang": "de",
+   "label": "verschmitzt",
+   "markup": "😏 Natürlich habe ich nichts gesehen. Ich war ja die ganze Zeit hier, genau neben dem leeren Kuchenteller.",
+   "a": [
+    {
+     "t": "tts",
+     "text": "Natürlich habe ich nichts gesehen. Ich war ja die ganze Zeit hier, genau neben dem leeren Kuchenteller.",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ],
+   "b": [
+    {
+     "t": "tts",
+     "text": "Natürlich habe ich nichts gesehen. Ich war ja die ganze Zeit hier, genau neben dem leeren Kuchenteller.",
+     "ex": 0.7,
+     "cfg": 0.4,
+     "temp": 0.85,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😏"
+    }
+   ]
+  },
+  {
+   "id": "DE10",
+   "lang": "de",
+   "label": "ironisch",
+   "markup": "🙄 Oh, großartig. Noch ein Meeting, das auch eine E-Mail hätte sein können.",
+   "a": [
+    {
+     "t": "tts",
+     "text": "Oh, großartig. Noch ein Meeting, das auch eine E-Mail hätte sein können.",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ],
+   "b": [
+    {
+     "t": "tts",
+     "text": "Oh, großartig. Noch ein Meeting, das auch eine E-Mail hätte sein können.",
+     "ex": 0.7,
+     "cfg": 0.4,
+     "temp": 0.85,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "🙄"
+    }
+   ]
+  },
+  {
+   "id": "DE11",
+   "lang": "de",
+   "label": "Dialog, Sprecherwechsel",
+   "markup": "@Erzähler: Anna blieb an der Tür stehen. @Anna: 🤔 Und wenn er nicht zurückkommt? @Max: 🙂 Er kommt zurück. Er kommt immer zurück.",
+   "a": [
+    {
+     "t": "tts",
+     "text": "Anna blieb an der Tür stehen. Und wenn er nicht zurückkommt? Er kommt zurück. Er kommt immer zurück.",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ],
+   "b": [
+    {
+     "t": "tts",
+     "text": "Anna blieb an der Tür stehen.",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    },
+    {
+     "t": "pause",
+     "ms": 400
+    },
+    {
+     "t": "tts",
+     "text": "Und wenn er nicht zurückkommt?",
+     "ex": 0.4,
+     "cfg": 0.3,
+     "temp": 0.75,
+     "gain_db": 0,
+     "stimme": "w_jung_mittel_ruhig",
+     "stimmung": "🤔"
+    },
+    {
+     "t": "pause",
+     "ms": 600
+    },
+    {
+     "t": "tts",
+     "text": "Er kommt zurück. Er kommt immer zurück.",
+     "ex": 0.6,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "m_jung_mittel_ruhig",
+     "stimmung": "🙂"
+    }
+   ]
+  },
+  {
+   "id": "DE12",
+   "lang": "de",
+   "label": "Zahlen, Namen, Lexikon",
+   "markup": "Am 14. März 1848 reiste {Wilhelmine|Vilhelmine} Schmidt mit 3 Koffern und 250 Mark nach Zürich.",
+   "a": [
+    {
+     "t": "tts",
+     "text": "Am 14. März 1848 reiste Wilhelmine Schmidt mit 3 Koffern und 250 Mark nach Zürich.",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ],
+   "b": [
+    {
+     "t": "tts",
+     "text": "Am 14. März 1848 reiste Vilhelmine Schmidt mit 3 Koffern und 250 Mark nach Zürich.",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ]
+  },
+  {
+   "id": "DE13",
+   "lang": "de",
+   "label": "archaisches Vokabular",
+   "markup": "Gar sehr verwunderte sich der Alte ob solcher Rede, und er sprach: Wohlan, so lasst uns denn des Weges ziehen.",
+   "a": [
+    {
+     "t": "tts",
+     "text": "Gar sehr verwunderte sich der Alte ob solcher Rede, und er sprach: Wohlan, so lasst uns denn des Weges ziehen.",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ],
+   "b": [
+    {
+     "t": "tts",
+     "text": "Gar sehr verwunderte sich der Alte ob solcher Rede, und er sprach: Wohlan, so lasst uns denn des Weges ziehen.",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ]
+  },
+  {
+   "id": "DE14",
+   "lang": "de",
+   "label": "langer Schachtelsatz",
+   "markup": "Der Mann, der gestern Abend, als es schon dunkel wurde und die Laternen angezündet waren, noch vor dem Haus gestanden hatte, kam nicht mehr wieder.",
+   "a": [
+    {
+     "t": "tts",
+     "text": "Der Mann, der gestern Abend, als es schon dunkel wurde und die Laternen angezündet waren, noch vor dem Haus gestanden hatte, kam nicht mehr wieder.",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ],
+   "b": [
+    {
+     "t": "tts",
+     "text": "Der Mann, der gestern Abend, als es schon dunkel wurde und die Laternen angezündet waren, noch vor dem Haus gestanden hatte, kam nicht mehr wieder.",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ]
+  },
+  {
+   "id": "DE15",
+   "lang": "de",
+   "label": "Tempo und Szenenpause",
+   "markup": "🐢 Langsam öffnete sie den Brief. ||| 🐇 Und dann ging alles ganz schnell: Wir rannten die Treppe hinab, durch den Hof und auf die Straße!",
+   "a": [
+    {
+     "t": "tts",
+     "text": "Langsam öffnete sie den Brief. Und dann ging alles ganz schnell: Wir rannten die Treppe hinab, durch den Hof und auf die Straße!",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ],
+   "b": [
+    {
+     "t": "tts",
+     "text": "Langsam öffnete sie den Brief.",
+     "ex": 0.5,
+     "cfg": 0.35,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    },
+    {
+     "t": "pause",
+     "ms": 1200
+    },
+    {
+     "t": "tts",
+     "text": "Und dann ging alles ganz schnell: Wir rannten die Treppe hinab, durch den Hof und auf die Straße!",
+     "ex": 0.5,
+     "cfg": 0.65,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ]
+  },
+  {
+   "id": "EN01",
+   "lang": "en",
+   "label": "neutral, Baseline",
+   "markup": "By the time the lamps were lit, the street had emptied, and only the sound of the river remained.",
+   "a": [
+    {
+     "t": "tts",
+     "text": "By the time the lamps were lit, the street had emptied, and only the sound of the river remained.",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ],
+   "b": [
+    {
+     "t": "tts",
+     "text": "By the time the lamps were lit, the street had emptied, and only the sound of the river remained.",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ]
+  },
+  {
+   "id": "EN02",
+   "lang": "en",
+   "label": "überrascht",
+   "markup": "😮 You came all this way? I had no idea, I really thought you were still abroad!",
+   "a": [
+    {
+     "t": "tts",
+     "text": "You came all this way? I had no idea, I really thought you were still abroad!",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ],
+   "b": [
+    {
+     "t": "tts",
+     "text": "You came all this way? I had no idea, I really thought you were still abroad!",
+     "ex": 0.9,
+     "cfg": 0.5,
+     "temp": 0.9,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😮"
+    }
+   ]
+  },
+  {
+   "id": "EN03",
+   "lang": "en",
+   "label": "ängstlich",
+   "markup": "😨 Something moved in the cellar. I heard it twice, and both times it was closer than before.",
+   "a": [
+    {
+     "t": "tts",
+     "text": "Something moved in the cellar. I heard it twice, and both times it was closer than before.",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ],
+   "b": [
+    {
+     "t": "tts",
+     "text": "Something moved in the cellar. I heard it twice, and both times it was closer than before.",
+     "ex": 0.8,
+     "cfg": 0.35,
+     "temp": 0.85,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😨"
+    }
+   ]
+  },
+  {
+   "id": "EN04",
+   "lang": "en",
+   "label": "müde",
+   "markup": "😴 I haven't slept properly in days, and the letters on the page keep sliding away from me.",
+   "a": [
+    {
+     "t": "tts",
+     "text": "I haven't slept properly in days, and the letters on the page keep sliding away from me.",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ],
+   "b": [
+    {
+     "t": "tts",
+     "text": "I haven't slept properly in days, and the letters on the page keep sliding away from me.",
+     "ex": 0.25,
+     "cfg": 0.25,
+     "temp": 0.7,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😴"
+    }
+   ]
+  },
+  {
+   "id": "EN05",
+   "lang": "en",
+   "label": "dramatisch/feierlich",
+   "markup": "🎭 And so, upon the last night of the old kingdom, || the bells rang out over the silent towers.",
+   "a": [
+    {
+     "t": "tts",
+     "text": "And so, upon the last night of the old kingdom, the bells rang out over the silent towers.",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ],
+   "b": [
+    {
+     "t": "tts",
+     "text": "And so, upon the last night of the old kingdom,",
+     "ex": 0.9,
+     "cfg": 0.3,
+     "temp": 0.85,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "🎭"
+    },
+    {
+     "t": "pause",
+     "ms": 600
+    },
+    {
+     "t": "tts",
+     "text": "the bells rang out over the silent towers.",
+     "ex": 0.9,
+     "cfg": 0.3,
+     "temp": 0.85,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "🎭"
+    }
+   ]
+  },
+  {
+   "id": "EN06",
+   "lang": "en",
+   "label": "freundlich",
+   "markup": "🙂 Good morning! Come in, sit down, and let me put the kettle on. You must be freezing.",
+   "a": [
+    {
+     "t": "tts",
+     "text": "Good morning! Come in, sit down, and let me put the kettle on. You must be freezing.",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ],
+   "b": [
+    {
+     "t": "tts",
+     "text": "Good morning! Come in, sit down, and let me put the kettle on. You must be freezing.",
+     "ex": 0.6,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "🙂"
+    }
+   ]
+  },
+  {
+   "id": "EN07",
+   "lang": "en",
+   "label": "wütend mit Betonung",
+   "markup": "😠 I told you *twice* not to touch the lock, and now the whole door is ruined!",
+   "a": [
+    {
+     "t": "tts",
+     "text": "I told you twice not to touch the lock, and now the whole door is ruined!",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ],
+   "b": [
+    {
+     "t": "tts",
+     "text": "I told you",
+     "ex": 1.0,
+     "cfg": 0.3,
+     "temp": 0.85,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😠"
+    },
+    {
+     "t": "pause",
+     "ms": 0
+    },
+    {
+     "t": "tts",
+     "text": "twice",
+     "ex": 1.15,
+     "cfg": 0.3,
+     "temp": 0.85,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😠"
+    },
+    {
+     "t": "pause",
+     "ms": 0
+    },
+    {
+     "t": "tts",
+     "text": "not to touch the lock, and now the whole door is ruined!",
+     "ex": 1.0,
+     "cfg": 0.3,
+     "temp": 0.85,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😠"
+    }
+   ]
+  },
+  {
+   "id": "EN08",
+   "lang": "en",
+   "label": "Dialog, Sprecherwechsel",
+   "markup": "@Narrator: The captain turned from the window. @Captain: 🤔 How many days of water do we have left? @Mate: 😨 Four, sir. Perhaps five.",
+   "a": [
+    {
+     "t": "tts",
+     "text": "The captain turned from the window. How many days of water do we have left? Four, sir. Perhaps five.",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ],
+   "b": [
+    {
+     "t": "tts",
+     "text": "The captain turned from the window.",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    },
+    {
+     "t": "pause",
+     "ms": 400
+    },
+    {
+     "t": "tts",
+     "text": "How many days of water do we have left?",
+     "ex": 0.4,
+     "cfg": 0.3,
+     "temp": 0.75,
+     "gain_db": 0,
+     "stimme": "m_alt_tief_ruhig",
+     "stimmung": "🤔"
+    },
+    {
+     "t": "pause",
+     "ms": 600
+    },
+    {
+     "t": "tts",
+     "text": "Four, sir. Perhaps five.",
+     "ex": 0.8,
+     "cfg": 0.35,
+     "temp": 0.85,
+     "gain_db": 0,
+     "stimme": "m_jung_mittel_ruhig",
+     "stimmung": "😨"
+    }
+   ]
+  },
+  {
+   "id": "EN09",
+   "lang": "en",
+   "label": "Namen, Lexikon",
+   "markup": "Ms. {Featherstonehaugh|Fanshaw} arrived at 7:45 on the 3rd of November, carrying 12 letters for Mr. {Cholmondeley|Chumley}.",
+   "a": [
+    {
+     "t": "tts",
+     "text": "Ms. Featherstonehaugh arrived at 7:45 on the 3rd of November, carrying 12 letters for Mr. Cholmondeley.",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ],
+   "b": [
+    {
+     "t": "tts",
+     "text": "Ms. Fanshaw arrived at 7:45 on the 3rd of November, carrying 12 letters for Mr. Chumley.",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ]
+  },
+  {
+   "id": "EN10",
+   "lang": "en",
+   "label": "archaisch",
+   "markup": "Thou shalt not pass, quoth the old knight, for I have sworn an oath upon this bridge, and none shall break it.",
+   "a": [
+    {
+     "t": "tts",
+     "text": "Thou shalt not pass, quoth the old knight, for I have sworn an oath upon this bridge, and none shall break it.",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ],
+   "b": [
+    {
+     "t": "tts",
+     "text": "Thou shalt not pass, quoth the old knight, for I have sworn an oath upon this bridge, and none shall break it.",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ]
+  },
+  {
+   "id": "EN11",
+   "lang": "en",
+   "label": "langer Satz mit Kommas",
+   "markup": "He walked slowly, hat in hand, through the long gallery, past the portraits of men he had never met, and out into the garden.",
+   "a": [
+    {
+     "t": "tts",
+     "text": "He walked slowly, hat in hand, through the long gallery, past the portraits of men he had never met, and out into the garden.",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ],
+   "b": [
+    {
+     "t": "tts",
+     "text": "He walked slowly, hat in hand, through the long gallery, past the portraits of men he had never met, and out into the garden.",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ]
+  },
+  {
+   "id": "EN12",
+   "lang": "en",
+   "label": "Betonung in der Satzmitte",
+   "markup": "I did not say *he* stole the money. | I only said that someone did.",
+   "a": [
+    {
+     "t": "tts",
+     "text": "I did not say he stole the money. I only said that someone did.",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ],
+   "b": [
+    {
+     "t": "tts",
+     "text": "I did not say",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    },
+    {
+     "t": "pause",
+     "ms": 0
+    },
+    {
+     "t": "tts",
+     "text": "he",
+     "ex": 0.65,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    },
+    {
+     "t": "pause",
+     "ms": 0
+    },
+    {
+     "t": "tts",
+     "text": "stole the money.",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    },
+    {
+     "t": "pause",
+     "ms": 250
+    },
+    {
+     "t": "tts",
+     "text": "I only said that someone did.",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ]
+  },
+  {
+   "id": "EN13",
+   "lang": "en",
+   "label": "traurig",
+   "markup": "😢 The last train had gone, and she stood alone on the platform, holding a ticket for nowhere.",
+   "a": [
+    {
+     "t": "tts",
+     "text": "The last train had gone, and she stood alone on the platform, holding a ticket for nowhere.",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ],
+   "b": [
+    {
+     "t": "tts",
+     "text": "The last train had gone, and she stood alone on the platform, holding a ticket for nowhere.",
+     "ex": 0.35,
+     "cfg": 0.3,
+     "temp": 0.75,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😢"
+    }
+   ]
+  },
+  {
+   "id": "EN14",
+   "lang": "en",
+   "label": "Tempo und Pause",
+   "markup": "🐢 Wait. || Listen. ||| 🐇 Now run, run, run, before they close the gates behind us!",
+   "a": [
+    {
+     "t": "tts",
+     "text": "Wait. Listen. Now run, run, run, before they close the gates behind us!",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ],
+   "b": [
+    {
+     "t": "tts",
+     "text": "Wait.",
+     "ex": 0.5,
+     "cfg": 0.35,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    },
+    {
+     "t": "pause",
+     "ms": 600
+    },
+    {
+     "t": "tts",
+     "text": "Listen.",
+     "ex": 0.5,
+     "cfg": 0.35,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    },
+    {
+     "t": "pause",
+     "ms": 1200
+    },
+    {
+     "t": "tts",
+     "text": "Now run, run, run, before they close the gates behind us!",
+     "ex": 0.5,
+     "cfg": 0.65,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ]
+  },
+  {
+   "id": "EN15",
+   "lang": "en",
+   "label": "Intensität (Verdopplung) und Frage/Ausruf",
+   "markup": "😠😠 How dare you stand there and ask me why? Get out of my house!",
+   "a": [
+    {
+     "t": "tts",
+     "text": "How dare you stand there and ask me why? Get out of my house!",
+     "ex": 0.5,
+     "cfg": 0.5,
+     "temp": 0.8,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😐"
+    }
+   ],
+   "b": [
+    {
+     "t": "tts",
+     "text": "How dare you stand there and ask me why? Get out of my house!",
+     "ex": 1.2,
+     "cfg": 0.3,
+     "temp": 0.85,
+     "gain_db": 0,
+     "stimme": "grossmutter_a",
+     "stimmung": "😠"
+    }
+   ]
+  }
+ ]
+}

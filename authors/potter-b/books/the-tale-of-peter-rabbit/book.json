@@ -1,0 +1,39 @@
+{
+  "book_slug": "the-tale-of-peter-rabbit",
+  "author_slug": "potter-b",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q580463",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The Tale of Peter Rabbit",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "14838",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The Tale of Peter Rabbit",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Die Geschichte von Peter Hase",
+      "titel_quelle": "wikidata",
+      "titel_pruefen": false
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:23:44"
+}

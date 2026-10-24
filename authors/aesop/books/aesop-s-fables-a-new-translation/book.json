@@ -1,0 +1,49 @@
+{
+  "book_slug": "aesop-s-fables-a-new-translation",
+  "author_slug": "aesop",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q865902",
+  "publisher": "<eigenes-label>",
+  "titel_original": "Aesop's Fables; a new translation",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "18732",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "Aesop's Fables; a new translation",
+      "titel_quelle": "original",
+      "audio_quelle": "librivox_archiv",
+      "sprecher": "Phil Chenevert",
+      "reader_url": "https://librivox.org/reader/5717",
+      "librivox_url": "https://librivox.org/aesops-fables-a-new-revised-edition-by-aesop/",
+      "archive_url": "https://archive.org/details/aesopsfablesrevisededition_pc_librivox",
+      "sprecher_urteil": "gut",
+      "credit": "Recording: Phil Chenevert / LibriVox",
+      "source_disclaimer": "This is a LibriVox recording. All LibriVox recordings are in the public domain. For more information, or to volunteer, please visit librivox.org.",
+      "deaktiviert": "2026-10-11: LibriVox ersetzt durch designte Stimmen",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Äsops Fabeln",
+      "titel_quelle": "wikidata",
+      "titel_pruefen": false
+    }
+  ],
+  "gutenberg_id_original": "11339",
+  "librivox_geprueft": "treffer",
+  "librivox_geprueft_am": "2026-10-10T19:24:21"
+}

@@ -1,0 +1,39 @@
+{
+  "book_slug": "war-and-peace-book-01-1805",
+  "author_slug": "tolstoy-lg",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q161531",
+  "publisher": "<eigenes-label>",
+  "titel_original": "War and Peace, Book 01: 1805",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "28920",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "War and Peace, Book 01: 1805",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Krieg und Frieden",
+      "titel_quelle": "wikidata",
+      "titel_pruefen": false
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:23:46"
+}

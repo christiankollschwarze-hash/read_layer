@@ -1,0 +1,19 @@
+{
+ "variante": "lora_letzter",
+ "ckpt": "step_01731.safetensors",
+ "stimme": "grossmutter_a",
+ "saetze": 140,
+ "audio_s": 925.7,
+ "pruefung": {
+  "ok": 139,
+  "nachklang": 1
+ },
+ "ve_aehnlich_referenz": 0.9263,
+ "ve_aehnlich_ramona": 0.7861,
+ "ve_aehnlich_sprecher": {
+  "5424": 0.6916,
+  "6507": 0.7861,
+  "9565": 0.5835
+ },
+ "gpu_min": 19.8
+}

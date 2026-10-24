@@ -1,0 +1,39 @@
+{
+  "book_slug": "uncle-tom-s-cabin",
+  "author_slug": "stowe-hb",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q2222",
+  "publisher": "<eigenes-label>",
+  "titel_original": "Uncle Tom's Cabin",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "203",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "Uncle Tom's Cabin",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Onkel Toms Hütte",
+      "titel_quelle": "wikidata",
+      "titel_pruefen": false
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:28:22"
+}

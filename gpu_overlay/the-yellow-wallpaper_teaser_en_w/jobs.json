@@ -1,0 +1,53 @@
+{
+ "lang": "en",
+ "jobs": [
+  {
+   "id": "t1_01_01",
+   "stimme": "grossmutter_a",
+   "figur": "Klappentext",
+   "text": "Behind that outside pattern the dim shapes get clearer every day."
+  },
+  {
+   "id": "t1_01_02",
+   "stimme": "grossmutter_a",
+   "figur": "Klappentext",
+   "text": "It is always the same shape, only very numerous."
+  },
+  {
+   "id": "t1_01_03",
+   "stimme": "grossmutter_a",
+   "figur": "Klappentext",
+   "text": "And it is like a woman stooping down and creeping about behind that pattern."
+  },
+  {
+   "id": "t2_01_01",
+   "stimme": "grossmutter_a",
+   "figur": "Klappentext",
+   "text": "Dive into a classic of psychological fiction, a chilling gothic short story from the late 19th century that explores the unsettling depths of the human mind."
+  },
+  {
+   "id": "t2_01_02",
+   "stimme": "grossmutter_a",
+   "figur": "Klappentext",
+   "text": "Confined to a remote summer house for a supposed 'rest cure,' a woman's burgeoning mental illness is dismissed by her husband as mere hysteria."
+  },
+  {
+   "id": "t2_01_03",
+   "stimme": "grossmutter_a",
+   "figur": "Klappentext",
+   "text": "This narrative unflinchingly addresses themes of patriarchal oppression, gaslighting, and the profound impact of isolation, inviting listeners into a disturbing descent into obsession with a yellow wallpaper."
+  },
+  {
+   "id": "t3_01_01",
+   "stimme": "grossmutter_a",
+   "figur": "Klappentext",
+   "text": "Charlotte Perkins Gilman (1860-1935) was an American writer, born in Hartford."
+  },
+  {
+   "id": "t3_01_02",
+   "stimme": "grossmutter_a",
+   "figur": "Klappentext",
+   "text": "Her notable works include \"The Yellow Wall Paper,\" \"Herland,\" and \"Women and Economics.\""
+  }
+ ]
+}

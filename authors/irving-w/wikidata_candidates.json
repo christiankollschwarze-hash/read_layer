@@ -1,0 +1,54 @@
+{
+  "name": "Washington Irving",
+  "candidates": [
+    {
+      "wikidata_id": "Q181667",
+      "label": "Washington Irving",
+      "beschreibung": "American writer, historian and diplomat (1783-1859)",
+      "geburtsjahr": 1783,
+      "todesjahr": 1859
+    },
+    {
+      "wikidata_id": "Q47513211",
+      "label": "Washington Irving",
+      "beschreibung": "painting by Charles Loring Elliott",
+      "geburtsjahr": null,
+      "todesjahr": null
+    },
+    {
+      "wikidata_id": "Q47511420",
+      "label": "Washington Irving",
+      "beschreibung": "painting by Daniel Huntington",
+      "geburtsjahr": null,
+      "todesjahr": null
+    },
+    {
+      "wikidata_id": "Q19663535",
+      "label": "W. I. Lincoln Adams",
+      "beschreibung": "American photographer and non-fiction writer (1865–1946)",
+      "geburtsjahr": 1865,
+      "todesjahr": 1946
+    },
+    {
+      "wikidata_id": "Q7971994",
+      "label": "Washington Irving High School",
+      "beschreibung": "high school in New York City, USA",
+      "geburtsjahr": null,
+      "todesjahr": null
+    },
+    {
+      "wikidata_id": "Q55018527",
+      "label": "Washington Irving",
+      "beschreibung": "portrait by John Roffe",
+      "geburtsjahr": null,
+      "todesjahr": null
+    },
+    {
+      "wikidata_id": "Q131456888",
+      "label": "Washington Irving Stineman",
+      "beschreibung": "American politician (1869–1947)",
+      "geburtsjahr": 1869,
+      "todesjahr": 1947
+    }
+  ]
+}

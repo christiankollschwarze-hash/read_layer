@@ -1,0 +1,45 @@
+{
+  "book_slug": "gods-of-the-north",
+  "author_slug": "howard-re",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q18819290",
+  "publisher": "<eigenes-label>",
+  "titel_original": "Gods of the North",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "42664",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "Gods of the North",
+      "titel_quelle": "original",
+      "titel_pruefen": false,
+      "audio_quelle": "librivox_archiv",
+      "sprecher": "Phil Chenevert",
+      "aufnahmedatum": "",
+      "reader_url": "https://librivox.org/reader/5717",
+      "librivox_version": null,
+      "credit": "Recording: Phil Chenevert / LibriVox",
+      "source_disclaimer": "This is a LibriVox recording. All LibriVox recordings are in the public domain. For more information, or to volunteer, please visit librivox.org.",
+      "deaktiviert": "2026-10-11: LibriVox ersetzt durch designte Stimmen"
+    },
+    {
+      "sprache": "de",
+      "titel": "Götter des Nordens",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ]
+}

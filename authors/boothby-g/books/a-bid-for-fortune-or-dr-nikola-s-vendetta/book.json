@@ -1,0 +1,39 @@
+{
+  "book_slug": "a-bid-for-fortune-or-dr-nikola-s-vendetta",
+  "author_slug": "boothby-g",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q124080634",
+  "publisher": "<eigenes-label>",
+  "titel_original": "A Bid for Fortune; Or, Dr. Nikola's Vendetta",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "21640",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "A Bid for Fortune; Or, Dr. Nikola's Vendetta",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Ein Gebot für Fortune; oder Dr. Nikolas Vendetta",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:26:34"
+}

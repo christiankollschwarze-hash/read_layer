@@ -1,0 +1,39 @@
+{
+  "book_slug": "the-two-magics-the-turn-of-the-screw-covering-end",
+  "author_slug": "james-h",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q19101387",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The Two Magics: The Turn of the Screw, Covering End",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "42486",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The Two Magics: The Turn of the Screw, Covering End",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Die zwei Mächte: Das Durchdrehen der Schraube, Covering End",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:26:12"
+}

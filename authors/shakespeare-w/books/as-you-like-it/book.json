@@ -1,0 +1,43 @@
+{
+  "book_slug": "as-you-like-it",
+  "author_slug": "shakespeare-w",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q237572",
+  "publisher": "<eigenes-label>",
+  "titel_original": "As You Like It",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "1523",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "As You Like It",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Wie es euch gefällt",
+      "titel_quelle": "wikidata",
+      "titel_pruefen": false
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:23:59",
+  "besetzung_modus": "ensemble",
+  "erzaehler_stimme": "herr_a",
+  "modus": "drama",
+  "stimmen_freigabe": "nachtraeglich (CK 12.10.2026: vor dem Freigabe-Tor vertont)"
+}

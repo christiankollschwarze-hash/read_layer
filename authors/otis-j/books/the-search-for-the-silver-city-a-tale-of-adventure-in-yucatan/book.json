@@ -1,0 +1,39 @@
+{
+  "book_slug": "the-search-for-the-silver-city-a-tale-of-adventure-in-yucatan",
+  "author_slug": "otis-j",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q133544927",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The Search for the Silver City: A Tale of Adventure in Yucatan",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "21268",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The Search for the Silver City: A Tale of Adventure in Yucatan",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Die Suche nach der Silberstadt: Ein Abenteuer in Yucatan",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:25:46"
+}

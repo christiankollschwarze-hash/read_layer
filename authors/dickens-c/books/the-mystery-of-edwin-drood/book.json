@@ -1,0 +1,39 @@
+{
+  "book_slug": "the-mystery-of-edwin-drood",
+  "author_slug": "dickens-c",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q1168105",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The Mystery of Edwin Drood",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "564",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The Mystery of Edwin Drood",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Das Geheimnis des Edwin Drood",
+      "titel_quelle": "wikidata",
+      "titel_pruefen": false
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:26:49"
+}

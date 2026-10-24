@@ -1,0 +1,39 @@
+{
+  "book_slug": "the-memoirs-of-jacques-casanova-de-seingalt-1725-1798-complete",
+  "author_slug": "casanova-g",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The Memoirs of Jacques Casanova de Seingalt, 1725-1798. Complete",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "2981",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The Memoirs of Jacques Casanova de Seingalt, 1725-1798. Complete",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Memoiren des Giacomo Casanova von Seingalt, 1725–1798. Vollständige Ausgabe",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:28:50"
+}

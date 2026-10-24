@@ -1,0 +1,33 @@
+{
+ "variante": "p1_mix_v1_r2",
+ "paket": "the-yellow-wallpaper_teaser_de_w",
+ "kapitel": 1,
+ "wandzeit_s": 129,
+ "gpu_s": 104,
+ "audio_s": 56,
+ "zeichen": 1000,
+ "gpu_h_je_audio_h": 1.846,
+ "usd_geschaetzt": 0.023,
+ "usd_je_50k_zeichen": 1.159,
+ "fehler": 0,
+ "pruefung_neu": 0,
+ "pruefung_rest": [],
+ "kapitel_details": [
+  {
+   "audio_s": 56.5,
+   "neu": 9,
+   "fehler": [],
+   "fp16_fallback": 0,
+   "zeichen": 1000,
+   "kap": "t000",
+   "saetze": 9,
+   "laden_s": 20.7,
+   "rechnen_s": 83.6,
+   "gpu_s": 104.3,
+   "parallel": 1,
+   "fp16": false,
+   "batch": 0,
+   "rtf": 1.48
+  }
+ ]
+}

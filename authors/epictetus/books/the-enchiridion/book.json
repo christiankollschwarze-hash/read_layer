@@ -1,0 +1,39 @@
+{
+  "book_slug": "the-enchiridion",
+  "author_slug": "epictetus",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q132200720",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The Enchiridion",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "45109",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The Enchiridion",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Handbüchlein der Moral",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:23:47"
+}

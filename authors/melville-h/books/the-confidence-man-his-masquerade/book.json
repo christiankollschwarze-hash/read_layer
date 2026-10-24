@@ -1,0 +1,39 @@
+{
+  "book_slug": "the-confidence-man-his-masquerade",
+  "author_slug": "melville-h",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q3820043",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The Confidence-Man: His Masquerade",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "21816",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The Confidence-Man: His Masquerade",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Der Maskeraden-Betrüger: Seine Verwandlungen",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:26:45"
+}

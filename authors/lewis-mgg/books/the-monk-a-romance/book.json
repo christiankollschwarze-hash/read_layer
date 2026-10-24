@@ -1,0 +1,48 @@
+{
+  "book_slug": "the-monk-a-romance",
+  "author_slug": "lewis-mgg",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q2659564",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The Monk: A Romance",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "601",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The Monk: A Romance",
+      "titel_quelle": "original",
+      "audio_quelle": "librivox_archiv",
+      "sprecher": "James K. White",
+      "reader_url": "https://librivox.org/reader/5985",
+      "librivox_url": "https://librivox.org/the-monk-a-romance-by-matthew-lewis/",
+      "archive_url": "https://www.archive.org/details/monk_1112_librivox",
+      "sprecher_urteil": "gut",
+      "credit": "Recording: James K. White / LibriVox",
+      "source_disclaimer": "This is a LibriVox recording. All LibriVox recordings are in the public domain. For more information, or to volunteer, please visit librivox.org.",
+      "deaktiviert": "2026-10-11: LibriVox ersetzt durch designte Stimmen",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Der Mönch",
+      "titel_quelle": "wikidata",
+      "titel_pruefen": false
+    }
+  ],
+  "librivox_geprueft": "treffer",
+  "librivox_geprueft_am": "2026-10-10T19:28:08"
+}

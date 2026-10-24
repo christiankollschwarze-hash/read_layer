@@ -1,0 +1,39 @@
+{
+  "book_slug": "the-gilded-age-a-tale-of-today",
+  "author_slug": "twain-m",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q16385809",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The Gilded Age: A Tale of Today",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "3178",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The Gilded Age: A Tale of Today",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Der vergoldete Zeitabschnitt: Eine Geschichte von heute",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:28:16"
+}

@@ -1,0 +1,51 @@
+{
+  "book_slug": "frankenstein-or-the-modern-prometheus",
+  "author_slug": "shelley-mw",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q150827",
+  "publisher": "<eigenes-label>",
+  "titel_original": "Frankenstein; or, the modern prometheus",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "42324",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "Frankenstein; or, the modern prometheus",
+      "titel_quelle": "original",
+      "audio_quelle": "librivox_archiv",
+      "sprecher": "John Van Stan",
+      "reader_url": "https://librivox.org/reader/9017",
+      "librivox_url": "https://librivox.org/frankenstein-or-the-modern-prometheus-version-4-by-mary-wollstonecraft-shelley/",
+      "archive_url": "https://archive.org/details/frankenstein_4_2010_librivox",
+      "sprecher_urteil": "gut",
+      "credit": "Recording: John Van Stan / LibriVox",
+      "source_disclaimer": "This is a LibriVox recording. All LibriVox recordings are in the public domain. For more information, or to volunteer, please visit librivox.org.",
+      "deaktiviert": "2026-10-11: LibriVox ersetzt durch designte Stimmen",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Frankenstein",
+      "titel_quelle": "wikidata",
+      "titel_pruefen": false
+    }
+  ],
+  "zurueckgesetzt_librivox": "2026-10-10",
+  "gutenberg_id_original": "84",
+  "librivox_geprueft": "treffer",
+  "librivox_geprueft_am": "2026-10-10T20:30:56",
+  "cover_motiv": "the Creature, a towering, solitary and sorrowful figure, one hand raised toward a single bolt of lightning"
+}

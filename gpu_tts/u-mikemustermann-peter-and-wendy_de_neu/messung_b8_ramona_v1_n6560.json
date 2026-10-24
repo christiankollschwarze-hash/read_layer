@@ -1,0 +1,41 @@
+{
+ "variante": "b8_ramona_v1_n6560",
+ "paket": "u-mikemustermann-peter-and-wendy_de_neu",
+ "kapitel": 1,
+ "wandzeit_s": 91,
+ "gpu_s": 67,
+ "audio_s": 34,
+ "zeichen": 436,
+ "gpu_h_je_audio_h": 1.95,
+ "usd_geschaetzt": 0.015,
+ "usd_je_50k_zeichen": 1.7,
+ "fehler": 0,
+ "pruefung_neu": 1,
+ "pruefung_rest": [],
+ "kapitel_details": [
+  {
+   "audio_s": 34.2,
+   "neu": 17,
+   "fehler": [],
+   "fp16_fallback": 0,
+   "zeichen": 436,
+   "pruefung_neu": 1,
+   "pruefung_gekappt": 0,
+   "pruefung_gruende": {
+    "verschmiert": 1
+   },
+   "pruefung_rest": [],
+   "t3_s": 8.2,
+   "s3gen_s": 13.5,
+   "kap": "neu",
+   "saetze": 17,
+   "laden_s": 21.5,
+   "rechnen_s": 45.2,
+   "gpu_s": 66.7,
+   "parallel": 1,
+   "fp16": false,
+   "batch": 8,
+   "rtf": 1.322
+  }
+ ]
+}

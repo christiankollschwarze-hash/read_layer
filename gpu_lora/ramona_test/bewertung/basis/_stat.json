@@ -1,0 +1,15 @@
+{
+ "variante": "basis",
+ "ckpt": "",
+ "stimme": "grossmutter_a",
+ "saetze": 140,
+ "audio_s": 1145.0,
+ "pruefung": {
+  "ok": 132,
+  "nachklang": 6,
+  "zu_lang": 2
+ },
+ "ve_aehnlich_referenz": 0.9406,
+ "ve_aehnlich_ramona": 0.79,
+ "gpu_min": 24.2
+}

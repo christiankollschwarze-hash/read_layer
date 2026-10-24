@@ -1,0 +1,39 @@
+{
+  "book_slug": "the-gift-of-the-magi",
+  "author_slug": "henry-o",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q1168338",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The Gift of the Magi",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "7256",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The Gift of the Magi",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Das Geschenk der Weisen",
+      "titel_quelle": "wikidata",
+      "titel_pruefen": false
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:23:44"
+}

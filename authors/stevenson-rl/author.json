@@ -1,0 +1,27 @@
+{
+  "wikidata_id": "Q1512",
+  "verified": true,
+  "name_display": "Robert Louis Stevenson",
+  "name_sort": "",
+  "geburtsjahr": 1850,
+  "todesjahr": 1894,
+  "geburtsort": "Edinburgh",
+  "wirkungssprache": "en",
+  "notable_works": [
+    "Treasure Island",
+    "Kidnapped",
+    "Strange Case of Dr Jekyll and Mr Hyde",
+    "A Child's Garden of Verses",
+    "Prince Otto"
+  ],
+  "epoche": "",
+  "stilrichtung": [],
+  "bedeutung_kurz": "",
+  "quelle_weich": "https://en.wikipedia.org/wiki/Robert_Louis_Stevenson",
+  "werke_im_bestand": [
+    "jekyll-and-hyde",
+    "treasure-island",
+    "kidnapped",
+    "catriona"
+  ]
+}

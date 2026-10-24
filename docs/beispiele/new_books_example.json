@@ -1,0 +1,16 @@
+{
+  "books": [
+    {
+      "titel_original": "The Strange Case of Dr Jekyll and Mr Hyde",
+      "book_slug": "jekyll-and-hyde",
+      "autor_name": "Robert Louis Stevenson",
+      "autor_slug": "",
+      "wikidata_id_autor": "",
+      "wikidata_id_werk": "",
+      "originalsprache": "en",
+      "erscheinungsjahr": 1886,
+      "gutenberg_id": "43",
+      "raw_quelle": "C:/Users/sabin/read_layer/inbox/jekyll.txt"
+    }
+  ]
+}

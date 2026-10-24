@@ -1,0 +1,45 @@
+{
+  "book_slug": "the-yellow-wallpaper",
+  "author_slug": "gilman-cp",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q140936316",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The Yellow Wallpaper",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "1952",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The Yellow Wallpaper",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Die gelbe Tapete",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ],
+  "audio_voice": "Despina",
+  "audio_regler": {
+    "betonung": 2,
+    "emotion": 7,
+    "tempo": 6
+  },
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:23:46"
+}

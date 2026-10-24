@@ -1,0 +1,19 @@
+{
+ "variante": "herr_a_lora",
+ "ckpt": "step_01250.safetensors",
+ "stimme": "herr_a",
+ "saetze": 140,
+ "audio_s": 995.6,
+ "pruefung": {
+  "ok": 139,
+  "nachklang": 1
+ },
+ "ve_aehnlich_referenz": 0.8974,
+ "ve_aehnlich_ramona": 0.6273,
+ "ve_aehnlich_sprecher": {
+  "2037": 0.5837,
+  "5424": 0.5929,
+  "9565": 0.6318
+ },
+ "gpu_min": 21.1
+}

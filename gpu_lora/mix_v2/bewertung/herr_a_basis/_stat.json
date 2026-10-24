@@ -1,0 +1,19 @@
+{
+ "variante": "herr_a_basis",
+ "ckpt": "",
+ "stimme": "herr_a",
+ "saetze": 140,
+ "audio_s": 1144.1,
+ "pruefung": {
+  "ok": 136,
+  "nachklang": 4
+ },
+ "ve_aehnlich_referenz": 0.9121,
+ "ve_aehnlich_ramona": 0.6373,
+ "ve_aehnlich_sprecher": {
+  "2037": 0.5838,
+  "5424": 0.5913,
+  "9565": 0.6374
+ },
+ "gpu_min": 23.6
+}

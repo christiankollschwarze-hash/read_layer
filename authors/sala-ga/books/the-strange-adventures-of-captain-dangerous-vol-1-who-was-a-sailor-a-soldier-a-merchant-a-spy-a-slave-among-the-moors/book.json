@@ -1,0 +1,39 @@
+{
+  "book_slug": "the-strange-adventures-of-captain-dangerous-vol-1-who-was-a-sailor-a-soldier-a-merchant-a-spy-a-slave-among-the-moors",
+  "author_slug": "sala-ga",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q124090358",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The Strange Adventures of Captain Dangerous, Vol. 1: Who was a sailor, a soldier, a merchant, a spy, a slave; among the moors...",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "26667",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The Strange Adventures of Captain Dangerous, Vol. 1: Who was a sailor, a soldier, a merchant, a spy, a slave; among the moors...",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Die seltsamen Abenteuer des Captain Dangerous, Bd. 1: Der Seemann, Soldat, Kaufmann, Spion und Sklave war; unter den Mauren...",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:25:31"
+}

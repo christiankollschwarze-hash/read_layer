@@ -1,0 +1,49 @@
+{
+  "book_slug": "lysistrata",
+  "author_slug": "aristophanes",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q753907",
+  "publisher": "<eigenes-label>",
+  "titel_original": "Lysistrata",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "7700",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "Lysistrata",
+      "titel_quelle": "original",
+      "audio_quelle": "librivox_archiv",
+      "sprecher": "Phil Chenevert",
+      "reader_url": "https://librivox.org/reader/5717",
+      "librivox_url": "https://librivox.org/lysistrata-version-3-by-aristophanes/",
+      "archive_url": "https://archive.org/details/lysistrata_version_3_1809_librivox",
+      "sprecher_urteil": "gut",
+      "credit": "Recording: Phil Chenevert / LibriVox",
+      "source_disclaimer": "This is a LibriVox recording. All LibriVox recordings are in the public domain. For more information, or to volunteer, please visit librivox.org.",
+      "deaktiviert": "2026-10-11: LibriVox ersetzt durch designte Stimmen",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Lysistrata",
+      "titel_quelle": "wikidata",
+      "titel_pruefen": false
+    }
+  ],
+  "zurueckgesetzt_librivox": "2026-10-10",
+  "librivox_geprueft": "treffer",
+  "librivox_geprueft_am": "2026-10-10T20:30:49"
+}

@@ -1,0 +1,48 @@
+{
+  "book_slug": "the-stretton-street-affair",
+  "author_slug": "queux-wl",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q112075127",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The Stretton Street Affair",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "27147",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The Stretton Street Affair",
+      "titel_quelle": "original",
+      "audio_quelle": "librivox_archiv",
+      "sprecher": "Tom Weiss",
+      "reader_url": "https://librivox.org/reader/3488",
+      "librivox_url": "https://librivox.org/the-stretton-street-affair-by-william-le-queux/",
+      "archive_url": "https://www.archive.org/details/strettonstreetaffair_1111_librivox",
+      "sprecher_urteil": "gut",
+      "credit": "Recording: Tom Weiss / LibriVox",
+      "source_disclaimer": "This is a LibriVox recording. All LibriVox recordings are in the public domain. For more information, or to volunteer, please visit librivox.org.",
+      "deaktiviert": "2026-10-11: LibriVox ersetzt durch designte Stimmen",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Die Affäre in der Stretton Street",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ],
+  "librivox_geprueft": "treffer",
+  "librivox_geprueft_am": "2026-10-10T19:26:31"
+}

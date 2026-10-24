@@ -1,0 +1,39 @@
+{
+  "book_slug": "the-last-of-the-mohicans-a-narrative-of-1757",
+  "author_slug": "cooper-jf",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q493574",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The Last of the Mohicans; A narrative of 1757",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "940",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The Last of the Mohicans; A narrative of 1757",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Der letzte Mohikaner",
+      "titel_quelle": "wikidata",
+      "titel_pruefen": false
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:28:11"
+}

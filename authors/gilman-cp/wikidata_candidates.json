@@ -1,0 +1,54 @@
+{
+  "name": "Charlotte Perkins Gilman",
+  "candidates": [
+    {
+      "wikidata_id": "Q287752",
+      "label": "Charlotte Perkins Gilman",
+      "beschreibung": "American feminist, writer, artist, and lecturer (1860–1935)",
+      "geburtsjahr": 1860,
+      "todesjahr": 1935
+    },
+    {
+      "wikidata_id": "Q126891643",
+      "label": "Charlotte Perkins Gilman: The Making of a Radical Feminist, 1860-1896",
+      "beschreibung": "book published in 1980",
+      "geburtsjahr": null,
+      "todesjahr": null
+    },
+    {
+      "wikidata_id": "Q136114476",
+      "label": "Charlotte Perkins Gilman's In This Our World and Uncollected Poems",
+      "beschreibung": "book 2012",
+      "geburtsjahr": null,
+      "todesjahr": null
+    },
+    {
+      "wikidata_id": "Q136134290",
+      "label": "Charlotte Perkins Gilman: New Texts, New Contexts",
+      "beschreibung": "2011",
+      "geburtsjahr": null,
+      "todesjahr": null
+    },
+    {
+      "wikidata_id": "Q136191116",
+      "label": "Charlotte Perkins Gilman's 'The Yellow Wall-paper' and the History of Its Publication and Reception: A Critical Edition",
+      "beschreibung": "book 1998",
+      "geburtsjahr": null,
+      "todesjahr": null
+    },
+    {
+      "wikidata_id": "Q136176254",
+      "label": "Charlotte Perkins Gilman and Her Contemporaries: Literary and Intellectual Contexts",
+      "beschreibung": "book 2004",
+      "geburtsjahr": null,
+      "todesjahr": null
+    },
+    {
+      "wikidata_id": "Q136176626",
+      "label": "Charlotte Perkins Gilman and a Woman's Place in America",
+      "beschreibung": "book 2017",
+      "geburtsjahr": null,
+      "todesjahr": null
+    }
+  ]
+}

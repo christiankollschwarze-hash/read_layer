@@ -1,0 +1,39 @@
+{
+  "book_slug": "the-meditations-of-the-emperor-marcus-aurelius-antoninus-a-new-rendering-based-on-the-foulis-translation-of-1742",
+  "author_slug": "aurelius-eorm",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The Meditations of the Emperor Marcus Aurelius Antoninus: A new rendering based on the Foulis translation of 1742",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "55317",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The Meditations of the Emperor Marcus Aurelius Antoninus: A new rendering based on the Foulis translation of 1742",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Des Kaisers Marcus Aurelius Antoninus Selbstbetrachtungen",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:24:20"
+}

@@ -1,0 +1,13 @@
+{
+  "books": [
+    {
+      "titel_original": "The Strange Case of Dr. Jekyll and Mr. Hyde",
+      "book_slug": "jekyll-and-hyde",
+      "autor_name": "Robert Louis Stevenson",
+      "originalsprache": "en",
+      "erscheinungsjahr": 1886,
+      "gutenberg_id": "43",
+      "txt_url": "https://www.gutenberg.org/cache/epub/43/pg43.txt"
+    }
+  ]
+}

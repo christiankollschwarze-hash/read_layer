@@ -1,0 +1,48 @@
+{
+  "book_slug": "northanger-abbey",
+  "author_slug": "austen-j",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q477508",
+  "publisher": "<eigenes-label>",
+  "titel_original": "Northanger Abbey",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "121",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "Northanger Abbey",
+      "titel_quelle": "original",
+      "audio_quelle": "librivox_archiv",
+      "sprecher": "Elizabeth Klett",
+      "reader_url": "https://librivox.org/reader/1259",
+      "librivox_url": "https://librivox.org/northanger-abbey-by-jane-austen-2/",
+      "archive_url": "https://www.archive.org/details/northanger_abbey_etk_librivox",
+      "sprecher_urteil": "gut",
+      "credit": "Recording: Elizabeth Klett / LibriVox",
+      "source_disclaimer": "This is a LibriVox recording. All LibriVox recordings are in the public domain. For more information, or to volunteer, please visit librivox.org.",
+      "deaktiviert": "2026-10-11: LibriVox ersetzt durch designte Stimmen",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Die Abtei von Northanger",
+      "titel_quelle": "wikidata",
+      "titel_pruefen": false
+    }
+  ],
+  "librivox_geprueft": "treffer",
+  "librivox_geprueft_am": "2026-10-10T19:26:13"
+}

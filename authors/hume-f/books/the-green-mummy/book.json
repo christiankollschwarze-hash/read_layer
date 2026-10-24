@@ -1,0 +1,39 @@
+{
+  "book_slug": "the-green-mummy",
+  "author_slug": "hume-f",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q135803255",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The Green Mummy",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "2868",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The Green Mummy",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Die grüne Mumie",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:26:36"
+}

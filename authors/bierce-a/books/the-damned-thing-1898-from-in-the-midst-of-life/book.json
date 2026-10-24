@@ -1,0 +1,39 @@
+{
+  "book_slug": "the-damned-thing-1898-from-in-the-midst-of-life",
+  "author_slug": "bierce-a",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q7728792",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The Damned Thing: 1898, From \"In the Midst of Life\"",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "23172",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The Damned Thing: 1898, From \"In the Midst of Life\"",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Das verdammte Ding",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:23:45"
+}

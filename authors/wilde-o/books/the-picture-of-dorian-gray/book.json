@@ -1,0 +1,39 @@
+{
+  "book_slug": "the-picture-of-dorian-gray",
+  "author_slug": "wilde-o",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q82464",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The Picture of Dorian Gray",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "174",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The Picture of Dorian Gray",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Das Bildnis des Dorian Gray",
+      "titel_quelle": "wikidata",
+      "titel_pruefen": false
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:26:19"
+}

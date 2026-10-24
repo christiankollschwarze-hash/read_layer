@@ -1,0 +1,39 @@
+{
+  "book_slug": "oedipus-king-of-thebes-translated-into-english-rhyming-verse-with-explanatory-notes",
+  "author_slug": "sophocles",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "",
+  "publisher": "<eigenes-label>",
+  "titel_original": "Oedipus King of Thebes: Translated into English Rhyming Verse with Explanatory Notes",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "27673",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "Oedipus King of Thebes: Translated into English Rhyming Verse with Explanatory Notes",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "König Ödipus",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:23:55"
+}

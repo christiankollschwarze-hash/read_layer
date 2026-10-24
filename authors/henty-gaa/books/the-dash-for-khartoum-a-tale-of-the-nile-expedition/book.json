@@ -1,0 +1,39 @@
+{
+  "book_slug": "the-dash-for-khartoum-a-tale-of-the-nile-expedition",
+  "author_slug": "henty-gaa",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q124087714",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The Dash for Khartoum: A Tale of the Nile Expedition",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "21986",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The Dash for Khartoum: A Tale of the Nile Expedition",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Der Sturm auf Khartum: Eine Erzählung von der Nil-Expedition",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:28:13"
+}

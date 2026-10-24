@@ -1,0 +1,269 @@
+[
+ {
+  "variante": "basis",
+  "ckpt": "",
+  "stimme": "grossmutter_a",
+  "saetze": 140,
+  "audio_s": 1145.8,
+  "pruefung": {
+   "zu_lang": 3,
+   "ok": 132,
+   "nachklang": 5
+  },
+  "ve_aehnlich_referenz": 0.9419,
+  "ve_aehnlich_ramona": 0.7881,
+  "ve_aehnlich_sprecher": {
+   "2037": 0.7022,
+   "5424": 0.6886,
+   "9565": 0.5829
+  },
+  "gpu_min": 24.3,
+  "prosodie": {
+   "saetze": 140,
+   "streuung_ht": 6.13,
+   "spanne_ht": 10.49,
+   "dauer_s_mittel": 12.28
+  },
+  "ausklang_s": 0.36,
+  "abgeschnitten": 11
+ },
+ {
+  "variante": "lora_bester",
+  "ckpt": "step_01250.safetensors",
+  "stimme": "grossmutter_a",
+  "saetze": 140,
+  "audio_s": 966.0,
+  "pruefung": {
+   "ok": 140
+  },
+  "ve_aehnlich_referenz": 0.9298,
+  "ve_aehnlich_ramona": 0.7843,
+  "ve_aehnlich_sprecher": {
+   "2037": 0.7059,
+   "5424": 0.6915,
+   "9565": 0.5837
+  },
+  "gpu_min": 20.2,
+  "prosodie": {
+   "saetze": 140,
+   "streuung_ht": 5.63,
+   "spanne_ht": 10.43,
+   "dauer_s_mittel": 10.35
+  },
+  "ausklang_s": 0.18,
+  "abgeschnitten": 0
+ },
+ {
+  "variante": "mix_v1",
+  "ckpt": "../../mix_v1/ckpt/step_01000.safetensors",
+  "stimme": "grossmutter_a",
+  "saetze": 140,
+  "audio_s": 941.6,
+  "pruefung": {
+   "ok": 139,
+   "nachklang": 1
+  },
+  "ve_aehnlich_referenz": 0.933,
+  "ve_aehnlich_ramona": 0.7864,
+  "ve_aehnlich_sprecher": {
+   "2037": 0.7077,
+   "5424": 0.692,
+   "9565": 0.5843
+  },
+  "gpu_min": 13.2,
+  "prosodie": {
+   "saetze": 140,
+   "streuung_ht": 5.52,
+   "spanne_ht": 9.61,
+   "dauer_s_mittel": 10.09
+  },
+  "ausklang_s": 0.16,
+  "abgeschnitten": 1
+ },
+ {
+  "variante": "lora_letzter",
+  "ckpt": "step_01992.safetensors",
+  "stimme": "grossmutter_a",
+  "saetze": 140,
+  "audio_s": 961.9,
+  "pruefung": {
+   "ok": 140
+  },
+  "ve_aehnlich_referenz": 0.9286,
+  "ve_aehnlich_ramona": 0.781,
+  "ve_aehnlich_sprecher": {
+   "2037": 0.7061,
+   "5424": 0.6919,
+   "9565": 0.5839
+  },
+  "gpu_min": 13.6,
+  "prosodie": {
+   "saetze": 140,
+   "streuung_ht": 5.5,
+   "spanne_ht": 10.14,
+   "dauer_s_mittel": 10.31
+  },
+  "ausklang_s": 0.2,
+  "abgeschnitten": 1
+ },
+ {
+  "variante": "ramona_basis",
+  "ckpt": "",
+  "stimme": "ramona",
+  "saetze": 140,
+  "audio_s": 1049.6,
+  "pruefung": {
+   "ok": 119,
+   "nachklang": 21
+  },
+  "ve_aehnlich_referenz": 0.9053,
+  "ve_aehnlich_ramona": 0.9067,
+  "ve_aehnlich_sprecher": {
+   "2037": 0.7234,
+   "5424": 0.804,
+   "9565": 0.6351
+  },
+  "gpu_min": 22.1,
+  "prosodie": {
+   "saetze": 140,
+   "streuung_ht": 4.52,
+   "spanne_ht": 9.38,
+   "dauer_s_mittel": 11.25
+  },
+  "ausklang_s": 0.36,
+  "abgeschnitten": 28
+ },
+ {
+  "variante": "ramona_lora",
+  "ckpt": "step_01250.safetensors",
+  "stimme": "ramona",
+  "saetze": 140,
+  "audio_s": 951.4,
+  "pruefung": {
+   "ok": 140
+  },
+  "ve_aehnlich_referenz": 0.8947,
+  "ve_aehnlich_ramona": 0.898,
+  "ve_aehnlich_sprecher": {
+   "2037": 0.7158,
+   "5424": 0.8042,
+   "9565": 0.6268
+  },
+  "gpu_min": 19.0,
+  "prosodie": {
+   "saetze": 140,
+   "streuung_ht": 4.08,
+   "spanne_ht": 8.34,
+   "dauer_s_mittel": 10.19
+  },
+  "ausklang_s": 0.3,
+  "abgeschnitten": 1
+ },
+ {
+  "variante": "ramona_mix_v1",
+  "ckpt": "../../mix_v1/ckpt/step_01000.safetensors",
+  "stimme": "ramona",
+  "saetze": 140,
+  "audio_s": 959.5,
+  "pruefung": {
+   "ok": 140
+  },
+  "ve_aehnlich_referenz": 0.9047,
+  "ve_aehnlich_ramona": 0.9068,
+  "ve_aehnlich_sprecher": {
+   "2037": 0.7164,
+   "5424": 0.7983,
+   "9565": 0.6295
+  },
+  "gpu_min": 20.8,
+  "prosodie": {
+   "saetze": 140,
+   "streuung_ht": 4.17,
+   "spanne_ht": 8.29,
+   "dauer_s_mittel": 10.28
+  },
+  "ausklang_s": 0.18,
+  "abgeschnitten": 4
+ },
+ {
+  "variante": "herr_a_basis",
+  "ckpt": "",
+  "stimme": "herr_a",
+  "saetze": 140,
+  "audio_s": 1144.1,
+  "pruefung": {
+   "ok": 136,
+   "nachklang": 4
+  },
+  "ve_aehnlich_referenz": 0.9121,
+  "ve_aehnlich_ramona": 0.6373,
+  "ve_aehnlich_sprecher": {
+   "2037": 0.5838,
+   "5424": 0.5913,
+   "9565": 0.6374
+  },
+  "gpu_min": 23.6,
+  "prosodie": {
+   "saetze": 140,
+   "streuung_ht": 11.65,
+   "spanne_ht": 29.63,
+   "dauer_s_mittel": 12.26
+  },
+  "ausklang_s": 0.47,
+  "abgeschnitten": 6
+ },
+ {
+  "variante": "herr_a_lora",
+  "ckpt": "step_01250.safetensors",
+  "stimme": "herr_a",
+  "saetze": 140,
+  "audio_s": 995.6,
+  "pruefung": {
+   "ok": 139,
+   "nachklang": 1
+  },
+  "ve_aehnlich_referenz": 0.8974,
+  "ve_aehnlich_ramona": 0.6273,
+  "ve_aehnlich_sprecher": {
+   "2037": 0.5837,
+   "5424": 0.5929,
+   "9565": 0.6318
+  },
+  "gpu_min": 21.1,
+  "prosodie": {
+   "saetze": 140,
+   "streuung_ht": 10.58,
+   "spanne_ht": 28.98,
+   "dauer_s_mittel": 10.67
+  },
+  "ausklang_s": 0.2,
+  "abgeschnitten": 2
+ },
+ {
+  "variante": "herr_a_mix_v1",
+  "ckpt": "../../mix_v1/ckpt/step_01000.safetensors",
+  "stimme": "herr_a",
+  "saetze": 140,
+  "audio_s": 1011.6,
+  "pruefung": {
+   "ok": 139,
+   "nachklang": 1
+  },
+  "ve_aehnlich_referenz": 0.8983,
+  "ve_aehnlich_ramona": 0.6286,
+  "ve_aehnlich_sprecher": {
+   "2037": 0.5835,
+   "5424": 0.5918,
+   "9565": 0.6308
+  },
+  "gpu_min": 20.9,
+  "prosodie": {
+   "saetze": 140,
+   "streuung_ht": 10.74,
+   "spanne_ht": 29.21,
+   "dauer_s_mittel": 10.84
+  },
+  "ausklang_s": 0.2,
+  "abgeschnitten": 2
+ }
+]

@@ -1,0 +1,150 @@
+{
+ "werk": "u-mikemustermann-peter-and-wendy",
+ "lang": "de",
+ "ref": "grossmutter_a",
+ "jobs": [
+  {
+   "id": "c001_00001_h",
+   "kap": "neu",
+   "text": "Eins. Pieter bricht durch"
+  },
+  {
+   "id": "c002_00001_h",
+   "kap": "neu",
+   "text": "Zwei. Der Schatten"
+  },
+  {
+   "id": "c003_00001_h",
+   "kap": "neu",
+   "text": "Drei. Fort, fort!"
+  },
+  {
+   "id": "c004_00001_h",
+   "kap": "neu",
+   "text": "Vier. Der Flug"
+  },
+  {
+   "id": "c005_00001_h",
+   "kap": "neu",
+   "text": "Fünf. Die Insel wird wahr"
+  },
+  {
+   "id": "c006_00001_h",
+   "kap": "neu",
+   "text": "Sechs. Das kleine Haus"
+  },
+  {
+   "id": "c007_00001_h",
+   "kap": "neu",
+   "text": "Sieben. Das Heim unter der Erde"
+  },
+  {
+   "id": "c008_00001_h",
+   "kap": "neu",
+   "text": "Acht. Die Lagune der Meerjungfrauen"
+  },
+  {
+   "id": "c009_00001_h",
+   "kap": "neu",
+   "text": "Neun. Der Nimmervogel"
+  },
+  {
+   "id": "c010_00001_h",
+   "kap": "neu",
+   "text": "Zehn. Das glückliche Heim"
+  },
+  {
+   "id": "c011_00001_h",
+   "kap": "neu",
+   "text": "Elf. Wendys Geschichte"
+  },
+  {
+   "id": "c012_00001_h",
+   "kap": "neu",
+   "text": "Zwölf. Die Kinder werden entführt"
+  },
+  {
+   "id": "c013_00001_h",
+   "kap": "neu",
+   "text": "Dreizehn. Glaubt ihr an Feen?"
+  },
+  {
+   "id": "c014_00001_h",
+   "kap": "neu",
+   "text": "Vierzehn. Das Piratenschiff"
+  },
+  {
+   "id": "c015_00001_h",
+   "kap": "neu",
+   "text": "Fünfzehn. „Huck oder ich – diesmal“"
+  },
+  {
+   "id": "c016_00001_h",
+   "kap": "neu",
+   "text": "Sechzehn. Die Heimkehr"
+  },
+  {
+   "id": "c017_00001_h",
+   "kap": "neu",
+   "text": "Siebzehn. Als Wendi erwachsen wurde"
+  }
+ ],
+ "ziel": "fassungen/de/audio_neu_20261018",
+ "gruende": {
+  "c001_00001_h": [
+   "ueberschrift"
+  ],
+  "c002_00001_h": [
+   "ueberschrift"
+  ],
+  "c003_00001_h": [
+   "ueberschrift"
+  ],
+  "c004_00001_h": [
+   "ueberschrift"
+  ],
+  "c005_00001_h": [
+   "ueberschrift"
+  ],
+  "c006_00001_h": [
+   "ueberschrift"
+  ],
+  "c007_00001_h": [
+   "ueberschrift"
+  ],
+  "c008_00001_h": [
+   "ueberschrift"
+  ],
+  "c009_00001_h": [
+   "ueberschrift"
+  ],
+  "c010_00001_h": [
+   "ueberschrift"
+  ],
+  "c011_00001_h": [
+   "ueberschrift"
+  ],
+  "c012_00001_h": [
+   "ueberschrift"
+  ],
+  "c013_00001_h": [
+   "ueberschrift"
+  ],
+  "c014_00001_h": [
+   "ueberschrift"
+  ],
+  "c015_00001_h": [
+   "ueberschrift"
+  ],
+  "c016_00001_h": [
+   "ueberschrift"
+  ],
+  "c017_00001_h": [
+   "ueberschrift"
+  ]
+ },
+ "probe": false,
+ "lora": "ramona_v1",
+ "ms_je_zeichen": 0.043,
+ "tempo": "0.76"
+}

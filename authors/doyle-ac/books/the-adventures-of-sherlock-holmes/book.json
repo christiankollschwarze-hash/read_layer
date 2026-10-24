@@ -1,0 +1,48 @@
+{
+  "book_slug": "the-adventures-of-sherlock-holmes",
+  "author_slug": "doyle-ac",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q392147",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The Adventures of Sherlock Holmes",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "1661",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The Adventures of Sherlock Holmes",
+      "titel_quelle": "original",
+      "audio_quelle": "librivox_archiv",
+      "sprecher": "Mark F. Smith",
+      "reader_url": "https://librivox.org/reader/204",
+      "librivox_url": "https://librivox.org/the-adventures-of-sherlock-holmes-by-sir-arthur-conan-doyle-2/",
+      "archive_url": "https://www.archive.org/details/adventures_sherlockholmes_1007_librivox",
+      "sprecher_urteil": "gut",
+      "credit": "Recording: Mark F. Smith / LibriVox",
+      "source_disclaimer": "This is a LibriVox recording. All LibriVox recordings are in the public domain. For more information, or to volunteer, please visit librivox.org.",
+      "deaktiviert": "2026-10-11: LibriVox ersetzt durch designte Stimmen",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Die Abenteuer des Sherlock Holmes",
+      "titel_quelle": "wikidata",
+      "titel_pruefen": false
+    }
+  ],
+  "librivox_geprueft": "treffer",
+  "librivox_geprueft_am": "2026-10-10T19:26:57"
+}

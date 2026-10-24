@@ -1,0 +1,276 @@
+{
+ "werk": "die-spiegelschwestern",
+ "lang": "de",
+ "jobs": [
+  {
+   "id": "c005_00133_dl__0",
+   "tag": "c005_00133_dl",
+   "figur": "Werner Koslowski",
+   "stimme": "m_alt_tief_cholerisch",
+   "text": "„Cindy“",
+   "t0": 0.02,
+   "t1": 0.583,
+   "lang": "de"
+  },
+  {
+   "id": "c005_00134_dl__0",
+   "tag": "c005_00134_dl",
+   "figur": "Werner Koslowski",
+   "stimme": "m_alt_tief_cholerisch",
+   "text": "„Jetzt reden wir mal.“",
+   "t0": 0.021,
+   "t1": 1.693,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00094_dl__0",
+   "tag": "c006_00094_dl",
+   "figur": "Werner Koslowski",
+   "stimme": "m_alt_tief_cholerisch",
+   "text": "„Du bist weg“",
+   "t0": 0.001,
+   "t1": 0.627,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00095_dl__0",
+   "tag": "c006_00095_dl",
+   "figur": "Werner Koslowski",
+   "stimme": "m_alt_tief_cholerisch",
+   "text": "„Du bist abgehauen.“",
+   "t0": 0.0,
+   "t1": 0.852,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00099_dl__0",
+   "tag": "c006_00099_dl",
+   "figur": "Werner Koslowski",
+   "stimme": "m_alt_tief_cholerisch",
+   "text": "„Nichts.“",
+   "t0": 0.02,
+   "t1": 0.522,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00100_dl__0",
+   "tag": "c006_00100_dl",
+   "figur": "Werner Koslowski",
+   "stimme": "m_alt_tief_cholerisch",
+   "text": "„Es gibt keine zwei. Es gibt nur dich. Und du bist weg.“",
+   "t0": 0.0,
+   "t1": 3.048,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00108_dl__0",
+   "tag": "c006_00108_dl",
+   "figur": "Werner Koslowski",
+   "stimme": "m_alt_tief_cholerisch",
+   "text": "„Raus“",
+   "t0": 0.061,
+   "t1": 0.524,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00109_dl__0",
+   "tag": "c006_00109_dl",
+   "figur": "Werner Koslowski",
+   "stimme": "m_alt_tief_cholerisch",
+   "text": "„Du wohnst hier nicht mehr. Du warst nie hier.“",
+   "t0": 0.02,
+   "t1": 2.068,
+   "lang": "de"
+  },
+  {
+   "id": "c007_00055_s__0",
+   "tag": "c007_00055_s",
+   "figur": "Werner Koslowski",
+   "stimme": "m_alt_tief_cholerisch",
+   "text": "wer bist du",
+   "t0": 0.043,
+   "t1": 0.634,
+   "lang": "de"
+  },
+  {
+   "id": "c007_00062_s__1",
+   "tag": "c007_00062_s",
+   "figur": "Werner Koslowski",
+   "stimme": "m_alt_tief_cholerisch",
+   "text": "Ich kann nicht mehr schlafen.",
+   "t0": 2.515,
+   "t1": 3.662,
+   "lang": "de"
+  },
+  {
+   "id": "c007_00063_s__0",
+   "tag": "c007_00063_s",
+   "figur": "Werner Koslowski",
+   "stimme": "m_alt_tief_cholerisch",
+   "text": "Die Toten lassen mich nicht.",
+   "t0": 0.0,
+   "t1": 1.346,
+   "lang": "de"
+  },
+  {
+   "id": "c009_00094_dl__0",
+   "tag": "c009_00094_dl",
+   "figur": "Werner Koslowski",
+   "stimme": "m_alt_tief_cholerisch",
+   "text": "„Die ist weg.“",
+   "t0": 0.0,
+   "t1": 0.513,
+   "lang": "de"
+  },
+  {
+   "id": "c009_00106_dl__0",
+   "tag": "c009_00106_dl",
+   "figur": "Werner Koslowski",
+   "stimme": "m_alt_tief_cholerisch",
+   "text": "„Sie kommt jede Nacht“,",
+   "t0": 0.242,
+   "t1": 1.367,
+   "lang": "de"
+  },
+  {
+   "id": "c009_00108_dl__0",
+   "tag": "c009_00108_dl",
+   "figur": "Werner Koslowski",
+   "stimme": "m_alt_tief_cholerisch",
+   "text": "„Sie ruft an.",
+   "t0": 0.001,
+   "t1": 0.629,
+   "lang": "de"
+  },
+  {
+   "id": "c009_00109_dl__0",
+   "tag": "c009_00109_dl",
+   "figur": "Werner Koslowski",
+   "stimme": "m_alt_tief_cholerisch",
+   "text": "Sie schreibt.",
+   "t0": 0.001,
+   "t1": 0.694,
+   "lang": "de"
+  },
+  {
+   "id": "c009_00110_dl__0",
+   "tag": "c009_00110_dl",
+   "figur": "Werner Koslowski",
+   "stimme": "m_alt_tief_cholerisch",
+   "text": "Ich hab sie an der Kneipe gesehen.",
+   "t0": 0.021,
+   "t1": 1.458,
+   "lang": "de"
+  },
+  {
+   "id": "c009_00111_dl__0",
+   "tag": "c009_00111_dl",
+   "figur": "Werner Koslowski",
+   "stimme": "m_alt_tief_cholerisch",
+   "text": "Sie hat mir das da aufs Kopfkissen gelegt.“",
+   "t0": 0.0,
+   "t1": 2.129,
+   "lang": "de"
+  },
+  {
+   "id": "c009_00113_dl__0",
+   "tag": "c009_00113_dl",
+   "figur": "Werner Koslowski",
+   "stimme": "m_alt_tief_cholerisch",
+   "text": "„Ich hab sie doch… Ich hab sie doch weggebracht.",
+   "t0": 0.0,
+   "t1": 2.879,
+   "lang": "de"
+  },
+  {
+   "id": "c009_00114_dl__0",
+   "tag": "c009_00114_dl",
+   "figur": "Werner Koslowski",
+   "stimme": "m_alt_tief_cholerisch",
+   "text": "Und sie kommt trotzdem.“",
+   "t0": 0.001,
+   "t1": 1.211,
+   "lang": "de"
+  },
+  {
+   "id": "c009_00127_dl__0",
+   "tag": "c009_00127_dl",
+   "figur": "Werner Koslowski",
+   "stimme": "m_alt_tief_cholerisch",
+   "text": "„Sie war anders in der Nacht“,",
+   "t0": 0.241,
+   "t1": 1.987,
+   "lang": "de"
+  },
+  {
+   "id": "c009_00129_dl__0",
+   "tag": "c009_00129_dl",
+   "figur": "Werner Koslowski",
+   "stimme": "m_alt_tief_cholerisch",
+   "text": "„Cindy hat nie geschrien.",
+   "t0": 0.04,
+   "t1": 1.664,
+   "lang": "de"
+  },
+  {
+   "id": "c009_00130_dl__0",
+   "tag": "c009_00130_dl",
+   "figur": "Werner Koslowski",
+   "stimme": "m_alt_tief_cholerisch",
+   "text": "Die hat geschrien.",
+   "t0": 0.041,
+   "t1": 1.092,
+   "lang": "de"
+  },
+  {
+   "id": "c009_00131_dl__0",
+   "tag": "c009_00131_dl",
+   "figur": "Werner Koslowski",
+   "stimme": "m_alt_tief_cholerisch",
+   "text": "Die hat sich gewehrt.",
+   "t0": 0.001,
+   "t1": 0.913,
+   "lang": "de"
+  },
+  {
+   "id": "c009_00132_dl__0",
+   "tag": "c009_00132_dl",
+   "figur": "Werner Koslowski",
+   "stimme": "m_alt_tief_cholerisch",
+   "text": "Ich wollte nur, dass sie still ist.“",
+   "t0": 0.021,
+   "t1": 1.372,
+   "lang": "de"
+  },
+  {
+   "id": "c009_00148_dl__0",
+   "tag": "c009_00148_dl",
+   "figur": "Werner Koslowski",
+   "stimme": "m_alt_tief_cholerisch",
+   "text": "„Die, die jetzt kommt“,",
+   "t0": 0.02,
+   "t1": 1.325,
+   "lang": "de"
+  },
+  {
+   "id": "c009_00149_dl__0",
+   "tag": "c009_00149_dl",
+   "figur": "Werner Koslowski",
+   "stimme": "m_alt_tief_cholerisch",
+   "text": "„Die ist es doch auch nicht, oder?",
+   "t0": 0.021,
+   "t1": 1.53,
+   "lang": "de"
+  },
+  {
+   "id": "c009_00150_dl__0",
+   "tag": "c009_00150_dl",
+   "figur": "Werner Koslowski",
+   "stimme": "m_alt_tief_cholerisch",
+   "text": "Die ist auch nicht Cindy.“",
+   "t0": 0.0,
+   "t1": 1.167,
+   "lang": "de"
+  }
+ ]
+}

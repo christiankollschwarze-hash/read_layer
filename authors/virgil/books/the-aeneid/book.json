@@ -1,0 +1,39 @@
+{
+  "book_slug": "the-aeneid",
+  "author_slug": "virgil",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q138515883",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The Aeneid",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "228",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The Aeneid",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Aeneis",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:26:59"
+}

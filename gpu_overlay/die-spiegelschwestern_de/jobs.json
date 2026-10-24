@@ -1,0 +1,566 @@
+{
+ "werk": "die-spiegelschwestern",
+ "lang": "de",
+ "jobs": [
+  {
+   "id": "c001_00015_dl__0",
+   "tag": "c001_00015_dl",
+   "figur": "Petra Brenner",
+   "stimme": "w_alt_tief_cholerisch",
+   "text": "„Weiblich, jung. Siebzehn, achtzehn vielleicht. Asiatische Herkunft, soweit man das noch sagen kann.“",
+   "t0": 0.0,
+   "t1": 6.643,
+   "lang": "de"
+  },
+  {
+   "id": "c001_00017_dl__0",
+   "tag": "c001_00017_dl",
+   "figur": "Petra Brenner",
+   "stimme": "w_alt_tief_cholerisch",
+   "text": "„Sie war beschwert. Das Seil ist durchgescheuert, billige Kunstfaser. Ich schätze zwei Monate im Wasser, eher etwas mehr.“",
+   "t0": 0.02,
+   "t1": 7.771,
+   "lang": "de"
+  },
+  {
+   "id": "c001_00019_dl__0",
+   "tag": "c001_00019_dl",
+   "figur": "Petra Brenner",
+   "stimme": "w_alt_tief_cholerisch",
+   "text": "„Würgemale am Hals, Zungenbein vermutlich gebrochen. Und es gibt Hinweise auf sexuelle Gewalt. Genaueres sagt dir die Rechtsmedizin.“",
+   "t0": 0.16,
+   "t1": 8.673,
+   "lang": "de"
+  },
+  {
+   "id": "c001_00025_dl__0",
+   "tag": "c001_00025_dl",
+   "figur": "Petra Brenner",
+   "stimme": "w_alt_tief_cholerisch",
+   "text": "„Nichts. Aber das hier.“",
+   "t0": 0.021,
+   "t1": 1.739,
+   "lang": "de"
+  },
+  {
+   "id": "c002_00028_dl__0",
+   "tag": "c002_00028_dl",
+   "figur": "Professor im Auswahlverfahren",
+   "stimme": "m_mittel_hoch_nervoes",
+   "text": "„Nummer siebzehn, bitte.“",
+   "t0": 0.001,
+   "t1": 1.04,
+   "lang": "de"
+  },
+  {
+   "id": "c002_00049_dl__0",
+   "tag": "c002_00049_dl",
+   "figur": "Professor im Auswahlverfahren",
+   "stimme": "m_mittel_hoch_nervoes",
+   "text": "„Nummer siebzehn?“",
+   "t0": 0.021,
+   "t1": 0.994,
+   "lang": "de"
+  },
+  {
+   "id": "c002_00068_dl__0",
+   "tag": "c002_00068_dl",
+   "figur": "Professor im Auswahlverfahren",
+   "stimme": "m_mittel_hoch_nervoes",
+   "text": "„Danke. Das genügt.“",
+   "t0": 0.001,
+   "t1": 1.319,
+   "lang": "de"
+  },
+  {
+   "id": "c004_00060_dl__0",
+   "tag": "c004_00060_dl",
+   "figur": "Fahrer",
+   "stimme": "m_alt_mittel_ruhig",
+   "text": "„Wieder nach Hause, Fräulein von Tiefenbach?“",
+   "t0": 0.02,
+   "t1": 1.724,
+   "lang": "de"
+  },
+  {
+   "id": "c005_00064_dl__0",
+   "tag": "c005_00064_dl",
+   "figur": "Frau Sommer",
+   "stimme": "w_jung_mittel_aengstlich",
+   "text": "„Cindy! Hast du schon was von der Stiftung gehört?“",
+   "t0": 0.04,
+   "t1": 2.811,
+   "lang": "de"
+  },
+  {
+   "id": "c005_00069_dl__0",
+   "tag": "c005_00069_dl",
+   "figur": "Frau Sommer",
+   "stimme": "w_jung_mittel_aengstlich",
+   "text": "„Du schaffst das.“",
+   "t0": 0.041,
+   "t1": 0.768,
+   "lang": "de"
+  },
+  {
+   "id": "c005_00071_dl__0",
+   "tag": "c005_00071_dl",
+   "figur": "Frau Sommer",
+   "stimme": "w_jung_mittel_aengstlich",
+   "text": "„Du bist die Klügste, die ich in zwanzig Jahren hier unterrichtet habe. Lass dir von niemandem erzählen, dass du da nicht hingehörst.“",
+   "t0": 0.02,
+   "t1": 6.28,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00014_dl__0",
+   "tag": "c006_00014_dl",
+   "figur": "Clarissa von Tiefenbach",
+   "stimme": "w_mittel_mittel_cholerisch",
+   "text": "„Du bist so still, Käthchen.“",
+   "t0": 0.0,
+   "t1": 1.546,
+   "lang": "de"
+  },
+  {
+   "id": "c007_00025_dl__0",
+   "tag": "c007_00025_dl",
+   "figur": "Sophie",
+   "stimme": "w_kind_hoch_neugierig",
+   "text": "„Du warst total in ihn verknallt, Kathi.“",
+   "t0": 0.0,
+   "t1": 1.905,
+   "lang": "de"
+  },
+  {
+   "id": "c007_00029_dl__0",
+   "tag": "c007_00029_dl",
+   "figur": "Sophie",
+   "stimme": "w_kind_hoch_neugierig",
+   "text": "„Du bist echt komisch geworden.“",
+   "t0": 0.021,
+   "t1": 1.49,
+   "lang": "de"
+  },
+  {
+   "id": "c007_00084_dl__0",
+   "tag": "c007_00084_dl",
+   "figur": "Clarissa von Tiefenbach",
+   "stimme": "w_mittel_mittel_cholerisch",
+   "text": "„Wie furchtbar“",
+   "t0": 0.0,
+   "t1": 0.987,
+   "lang": "de"
+  },
+  {
+   "id": "c007_00085_dl__0",
+   "tag": "c007_00085_dl",
+   "figur": "Clarissa von Tiefenbach",
+   "stimme": "w_mittel_mittel_cholerisch",
+   "text": "„In Blankenese haben sie eine Tote aus der Elbe geholt.",
+   "t0": 0.02,
+   "t1": 2.607,
+   "lang": "de"
+  },
+  {
+   "id": "c007_00086_dl__0",
+   "tag": "c007_00086_dl",
+   "figur": "Clarissa von Tiefenbach",
+   "stimme": "w_mittel_mittel_cholerisch",
+   "text": "Ganz hier in der Nähe.“",
+   "t0": 0.0,
+   "t1": 0.913,
+   "lang": "de"
+  },
+  {
+   "id": "c008_00027_dl__0",
+   "tag": "c008_00027_dl",
+   "figur": "Clarissa von Tiefenbach",
+   "stimme": "w_mittel_mittel_cholerisch",
+   "text": "„Katharina ist oben“",
+   "t0": 0.001,
+   "t1": 1.012,
+   "lang": "de"
+  },
+  {
+   "id": "c008_00028_dl__0",
+   "tag": "c008_00028_dl",
+   "figur": "Clarissa von Tiefenbach",
+   "stimme": "w_mittel_mittel_cholerisch",
+   "text": "„Ich hole sie.“",
+   "t0": 0.021,
+   "t1": 0.628,
+   "lang": "de"
+  },
+  {
+   "id": "c008_00066_dl__0",
+   "tag": "c008_00066_dl",
+   "figur": "Clarissa von Tiefenbach",
+   "stimme": "w_mittel_mittel_cholerisch",
+   "text": "„Aber Käthchen“",
+   "t0": 0.041,
+   "t1": 1.008,
+   "lang": "de"
+  },
+  {
+   "id": "c008_00067_dl__0",
+   "tag": "c008_00067_dl",
+   "figur": "Clarissa von Tiefenbach",
+   "stimme": "w_mittel_mittel_cholerisch",
+   "text": "„Du hast sie doch an deinem Geburtstag bekommen.",
+   "t0": 0.0,
+   "t1": 2.106,
+   "lang": "de"
+  },
+  {
+   "id": "c008_00068_dl__0",
+   "tag": "c008_00068_dl",
+   "figur": "Clarissa von Tiefenbach",
+   "stimme": "w_mittel_mittel_cholerisch",
+   "text": "Du hast gesagt, du nimmst sie nie wieder ab.“",
+   "t0": 0.0,
+   "t1": 2.057,
+   "lang": "de"
+  },
+  {
+   "id": "c008_00077_dl__0",
+   "tag": "c008_00077_dl",
+   "figur": "Clarissa von Tiefenbach",
+   "stimme": "w_mittel_mittel_cholerisch",
+   "text": "„Wo haben Sie die Kette gefunden?“",
+   "t0": 0.021,
+   "t1": 1.57,
+   "lang": "de"
+  },
+  {
+   "id": "c008_00098_dl__0",
+   "tag": "c008_00098_dl",
+   "figur": "Clarissa von Tiefenbach",
+   "stimme": "w_mittel_mittel_cholerisch",
+   "text": "„Natürlich“,",
+   "t0": 0.001,
+   "t1": 0.524,
+   "lang": "de"
+  },
+  {
+   "id": "c008_00099_dl__0",
+   "tag": "c008_00099_dl",
+   "figur": "Clarissa von Tiefenbach",
+   "stimme": "w_mittel_mittel_cholerisch",
+   "text": "„Wenn es hilft.“",
+   "t0": 0.0,
+   "t1": 0.611,
+   "lang": "de"
+  },
+  {
+   "id": "c009_00015_dl__0",
+   "tag": "c009_00015_dl",
+   "figur": "Dr. Aydın",
+   "stimme": "w_jung_mittel_ruhig",
+   "text": "„Torben, die Speichelprobe aus Blankenese.",
+   "t0": 0.0,
+   "t1": 2.74,
+   "lang": "de"
+  },
+  {
+   "id": "c009_00016_dl__0",
+   "tag": "c009_00016_dl",
+   "figur": "Dr. Aydın",
+   "stimme": "w_jung_mittel_ruhig",
+   "text": "Und die Tote.",
+   "t0": 0.022,
+   "t1": 0.878,
+   "lang": "de"
+  },
+  {
+   "id": "c009_00017_dl__0",
+   "tag": "c009_00017_dl",
+   "figur": "Dr. Aydın",
+   "stimme": "w_jung_mittel_ruhig",
+   "text": "Das DNA-Profil ist identisch.",
+   "t0": 0.0,
+   "t1": 1.942,
+   "lang": "de"
+  },
+  {
+   "id": "c009_00018_dl__0",
+   "tag": "c009_00018_dl",
+   "figur": "Dr. Aydın",
+   "stimme": "w_jung_mittel_ruhig",
+   "text": "Nicht ähnlich.",
+   "t0": 0.001,
+   "t1": 0.668,
+   "lang": "de"
+  },
+  {
+   "id": "c009_00019_dl__0",
+   "tag": "c009_00019_dl",
+   "figur": "Dr. Aydın",
+   "stimme": "w_jung_mittel_ruhig",
+   "text": "Identisch.“",
+   "t0": 0.022,
+   "t1": 0.592,
+   "lang": "de"
+  },
+  {
+   "id": "c009_00023_dl__0",
+   "tag": "c009_00023_dl",
+   "figur": "Dr. Aydın",
+   "stimme": "w_jung_mittel_ruhig",
+   "text": "„Zwei Labore, getrennte Läufe.",
+   "t0": 0.021,
+   "t1": 1.841,
+   "lang": "de"
+  },
+  {
+   "id": "c009_00024_dl__0",
+   "tag": "c009_00024_dl",
+   "figur": "Dr. Aydın",
+   "stimme": "w_jung_mittel_ruhig",
+   "text": "Nein.“",
+   "t0": 0.002,
+   "t1": 0.306,
+   "lang": "de"
+  },
+  {
+   "id": "c009_00026_dl__0",
+   "tag": "c009_00026_dl",
+   "figur": "Dr. Aydın",
+   "stimme": "w_jung_mittel_ruhig",
+   "text": "„Es gibt genau eine Erklärung, bei der beide Frauen existieren.",
+   "t0": 0.0,
+   "t1": 3.216,
+   "lang": "de"
+  },
+  {
+   "id": "c009_00027_dl__0",
+   "tag": "c009_00027_dl",
+   "figur": "Dr. Aydın",
+   "stimme": "w_jung_mittel_ruhig",
+   "text": "Eineiige Zwillinge.“",
+   "t0": 0.041,
+   "t1": 1.033,
+   "lang": "de"
+  },
+  {
+   "id": "c009_00072_dl__0",
+   "tag": "c009_00072_dl",
+   "figur": "Dr. Aydın",
+   "stimme": "w_jung_mittel_ruhig",
+   "text": "„Nein.",
+   "t0": 0.003,
+   "t1": 0.331,
+   "lang": "de"
+  },
+  {
+   "id": "c009_00073_dl__0",
+   "tag": "c009_00073_dl",
+   "figur": "Dr. Aydın",
+   "stimme": "w_jung_mittel_ruhig",
+   "text": "Die Augenbrauen sind unversehrt.",
+   "t0": 0.0,
+   "t1": 1.38,
+   "lang": "de"
+  },
+  {
+   "id": "c009_00074_dl__0",
+   "tag": "c009_00074_dl",
+   "figur": "Dr. Aydın",
+   "stimme": "w_jung_mittel_ruhig",
+   "text": "Warum?“",
+   "t0": 0.0,
+   "t1": 0.355,
+   "lang": "de"
+  },
+  {
+   "id": "c010_00084_dl__0",
+   "tag": "c010_00084_dl",
+   "figur": "Staatsanwältin Richter",
+   "stimme": "w_mittel_hoch_cholerisch",
+   "text": "„Das ist nicht deine Aufgabe.“",
+   "t0": 0.0,
+   "t1": 1.314,
+   "lang": "de"
+  },
+  {
+   "id": "c010_00087_dl__0",
+   "tag": "c010_00087_dl",
+   "figur": "Staatsanwältin Richter",
+   "stimme": "w_mittel_hoch_cholerisch",
+   "text": "„Ihre?",
+   "t0": 0.023,
+   "t1": 0.413,
+   "lang": "de"
+  },
+  {
+   "id": "c010_00095_dl__0",
+   "tag": "c010_00095_dl",
+   "figur": "Staatsanwältin Richter",
+   "stimme": "w_mittel_hoch_cholerisch",
+   "text": "„Hat sie lange gelitten?“",
+   "t0": 0.001,
+   "t1": 0.991,
+   "lang": "de"
+  },
+  {
+   "id": "c010_00109_dl__0",
+   "tag": "c010_00109_dl",
+   "figur": "Clarissa von Tiefenbach",
+   "stimme": "w_mittel_mittel_cholerisch",
+   "text": "„Ich habe es gewusst“",
+   "t0": 0.021,
+   "t1": 0.906,
+   "lang": "de"
+  },
+  {
+   "id": "c010_00110_dl__0",
+   "tag": "c010_00110_dl",
+   "figur": "Clarissa von Tiefenbach",
+   "stimme": "w_mittel_mittel_cholerisch",
+   "text": "„Nicht gewusst.",
+   "t0": 0.022,
+   "t1": 0.814,
+   "lang": "de"
+  },
+  {
+   "id": "c010_00111_dl__0",
+   "tag": "c010_00111_dl",
+   "figur": "Clarissa von Tiefenbach",
+   "stimme": "w_mittel_mittel_cholerisch",
+   "text": "Aber sie hat beim Frühstück plötzlich alles aufgegessen.",
+   "t0": 0.0,
+   "t1": 3.647,
+   "lang": "de"
+  },
+  {
+   "id": "c010_00112_dl__0",
+   "tag": "c010_00112_dl",
+   "figur": "Clarissa von Tiefenbach",
+   "stimme": "w_mittel_mittel_cholerisch",
+   "text": "Katharina hat nie gefrühstückt.",
+   "t0": 0.021,
+   "t1": 1.47,
+   "lang": "de"
+  },
+  {
+   "id": "c010_00113_dl__0",
+   "tag": "c010_00113_dl",
+   "figur": "Clarissa von Tiefenbach",
+   "stimme": "w_mittel_mittel_cholerisch",
+   "text": "Ich habe mich gefreut.",
+   "t0": 0.021,
+   "t1": 0.872,
+   "lang": "de"
+  },
+  {
+   "id": "c010_00114_dl__0",
+   "tag": "c010_00114_dl",
+   "figur": "Clarissa von Tiefenbach",
+   "stimme": "w_mittel_mittel_cholerisch",
+   "text": "Ich habe mich wochenlang gefreut, dass mein Kind endlich isst.“",
+   "t0": 0.0,
+   "t1": 3.187,
+   "lang": "de"
+  },
+  {
+   "id": "c010_00116_dl__0",
+   "tag": "c010_00116_dl",
+   "figur": "Clarissa von Tiefenbach",
+   "stimme": "w_mittel_mittel_cholerisch",
+   "text": "„Darf ich zu ihr?“",
+   "t0": 0.0,
+   "t1": 0.689,
+   "lang": "de"
+  },
+  {
+   "id": "c011_00013_dl__0",
+   "tag": "c011_00013_dl",
+   "figur": "Staatsanwältin Richter",
+   "stimme": "w_mittel_hoch_cholerisch",
+   "text": "„Hausfriedensbruch.",
+   "t0": 0.041,
+   "t1": 1.153,
+   "lang": "de"
+  },
+  {
+   "id": "c011_00016_dl__0",
+   "tag": "c011_00016_dl",
+   "figur": "Staatsanwältin Richter",
+   "stimme": "w_mittel_hoch_cholerisch",
+   "text": "Das ist kein Kavaliersdelikt, Mehring, das ist Betrug.“",
+   "t0": 0.0,
+   "t1": 2.967,
+   "lang": "de"
+  },
+  {
+   "id": "c011_00018_dl__0",
+   "tag": "c011_00018_dl",
+   "figur": "Staatsanwältin Richter",
+   "stimme": "w_mittel_hoch_cholerisch",
+   "text": "„Dafür gibt es das Jugendgerichtsgesetz.“",
+   "t0": 0.0,
+   "t1": 1.899,
+   "lang": "de"
+  },
+  {
+   "id": "c011_00022_dl__0",
+   "tag": "c011_00022_dl",
+   "figur": "Staatsanwältin Richter",
+   "stimme": "w_mittel_hoch_cholerisch",
+   "text": "„Und sie hat ihn so lange bearbeitet, bis er sich in der Zelle aufhängt.“",
+   "t0": 0.02,
+   "t1": 3.575,
+   "lang": "de"
+  },
+  {
+   "id": "c011_00026_dl__0",
+   "tag": "c011_00026_dl",
+   "figur": "Staatsanwältin Richter",
+   "stimme": "w_mittel_hoch_cholerisch",
+   "text": "„Du willst sie laufen lassen.“",
+   "t0": 0.0,
+   "t1": 1.408,
+   "lang": "de"
+  },
+  {
+   "id": "c012_00021_dl__0",
+   "tag": "c012_00021_dl",
+   "figur": "Maximilian von Tiefenbach",
+   "stimme": "m_mittel_hoeher_thornton_2",
+   "text": "„Exzellenz ist keine Tat“",
+   "t0": 0.341,
+   "t1": 2.166,
+   "lang": "de"
+  },
+  {
+   "id": "c012_00022_dl__0",
+   "tag": "c012_00022_dl",
+   "figur": "Maximilian von Tiefenbach",
+   "stimme": "m_mittel_hoeher_thornton_2",
+   "text": "„Ach, vergiss es.",
+   "t0": 0.344,
+   "t1": 1.354,
+   "lang": "de"
+  },
+  {
+   "id": "c012_00023_dl__0",
+   "tag": "c012_00023_dl",
+   "figur": "Maximilian von Tiefenbach",
+   "stimme": "m_mittel_hoeher_thornton_2",
+   "text": "Spiel einfach.“",
+   "t0": 0.263,
+   "t1": 1.536,
+   "lang": "de"
+  },
+  {
+   "id": "c013_00032_dl__0",
+   "tag": "c013_00032_dl",
+   "figur": "Petra Brenner",
+   "stimme": "w_alt_tief_cholerisch",
+   "text": "„Torben. Harburg, eine Wohnung im Phoenix-Viertel. Weiblich, Mitte zwanzig. Sieht nicht nach Unfall aus.“",
+   "t0": 0.0,
+   "t1": 6.571,
+   "lang": "de"
+  }
+ ]
+}

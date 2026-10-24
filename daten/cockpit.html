@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="de"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LibriVox Solo-Speaker Kuration</title>
+<style>
+ :root{--bg:#faf8f4;--ink:#23201b;--mut:#7a736a;--line:#e3ddd2;
+       --gut:#2e7d4f;--mit:#b78900;--raus:#b23b3b;--accent:#3b5b8c}
+ *{box-sizing:border-box}
+ body{margin:0;background:var(--bg);color:var(--ink);
+      font:15px/1.45 -apple-system,Segoe UI,Roboto,sans-serif}
+ header{position:sticky;top:0;background:var(--bg);border-bottom:1px solid var(--line);
+        padding:12px 16px;z-index:5}
+ h1{font-size:16px;margin:0 0 6px}
+ .bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:13px;color:var(--mut)}
+ .bar input,.bar select{font:inherit;padding:4px 8px;border:1px solid var(--line);
+        border-radius:6px;background:#fff}
+ .counts b{color:var(--ink)}
+ table{width:100%;border-collapse:collapse}
+ th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
+ th{font-size:12px;color:var(--mut);font-weight:600;cursor:pointer;user-select:none}
+ td.num{font-variant-numeric:tabular-nums;color:var(--mut)}
+ .name{font-weight:600}
+ .langs{font-size:12px;color:var(--mut)}
+ .play{border:1px solid var(--line);background:#fff;border-radius:6px;padding:5px 10px;
+       cursor:pointer;font:inherit}
+ .play.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+ .verdict{display:flex;gap:4px}
+ .v{border:1px solid var(--line);background:#fff;border-radius:6px;padding:5px 9px;
+    cursor:pointer;font:inherit;min-width:34px;text-align:center}
+ .v.gut.sel{background:var(--gut);color:#fff;border-color:var(--gut)}
+ .v.mit.sel{background:var(--mit);color:#fff;border-color:var(--mit)}
+ .v.raus.sel{background:var(--raus);color:#fff;border-color:var(--raus)}
+ tr.done{opacity:.55}
+ a{color:var(--accent);font-size:12px;text-decoration:none}
+ .links{white-space:nowrap}
+</style></head>
+<body>
+<header>
+ <h1>LibriVox · Solo-Speaker Kuration</h1>
+ <div class="bar">
+   <input id="q" placeholder="Sprecher suchen…">
+   <select id="lf"><option value="">alle Sprachen</option></select>
+   <select id="vf">
+     <option value="">alle</option>
+     <option value="none">unklassifiziert</option>
+     <option value="gut">gut</option><option value="mit">mittel</option><option value="raus">raus</option>
+   </select>
+   <span class="counts" id="counts"></span>
+ </div>
+</header>
+<audio id="player" preload="none"></audio>
+<table>
+ <thead><tr>
+   <th data-k="solo_works">Werke</th><th data-k="total_hours">Std.</th>
+   <th data-k="name">Sprecher</th><th>Sprachen</th><th>Probe</th>
+   <th>Urteil</th><th>Links</th>
+ </tr></thead>
+ <tbody id="rows"></tbody>
+</table>
+<script>
+let DATA=[], V={}, sortK="solo_works", asc=false, playingId=null;
+const player=document.getElementById('player');
+
+async function boot(){
+  DATA=await (await fetch('speakers.json')).json();
+  V=await (await fetch('verdicts')).json();
+  const langs=[...new Set(DATA.flatMap(r=>r.langs.split(',').map(s=>s.trim()).filter(Boolean)))].sort();
+  const lf=document.getElementById('lf');
+  langs.forEach(l=>{const o=document.createElement('option');o.value=l;o.textContent=l;lf.appendChild(o)});
+  ['q','lf','vf'].forEach(id=>document.getElementById(id).addEventListener('input',render));
+  document.querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{
+    const k=th.dataset.k; asc=(sortK===k)?!asc:false; sortK=k; render();});
+  render();
+}
+function key(r){return String(r.reader_id)}
+function verdictOf(r){return V[key(r)]||''}
+
+function filtered(){
+  const q=document.getElementById('q').value.toLowerCase();
+  const lf=document.getElementById('lf').value;
+  const vf=document.getElementById('vf').value;
+  let rows=DATA.filter(r=>{
+    if(q && !r.name.toLowerCase().includes(q)) return false;
+    if(lf && !r.langs.includes(lf)) return false;
+    const v=verdictOf(r);
+    if(vf==='none' && v) return false;
+    if(vf && vf!=='none' && v!==vf) return false;
+    return true;
+  });
+  rows.sort((a,b)=>{let x=a[sortK],y=b[sortK];
+    if(typeof x==='string'){x=x.toLowerCase();y=y.toLowerCase();}
+    return (x<y?-1:x>y?1:0)*(asc?1:-1);});
+  return rows;
+}
+function render(){
+  const rows=filtered(), tb=document.getElementById('rows'); tb.innerHTML='';
+  for(const r of rows){
+    const v=verdictOf(r), tr=document.createElement('tr'); if(v)tr.className='done';
+    tr.innerHTML=`
+      <td class="num">${r.solo_works}</td>
+      <td class="num">${r.total_hours}</td>
+      <td class="name">${esc(r.name)}</td>
+      <td class="langs">${esc(r.langs)}</td>
+      <td><button class="play" data-id="${key(r)}">▶ anhören</button></td>
+      <td><div class="verdict">
+        ${vbtn(r,'gut','gut')}${vbtn(r,'mit','mittel')}${vbtn(r,'raus','raus')}
+      </div></td>
+      <td class="links">${r.works[0]?`<a href="${r.works[0].librivox||r.works[0].archive}" target="_blank">LibriVox ↗</a>`:''}</td>`;
+    tb.appendChild(tr);
+  }
+  tb.querySelectorAll('.play').forEach(b=>b.onclick=()=>play(b.dataset.id));
+  tb.querySelectorAll('.v').forEach(b=>b.onclick=()=>setV(b.dataset.id,b.dataset.v,b.dataset.name));
+  const tot=DATA.length, done=Object.keys(V).length;
+  document.getElementById('counts').innerHTML=
+    `<b>${rows.length}</b> sichtbar · <b>${done}</b>/<b>${tot}</b> klassifiziert`;
+}
+function vbtn(r,cls,label){
+  const sel=verdictOf(r)===cls?'sel':'';
+  return `<button class="v ${cls} ${sel}" data-id="${key(r)}" data-v="${cls}"
+          data-name="${escAttr(r.name)}">${label}</button>`;
+}
+function play(id){
+  const r=DATA.find(x=>key(x)===id); if(!r||!r.sample_url){alert('Keine Hörprobe für diesen Sprecher.');return;}
+  document.querySelectorAll('.play').forEach(b=>b.classList.toggle('on',b.dataset.id===id&&playingId!==id));
+  if(playingId===id && !player.paused){player.pause();playingId=null;
+    document.querySelectorAll('.play').forEach(b=>b.classList.remove('on'));return;}
+  playingId=id;
+  player.src=r.sample_url;
+  const seek=r.sample_seek||30;
+  player.onloadedmetadata=()=>{ // in repräsentative Mittelpassage springen (Disclaimer überspringen)
+    try{player.currentTime=Math.min(seek, (player.duration||seek)-3);}catch(e){}
+    player.play();
+  };
+  player.load();
+}
+async function setV(id,v,name){
+  const cur=V[id];
+  if(cur===v){delete V[id]; v='';}   // nochmal klicken = zurücknehmen
+  else V[id]=v;
+  render();
+  try{await fetch('verdict',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({reader_id:id,name:name,verdict:V[id]||''})});}
+  catch(e){console.warn('Speichern fehlgeschlagen',e);}
+}
+function esc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
+function escAttr(s){return esc(s).replace(/"/g,'&quot;')}
+boot();
+</script>
+</body></html>

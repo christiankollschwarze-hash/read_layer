@@ -1,0 +1,776 @@
+{
+ "werk": "call-of-the-wild",
+ "lang": "de",
+ "jobs": [
+  {
+   "id": "c001_00194_dl__0",
+   "tag": "c001_00194_dl",
+   "figur": "Perrault",
+   "stimme": "m_mittel_tief_ruhig",
+   "text": "„Sacredam!“",
+   "t0": 0.041,
+   "t1": 0.664,
+   "lang": "de"
+  },
+  {
+   "id": "c001_00195_dl__0",
+   "tag": "c001_00195_dl",
+   "figur": "Perrault",
+   "stimme": "m_mittel_tief_ruhig",
+   "text": "„Dat ein’ verdammt prächtiger Hund! He? Wieviel?“",
+   "t0": 0.0,
+   "t1": 2.87,
+   "lang": "de"
+  },
+  {
+   "id": "c001_00204_s__0",
+   "tag": "c001_00204_s",
+   "figur": "Perrault",
+   "stimme": "m_mittel_tief_ruhig",
+   "text": "„Einer unter zehntausend“,",
+   "t0": 0.041,
+   "t1": 1.529,
+   "lang": "de"
+  },
+  {
+   "id": "c002_00050_dl__0",
+   "tag": "c002_00050_dl",
+   "figur": "François",
+   "stimme": "m_mittel_mittel_albern",
+   "text": "„Trois sehr gute Hunde“,",
+   "t0": 0.14,
+   "t1": 1.521,
+   "lang": "de"
+  },
+  {
+   "id": "c002_00050_dl__2",
+   "tag": "c002_00050_dl",
+   "figur": "François",
+   "stimme": "m_mittel_mittel_albern",
+   "text": "„Der Buck, er zieht wie der Teufel. Ich hab’ ihm das fix beigebracht, comme ça.“",
+   "t0": 4.003,
+   "t1": 8.507,
+   "lang": "de"
+  },
+  {
+   "id": "c003_00028_dl__0",
+   "tag": "c003_00028_dl",
+   "figur": "François",
+   "stimme": "m_mittel_mittel_albern",
+   "text": "„A-a-ah!“,",
+   "t0": 0.461,
+   "t1": 0.882,
+   "lang": "de"
+  },
+  {
+   "id": "c003_00028_dl__2",
+   "tag": "c003_00028_dl",
+   "figur": "François",
+   "stimme": "m_mittel_mittel_albern",
+   "text": "„Gib’s ihm, sacrebleu! Gib’s ihm, der schmutzige Dieb!“",
+   "t0": 2.706,
+   "t1": 6.173,
+   "lang": "de"
+  },
+  {
+   "id": "c003_00139_dl__0",
+   "tag": "c003_00139_dl",
+   "figur": "Perrault",
+   "stimme": "m_mittel_tief_ruhig",
+   "text": "„Ein Teufel, dat Spitz“,",
+   "t0": 0.02,
+   "t1": 1.668,
+   "lang": "de"
+  },
+  {
+   "id": "c003_00140_dl__0",
+   "tag": "c003_00140_dl",
+   "figur": "Perrault",
+   "stimme": "m_mittel_tief_ruhig",
+   "text": "„Eines verdammten Tages killt heem dat Buck.“",
+   "t0": 0.0,
+   "t1": 2.672,
+   "lang": "de"
+  },
+  {
+   "id": "c003_00141_dl__0",
+   "tag": "c003_00141_dl",
+   "figur": "François",
+   "stimme": "m_mittel_mittel_albern",
+   "text": "„Dat Buck zwei Teufels“,",
+   "t0": 0.06,
+   "t1": 1.682,
+   "lang": "de"
+  },
+  {
+   "id": "c003_00142_dl__0",
+   "tag": "c003_00142_dl",
+   "figur": "François",
+   "stimme": "m_mittel_mittel_albern",
+   "text": "„Die ganze Zeit, wo ich dat Buck beobachte, weiß ich genau.",
+   "t0": 0.0,
+   "t1": 3.193,
+   "lang": "de"
+  },
+  {
+   "id": "c003_00143_dl__0",
+   "tag": "c003_00143_dl",
+   "figur": "François",
+   "stimme": "m_mittel_mittel_albern",
+   "text": "Écoute: Ein sacré schöner Tag, da wird er verrückt wie die Hölle und kaut den Spitz ganz auf und spuckt ihn in den Schnee.",
+   "t0": 0.0,
+   "t1": 6.898,
+   "lang": "de"
+  },
+  {
+   "id": "c003_00144_dl__0",
+   "tag": "c003_00144_dl",
+   "figur": "François",
+   "stimme": "m_mittel_mittel_albern",
+   "text": "Sûr.",
+   "t0": 0.044,
+   "t1": 0.413,
+   "lang": "de"
+  },
+  {
+   "id": "c003_00145_dl__0",
+   "tag": "c003_00145_dl",
+   "figur": "François",
+   "stimme": "m_mittel_mittel_albern",
+   "text": "Ich weiß.",
+   "t0": 0.023,
+   "t1": 0.537,
+   "lang": "de"
+  },
+  {
+   "id": "c004_00002_dl__0",
+   "tag": "c004_00002_dl",
+   "figur": "François",
+   "stimme": "m_mittel_mittel_albern",
+   "text": "He? Was isch sag? Isch sprich wahr, wenn isch sag, dat Buck zwei Teufel is’.",
+   "t0": 0.0,
+   "t1": 4.466,
+   "lang": "de"
+  },
+  {
+   "id": "c004_00005_dl__0",
+   "tag": "c004_00005_dl",
+   "figur": "Perrault",
+   "stimme": "m_mittel_tief_ruhig",
+   "text": "Dat Spitz kämpft wie de Höll,",
+   "t0": 0.0,
+   "t1": 1.612,
+   "lang": "de"
+  },
+  {
+   "id": "c004_00007_dl__0",
+   "tag": "c004_00007_dl",
+   "figur": "François",
+   "stimme": "m_mittel_mittel_albern",
+   "text": "Un dat Buck kämpft wie zwei Höllen,",
+   "t0": 0.04,
+   "t1": 1.909,
+   "lang": "de"
+  },
+  {
+   "id": "c004_00009_dl__0",
+   "tag": "c004_00009_dl",
+   "figur": "François",
+   "stimme": "m_mittel_mittel_albern",
+   "text": "Un jetz machen wir gute Zeit.",
+   "t0": 0.041,
+   "t1": 1.54,
+   "lang": "de"
+  },
+  {
+   "id": "c004_00010_dl__0",
+   "tag": "c004_00010_dl",
+   "figur": "François",
+   "stimme": "m_mittel_mittel_albern",
+   "text": "Kein Spitz mehr, kein Ärger mehr, ganz gewiss.",
+   "t0": 0.021,
+   "t1": 2.722,
+   "lang": "de"
+  },
+  {
+   "id": "c004_00016_dl__0",
+   "tag": "c004_00016_dl",
+   "figur": "François",
+   "stimme": "m_mittel_mittel_albern",
+   "text": "He? He?",
+   "t0": 0.001,
+   "t1": 0.727,
+   "lang": "de"
+  },
+  {
+   "id": "c004_00018_dl__0",
+   "tag": "c004_00018_dl",
+   "figur": "François",
+   "stimme": "m_mittel_mittel_albern",
+   "text": "Guck dir dat Buck.",
+   "t0": 0.021,
+   "t1": 0.769,
+   "lang": "de"
+  },
+  {
+   "id": "c004_00019_dl__0",
+   "tag": "c004_00019_dl",
+   "figur": "François",
+   "stimme": "m_mittel_mittel_albern",
+   "text": "Heem hat Spitz gekillt, heem denkt, er kriegt de Job.",
+   "t0": 0.0,
+   "t1": 2.73,
+   "lang": "de"
+  },
+  {
+   "id": "c004_00020_dl__0",
+   "tag": "c004_00020_dl",
+   "figur": "François",
+   "stimme": "m_mittel_mittel_albern",
+   "text": "Geh wech, Chook!",
+   "t0": 0.021,
+   "t1": 0.889,
+   "lang": "de"
+  },
+  {
+   "id": "c004_00027_dl__0",
+   "tag": "c004_00027_dl",
+   "figur": "François",
+   "stimme": "m_mittel_mittel_albern",
+   "text": "Jetz, bei Gar, isch feex dich!",
+   "t0": 0.021,
+   "t1": 2.699,
+   "lang": "de"
+  },
+  {
+   "id": "c004_00058_dl__0",
+   "tag": "c004_00058_dl",
+   "figur": "Perrault",
+   "stimme": "m_mittel_tief_ruhig",
+   "text": "»Schmeiß de Keule wech«",
+   "t0": 0.021,
+   "t1": 1.177,
+   "lang": "de"
+  },
+  {
+   "id": "c004_00081_dl__0",
+   "tag": "c004_00081_dl",
+   "figur": "François",
+   "stimme": "m_mittel_mittel_albern",
+   "text": "»Niemals so ein Hund wie dat Buck!«",
+   "t0": 0.041,
+   "t1": 1.574,
+   "lang": "de"
+  },
+  {
+   "id": "c004_00082_dl__0",
+   "tag": "c004_00082_dl",
+   "figur": "François",
+   "stimme": "m_mittel_mittel_albern",
+   "text": "»Ne, niemals!«",
+   "t0": 0.041,
+   "t1": 1.01,
+   "lang": "de"
+  },
+  {
+   "id": "c004_00083_dl__0",
+   "tag": "c004_00083_dl",
+   "figur": "François",
+   "stimme": "m_mittel_mittel_albern",
+   "text": "»Heem is tausend Dollar wert, bei Gott!«",
+   "t0": 0.0,
+   "t1": 1.818,
+   "lang": "de"
+  },
+  {
+   "id": "c004_00084_dl__0",
+   "tag": "c004_00084_dl",
+   "figur": "François",
+   "stimme": "m_mittel_mittel_albern",
+   "text": "»He?«",
+   "t0": 0.042,
+   "t1": 0.244,
+   "lang": "de"
+  },
+  {
+   "id": "c004_00085_dl__0",
+   "tag": "c004_00085_dl",
+   "figur": "François",
+   "stimme": "m_mittel_mittel_albern",
+   "text": "He? Was sagst du, Perrault?",
+   "t0": 0.0,
+   "t1": 1.265,
+   "lang": "de"
+  },
+  {
+   "id": "c005_00053_dl__0",
+   "tag": "c005_00053_dl",
+   "figur": "Mercedes",
+   "stimme": "w_jung_mittel_verschmitzt",
+   "text": "„Unausdenkbar!“",
+   "t0": 0.0,
+   "t1": 1.283,
+   "lang": "de"
+  },
+  {
+   "id": "c005_00053_dl__2",
+   "tag": "c005_00053_dl",
+   "figur": "Mercedes",
+   "stimme": "w_jung_mittel_verschmitzt",
+   "text": "„Wie in aller Welt könnte ich nur ohne Zelt zurechtkommen?“",
+   "t0": 4.872,
+   "t1": 7.558,
+   "lang": "de"
+  },
+  {
+   "id": "c005_00061_dl__0",
+   "tag": "c005_00061_dl",
+   "figur": "Hal",
+   "stimme": "m_jung_mittel_cholerisch",
+   "text": "„Gewiss“,",
+   "t0": 0.02,
+   "t1": 0.54,
+   "lang": "de"
+  },
+  {
+   "id": "c005_00061_dl__2",
+   "tag": "c005_00061_dl",
+   "figur": "Hal",
+   "stimme": "m_jung_mittel_cholerisch",
+   "text": "„Mush!“,",
+   "t0": 8.348,
+   "t1": 8.708,
+   "lang": "de"
+  },
+  {
+   "id": "c005_00061_dl__4",
+   "tag": "c005_00061_dl",
+   "figur": "Hal",
+   "stimme": "m_jung_mittel_cholerisch",
+   "text": "„Mush, vorwärts!“",
+   "t0": 9.469,
+   "t1": 10.55,
+   "lang": "de"
+  },
+  {
+   "id": "c005_00064_dl__0",
+   "tag": "c005_00064_dl",
+   "figur": "Hal",
+   "stimme": "m_jung_mittel_cholerisch",
+   "text": "„Den faulen Biestern werd ich's zeigen“,",
+   "t0": 0.0,
+   "t1": 2.147,
+   "lang": "de"
+  },
+  {
+   "id": "c005_00065_s__1",
+   "tag": "c005_00065_s",
+   "figur": "Mercedes",
+   "stimme": "w_jung_mittel_verschmitzt",
+   "text": "„Oh, Hal, das darfst du nicht!“,",
+   "t0": 2.002,
+   "t1": 3.563,
+   "lang": "de"
+  },
+  {
+   "id": "c005_00066_dl__0",
+   "tag": "c005_00066_dl",
+   "figur": "Mercedes",
+   "stimme": "w_jung_mittel_verschmitzt",
+   "text": "„Die armen Lieblinge! Du musst mir versprechen, dass du sie für den Rest der Reise nicht mehr hart behandelst, oder ich gehe keinen Schritt weiter.“",
+   "t0": 0.0,
+   "t1": 7.186,
+   "lang": "de"
+  },
+  {
+   "id": "c005_00070_dl__0",
+   "tag": "c005_00070_dl",
+   "figur": "Hal",
+   "stimme": "m_jung_mittel_cholerisch",
+   "text": "„Ruhe, verdammt“,",
+   "t0": 0.04,
+   "t1": 0.861,
+   "lang": "de"
+  },
+  {
+   "id": "c005_00070_dl__3",
+   "tag": "c005_00070_dl",
+   "figur": "Mercedes",
+   "stimme": "w_jung_mittel_verschmitzt",
+   "text": "„Oh!“",
+   "t0": 4.984,
+   "t1": 5.184,
+   "lang": "de"
+  },
+  {
+   "id": "c005_00072_dl__0",
+   "tag": "c005_00072_dl",
+   "figur": "Mercedes",
+   "stimme": "w_jung_mittel_verschmitzt",
+   "text": "„Kümmere dich nicht um diesen Mann“,",
+   "t0": 0.0,
+   "t1": 1.163,
+   "lang": "de"
+  },
+  {
+   "id": "c005_00072_dl__2",
+   "tag": "c005_00072_dl",
+   "figur": "Mercedes",
+   "stimme": "w_jung_mittel_verschmitzt",
+   "text": "„Du fährst unsere Hunde, und du tust mit ihnen, was du für das Beste hältst.“",
+   "t0": 2.628,
+   "t1": 6.098,
+   "lang": "de"
+  },
+  {
+   "id": "c005_00079_dl__0",
+   "tag": "c005_00079_dl",
+   "figur": "Mercedes",
+   "stimme": "w_jung_mittel_verschmitzt",
+   "text": "„Ihr armen, armen Lieblinge“,",
+   "t0": 0.0,
+   "t1": 1.826,
+   "lang": "de"
+  },
+  {
+   "id": "c005_00079_dl__2",
+   "tag": "c005_00079_dl",
+   "figur": "Mercedes",
+   "stimme": "w_jung_mittel_verschmitzt",
+   "text": "„warum zieht ihr denn nicht feste? – dann würdet ihr nicht geschlagen werden.“",
+   "t0": 3.331,
+   "t1": 6.44,
+   "lang": "de"
+  },
+  {
+   "id": "c005_00267_dl__0",
+   "tag": "c005_00267_dl",
+   "figur": "Hal",
+   "stimme": "m_jung_mittel_cholerisch",
+   "text": "„Weiter oben hat man uns gesagt, dass der Boden der Spur nachgibt und wir am besten eine Pause einlegen sollten“,",
+   "t0": 0.0,
+   "t1": 5.383,
+   "lang": "de"
+  },
+  {
+   "id": "c005_00267_dl__2",
+   "tag": "c005_00267_dl",
+   "figur": "Hal",
+   "stimme": "m_jung_mittel_cholerisch",
+   "text": "„Man sagte, wir würden den White River nicht erreichen, und hier sind wir.“",
+   "t0": 10.765,
+   "t1": 14.507,
+   "lang": "de"
+  },
+  {
+   "id": "c005_00269_dl__0",
+   "tag": "c005_00269_dl",
+   "figur": "John Thornton",
+   "stimme": "m_alt_mittel_ruhig",
+   "text": "„Und da haben sie die Wahrheit gesagt“,",
+   "t0": 0.02,
+   "t1": 1.742,
+   "lang": "de"
+  },
+  {
+   "id": "c005_00269_dl__2",
+   "tag": "c005_00269_dl",
+   "figur": "John Thornton",
+   "stimme": "m_alt_mittel_ruhig",
+   "text": "„Das Eis kann jeden Augenblick nachgeben. Nur Narren, mit dem blinden Glück der Narren, haben es schaffen können. Ich sage es euch frei heraus: Ich würde mein Fell nicht für alles Gold Alaskas auf dieses Eis riskieren.“",
+   "t0": 3.785,
+   "t1": 15.961,
+   "lang": "de"
+  },
+  {
+   "id": "c005_00270_dl__0",
+   "tag": "c005_00270_dl",
+   "figur": "Hal",
+   "stimme": "m_jung_mittel_cholerisch",
+   "text": "„Das liegt wohl daran, dass du kein Narr bist, nehme ich an“,",
+   "t0": 0.0,
+   "t1": 2.307,
+   "lang": "de"
+  },
+  {
+   "id": "c005_00270_dl__2",
+   "tag": "c005_00270_dl",
+   "figur": "Hal",
+   "stimme": "m_jung_mittel_cholerisch",
+   "text": "„Wie dem auch sei, wir ziehen weiter nach Dawson.“",
+   "t0": 4.253,
+   "t1": 6.499,
+   "lang": "de"
+  },
+  {
+   "id": "c005_00272_dl__0",
+   "tag": "c005_00272_dl",
+   "figur": "Hal",
+   "stimme": "m_jung_mittel_cholerisch",
+   "text": "„Auf jetzt, Buck! Hü! Auf mit euch! Mush, vorwärts!“",
+   "t0": 0.04,
+   "t1": 3.856,
+   "lang": "de"
+  },
+  {
+   "id": "c005_00314_dl__0",
+   "tag": "c005_00314_dl",
+   "figur": "John Thornton",
+   "stimme": "m_alt_mittel_ruhig",
+   "text": "„Wenn du diesen Hund noch einmal schlägst, bringe ich dich um“,",
+   "t0": 0.04,
+   "t1": 3.024,
+   "lang": "de"
+  },
+  {
+   "id": "c005_00315_dl__0",
+   "tag": "c005_00315_dl",
+   "figur": "Hal",
+   "stimme": "m_jung_mittel_cholerisch",
+   "text": "„Es ist mein Hund“,",
+   "t0": 0.04,
+   "t1": 0.902,
+   "lang": "de"
+  },
+  {
+   "id": "c005_00315_dl__2",
+   "tag": "c005_00315_dl",
+   "figur": "Hal",
+   "stimme": "m_jung_mittel_cholerisch",
+   "text": "„Geh mir aus dem Weg, oder ich mach dich fertig. Ich gehe nach Dawson.“",
+   "t0": 5.47,
+   "t1": 8.395,
+   "lang": "de"
+  },
+  {
+   "id": "c005_00341_dl__0",
+   "tag": "c005_00341_dl",
+   "figur": "John Thornton",
+   "stimme": "m_alt_mittel_ruhig",
+   "text": "„Du armer Teufel“,",
+   "t0": 0.02,
+   "t1": 0.942,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00027_s__1",
+   "tag": "c006_00027_s",
+   "figur": "John Thornton",
+   "stimme": "m_alt_mittel_ruhig",
+   "text": "»Gott! Dir fehlt ja nur noch die Sprache!«",
+   "t0": 12.217,
+   "t1": 14.36,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00082_s__0",
+   "tag": "c006_00082_s",
+   "figur": "John Thornton",
+   "stimme": "m_alt_mittel_ruhig",
+   "text": "»Spring, Buck!«",
+   "t0": 0.0,
+   "t1": 0.741,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00087_dl__0",
+   "tag": "c006_00087_dl",
+   "figur": "John Thornton",
+   "stimme": "m_alt_mittel_ruhig",
+   "text": "»Nein, es ist großartig, und es ist auch furchtbar.",
+   "t0": 0.02,
+   "t1": 3.448,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00088_dl__0",
+   "tag": "c006_00088_dl",
+   "figur": "John Thornton",
+   "stimme": "m_alt_mittel_ruhig",
+   "text": "Wisst ihr, manchmal macht es mir Angst.«",
+   "t0": 0.0,
+   "t1": 2.134,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00122_s__1",
+   "tag": "c006_00122_s",
+   "figur": "John Thornton",
+   "stimme": "m_alt_mittel_ruhig",
+   "text": "»Los, Buck! Los!«",
+   "t0": 7.215,
+   "t1": 8.418,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00153_dl__0",
+   "tag": "c006_00153_dl",
+   "figur": "John Thornton",
+   "stimme": "m_alt_mittel_ruhig",
+   "text": "„Damit ist die Sache entschieden“,",
+   "t0": 0.0,
+   "t1": 1.363,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00154_dl__0",
+   "tag": "c006_00154_dl",
+   "figur": "John Thornton",
+   "stimme": "m_alt_mittel_ruhig",
+   "text": "„Wir lagern genau hier.“",
+   "t0": 0.0,
+   "t1": 1.429,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00163_dl__0",
+   "tag": "c006_00163_dl",
+   "figur": "John Thornton",
+   "stimme": "m_alt_mittel_ruhig",
+   "text": "„Pah! Pah!“",
+   "t0": 0.0,
+   "t1": 0.863,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00163_dl__2",
+   "tag": "c006_00163_dl",
+   "figur": "John Thornton",
+   "stimme": "m_alt_mittel_ruhig",
+   "text": "„Buck kann tausend Pfund in Bewegung setzen.“",
+   "t0": 2.611,
+   "t1": 4.92,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00165_dl__0",
+   "tag": "c006_00165_dl",
+   "figur": "John Thornton",
+   "stimme": "m_alt_mittel_ruhig",
+   "text": "„Und ihn losbrechen und hundert Yards damit davongehen“,",
+   "t0": 0.04,
+   "t1": 2.809,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00189_dl__0",
+   "tag": "c006_00189_dl",
+   "figur": "John Thornton",
+   "stimme": "m_alt_mittel_ruhig",
+   "text": "„Kannst du mir tausend leihen?“,",
+   "t0": 0.0,
+   "t1": 1.206,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00240_dl__0",
+   "tag": "c006_00240_dl",
+   "figur": "John Thornton",
+   "stimme": "m_alt_mittel_ruhig",
+   "text": "„So lieb du mich hast, Buck.",
+   "t0": 0.021,
+   "t1": 1.291,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00241_dl__0",
+   "tag": "c006_00241_dl",
+   "figur": "John Thornton",
+   "stimme": "m_alt_mittel_ruhig",
+   "text": "So lieb du mich hast“,",
+   "t0": 0.04,
+   "t1": 1.104,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00251_dl__0",
+   "tag": "c006_00251_dl",
+   "figur": "John Thornton",
+   "stimme": "m_alt_mittel_ruhig",
+   "text": "»Jetzt, Buck«",
+   "t0": 0.02,
+   "t1": 0.603,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00256_dl__0",
+   "tag": "c006_00256_dl",
+   "figur": "John Thornton",
+   "stimme": "m_alt_mittel_ruhig",
+   "text": "»Hott!«",
+   "t0": 0.04,
+   "t1": 0.321,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00261_dl__0",
+   "tag": "c006_00261_dl",
+   "figur": "John Thornton",
+   "stimme": "m_alt_mittel_ruhig",
+   "text": "»Hü!«",
+   "t0": 0.0,
+   "t1": 0.181,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00268_dl__0",
+   "tag": "c006_00268_dl",
+   "figur": "John Thornton",
+   "stimme": "m_alt_mittel_ruhig",
+   "text": "»Jetzt, MUSH!«",
+   "t0": 0.001,
+   "t1": 1.028,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00296_dl__0",
+   "tag": "c006_00296_dl",
+   "figur": "John Thornton",
+   "stimme": "m_alt_mittel_ruhig",
+   "text": "„Sir,“",
+   "t0": 0.04,
+   "t1": 0.341,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00296_dl__2",
+   "tag": "c006_00296_dl",
+   "figur": "John Thornton",
+   "stimme": "m_alt_mittel_ruhig",
+   "text": "„nein, Sir.",
+   "t0": 2.633,
+   "t1": 3.175,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00297_dl__0",
+   "tag": "c006_00297_dl",
+   "figur": "John Thornton",
+   "stimme": "m_alt_mittel_ruhig",
+   "text": "Sie können zur Hölle fahren, Sir.",
+   "t0": 0.021,
+   "t1": 1.376,
+   "lang": "de"
+  },
+  {
+   "id": "c006_00298_dl__0",
+   "tag": "c006_00298_dl",
+   "figur": "John Thornton",
+   "stimme": "m_alt_mittel_ruhig",
+   "text": "Das ist das Beste, was ich für Sie tun kann, Sir.“",
+   "t0": 0.0,
+   "t1": 1.714,
+   "lang": "de"
+  },
+  {
+   "id": "c007_00139_dl__0",
+   "tag": "c007_00139_dl",
+   "figur": "John Thornton",
+   "stimme": "m_alt_mittel_ruhig",
+   "text": "»So einen Hund hat es noch nie gegeben«,",
+   "t0": 0.02,
+   "t1": 1.925,
+   "lang": "de"
+  }
+ ]
+}

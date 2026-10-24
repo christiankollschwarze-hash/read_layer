@@ -1,0 +1,54 @@
+{
+  "name": "Jack London",
+  "candidates": [
+    {
+      "wikidata_id": "Q45765",
+      "label": "Jack London",
+      "beschreibung": "American author, journalist and social activist (1876–1916)",
+      "geburtsjahr": 1876,
+      "todesjahr": 1916
+    },
+    {
+      "wikidata_id": "Q109982296",
+      "label": "Jack London",
+      "beschreibung": "person identified in the Museu da Pessoa collection",
+      "geburtsjahr": 1949,
+      "todesjahr": null
+    },
+    {
+      "wikidata_id": "Q744313",
+      "label": "(2625) Jack London",
+      "beschreibung": "asteroid",
+      "geburtsjahr": null,
+      "todesjahr": null
+    },
+    {
+      "wikidata_id": "Q1384076",
+      "label": "Jack London",
+      "beschreibung": "British athlete (1905–1966)",
+      "geburtsjahr": 1905,
+      "todesjahr": 1966
+    },
+    {
+      "wikidata_id": "Q3213588",
+      "label": "Jack London",
+      "beschreibung": "1943 film by Alfred Santell",
+      "geburtsjahr": null,
+      "todesjahr": null
+    },
+    {
+      "wikidata_id": "Q83488564",
+      "label": "Jack London",
+      "beschreibung": "container ship built in 2010",
+      "geburtsjahr": null,
+      "todesjahr": null
+    },
+    {
+      "wikidata_id": "Q6113731",
+      "label": "Ozuna",
+      "beschreibung": "British boxer (1913-1963)",
+      "geburtsjahr": 1913,
+      "todesjahr": 1963
+    }
+  ]
+}

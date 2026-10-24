@@ -1,0 +1,42 @@
+{
+  "book_slug": "the-hound-of-the-baskervilles",
+  "author_slug": "doyle-ac",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q45192",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The Hound of the Baskervilles",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "2852",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The Hound of the Baskervilles",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Der Hund von Baskerville",
+      "titel_quelle": "wikidata",
+      "titel_pruefen": false
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:25:37",
+  "besetzung_modus": "ensemble",
+  "erzaehler_stimme": "herr_a",
+  "stimmen_freigabe": "nachtraeglich (CK 12.10.2026: vor dem Freigabe-Tor vertont)"
+}

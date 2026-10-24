@@ -1,0 +1,52 @@
+{
+ "werk": "die-spiegelschwestern",
+ "lang": "en",
+ "ref": "chatterbox-standard",
+ "jobs": [
+  {
+   "id": "c004_00015_s",
+   "kap": "neu",
+   "text": "It was a shorter list."
+  },
+  {
+   "id": "c007_00003_ep",
+   "kap": "neu",
+   "text": "Hamburg-Blankenese, September – early November 2024"
+  },
+  {
+   "id": "c009_00050_s",
+   "kap": "neu",
+   "text": "One hit."
+  },
+  {
+   "id": "c009_00092_s",
+   "kap": "neu",
+   "text": "He stares at me."
+  },
+  {
+   "id": "c009_00120_s",
+   "kap": "neu",
+   "text": "I scroll."
+  }
+ ],
+ "ziel": "fassungen/en/audio_neu_20261022",
+ "gruende": {
+  "c004_00015_s": [
+   "pruefung"
+  ],
+  "c009_00050_s": [
+   "pruefung"
+  ],
+  "c009_00092_s": [
+   "pruefung"
+  ],
+  "c009_00120_s": [
+   "pruefung"
+  ],
+  "c007_00003_ep": [
+   "tags"
+  ]
+ },
+ "probe": false,
+ "tempo": "0.91"
+}

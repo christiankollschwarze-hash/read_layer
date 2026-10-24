@@ -1,0 +1,33 @@
+{
+ "variante": "p1_mix_v1",
+ "paket": "die-spiegelschwestern_teaser_de_m",
+ "kapitel": 1,
+ "wandzeit_s": 101,
+ "gpu_s": 69,
+ "audio_s": 24,
+ "zeichen": 409,
+ "gpu_h_je_audio_h": 2.847,
+ "usd_geschaetzt": 0.015,
+ "usd_je_50k_zeichen": 1.872,
+ "fehler": 0,
+ "pruefung_neu": 0,
+ "pruefung_rest": [],
+ "kapitel_details": [
+  {
+   "audio_s": 24.2,
+   "neu": 3,
+   "fehler": [],
+   "fp16_fallback": 0,
+   "zeichen": 409,
+   "kap": "t000",
+   "saetze": 3,
+   "laden_s": 21.4,
+   "rechnen_s": 47.5,
+   "gpu_s": 68.9,
+   "parallel": 1,
+   "fp16": false,
+   "batch": 0,
+   "rtf": 1.963
+  }
+ ]
+}

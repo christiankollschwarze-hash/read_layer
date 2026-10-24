@@ -1,0 +1,42 @@
+.env
+*.env
+*.wav
+*.mp3
+*.m4b
+*.flac
+*.safetensors
+*.pt
+*.pth
+*.onnx
+*.ckpt
+models/
+cache/
+gpu_lora/adapter/
+authors/**/work/
+authors/**/fassungen/**/audio*/
+authors/**/fassungen/**/source_audio/
+users/
+gpu_messung/**/
+!gpu_messung/*.py
+archive/
+logs/
+cockpit/logs/
+*.log
+.venv*/
+__pycache__/
+*.pyc
+*.bak_*
+*.bak
+# Ergänzt 24.10.: Dienstkonto-Schlüssel und Ausgaben
+JSON_Key/
+Claude outputs/
+stimmen_archiv/
+_epub_import/
+*.tgz
+*.zip
+# Ergänzt 24.10.: große, reproduzierbare Buchdaten (Größenziel < 50 MB)
+authors/**/raw.txt
+authors/**/images/
+authors/**/output/
+authors/**/_alt_*/
+*.epub

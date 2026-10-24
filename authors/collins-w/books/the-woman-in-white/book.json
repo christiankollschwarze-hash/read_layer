@@ -1,0 +1,39 @@
+{
+  "book_slug": "the-woman-in-white",
+  "author_slug": "collins-w",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q1212672",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The Woman in White",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "583",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The Woman in White",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Die Frau in Weiß",
+      "titel_quelle": "wikidata",
+      "titel_pruefen": false
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:28:37"
+}

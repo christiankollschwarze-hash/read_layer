@@ -1,0 +1,19 @@
+{
+  "books": [
+    {
+      "book_slug": "call-of-the-wild",
+      "autor_name": "Jack London",
+      "titel_original": "The Call of the Wild",
+      "originalsprache": "en",
+      "erscheinungsjahr": 1903,
+      "gutenberg_id": "215",
+      "raw_quelle": "C:/Users/sabin/read_layer/LibriVox Source/jack_london_call_of_the_wild_raw.txt",
+      "librivox": {
+        "sprecher": "Jeff Clark",
+        "aufnahmedatum": "2020-07-02",
+        "reader_url": "https://librivox.org/reader/14168",
+        "version": 5
+      }
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "book_slug": "wagner-the-wehr-wolf",
+  "author_slug": "reynolds-gwmwm",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q134313945",
+  "publisher": "<eigenes-label>",
+  "titel_original": "Wagner, the Wehr-Wolf",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "27202",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "Wagner, the Wehr-Wolf",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Wagner, der Wehr-Wolf",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:28:27"
+}

@@ -1,0 +1,47 @@
+{
+  "book_slug": "call-of-the-wild",
+  "author_slug": "london-j",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The Call of the Wild",
+  "originalsprache": "en",
+  "erscheinungsjahr": 1903,
+  "gutenberg_id": "215",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The Call of the Wild",
+      "titel_quelle": "original",
+      "audio_quelle": "librivox",
+      "sprecher": "Phil Chenevert",
+      "reader_url": "https://librivox.org/reader/5717",
+      "librivox_url": "https://librivox.org/the-call-of-the-wild-version-4-by-jack-london/",
+      "archive_url": "https://archive.org/details/callofthewild_1509_librivox",
+      "sprecher_urteil": "gut",
+      "credit": "Recording: Phil Chenevert / LibriVox",
+      "source_disclaimer": "This is a LibriVox recording. All LibriVox recordings are in the public domain. For more information, or to volunteer, please visit librivox.org."
+    },
+    {
+      "sprache": "de",
+      "titel": "Der Ruf der Wildnis",
+      "titel_quelle": "etabliert",
+      "titel_pruefen": false
+    }
+  ],
+  "librivox_geprueft": "konflikt",
+  "librivox_konflikt": "Text wurde bereits modernisiert/uebersetzt, bevor die LibriVox-Aufnahme erkannt wurde. Entscheiden: Text neu (wortgetreu) oder EN selbst vertonen.",
+  "librivox_geprueft_am": "2026-10-11T13:39:54"
+}

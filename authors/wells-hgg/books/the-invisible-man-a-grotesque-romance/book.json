@@ -1,0 +1,39 @@
+{
+  "book_slug": "the-invisible-man-a-grotesque-romance",
+  "author_slug": "wells-hgg",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q1539509",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The Invisible Man: A Grotesque Romance",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "5230",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The Invisible Man: A Grotesque Romance",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Der Unsichtbare",
+      "titel_quelle": "wikidata",
+      "titel_pruefen": false
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:24:36"
+}

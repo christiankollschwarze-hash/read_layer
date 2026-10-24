@@ -1,0 +1,39 @@
+{
+  "book_slug": "the-wisdom-of-father-brown",
+  "author_slug": "chesterton-gkk",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q74483",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The wisdom of Father Brown",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "223",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The wisdom of Father Brown",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Die Weisheit von Pater Brown",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:26:00"
+}

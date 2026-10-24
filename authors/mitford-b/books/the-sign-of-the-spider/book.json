@@ -1,0 +1,39 @@
+{
+  "book_slug": "the-sign-of-the-spider",
+  "author_slug": "mitford-b",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q133528380",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The Sign of the Spider",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "27476",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The Sign of the Spider",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Das Zeichen der Spinne",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:26:40"
+}

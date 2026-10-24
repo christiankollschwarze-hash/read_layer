@@ -1,0 +1,19 @@
+{
+ "variante": "herr_a_mix_v1",
+ "ckpt": "../../mix_v1/ckpt/step_01000.safetensors",
+ "stimme": "herr_a",
+ "saetze": 140,
+ "audio_s": 1011.6,
+ "pruefung": {
+  "ok": 139,
+  "nachklang": 1
+ },
+ "ve_aehnlich_referenz": 0.8983,
+ "ve_aehnlich_ramona": 0.6286,
+ "ve_aehnlich_sprecher": {
+  "2037": 0.5835,
+  "5424": 0.5918,
+  "9565": 0.6308
+ },
+ "gpu_min": 20.9
+}

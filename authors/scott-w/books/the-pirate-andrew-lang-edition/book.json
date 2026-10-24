@@ -1,0 +1,39 @@
+{
+  "book_slug": "the-pirate-andrew-lang-edition",
+  "author_slug": "scott-w",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q3225628",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The Pirate: Andrew Lang Edition",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "42389",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The Pirate: Andrew Lang Edition",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Der Pirat: Andrew Lang Ausgabe",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:28:30"
+}

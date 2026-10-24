@@ -1,0 +1,36 @@
+{
+ "werk": "die-spiegelschwestern",
+ "lang": "de",
+ "jobs": [
+  {
+   "id": "c012_00033_dl__0",
+   "tag": "c012_00033_dl",
+   "figur": "Schulleiterin",
+   "stimme": "grossmutter_b",
+   "text": "„Das nächste Stück war Katharina von Tiefenbach zugedacht“",
+   "t0": 0.0,
+   "t1": 2.967,
+   "lang": "de"
+  },
+  {
+   "id": "c012_00034_dl__0",
+   "tag": "c012_00034_dl",
+   "figur": "Schulleiterin",
+   "stimme": "grossmutter_b",
+   "text": "„Es spielt ihre Schwester.",
+   "t0": 0.0,
+   "t1": 1.051,
+   "lang": "de"
+  },
+  {
+   "id": "c012_00035_dl__0",
+   "tag": "c012_00035_dl",
+   "figur": "Schulleiterin",
+   "stimme": "grossmutter_b",
+   "text": "Cindy Bergmann.“",
+   "t0": 0.022,
+   "t1": 0.92,
+   "lang": "de"
+  }
+ ]
+}

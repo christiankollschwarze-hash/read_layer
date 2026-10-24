@@ -1,0 +1,39 @@
+{
+  "book_slug": "russian-fairy-tales-a-choice-collection-of-muscovite-folk-lore",
+  "author_slug": "unbekannt",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q2370698",
+  "publisher": "<eigenes-label>",
+  "titel_original": "Russian Fairy Tales: A Choice Collection of Muscovite Folk-lore",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "22373",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "Russian Fairy Tales: A Choice Collection of Muscovite Folk-lore",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Russische Märchen: Eine Auswahl moskowitischer Volkskunde",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:28:06"
+}

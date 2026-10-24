@@ -1,0 +1,112 @@
+[
+ {
+  "variante": "basis",
+  "ckpt": "",
+  "stimme": "grossmutter_a",
+  "saetze": 140,
+  "audio_s": 1145.0,
+  "pruefung": {
+   "ok": 132,
+   "nachklang": 6,
+   "zu_lang": 2
+  },
+  "ve_aehnlich_referenz": 0.9406,
+  "ve_aehnlich_ramona": 0.79,
+  "gpu_min": 24.2,
+  "prosodie": {
+   "saetze": 140,
+   "streuung_ht": 6.31,
+   "spanne_ht": 10.63,
+   "dauer_s_mittel": 12.27
+  },
+  "ausklang_s": 0.38,
+  "abgeschnitten": 7
+ },
+ {
+  "variante": "lora_bester",
+  "ckpt": "step_00250.safetensors",
+  "stimme": "grossmutter_a",
+  "saetze": 140,
+  "audio_s": 927.6,
+  "pruefung": {
+   "ok": 140
+  },
+  "ve_aehnlich_referenz": 0.9224,
+  "ve_aehnlich_ramona": 0.7902,
+  "gpu_min": 19.7,
+  "prosodie": {
+   "saetze": 140,
+   "streuung_ht": 5.88,
+   "spanne_ht": 10.73,
+   "dauer_s_mittel": 9.94
+  },
+  "ausklang_s": 0.12,
+  "abgeschnitten": 25
+ },
+ {
+  "variante": "lora_letzter",
+  "ckpt": "step_00477.safetensors",
+  "stimme": "grossmutter_a",
+  "saetze": 140,
+  "audio_s": 937.0,
+  "pruefung": {
+   "ok": 140
+  },
+  "ve_aehnlich_referenz": 0.9175,
+  "ve_aehnlich_ramona": 0.7884,
+  "gpu_min": 19.9,
+  "prosodie": {
+   "saetze": 140,
+   "streuung_ht": 5.56,
+   "spanne_ht": 10.66,
+   "dauer_s_mittel": 10.04
+  },
+  "ausklang_s": 0.12,
+  "abgeschnitten": 42
+ },
+ {
+  "variante": "ramona_basis",
+  "ckpt": "",
+  "stimme": "ramona",
+  "saetze": 140,
+  "audio_s": 1041.7,
+  "pruefung": {
+   "zu_lang": 1,
+   "ok": 119,
+   "nachklang": 19,
+   "verschmiert": 1
+  },
+  "ve_aehnlich_referenz": 0.9135,
+  "ve_aehnlich_ramona": 0.9142,
+  "gpu_min": 22.1,
+  "prosodie": {
+   "saetze": 140,
+   "streuung_ht": 4.27,
+   "spanne_ht": 9.36,
+   "dauer_s_mittel": 11.16
+  },
+  "ausklang_s": 0.5,
+  "abgeschnitten": 24
+ },
+ {
+  "variante": "ramona_lora",
+  "ckpt": "step_00250.safetensors",
+  "stimme": "ramona",
+  "saetze": 140,
+  "audio_s": 933.8,
+  "pruefung": {
+   "ok": 140
+  },
+  "ve_aehnlich_referenz": 0.9094,
+  "ve_aehnlich_ramona": 0.9125,
+  "gpu_min": 19.6,
+  "prosodie": {
+   "saetze": 140,
+   "streuung_ht": 4.24,
+   "spanne_ht": 9.17,
+   "dauer_s_mittel": 10.01
+  },
+  "ausklang_s": 0.14,
+  "abgeschnitten": 11
+ }
+]

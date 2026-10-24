@@ -1,0 +1,167 @@
+{
+ "B_DE04_gesagt/a_ohne": [
+  "Ich habe dir gesagt, dass du die Tür nicht offen lassen sollst, und du hast es schon wieder vergessen!"
+ ],
+ "B_DE04_gesagt/b_pause": [
+  "Ich habe dir ... gesagt, dass du die Tür nicht offen lassen sollst, und du hast es ... schon wieder vergessen!"
+ ],
+ "B_DE04_gesagt/c_strich": [
+  "Ich habe dir — gesagt — dass du die Tür nicht offen lassen sollst, und du hast es — schon wieder — vergessen!"
+ ],
+ "B_DE04_gesagt/d_split": [
+  "Ich habe dir gesagt, [betont]",
+  "dass du die Tür nicht offen lassen sollst, und du hast es schon wieder [betont]",
+  "vergessen!"
+ ],
+ "B_DE04_gesagt/e_split_pause": [
+  "Ich habe dir ... gesagt, [betont]",
+  "dass du die Tür nicht offen lassen sollst, und du hast es ... schon wieder [betont]",
+  "vergessen!"
+ ],
+ "B_DE_er/a_ohne": [
+  "Ich habe nicht gesagt, dass er das Geld gestohlen hat. Ich habe nur gesagt, dass es jemand getan hat."
+ ],
+ "B_DE_er/b_pause": [
+  "Ich habe nicht gesagt, dass ... er das Geld gestohlen hat. Ich habe nur gesagt, dass es jemand getan hat."
+ ],
+ "B_DE_er/c_strich": [
+  "Ich habe nicht gesagt, dass — er — das Geld gestohlen hat. Ich habe nur gesagt, dass es jemand getan hat."
+ ],
+ "B_DE_er/d_split": [
+  "Ich habe nicht gesagt, dass er [betont]",
+  "das Geld gestohlen hat. Ich habe nur gesagt, dass es jemand getan hat."
+ ],
+ "B_DE_er/e_split_pause": [
+  "Ich habe nicht gesagt, dass ... er [betont]",
+  "das Geld gestohlen hat. Ich habe nur gesagt, dass es jemand getan hat."
+ ],
+ "B_DE_nicht/a_ohne": [
+  "Das ist nicht dein Ernst. Du willst wirklich heute noch los?"
+ ],
+ "B_DE_nicht/b_pause": [
+  "Das ist ... nicht dein Ernst. Du willst wirklich heute noch los?"
+ ],
+ "B_DE_nicht/c_strich": [
+  "Das ist — nicht — dein Ernst. Du willst wirklich heute noch los?"
+ ],
+ "B_DE_nicht/d_split": [
+  "Das ist nicht [betont]",
+  "dein Ernst. Du willst wirklich heute noch los?"
+ ],
+ "B_DE_nicht/e_split_pause": [
+  "Das ist ... nicht [betont]",
+  "dein Ernst. Du willst wirklich heute noch los?"
+ ],
+ "B_EN07_twice/a_ohne": [
+  "I told you twice not to touch the lock, and now the whole door is ruined!"
+ ],
+ "B_EN07_twice/b_pause": [
+  "I told you ... twice not to touch the lock, and now the whole door is ruined!"
+ ],
+ "B_EN07_twice/c_strich": [
+  "I told you — twice — not to touch the lock, and now the whole door is ruined!"
+ ],
+ "B_EN07_twice/d_split": [
+  "I told you twice [betont]",
+  "not to touch the lock, and now the whole door is ruined!"
+ ],
+ "B_EN07_twice/e_split_pause": [
+  "I told you ... twice [betont]",
+  "not to touch the lock, and now the whole door is ruined!"
+ ],
+ "B_EN12_he/a_ohne": [
+  "I did not say he stole the money. I only said that someone did."
+ ],
+ "B_EN12_he/b_pause": [
+  "I did not say ... he stole the money. I only said that someone did."
+ ],
+ "B_EN12_he/c_strich": [
+  "I did not say — he — stole the money. I only said that someone did."
+ ],
+ "B_EN12_he/d_split": [
+  "I did not say he [betont]",
+  "stole the money. I only said that someone did."
+ ],
+ "B_EN12_he/e_split_pause": [
+  "I did not say ... he [betont]",
+  "stole the money. I only said that someone did."
+ ],
+ "B_EN_your/a_ohne": [
+  "It was not my idea, it was your idea, and you know it."
+ ],
+ "B_EN_your/b_pause": [
+  "It was not my idea, it was ... your idea, and you know it."
+ ],
+ "B_EN_your/c_strich": [
+  "It was not my idea, it was — your — idea, and you know it."
+ ],
+ "B_EN_your/d_split": [
+  "It was not my idea, it was your [betont]",
+  "idea, and you know it."
+ ],
+ "B_EN_your/e_split_pause": [
+  "It was not my idea, it was ... your [betont]",
+  "idea, and you know it."
+ ],
+ "P_DE05_leise/a_ohne": [
+  "Leise jetzt, sie schlafen noch. Wenn wir die Treppe hinunter wollen, müssen wir an der dritten Stufe vorbei."
+ ],
+ "P_DE05_leise/p_split": [
+  "Leise jetzt,",
+  "<600 ms>",
+  "sie schlafen noch. Wenn wir die Treppe hinunter wollen, müssen wir an der dritten Stufe vorbei."
+ ],
+ "P_DE07_vielleicht/a_ohne": [
+  "Vielleicht war es gar nicht der Zufall, der uns hierher geführt hat, sondern etwas, das wir nicht sehen konnten."
+ ],
+ "P_DE07_vielleicht/p_split": [
+  "Vielleicht",
+  "<375 ms>",
+  "war es gar nicht der Zufall,",
+  "<900 ms>",
+  "der uns hierher geführt hat,",
+  "<375 ms>",
+  "sondern etwas, das wir nicht sehen konnten."
+ ],
+ "P_DE_ernst/a_ohne": [
+  "Das ist nicht dein Ernst!"
+ ],
+ "P_DE_ernst/p_split": [
+  "Das ist",
+  "<1200 ms>",
+  "nicht dein Ernst!"
+ ],
+ "P_DE_ernst/p_split_betont": [
+  "Das ist",
+  "<1200 ms>",
+  "nicht dein Ernst! [betont]"
+ ],
+ "P_EN05_kingdom/a_ohne": [
+  "And so, upon the last night of the old kingdom, the bells rang out over the silent towers."
+ ],
+ "P_EN05_kingdom/p_split": [
+  "And so, upon the last night of the old kingdom,",
+  "<600 ms>",
+  "the bells rang out over the silent towers."
+ ],
+ "P_EN14_wait/a_ohne": [
+  "Wait. Listen. Now run, run, run, before they close the gates behind us!"
+ ],
+ "P_EN14_wait/p_split": [
+  "Wait.",
+  "<600 ms>",
+  "Listen.",
+  "<1200 ms>",
+  "Now run, run, run, before they close the gates behind us!"
+ ],
+ "P_EN_quiet/a_ohne": [
+  "Quiet now. They are still asleep. If we want to get down the stairs, we have to pass the third step."
+ ],
+ "P_EN_quiet/p_split": [
+  "Quiet now.",
+  "<600 ms>",
+  "They are still asleep.",
+  "<250 ms>",
+  "If we want to get down the stairs, we have to pass the third step."
+ ]
+}

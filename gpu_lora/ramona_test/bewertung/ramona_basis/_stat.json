@@ -1,0 +1,16 @@
+{
+ "variante": "ramona_basis",
+ "ckpt": "",
+ "stimme": "ramona",
+ "saetze": 140,
+ "audio_s": 1041.7,
+ "pruefung": {
+  "zu_lang": 1,
+  "ok": 119,
+  "nachklang": 19,
+  "verschmiert": 1
+ },
+ "ve_aehnlich_referenz": 0.9135,
+ "ve_aehnlich_ramona": 0.9142,
+ "gpu_min": 22.1
+}

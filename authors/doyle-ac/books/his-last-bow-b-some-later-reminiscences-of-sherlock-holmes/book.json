@@ -1,0 +1,39 @@
+{
+  "book_slug": "his-last-bow-b-some-later-reminiscences-of-sherlock-holmes",
+  "author_slug": "doyle-ac",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q2573817",
+  "publisher": "<eigenes-label>",
+  "titel_original": "His last bow : $b Some later reminiscences of Sherlock Holmes",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "2350",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "His last bow : $b Some later reminiscences of Sherlock Holmes",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Seine Abschiedsvorstellung",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:25:35"
+}

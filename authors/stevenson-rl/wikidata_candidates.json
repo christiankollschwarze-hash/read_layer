@@ -1,0 +1,54 @@
+{
+  "name": "Robert Louis Stevenson",
+  "candidates": [
+    {
+      "wikidata_id": "Q1512",
+      "label": "Robert Louis Stevenson",
+      "beschreibung": "Scottish novelist and poet (1850-1894)",
+      "geburtsjahr": 1850,
+      "todesjahr": 1894
+    },
+    {
+      "wikidata_id": "Q18684753",
+      "label": "Robert Louis Stevenson",
+      "beschreibung": "painting by G. P. Nerli",
+      "geburtsjahr": null,
+      "todesjahr": null
+    },
+    {
+      "wikidata_id": "Q83559851",
+      "label": "Robert Louis Stevenson",
+      "beschreibung": "sculpture by Augustus Saint-Gaudens (MET, 12.76.1)",
+      "geburtsjahr": null,
+      "todesjahr": null
+    },
+    {
+      "wikidata_id": "Q28050474",
+      "label": "Robert Louis Stevenson",
+      "beschreibung": "painting by Sir William Blake Richmond",
+      "geburtsjahr": null,
+      "todesjahr": null
+    },
+    {
+      "wikidata_id": "Q7350054",
+      "label": "Robert L. Stevenson",
+      "beschreibung": "American sports coach (1890–1952)",
+      "geburtsjahr": 1890,
+      "todesjahr": 1952
+    },
+    {
+      "wikidata_id": "Q7341102",
+      "label": "Robby Stevenson",
+      "beschreibung": "American college football player, punter, placekicker, national championship team member",
+      "geburtsjahr": 1976,
+      "todesjahr": null
+    },
+    {
+      "wikidata_id": "Q20007356",
+      "label": "Robert Louis Stevenson",
+      "beschreibung": "essay written by Gilbert Keith Chesterton",
+      "geburtsjahr": null,
+      "todesjahr": null
+    }
+  ]
+}

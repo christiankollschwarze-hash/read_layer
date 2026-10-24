@@ -1,0 +1,2970 @@
+###TITLE### Oedipus King of Thebes: Translated into English Rhyming Verse with Explanatory Notes
+###AUTHOR### Sophocles
+
+###CHAPTER### Preface
+
+If I have turned aside from Euripides for a moment and attempted a translation of the great stage masterpiece of Sophocles, my excuse must be the fascination of this play, which has thrown its spell on me as on many other translators. Yet I may plead also that as a rule every diligent student of these great works can add something to the discoveries of his predecessors, and I think I have been able to bring out a few new points in the old and much-studied _Oedipus_, chiefly points connected with the dramatic technique and the religious atmosphere.
+
+Mythologists tell us that Oedipus was originally a daemon haunting Mount Kithairon, and Jocasta a form of that Earth-Mother who, as Aeschylus puts it, "bringeth all things to being, and when she hath reared them receiveth again their seed into her body" (_Choephori_, 127: cf. Crusius, _Beiträge z. Gr. Myth_, 21). That stage of the story lies very far behind the consciousness of Sophocles. But there does cling about both his hero and his heroine a great deal of very primitive atmosphere. There are traces in Oedipus of the pre-hellenic Medicine King, the _Basileus_ who is also a _Theos_, and can make rain or blue sky, pestilence or fertility. This explains many things in the Priest's first speech, in the attitude of the Chorus, and in Oedipus' own language after the discovery. It partly explains the hostility of Apollo, who is not a mere motiveless Destroyer but a true Olympian crushing his Earth-born rival. And in the same way the peculiar royalty of Jocasta, which makes Oedipus at times seem not the King but the Consort of the Queen, brings her near to that class of consecrated queens described in Dr. Frazer's _Lectures on the Kingship_, who are "honoured as no woman now living on the earth."
+
+The story itself, and the whole spirit in which Sophocles has treated it, belong not to the fifth century but to that terrible and romantic past from which the fifth century poets usually drew their material. The atmosphere of brooding dread, the pollution, the curses; the "insane and beastlike cruelty," as an ancient Greek commentator calls it, of piercing the exposed child's feet in order to ensure its death and yet avoid having actually murdered it (_Schol. Eur. Phoen._, 26); the whole treatment of the parricide and incest, not as moral offences capable of being rationally judged or even excused as unintentional, but as monstrous and inhuman pollutions, the last limit of imaginable horror: all these things take us back to dark regions of pre-classical and even pre-homeric belief. We have no right to suppose that Sophocles thought of the involuntary parricide and metrogamy as the people in his play do. Indeed, considering the general tone of his contemporaries and friends, we may safely assume that he did not. But at any rate he has allowed no breath of later enlightenment to disturb the primaeval gloom of his atmosphere.
+
+Does this in any way make the tragedy insincere? I think not. We know that people did feel and think about "pollution" in the way which Sophocles represents; and if they so felt, then the tragedy was there.
+
+I think these considerations explain why this play contains so little criticism of life or any clear moral judgment. I know some commentators have found in it a "humble and unquestioning piety," but I cannot help suspecting that what they saw was only a reflection from their own pious and unquestioning minds. Man is indeed shown as a "plaything of Gods," but of Gods strangely and incomprehensibly malignant, whose ways there is no attempt to explain or justify. The original story may indeed have had one of its roots in a Theban "moral tale." Aelian (_Varia Historia_, 2, 7) tells us that the exposure of a child was forbidden by Theban Law. The state of feeling which produced this law, against the immensely strong conception of the _patria potestas_, may also have produced a folklore story telling how a boy once was exposed, in a peculiarly cruel way, by his wicked parents, and how Heaven preserved him to take upon both of them a vengeance which showed that the unnatural father had no longer a father's sanctity nor the unnatural mother a mother's. But, as far as Sophocles is concerned, if anything in the nature of a criticism of life has been admitted into the play at all, it seems to be only a flash or two of that profound and pessimistic arraignment of the ruling powers which in other plays also opens at times like a sudden abyss across the smooth surface of his art.
+
+There is not much philosophy in the _Oedipus_. There is not, in comparison with other Greek plays, much pure poetry. What there is, is drama; drama of amazing grandeur and power. In respect of plot no Greek play comes near it. It contains no doubt a few points of unsophisticated technique such as can be found in all ancient and nearly all modern drama; for instance, the supposition that Oedipus has never inquired into the death of his predecessor on the throne. But such flaws are external, not essential. On the whole, I can only say that the work of translation has made me feel even more strongly than before the extraordinary grip and reality of the dialogue, the deftness of the construction, and, except perhaps for a slight drop in the Creon scene, the unbroken crescendo of tragedy from the opening to the close.
+
+Where plot-interest is as strong as it is in the _Oedipus_, character-interest is apt to be comparatively weak. Yet in this play every character is interesting, vital, and distinct. Oedipus himself is selected by Aristotle as the most effective kind of tragic hero, because, first, he has been great and glorious, and secondly he has not been "pre-eminently virtuous or just." This is true in its way. Oedipus is too passionate to be just; but he is at least noble in his impetuosity, his devotion, and his absolute truthfulness. It is important to realise that at the beginning of the play he is prepared for an oracle commanding him to die for his people (pp. 6, 7). And he never thinks of refusing that "task" any more than he tries to elude the doom that actually comes, or to conceal any fact that tells against him. If Oedipus had been an ordinary man the play would have been a very different and a much poorer thing.
+
+Jocasta is a wonderful study. Euripides might have brought her character out more explicitly and more at length, but even he could not have made her more living or more tragic, or represented more subtly in her relation to Oedipus both the mother's protecting love and the mother's authority. As for her "impiety," which the old commentaries used to speak of with much disapproval, the essential fact in her life is that both her innocence and her happiness have, as she believes, been poisoned by the craft of priests. She and Laïus both "believed a bad oracle." Her terror and her love for her husband made her consent to an infamous act of cruelty to her own child, an act of which the thought sickens her still, and about which she cannot, when she tries, speak the whole truth. (See note on p. 42.) And after all her crime was for nothing! The oracle proved to be a lie. Never again will she believe a priest.
+
+As to Tiresias, I wish to ask forgiveness for an unintelligent criticism made twelve years ago in my _Ancient Greek Literature_, p. 240. I assumed then, what I fancy was a common assumption, that Tiresias was a "sympathetic" prophet, compact of wisdom and sanctity and all the qualities which befit that calling; and I complained that he did not consistently act as such. I was quite wrong. Tiresias is not anything so insipid. He is a study of a real type, and a type which all the tragedians knew. The character of the professional seer or "man of God" has in the imagination of most ages fluctuated between two poles. At one extreme are sanctity and superhuman wisdom; at the other fraud and mental disease, self-worship aping humility and personal malignity in the guise of obedience to God. There is a touch of all these qualities, good and bad alike, in Tiresias. He seems to me a most life-like as well as a most dramatic figure.
+
+As for the Chorus, it generally plays a smaller part in Sophocles than in Euripides and Aeschylus, and the _Oedipus_ is no exception to that rule. It seems to me that Sophocles was feeling his way towards a technique which would have approached that of the New Comedy or even the Elizabethan stage, and would perhaps have done without a Chorus altogether. In Aeschylus, Greek tragedy had been a thing of traditional forms and clear-cut divisions; the religious ritual showed through, and the visible gods and the disguised dancers were allowed their full value. And Euripides, in the matter of outward formalism, went back to the Aeschylean type and even beyond it: prologue, chorus, messenger, visible god—all the traditional forms were left clear-cut and undisguised, and all were developed to full effectiveness on separate and specific lines. But Sophocles worked by blurring his structural outlines, just as he blurs the ends of his verses. In him the traditional divisions are all made less distinct, all worked over in the direction of greater naturalness, at any rate in externals. This was a very great gain, but of course some price had to be paid for it. Part of the price was that Sophocles could never attempt the tremendous choric effects which Euripides achieves in such plays as the _Bacchae_ and the _Trojan Women_. His lyrics, great as they sometimes are, move their wings less boldly. They seem somehow tied to their particular place in the tragedy, and they have not quite the strength to lift the whole drama bodily aloft with them. At least that is my feeling. But I realize that this may be only the complaint of an unskillful translator, blaming his material for his own defects of vision.
+
+In general, both in lyrics and in dialogue, I believe I have allowed myself rather less freedom than in translating Euripides. This is partly because the writing of Euripides, being less business-like and more penetrated by philosophic reflections and by subtleties of technique, actually needs more thorough re-casting to express it at all adequately; partly because there is in Sophocles, amid all his passion and all his naturalness, a certain severe and classic reticence, which, though impossible really to reproduce by any method, is less misrepresented by occasional insufficiency than by habitual redundance.
+
+I have asked pardon for an ill deed done twelve years ago. I should like to end by speaking of a benefit older still, and express something of the gratitude I feel to my old master, Francis Storr, whose teaching is still vivid in my mind and who first opened my eyes to the grandeur of the _Oedipus_.
+
+G. M.
+
+###CHAPTER### Characters in the Play
+
+OEDIPUS, _supposed son of Polybus, King of Corinth; now elected King of Thebes._
+
+JOCASTA, _Queen of Thebes; widow of Laïus, the late King, and now wife to Oedipus._
+
+CREON, _a Prince of Thebes, brother to Jocasta._
+
+TIRESIAS, _an old blind seer._
+
+PRIEST OF ZEUS.
+
+A STRANGER _from Corinth._
+
+A SHEPHERD _of King Laïus._
+
+A MESSENGER _from the Palace._
+
+CHORUS of the Elders of Thebes.
+
+A Crowd of Suppliants, men, women, and children.
+
+The following do not appear in the play but are frequently mentioned:--
+
+LAÏUS (_pronounced as three syllables, Lá-i-us_), _the last King of Thebes before Oedipus._
+
+CADMUS, _the founder of Thebes; son of Agênor, King of Sidon._
+
+POLYBUS AND MEROPÊ, _King and Queen of Corinth, supposed to be the father and mother of Oedipus._
+
+APOLLO, _the God specially presiding over the oracle of Delphi and the island Delos: he is also called_ PHOEBUS, _the pure;_ LOXIAS, _supposed to mean "He of the Crooked Words"; and_ LYKEIOS, _supposed to mean "Wolf-God." He is also the great Averter of Evil, and has names from the cries "I-ê" (pronounced "Ee-ay") and "Paian," cries for healing or for the frightening away of evil influences._
+
+KITHAIRON, _a mass of wild mountain south-west of Thebes._
+
+###CHAPTER### Argument
+
+While Thebes was under the rule of LAÏUS and JOCASTA, a strange and monstrous creature appeared: "the riddling Sphinx," "the She-Wolf of the woven song." In some unexplained way, she sang riddles of death and killed the people of Thebes. LAÏUS went to ask the oracle of Delphi for help, but was mysteriously killed on the road. Soon afterwards, a young Prince of Corinth named OEDIPUS came to Thebes. He had left his home and was wandering. He faced the Sphinx and solved her riddle, whereupon she threw herself from her rock and died. The throne was vacant, so it was offered to OEDIPUS, along with the hand of the Queen, JOCASTA.
+
+Some ten or twelve years later, a plague has fallen on Thebes. At this point the play begins.
+
+_The date of the first production of the play is not known, but it was probably around the year 425 B.C._
+
+###CHAPTER### Oedipus, King of Thebes
+
+SCENE.--Before the Palace of OEDIPUS at Thebes. A crowd of suppliants of all ages are waiting by the altar in front and on the steps of the Palace; among them the PRIEST OF ZEUS. As the Palace door opens and OEDIPUS comes out, all the suppliants with a cry move towards him in attitudes of prayer, holding out their olive branches, and then become still again as he speaks.
+
+OEDIPUS.
+
+My children, latest offspring of Cadmus' ancient line, why do you press upon me with bent knees, laden all with wreaths and suppliant branches? The city is heavy with incense, heavy with dim prayer and cries to frighten the Slayer. Children, because I care for this so deeply, I have scorned any message or writing. Since it is I you call, I have come myself--world-honoured Oedipus.
+
+Old Man, speak for the rest, since they have made you their champion. In what mood do you stand so still--in dread or sure hope? Know that my will is yours for aid against all. Stern indeed would be the heart that felt nothing for so dire a need.
+
+[Sidenote: vv. 15-39]
+
+PRIEST.
+
+O Oedipus, you who hold my city in your hand,
+
+you can see what ages stand at these your altars: some whose little wings can scarcely fly yet, and some weighed down with long living; priests, as I am priest of Zeus, and chosen youths. And the wailing has not ceased of thousands in the market-place, and by Athena's two-fold temples and the dry
+
+ash of Ismênus' portent-breathing shore.
+
+For all our ship, you see, is weak and sore shaken with storms, and no longer lifts her head above the waves whose trough is death. She wastes away in the fruitless buds of the earth, in parched herds and travail without birth of dying women. And in the midst of it
+
+a burning and a loathly god has lit
+
+sudden, and sweeps our land, this Plague of power; till Cadmus' house grows empty hour by hour, and Hell's house grows rich with steam of tears and blood. O King, we do not deem you a god, nor peer to the gods, that we kneel before your hearth, children and old men, praying. But of earth we deem you a thing made perfect, confirmed by your star, and by your converse with the blessed. You came to Thebes so swiftly and swept away the Sphinx's song, the tribute of dismay that all were bowed beneath, and made us free. A stranger, you, knowing nothing more than we, nor taught by any man, but filled by God's breath, you raised our life. So the world says; so we say.
+
+[Sidenote: vv. 40-69]
+
+Therefore now, O Lord and Chief, we come to you again; we lay our grief
+
+on your head, if you cannot find us some aid. Perhaps you have heard gods talking in the shade of night, or some man. To him who knows, men say, each chance that falls, each wind that blows has life, when he seeks counsel. Up, O chief of men, and lift your city from its grief; face your own peril! All our land still holds you as our saviour, for that help of old. Shall those who tell of you hereafter say, "By him was Thebes raised up, and after fell!" No, lift us till we slip no more. Oh, let that bird of old that made us fortunate
+
+wing back; be our Oedipus again.
+
+And let your kingdom be a land of men,
+
+not emptiness. Walls, towers, and ships--they all are nothing with no men to keep the wall.
+
+OEDIPUS.
+
+My poor, poor children! Surely long ago
+
+I have read your trouble. Stricken, well I know, you all are, stricken sore: yet truly
+
+not one so stricken to the heart as I.
+
+Your grief comes to each man apart--
+
+For his own loss, no one else's; but this heart weeps for you and me and all of us. So it is not to one sunk in sleep that you come with waking. These days I have wept many tears for your sake, and in many ways have wandered on the beating wings of thought. And finding but one hope, I have sought it
+
+[Sidenote: vv. 70-86]
+
+and followed it. I have sent Menoikeus' son, Creon, my own wife's brother, alone to Apollo's House in Delphi, to ask what word, what deed of mine, what bitter task, may save my city.
+
+And counting the days that have passed,
+
+I can only wonder what delays
+
+his journey. It is beyond all thought that he has not come, beyond all need. But when he does, then call me false and traitor, if I flee from whatever task God shows me.
+
+PRIEST.
+
+You speak at the right moment. Look there. Is that not Creon drawing near?
+
+[They all crowd to gaze where CREON is approaching in the distance.]
+
+OEDIPUS.
+
+O Lord Apollo, help! And may the star
+
+that guides him be as joyous as his appearance is!
+
+PRIEST.
+
+Oh! Surely joyous! How else should he bear that fruited laurel wreathed about his hair?
+
+OEDIPUS.
+
+We soon shall know. He is not too far for one clear-voiced.
+
+(Shouting) Ho, brother! Prince! Menoikeus' son, what message from the God?
+
+[Sidenote: vv. 87-99]
+
+CREON (from a distance).
+
+A message of joy!
+
+Enter CREON
+
+I tell you, what is now our worst trouble, if the right deed is done, shall turn to good.
+
+[The crowd, which has been full of excited hope, falls to doubt and disappointment.]
+
+OEDIPUS.
+
+But what is the message? For my blood runs neither hot nor cold at words like those.
+
+CREON.
+
+Shall I speak now, with all these pressing close, or go inside? To me both ways are fine.
+
+OEDIPUS.
+
+Speak to all! The grief that these men bear is greater than any fear for my own death.
+
+CREON.
+
+I will speak then what I heard from God. Thus says Phoebus, our Lord and Seer, in clear command. There is an unclean thing hidden in our land, eating the soil of it: you shall cast this out, and not nurture it until all help is past.
+
+OEDIPUS.
+
+How cast it out? What was the evil deed?
+
+[Sidenote: vv. 100-113]
+
+CREON.
+
+Hunt the men out from Thebes, or make them bleed who killed. For it is blood that stirs today.
+
+OEDIPUS.
+
+Who was the man they killed? Does Phoebus say?
+
+CREON.
+
+O King, there was of old King Laïus
+
+in Thebes, before you came to guide us.
+
+OEDIPUS.
+
+I know: not that I ever saw his face.
+
+CREON.
+
+It was he. And Loxias now bids us trace
+
+and strike the unknown workers of his fall.
+
+OEDIPUS.
+
+Where in God's earth are they? Or how can we find the blurred trail of such an ancient stain?
+
+CREON.
+
+In Thebes, he said. What men seek eagerly they find. It is things forgotten that slip away.
+
+OEDIPUS.
+
+And where did Laïus meet them? Did he die in Thebes, or in the hills, or some far land?
+
+[Sidenote: vv. 114-127]
+
+CREON.
+
+He had planned his journey to ask God's will in Delphi. He started and returned no more.
+
+OEDIPUS.
+
+And came there nothing back? No message, nor any of his company, that you might hear?
+
+CREON.
+
+They all were slain, save one man; blind with fear he came, remembering nothing—or almost nothing.
+
+OEDIPUS.
+
+And what was that? One thing has often brought others, if we could only catch one little clue.
+
+CREON.
+
+It was not one man, it was robbers—that he knew—who barred the road and slew him: a great band.
+
+OEDIPUS.
+
+Robbers? What robber, unless the work was planned by treason here, would dare a risk so plain?
+
+CREON.
+
+So some men thought. But Laïus lay slain, and there was none to avenge him in his evil day.
+
+[Sidenote: vv. 128-148]
+
+OEDIPUS.
+
+And what strange evil kept you from searching and acting when your master lay fallen like that?
+
+CREON.
+
+The Sphinx with her dark song was here. We had no thought for distant sorrows when death was so near.
+
+OEDIPUS.
+
+Then it falls on me. I will search and clear away this darkness. Phoebus has done well, and you too, to bring back the memory of that dead king even now. And with you I also stand for what is right, to obey the God and help this dear land. Nor is it as for someone who touches me only from far off; it is for my own sake that I must see this sin cast out. Whoever it was that killed Laius, that same wild hand may seek me too. And caring for Laius in this way is only care for my own blood. Up! Leave this altar stair, children. Take from it every suppliant branch. Then call the people of Thebes. Say it is my vow to uphold them to the end. So God shall crown our greatness, or cast us down forever.
+
+Far off; 'tis for mine own sake I must see This sin cast out. Whoe'er it was that slew Laïus, the same wild hand may seek me too: And caring thus for Laïus, is but care
+
+For mine own blood.--Up! Leave this altar-stair, Children. Take from it every suppliant bough. Then call the folk of Thebes. Say, 'tis my vow To uphold them to the end. So God shall crown Our greatness, or for ever cast us down.
+
+He goes into the Palace.
+
+PRIEST.
+
+My children, rise. The King has most lovingly promised all we came for. And may He who sent this answer, Phoebus, come as our confessed Helper to Thebes, and strong to stay the plague.
+
+[Sidenote: vv. 149-161]
+
+Who sent this answer, Phoebus, come confessed Helper to Thebes, and strong to stay the pest.
+
+The suppliants gather up their boughs and stand at the side. The chorus of Theban elders enter.
+
+CHORUS.
+
+They speak of the Oracle which they have not yet heard, and cry to APOLLO by his special cry "I-ê."
+
+A Voice, a Voice, that is borne on the Holy Way! What are you, O Heavenly One, O Word of the Houses of Gold? Thebes is bright with you, and my heart leaps; yet it is cold, and my spirit faints as I pray.
+
+I-ê! I-ê!
+
+What task, O Affrighter of Evil, what task shall your people attempt? One new as our new-come affliction, or an old toil returned with the years? Unveil yourself, you dread benediction, Hope's daughter and Fear's.
+
+They pray to ATHENA, ARTEMIS, and APOLLO.
+
+Zeus-Child who knows not death, to you I pray, O Pallas; next to your Sister, who calls Thebes her own, Artemis, named of Fair Voices, who sits on her round throne in the throng of the market way:
+
+[113] And I-ê! I-ê!
+
+And I-ê! I-ê!
+
+Apollo, the Pure, the Far-smiter; O Three that keep evil away, if of old for our city's desire, when the death-cloud hung close to her brow, you have banished the wound and the fire, oh come to us now!
+
+When the death-cloud hung close to her brow, Ye have banished the wound and the fire, Oh! come to us now!
+
+They tell of the Pestilence.
+
+Wounds beyond telling; my people sick unto death; and where is the counsellor, where is the sword of thought? And Holy Earth in her increase perishes: the child dies and the mother does not awaken. I-ê! I-ê!
+
+We have seen them, one upon another, gone as a bird is gone, souls that are flame; yes, higher, swifter they pass than fire, to the rocks of the dying Sun.
+
+Swifter they pass than fire,
+
+To the rocks of the dying Sun.
+
+They end by a prayer to ATHENA.
+
+Their city wastes unnumbered; their children lie where death has cast them, unpitied, unwept upon. The altars stand, as in seas of storm a high rock stands, and wives and mothers grey upon them weep, weep and pray.
+
+Lo, joy-cries to fright the Destroyer; a flash in the dark they rise, then die by the sobs overladen.
+
+Send help, O heaven-born Maiden, let us look on the light of her eyes!
+
+Let us look on the light of her eyes!
+
+[127] To ZEUS, that he drive out the Slayer.
+
+[_To_ ZEUS, _that he drive out the Slayer,_
+
+And Ares, the abhorred Slayer, who bears no sword, but shrieking, wrapped in fire, stands over me, make him turn, yes, fly broken, wind-wasted, high down the vexed hollow of the Vaster Sea; or back to his own Thrace, to harbour shelterless. Where Night has spared, he brings an end by day. Him, Him, O you whose hand bears the lightning brand, O Father Zeus, now with your thunder, slay and slay!
+
+Slayer, who bears no sword,
+
+But shrieking, wrapped in fire, stands over me, Make that he turn, yea, fly
+
+Broken, wind-wasted, high
+
+Down the vexed hollow of the Vaster Sea; Or back to his own Thrace,
+
+To harbour shelterless.
+
+Where Night hath spared, he bringeth end by day. Him, Him, O thou whose hand
+
+Beareth the lightning brand,
+
+O Father Zeus, now with thy thunder, slay and slay!
+
+[_To_ APOLLO, ARTEMIS, _and_ DIONYSUS.
+
+Where is your gold-strung bow,
+
+O Wolf-god, where the flow
+
+Of living arrows unconquered, our helpers against all ills? Where are the white
+
+Spears of your Sister's light,
+
+Flashing far as she walks the wolf-wild hills? And you, O Golden-crowned one,
+
+Theban and called our own,
+
+O Wine-gleam, Voice of Joy, forever more Ringed with your white Maenads,
+
+Bacchus, draw near and strike,
+
+Strike with your glad-eyed flame the God whom Gods abhor.
+
+[_During the last lines_ OEDIPUS _has
+
+come out from the Palace._
+
+OEDIPUS.
+
+You pray: but if you will hear my words And bow to their judgment, strength is near
+
+[Sidenote: vv. 218-245]
+
+For help, and a great lightening of ill. I have come to speak of this, a stranger still To all this tale, a stranger to the deed: (Otherwise, unless I were clueless, little need Had I to cast my net so wide and far:)
+
+However, I, being now as all of you are,
+
+A Theban, to all Thebans high and low
+
+Do make this proclamation: if anyone here knows
+
+By what man's hand died Laïus, your King, Labdacus' son, I charge him to bring To me his knowledge. Let him feel no fear If on a townsman's body he must clear
+
+Our guilt: the man shall suffer no great ill, But pass from Thebes, and live where else he will.
+
+[_No answer._
+
+Is it some foreigner from a foreign shore
+
+You know to have done the deed? Screen him no more! Good reward waits you now and a King's love Hereafter.
+
+Hah! If still you will not move But, fearing for yourselves or some near friend, Reject my charge, then listen to what end You drive me.--If in this place there are men Who know and do not speak, lo, I make this decree: That, while in Thebes I bear the crown, No man shall greet, no man shall shelter them, Nor give them water in their thirst, nor share In sacrifice nor prayer nor dying rites, But thrust them from our doors, the thing they hide Being this land's curse. Thus has the God replied This day to me from Delphi, and my sword I draw thus for the dead and for God's word.
+
+[Sidenote: vv. 246-273]
+
+And lastly for the murderer, be it one Hiding alone or more in unison,
+
+I speak on him this curse: even as his soul Is foul within him let his days be foul, And life unfriended grind him till he die. More: if he ever tread my hearth and I
+
+Know it, be every curse upon my head
+
+That I have spoken this day.
+
+All I have said I charge you strictly to fulfill and make
+
+Perfect, for my sake, for Apollo's sake, And this land's sake, deserted of her fruit And cast out from her gods. Nay, were all mute At Delphi, still it would be strange to leave the thing Unfollowed, when a true man and a King
+
+Lay murdered. All should search. But I, as now Our fortunes fall--his crown is on my brow, His wife lies in my arms, and common fate, Had but his issue been more fortunate,
+
+Might well have joined our children--since this red Chance has so stamped its heel on Laïus' head, I am his champion left, and, as I would
+
+For my own father, choose for ill or good This quest, to find the man who slew of old Labdacus' son, the son of Polydore,
+
+Son of great Cadmus whom Agenor old
+
+Begat, of Thebes first master. And, behold, For them that aid me not, I pray no root Nor seed in earth may bear them corn nor fruit, No wife bear children, but this present curse Cleave to them close and other woes yet worse. Enough: you other people of the land,
+
+[Sidenote: vv. 274-289]
+
+Whose will is one with mine, may Justice stand Your helper, and all gods forevermore.
+
+[_The crowd disperses._
+
+LEADER.
+
+O King, even while your curse yet hovers over My head, I answer you. I did not slay him,
+
+Nor can I point out the killer. But, God knows, if Phoebus sends this command, let Phoebus understand its meaning and reveal who did the deed.
+
+OEDIPUS.
+
+Yes, that would be fair, if he would graciously reveal it. How can a man force his God?
+
+LEADER.
+
+Next to that, I think, it would help us most ...
+
+OEDIPUS.
+
+Even if it is third, speak! Nothing should be left out.
+
+LEADER.
+
+To our High Seer on earth, vision is given most like that which High Phoebus has in heaven. Ask Tiresias: he could tell you the truth.
+
+OEDIPUS.
+
+I have thought of that too. Yes, and I have already sent two heralds. It was Creon who set me on to it.--I wonder that he has not come yet.
+
+[Sidenote: vv. 290-301]
+
+LEADER.
+
+Our other clues are weak, old signs and far away.
+
+OEDIPUS.
+
+What signs? I must question everything there is.
+
+LEADER.
+
+Some travellers killed him, the story used to be.
+
+OEDIPUS.
+
+The story, yes: but the witness, where is he?
+
+LEADER.
+
+The man has heard your curses. If he knows the taste of fear, he will not stay hidden for long.
+
+OEDIPUS.
+
+Would he fear my words, who never feared the deed?
+
+LEADER.
+
+Well, there is one who shall find him.--See, they lead our Lord Tiresias here, in whose mind
+
+All truth is born, alone among human kind.
+
+[_Enter_ TIRESIAS _led by a young disciple. He is an old blind man in a prophet's robe, dark, unkempt and sinister in appearance._
+
+OEDIPUS.
+
+Tiresias, you whose mind divines well
+
+All Truth, the spoken and the unspeakable,
+
+[Sidenote: vv. 302-321]
+
+The things of heaven and those that walk the earth; our city ... you can see, for all your lack of outward eyes, what clouds hang over her. In which, O gracious Lord, no minister
+
+Of help, no champion, can we find at all except you. For Phoebus--you have heard as well his message--to our envoy has decreed
+
+One only way of help in this great need: to find and kill or banish him who killed Laïus, our ancient King.
+
+Oh, do not grudge us anything! Question every cry of birds, and all other paths of prophecy you know. Save our city: save your own greatness: save me; save all that still groans under the dead man's wrong! See, we place ourselves in your hand. And I think no work so grand has man yet achieved, as, with all he can of chance or power, to help his fellow man.
+
+TIRESIAS (_to himself_).
+
+Ah me!
+
+A fearful thing is knowledge, when knowing helps no end. I knew this long ago,
+
+But crushed it dead. Otherwise I would never have come.
+
+OEDIPUS.
+
+What does this mean? Do you come so deep in gloom?
+
+TIRESIAS.
+
+Let me go back! Your burden shall weigh on you the less, if you consent, and mine on me.
+
+[Sidenote: vv. 322-336]
+
+OEDIPUS.
+
+Prophet, this is not lawful; nor is it kind to Thebes, who feeds you, to hide your mind like this.
+
+TIRESIAS.
+
+It is that I do not like your mind, nor the way it goes. Therefore, lest I also go astray....
+
+[_He moves to go off._ OEDIPUS _bars his road._
+
+OEDIPUS.
+
+You shall not, knowing, turn and leave us! See, we all implore you, all, on bended knee.
+
+TIRESIAS.
+
+All without light!--And never shall light shine on this dark evil that is mine ... and yours.
+
+OEDIPUS.
+
+What do you want? To know and not speak? In my need be false to me, and let your city bleed?
+
+TIRESIAS.
+
+I will not wound myself nor you. Why seek to trap and question me? I will not speak.
+
+OEDIPUS.
+
+You devil!
+
+[_Movement of_ LEADER _to check him._
+
+No; the wrath of any stone would rise at him. It lies with you to have done and speak. Is there no melting in your eyes!
+
+[Sidenote: vv. 337-351]
+
+TIRESIAS.
+
+Nothing lies with me! With you, with you there lies, I warrant, what you have never seen nor guessed.
+
+OEDIPUS (_to_ LEADER, _who tries to calm him._)
+
+How can I listen to such talk? He makes jokes about the land's suffering, and I am supposed to keep my anger silent?
+
+TIRESIAS.
+
+However much I hold it back, it will come, it will come.
+
+OEDIPUS.
+
+Then you should declare it all the more to your King.
+
+TIRESIAS.
+
+I will speak no more. As for you, if raging gives you comfort, then rage to your heart's content!
+
+[He moves to go.]
+
+OEDIPUS.
+
+Before God, I am angry, and I will speak, and I will not hold back what I see clearly. It was you, it was you, who planned this murder; yes, and, except for the actual blow, you carried it out. I know you are blind; otherwise I could swear that you, and you alone, are the murderer.
+
+TIRESIAS (returning).
+
+Is that so? Then I command you, by the power of your own words, to stand accursed, and from this hour never
+
+[Sidenote: vv. 352-363]
+
+Speak a word to me, nor to these who surround your throne. You are yourself the unclean thing.
+
+OEDIPUS.
+
+You brazen-faced man, to fling out such wild insults! Do you think you can strike at me and go free?
+
+TIRESIAS.
+
+I am free. The strong truth lives in this heart.
+
+OEDIPUS.
+
+What prompted you? I swear it was not your prophetic skill.
+
+TIRESIAS.
+
+It was you. I spoke only because you commanded me.
+
+OEDIPUS.
+
+Spoke what? What was it? Let me understand.
+
+TIRESIAS.
+
+Are you testing me? Were my words not plain before?
+
+OEDIPUS.
+
+Not your full meaning. Say the words again.
+
+TIRESIAS.
+
+You seek this man of blood: you yourself are he.
+
+OEDIPUS.
+
+It will cost you dearly to have stabbed at me twice!
+
+[Sidenote: vv. 364-377]
+
+TIRESIAS.
+
+Shall I say more, to see you rage again?
+
+OEDIPUS.
+
+Oh, say as much as you like: it will all be useless.
+
+TIRESIAS.
+
+You live with those closest to you in the most deadly shame, seeing neither yourself nor them.
+
+OEDIPUS.
+
+Do you think it will help you to keep talking like this?
+
+TIRESIAS.
+
+Yes, until the strength of Truth grows weak.
+
+OEDIPUS.
+
+It is weak only to you. You have no share in truth, you blind man, blind in eyes, ears, and heart.
+
+TIRESIAS.
+
+Your scornful words are more blind and more pitiful, and everyone who hears them will throw them back at you: soon, soon.
+
+OEDIPUS.
+
+You child of Night, neither I nor any free
+
+And sighted man would harm a thing like you.
+
+TIRESIAS.
+
+God is enough. It is not my fate to fall by your hand. He knows and will accomplish all.
+
+[Sidenote: vv. 378-402]
+
+OEDIPUS (with a flash of discovery).
+
+Ha! Creon! Is this plot his or yours?
+
+TIRESIAS.
+
+It is you yourself who hates you. Creon does not hate you.
+
+OEDIPUS.
+
+O wealth and majesty, O conquering skill that carved life's rebellious pathways to my will, what is your heart but bitterness, if now for this poor crown Thebes bound upon my brow, a gift, a thing I never sought—for this crown Creon the stern and true, Creon my own comrade, comes creeping in the dark to curse and slay me; sending first this magic-man and schemer, this false beggar-priest, whose eye is sharp for gold and blind for prophecy? Speak, you. When have you ever shown yourself strong in helping? The She-Wolf of the woven song
+
+Came, and your art could find no word, no breath, to save your people from her riddling death. It was hardly a secret, that, for common men to unravel. There was need of seer-craft then. And you had none to show. No bird, no flame, no God revealed it to you. It was I who came, simple Oedipus, untaught in wizard's lore, and read her secret, and she spoke no more. And now you think to hunt me out, and stand foremost in honor at King Creon's side. I think you will be sorry, you and he
+
+Who shares your sin-hunt. You look to me
+
+[Sidenote: vv. 403-424]
+
+Like an old man; otherwise, I swear this day would bring on you the death you plot for your King.
+
+LEADER.
+
+Lord Oedipus, these are just angry words—both yours and the Prophet's. They do not help us. We must work together, for better or worse, to find how best to obey God's oracle.
+
+TIRESIAS.
+
+King though you are, you must still allow me the right to answer you equally. I too have power,
+
+at least this much, since I am no servant of yours, but Lord Apollo's. Nor do I sign
+
+where Creon tells me to.
+
+I am blind, and you have mocked my blindness. Yes, I will speak now. You have eyes, but you cannot see your own deeds, nor where you are, nor what things live with you. Do you know where you were born? You do not; and without knowing it, you have brought hatred upon the living and the dead, upon all who were your own. For that, rising across your path, a mother's and a father's curse—two-handed, shod with fire—shall drive you from the homes of men, striking your eyes, which now have light, but then will have darkness. Yes, shriek! What harbor of the sea, what wild Kithairon will not cry back to you in answer, when you hear what bridal song, what wind among the torches, carried your strong sail to its haven—not of peace but of blood? Yes, evils upon evils in multitudes
+
+[Sidenote: vv. 425-438]
+
+you do not see, which shall soon lay you low—low as yourself, low as your children. Go, heap scorn on Creon and on my words as well:
+
+for this I tell you, never was there a fall of pride, nor shall there be, like yours this day.
+
+OEDIPUS.
+
+To endure such words from this creature? Out, I say! Out to destruction! Yes, and quickly, before—
+
+[The LEADER restrains him.]
+
+Enough then! Turn and get yourself from my door.
+
+TIRESIAS.
+
+I would not have come if you had not called me here.
+
+OEDIPUS.
+
+I did not know you were such a dark fool. I swear
+
+it would have been long before I called you, had I known.
+
+TIRESIAS.
+
+Fool, you say? Am I truly such a one? The two who gave you birth—they held me wise.
+
+OEDIPUS.
+
+Birth? Stop! Who were they? Speak your prophecies.
+
+TIRESIAS.
+
+This day shall give you birth and blot you out.
+
+[Sidenote: vv. 439-455]
+
+OEDIPUS.
+
+Oh, riddles everywhere and words of doubt!
+
+TIRESIAS.
+
+Yes. You were their best reader long ago.
+
+OEDIPUS.
+
+Laugh on. I swear you shall still find me so.
+
+TIRESIAS.
+
+That makes your pride and your calamity.
+
+OEDIPUS.
+
+I have saved this land, and care not if I die.
+
+TIRESIAS.
+
+Then I will go. Give me your arm, my child.
+
+OEDIPUS.
+
+Yes, help him quickly. Seeing him there drives my heart wild. Once gone, he will not vex me more.
+
+TIRESIAS (turning again as he goes).
+
+I do not fear you; nor will I go before
+
+that word is spoken which I came to speak. How can you ever touch me? You seek with threats and loud proclamations the man whose hand slew Laïus. Look, I tell you, he stands here. He is called a stranger, but these days shall prove him a true Theban, nor shall he praise his birthright. Blind, who once had seeing eyes; beggared, who once had riches; in strange guise,
+
+[Sidenote: vv. 456-478]
+
+his staff groping before him, he shall crawl over unknown earth, and voices around him call: "Behold the brother-father of his own
+
+children, the seed, the sower and the sown, shame to his mother's blood, and to his father—son, murderer, incest-worker."
+
+Cool your anger with thought of these things, and if you find that anything fails, then hold my craft a thing of nothing.
+
+[He goes out. OEDIPUS returns to the Palace.]
+
+CHORUS.
+
+[They sing of the unknown murderer,]
+
+What man, what man is he whom the voice of Delphi's cell has named of the bloody hand, of the deed no tongue may tell? Let him fly, fly, for his need
+
+He has found him; oh, where is the speed that flew with the winds of old, the team of North-Wind's spell? For there are feet that follow. Yes, thunder-shod and girt with fire he comes, the Child of God; and with him are they that fail not, the Sin-Hounds risen from Hell.
+
+For the mountain has spoken, a voice has flashed from amid the snows, that the wrath of the world go seek for the man whom no man knows. Is he fled to the wild forest,
+
+To caves where the eagles nest?
+
+O angry bull of the rocks, cast out from thy herd-fellows!
+
+[Sidenote: vv. 479-512]
+
+Rage in his heart, and rage across his way, he labors ever to beat from his ears away the word that floats about him, living, wherever he goes.
+
+[_And of the Prophet's strange accusation._
+
+Yet strange, passing strange, the wise augur and his lore; and my heart it cannot speak; I deny not nor assent, but float, float in wonder at things after and before. Did there lie between their houses some old wrath unspent, that Corinth against Cadmus should do murder by the way? No tale thereof they tell, nor no sign thereof they show. Who dares to rise for vengeance and cast Oedipus away for a dark, dark death long ago!
+
+Ah, Zeus knows, and Apollo, what is dark to mortal eyes; they are Gods. But a prophet, has he vision more than mine? Who has seen? Who can answer? There are wise men and unwise. I will wait, I will wait, for the proving of the sign. But I listen not nor hearken when they speak Oedipus ill. We saw his face of yore, when the riddling singer passed; and we knew him that he loved us, and we saw him great in skill. Oh, my heart shall uphold him to the last!
+
+[Sidenote: vv. 513-531]
+
+_Enter_ CREON.
+
+CREON.
+
+Good brother citizens, a frantic word
+
+I hear is spoken by our chosen Lord
+
+Oedipus against me, and here am come
+
+Indignant. If he dreams, amid all this doom that weighs upon us, he has had from me or deed or lightest thought of injury, ... Before God, I have no care to see the sun longer with such a groaning name. Not one wound is it, but a multitude, if now
+
+All Thebes must hold me guilty—yes, and thou and all who loved me—of a deed so foul.
+
+LEADER.
+
+If words were spoken, it was scarce the soul that spoke them: it was some sudden burst of wrath.
+
+CREON.
+
+The charge was made, then, that Tiresias has made answer false, and that I bribed him, I?
+
+LEADER.
+
+It was—perhaps for jest. I know not why.
+
+CREON.
+
+His heart beat true, his eyes looked steadily and fell not, laying such a charge on me?
+
+LEADER.
+
+I know not. I have no eyes for the thing my masters do.—But see, here comes the King.
+
+[Sidenote: vv. 532-550]
+
+_Enter_ OEDIPUS _from the Palace._
+
+OEDIPUS.
+
+How now, assassin? Walking at my gate
+
+With eye undimmed, thou plotter demonstrate against this life, and robber of my crown? God help thee! Me! What was it set me down thy butt? So dull a brain hast thou found in me aforetime, such a faint heart, not to see thy work betimes, or seeing not to smite? Art thou not rash, this once! It needeth might of friends, it needeth gold, to make a throne thy quarry; and I fear me thou hast none.
+
+CREON.
+
+One thing alone I ask thee. Let me speak as thou hast spoken; then, with knowledge, wreak thy judgement. I accept it without fear.
+
+OEDIPUS.
+
+More skill hast thou to speak than I to hear thee. There is peril found in thee and hate.
+
+CREON.
+
+That one thing let me answer ere too late.
+
+OEDIPUS.
+
+One thing be sure of, that thy plots are known.
+
+CREON.
+
+The man who thinks that bitter pride alone can guide him, without thought—his mind is sick.
+
+[Sidenote: vv. 551-562]
+
+OEDIPUS.
+
+Whoever thinks he can kill his brother by a trick and not suffer for it himself is blind.
+
+CREON.
+
+What you say is more than fair. But tell me what wrong you imagine I have done you. Speak.
+
+OEDIPUS.
+
+Did you urge me, or did you not urge me, to seek advice from that prophet?
+
+CREON.
+
+That was my judgment then, and I still judge the same way now.
+
+OEDIPUS.
+
+[_Suddenly seeing a mode of attack._
+
+How many years have passed since Laïus ...
+
+[_The words seem to choke him._
+
+CREON.
+
+Speak on. I cannot understand you when you stop like that.
+
+OEDIPUS.
+
+[_With an effort._
+
+Passed in that bloody storm from the sight of men?
+
+CREON.
+
+Many long years. I can scarcely count them rightly.
+
+OEDIPUS.
+
+At that time was this seer in Thebes, or how?
+
+[Sidenote: vv. 563-573]
+
+CREON.
+
+He was; most wise and honored, just as he is now.
+
+OEDIPUS.
+
+At that time did he ever speak my name?
+
+CREON.
+
+No. At least it never came to my ear.
+
+OEDIPUS.
+
+Did you hold any search for those who slew your King?
+
+CREON.
+
+Indeed we did, but found nothing.
+
+OEDIPUS.
+
+How did the all-knowing seer come to leave it so?
+
+CREON.
+
+Ask him! I do not speak where I cannot know.
+
+OEDIPUS.
+
+One thing you can answer, with full knowledge, I am sure.
+
+CREON.
+
+Speak it. If it is true, I will not conceal it.
+
+OEDIPUS.
+
+This: that until he talked with you, the seer never spoke of me as Laïus' murderer.
+
+[Sidenote: vv. 574-589]
+
+CREON.
+
+I do not know if he has spoken so now.
+
+I did not hear him.--But let me ask, and you answer me truly, as I have answered you.
+
+OEDIPUS.
+
+Ask, ask! You shall find no murder in me.
+
+CREON.
+
+My sister has been your wife for many a day?
+
+OEDIPUS.
+
+That charge I cannot deny.
+
+CREON.
+
+You reign, giving equal reign to her?
+
+OEDIPUS.
+
+I always attend to her desire.
+
+CREON.
+
+Were we not all as one—she, you, and I?
+
+OEDIPUS.
+
+Yes, you false friend! There lies your treachery.
+
+CREON.
+
+Not so! No, just follow me and examine
+
+your own charge closely. Do you think that any man would rather rule and be afraid than rule and sleep untroubled? No, where lives the fool—
+
+[Sidenote: vv. 590-613]
+
+I do not know them, nor am I one of them—
+
+who cares more to bear a monarch's name than to do a monarch's deeds? As I stand now, I obtain all I desire from your hand.
+
+If I were the King, fully half my deeds would be done to obey the will of others, not my own. Would that be as sweet, when all was told, as this calm, griefless princedom that I hold and my quiet power? Am I so blind of brain that ease with glory tires me, and I must eagerly change them? All men now bid me Godspeed, all smile to greet me. If a man has need of you, it is me he calls to the gate, knowing that on my word hangs the fate of half he craves. Is a life like mine a thing to cast aside and plot to be a King?
+
+Does a sane man turn villain in an hour? For me, I never lusted thus for power
+
+nor bore with any man who turned such lust to doing.—But enough. I claim only just
+
+question. Go first to Pytho; find if well and true I did report God's oracle.
+
+Next, seek in Thebes for any plots entwined between this seer and me; which if you find, then seize and strike me dead. I myself that day will sit with you as judge and bid you slay! But do not damn me on one man's guess.—It is all unjust: to call a traitor true, to call
+
+a true man traitor with no cause nor end! And this I tell you. He who plucks a friend out from his heart has lost a treasured thing dear as his own dear life.
+
+But Time shall bring
+
+[Sidenote: vv. 614-626]
+
+truth back. It is Time alone that can make men know what hearts are true; the false one day can show.
+
+LEADER.
+
+To one who fears to fall, his words are wise, O King; in thought the swift do not win the prize.
+
+OEDIPUS.
+
+When someone is quick to plot against my rule, then I am quick to plot back. Wait patiently, and his scheme will have succeeded before I act, and mine will have failed forever.
+
+CREON.
+
+What then? Do you intend to banish me?
+
+OEDIPUS.
+
+Death is the punishment I choose, not banishment.
+
+CREON.
+
+Will you never soften, never trust your friend?
+
+OEDIPUS.
+
+First I would see how traitors meet their end.
+
+CREON.
+
+I see you will not think.
+
+OEDIPUS.
+
+I think to save my life.
+
+[Sidenote: vv. 627-633]
+
+CREON.
+
+Think, too, of mine.
+
+OEDIPUS.
+
+Yours, you born scoundrel!
+
+CREON.
+
+Yes.... What if you are blind in everything?
+
+OEDIPUS.
+
+The King must be obeyed.
+
+CREON.
+
+Not if the King does evil.
+
+OEDIPUS.
+
+To your King! Ho, Thebes, my own!
+
+CREON.
+
+Thebes is my country, not the King's alone.
+
+[OEDIPUS _has drawn his sword; the Chorus show signs of breaking into two parties to fight for_ OEDIPUS _or for_ CREON, _when the door opens and_ JOCASTA _appears on the steps._
+
+LEADER.
+
+Stay, Princes, stay! See, on the Castle stair the Queen Jocasta stands. Show her your quarrel. She will calm it as is right.
+
+[Sidenote: vv. 634-648]
+
+JOCASTA.
+
+Foolish men, what do you want with this angry surge of words that blinds your hearts? Is there no pity in your eyes, when all our city lies
+
+bleeding, for you to pursue your private hatreds?... Alas, my lord, come in!—And you, Creon, go back to your own house. Do not stir up such dangerous trouble over griefs that are nothing.
+
+CREON.
+
+Sister, it is your husband's pleasure,
+
+our King, to do me deadly wrong. His sentence is passed on me: banishment or death.
+
+OEDIPUS.
+
+I found him ... I do not deny what he says, my Queen ... plotting against my life with cunning and malice.
+
+CREON.
+
+You Gods, if such a thing has ever been in my thoughts, may I never see any health on earth again, but, covered over with curses, die!—Enough. There is my oath.
+
+JOCASTA.
+
+In God's name, Oedipus, believe him—both for my sake, and for these men whose hearts are all yours, and for my brother's oath as well.
+
+[Sidenote: vv. 649-664]
+
+LEADER. [_Strophe._
+
+Yield; consent; think! My Lord, I beg you!
+
+OEDIPUS.
+
+What would you have me do?
+
+LEADER.
+
+Do not reject one who never broke his word before and now is strengthened by his great oath.
+
+OEDIPUS.
+
+Do you know what this prayer means?
+
+LEADER.
+
+Yes, truly!
+
+OEDIPUS.
+
+Then say the true meaning.
+
+LEADER.
+
+I would not have you cast to the disgrace of guilt, where none is proven, one who has sworn an oath and whom you once loved.
+
+OEDIPUS.
+
+Is that what you seek? For me, then ... understand well ... you seek death or exile from the land.
+
+LEADER.
+
+No, by the God of Gods, the all-seeing Sun! May he desert me here, and every friend with him, to death and the uttermost curse, if my heart could ever dream of such an end!
+
+[Sidenote: vv. 665-680]
+
+But it bleeds, it bleeds sorely, in a land half slain,
+
+if we add to the griefs of before the griefs of you two.
+
+OEDIPUS.
+
+Oh, let him go, even if it means utterly
+
+my death, or flight from Thebes in beggary. It is your sad lips, not his, that make me feel pity. Him I shall hate, wherever he goes.
+
+CREON.
+
+I see your mercy moving full of hate
+
+and slow; your wrath came swift and desperate. I think, of all the pain that such a heart spreads around, it bears the bitterest part itself.
+
+OEDIPUS.
+
+Oh, leave me and go!
+
+CREON.
+
+I go, wronged sorely by you. These friends will trust me as before.
+
+[CREON _goes._ OEDIPUS _stands apart lost in trouble of mind._
+
+LEADER.   [_Antistrophe._
+
+Queen, will you lead him to his house again?
+
+JOCASTA.
+
+I will, when I have heard.
+
+[Sidenote: vv. 681-696]
+
+LEADER.
+
+Some word fell between them, some blind imagining. Things known to be foolish can still sting.
+
+JOCASTA.
+
+It rose from both of them?
+
+LEADER.
+
+From both of them.
+
+JOCASTA.
+
+Yes, and what was the word?
+
+LEADER.
+
+Surely there is enough evil stirred already, and Thebes heaves on the swell
+
+Of storm. Oh, leave this lying where it fell.
+
+OEDIPUS.
+
+So be it, you wise counsellor! Make light of my wrong, and blunt my purpose before it strikes.
+
+LEADER.
+
+O King, I have answered more than once. Clearly I would be mad, lost to all wise judgment,
+
+To seek to cast you from us. It was from you we saw old blue sky and summer seas, when Thebes in the storm and rain
+
+Reeled, like one about to die.
+
+Oh, if you can, again
+
+Blue sky, blue sky...!
+
+[Sidenote: vv. 697-713]
+
+JOCASTA.
+
+Husband, in God's name, say what ill has happened, that you should seek so dire a feud.
+
+OEDIPUS.
+
+I will, wife. I have more regard for you than for these men. Your brother plots to murder me.
+
+JOCASTA.
+
+Speak on. Make all your charge. Only be clear.
+
+OEDIPUS.
+
+He says that I am Laïus' murderer.
+
+JOCASTA.
+
+Says it himself? Says he has witnesses?
+
+OEDIPUS.
+
+No, of himself he ventures nothing. It is this priest, this hellish seer, who makes all the tale.
+
+JOCASTA.
+
+The seer? Then tear your terrors like a veil and take free breath. A seer? No human thing born on the earth has power for conjuring truth from the dark of God.
+
+Come, I will tell an old tale. There came once an oracle
+
+To Laïus: I say not from the God
+
+Himself, but from the priests and seers who trod his sanctuary: if ever a son were bred
+
+From him and me, by that son's hand, it said,
+
+[Sidenote: vv. 714-732]
+
+Laïus must die. And he, the tale yet stays among us, at the crossing of three ways
+
+Was slain by robbers, strangers. And my son— God's mercy!—scarcely the third day was gone when Laïus took him, and by another's hand
+
+Out on the desert mountain, where the land is rock, cast him to die. Through both his feet they drove a blade of iron. Thus did we cheat Apollo of his will. My child could slay
+
+No father, and the King could cast away
+
+The fear that dogged him, by his child to die murdered. Behold the fruits of prophecy! Which heed not you! God needs not that a seer help him, when he would make his dark things clear.
+
+OEDIPUS.
+
+Woman, what turmoil has your story wrought within me! What up-stirring of old thought!
+
+JOCASTA.
+
+What thought? It turns you like a frightened thing.
+
+OEDIPUS.
+
+It was at the crossing of three ways this King was murdered? So I heard or so I thought.
+
+JOCASTA.
+
+That was the tale. It is not yet forgotten.
+
+OEDIPUS.
+
+The crossing of three ways! And in what land?
+
+[Sidenote: vv. 733-746]
+
+JOCASTA.
+
+Phokis it is called. A road on either hand from Delphi comes and Daulia, in a glen.
+
+OEDIPUS.
+
+How many years and months have passed since then?
+
+JOCASTA.
+
+It was but a little time before the proclamation was made of you as king that the tidings came.
+
+OEDIPUS.
+
+My God, what have you willed to do with me?
+
+JOCASTA.
+
+Oedipus, speak! What is it troubles you?
+
+OEDIPUS.
+
+Ask me not yet. But say, what build, what height had Laïus? Did he ride full of youth and might?
+
+JOCASTA.
+
+Tall, with the new white gleaming on his brow, he walked. In shape just such a man as you.
+
+OEDIPUS.
+
+God help me! I much fear that I have wrought a curse on my own head, and knew it not.
+
+JOCASTA.
+
+How do you mean? O my King, I look on you and tremble.
+
+[Sidenote: vv. 747-760]
+
+OEDIPUS (to himself).
+
+Horror, if the blind can see!
+
+Answer but one thing and it will all be clear.
+
+JOCASTA.
+
+Speak. I will answer though I shake with fear.
+
+OEDIPUS.
+
+Went he with scant array, or a great band of armèd followers, like a lord of land?
+
+Went he with scant array, or a great band Of armèd followers, like a lord of land?
+
+JOCASTA.
+
+Four men were with him, one a herald; there was one chariot, where Laïus rode alone.
+
+OEDIPUS.
+
+Ah me! It is clear now.
+
+Woman, who could bring to Thebes the story of that man's killing?
+
+JOCASTA.
+
+A house-slave, the one man they failed to kill.
+
+OEDIPUS.
+
+The one man...? Is he in the house today?
+
+JOCASTA.
+
+Indeed no. When he came that day, and found you on the throne where Laïus once sat crowned, he took my hand and begged me earnestly
+
+[Sidenote: vv. 761-779]
+
+to send him to the mountain heights, to be a herdsman, far from any sight or call
+
+of Thebes. And there I sent him. He was a slave good-hearted, worthy of a far greater reward.
+
+OEDIPUS.
+
+Can you find him? I would see this herdsman, and soon.
+
+JOCASTA.
+
+It is easy. But what would you want with the herdsman?
+
+OEDIPUS.
+
+I fear my own voice, lest it spoke a word too much; about this he must tell me the truth.
+
+JOCASTA.
+
+The man shall come. My lord, I think I too should know what fear causes you this distress.
+
+OEDIPUS.
+
+You shall. When I am tossed to such a height of dark foreboding, woman, when my mind
+
+faces such straits as these, where should I find a mightier love than yours?
+
+My father—thus I tell you the whole tale—was Polybus, in Corinth King; my mother Meropê
+
+of Dorian line. And I was held to be
+
+the proudest in Corinthia, until one day
+
+a thing happened: strange it was, but in no way fit for such wonder and such rage as mine. It was a feast, and someone flushed with wine
+
+[Sidenote: vv. 780-807]
+
+cried out at me that I was no true son
+
+of Polybus. Oh, I was angry! That one
+
+day I kept silence, but the next morning
+
+I sought my parents, told that tale of scorn and demanded the truth; and they rose in their pride and struck the mocker.... Yes, they satisfied all my desire; yet still the doubt gnawed my heart, and still the story spread abroad. At last I rose—my father knew not, nor my mother—and went forth to Pytho's floor to ask. And God in that for which I came rejected me, but around me, like a flame, his voice flashed other answers, things of woe, terror, and desolation. I must know
+
+my mother's body and beget upon it
+
+a race no mortal eye could bear to look upon,
+
+and spill in murder my own father's blood. I heard, and, hearing, straight from where I stood, no landmark but the stars to light my way, fled, fled from the dark south where Corinth lay, to lands far off, where never I might see my doom of scorn fulfilled. On bitterly
+
+I strode, and reached the region where, so says your tale, that King of Thebes was struck to death.... Wife, I will tell you true. As one in a daze I walked, until, at the crossing of three ways, a herald, like your tale, and over his head a man behind strong horses charioted
+
+met me. And both would turn me from the path, he and a slave in front. And I in wrath struck him that pushed me—it was a groom who led the horses. Not a word the master said,
+
+[Sidenote: vv. 808-828]
+
+but watched, and as I passed him on the road down on my head his iron-branched goad
+
+stabbed. But, by heaven, he regretted it! In a flash I swung my staff and saw the old man crash back from his car in blood.... Then all of them I killed.
+
+Oh, if that man's unspoken name had anything of Laïus in him, in God's eye
+
+what man moves more miserable than I, more dogged by the hate of heaven! No man, kin nor stranger, any more may take me in;
+
+No one may greet me with a word, but all cast me out of their houses. And it was my own self that laid these curses upon my life. And I hold the dead man's wife in these polluting arms that spilled his soul. Am I a thing born evil? Am I foul
+
+in every vein? Thebes now banishes me, and never in this exile must I see
+
+my ancient people of Corinth, never tread the land that bore me; else my mother's bed shall be defiled, and Polybus, my good
+
+father, who loved me well, be rolled in blood. If one should dream that such a world began in some slow devil's heart that hated man, who could deny him? God, as you are clean, do not let this happen, oh, do not let this sin come to be, that I ever look on such a day!
+
+Away from all sight of mankind,
+
+let me fall into darkness before such a fate
+
+touches me, so unclean and so desolate!
+
+[Sidenote: vv. 829-850]
+
+LEADER.
+
+I tremble too, O King; but until you hear from the man who saw it, oh, let hope conquer fear.
+
+OEDIPUS.
+
+I still have one shred of hope, and therefore will wait for the herdsman's coming. That is all.
+
+JOCASTA.
+
+He shall come. But what more do you seek?
+
+OEDIPUS.
+
+This. If we examine him closely and find he speaks as you have said, then I am lifted from my dread.
+
+JOCASTA.
+
+What do you mean? Was there something that I said?
+
+OEDIPUS.
+
+You said he spoke of robbers, a great band, that slaughtered Laius' men. If he still holds to the same tale, the guilt does not come my way. One man cannot be a band. But if he says
+
+one lonely traveler, then clearly
+
+this is God's finger pointing toward me.
+
+JOCASTA.
+
+Be sure of this. He told the story so
+
+when first he came. All who heard him know,
+
+[Sidenote: vv. 850-870]
+
+not only I. He cannot change again
+
+now. And if he should change, O Lord of men, no change of his can make the prophecy
+
+of Laius' death come true. He was to die slain by my son. So Loxias spoke. My son! He slew no man, that poor deserted one
+
+that died. And I will no more turn my eyes this way nor that for all their prophecies.
+
+OEDIPUS.
+
+Woman, you counsel well. Yet do not let it escape you. Send and have the herdsman brought.
+
+JOCASTA.
+
+That I will. Come. You know I never would do nor think of anything, except as you would have it so.
+
+[JOCASTA and OEDIPUS go together into the Palace.]
+
+CHORUS.
+
+[They pray to be free from such great sins as they have just heard spoken of.]
+
+[Strophe.]
+
+Toward God's great mysteries, oh, let me move unstained until I die
+
+in speech or doing; for the laws thereof are holy, walkers upon ways above,
+
+born in the far blue sky.
+
+Their father is Olympus uncreated;
+
+no man has made nor told
+
+their being; neither shall Oblivion set
+
+[Sidenote: vv. 870-893]
+
+sleep on their eyes, for in them lives a great spirit and grows not old. [Antistrophe.]
+
+[They wonder if these sins are all due to pride and if CREON has guilty ambitions;]
+
+It is Pride that breeds the tyrant; drunk deep with perilous things is she,
+
+which bring not peace: up, reeling, steep on steep she climbs, till lo, the rock-edge, and the leap to that which must be,
+
+the land where the strong foot is no more strong! Yet surely there is Pride
+
+that saves a city; God preserve it long! I judge not. Only through all the maze of wrong be God, not man, my guide. [Strophe.]
+
+[Or if TIRESIAS can really be a lying prophet with no fear of God; they feel that all faith in oracles and the things of God is shaken.]
+
+Is there a priest who moves among the altars ruthless in deed and word,
+
+fears not the presence of his god, nor falters lest Right at last be heard?
+
+If such people exist, then let some punishment be given that fits their ill-fated pride,
+
+They who will not accept their gain where Justice is, who will not keep their lips from blasphemies, who rashly lay hands upon the things of heaven that are sanctified from man's touch.
+
+In a world where such things happen,
+
+What spirit has shield or spear
+
+[747] To protect him secretly
+
+To ward him secretly
+
+From the arrow that strikes from hiding? If honor is given to such things,
+
+Why should I dance my dance?
+
+[751] I will go no more with prayers and adorations to Earth's deep Heart of Stone,
+
+I go no more with prayers and adorations To Earth's deep Heart of Stone,
+
+Nor to the Abantes' floor, nor where the nations kneel at Olympia's throne,
+
+Until all this darkness is made light, for the finger of man to touch and know.
+
+O You who rule—if men rightly call
+
+Your name on earth—O Zeus, you Lord of all and undying Strength, do not let these things linger unknown, tossed to and fro.
+
+For the oracle has grown faint,
+
+And they thrust it aside, away; and no longer visible is
+
+Apollo to save or slay;
+
+And the things of God, they fail like mist on the wind away.
+
+[761] JOCASTA.
+
+JOCASTA.
+
+Lords of the land, the path my thoughts have taken leads me in worship to these shrines of God with flowers and incense flame. Such a terrible storm shakes the King—sin, dread, and every form of grief the world knows. It is the wise man's way to judge tomorrow by yesterday;
+
+[764] Which he never does, but gives eye and ear to all who speak, if only they will speak of fear. And seeing that no word of mine has power to heal his torment, therefore I come out to you in secret, O Slayer of the Wolf, O Lord of Light,
+
+Which he doth never, but gives eye and ear To all who speak, will they but speak of fear. And seeing no word of mine hath power to heal His torment, therefore forth to thee I steal, O Slayer of the Wolf, O Lord of Light,
+
+Apollo: you are near us, and by right
+
+You hold us as your own: to you in prayer I fall.
+
+[768] Oh, show us still some path that is not all unclean; for now our captain's eyes are dim with dread, and the whole ship must follow him.
+
+Oh, show us still some path that is not all Unclean; for now our captain's eyes are dim With dread, and the whole ship must follow him.
+
+[770] STRANGER.
+
+STRANGER.
+
+Good masters, is there one of you who could bring my steps to the house of Oedipus, your King? Or, better, to himself if that may be?
+
+LEADER.
+
+This is the house and he is within; and she whom you see is the mother of his royal children.
+
+[775] STRANGER.
+
+STRANGER.
+
+Being wife to such a man, may she live happy indeed
+
+And surrounded by happy faces!
+
+JOCASTA.
+
+To one so fair of speech may the Gods give like blessing, courteous stranger; it is your due. But say what leads you here. Can we do what you wish in anything, or do you have news to bring?
+
+[781] STRANGER.
+
+STRANGER.
+
+Good news, O Queen, for you and for the King.
+
+JOCASTA.
+
+What is it? And from what prince do you come?
+
+STRANGER.
+
+I come from Corinth. And my tale, I believe, will give you joy, yet perhaps also pain.
+
+JOCASTA.
+
+What news can have that twofold power? Be plain.
+
+STRANGER.
+
+It is said in Corinth that the gathering
+
+Of people will make your lord our chosen King.
+
+JOCASTA.
+
+How? Is old Polybus in power no more?
+
+STRANGER.
+
+Death has a greater power. His reign is over.
+
+JOCASTA.
+
+What are you saying? Dead? Oedipus' father dead?
+
+STRANGER.
+
+If I speak falsely, let me die in his place.
+
+JOCASTA.
+
+Ho, maiden! Go to our master! Hurry fast and tell this news.
+
+[803] Where do you stand now,
+
+Where stand ye at the last
+
+[805] You oracles of God? For many a year
+
+Ye oracles of God? For many a year
+
+Oedipus fled before that man, in fear
+
+Of killing him. And look—we find him thus slain by a chance death, not by Oedipus.
+
+[809] OEDIPUS.
+
+OEDIPUS.
+
+O wife, O face I love to look upon,
+
+Why do you call me from where I sat alone?
+
+JOCASTA.
+
+Listen, and consider from what this man tells how these proud priests and their oracles come to an end.
+
+OEDIPUS.
+
+Where does he come from? And what news does he have for us?
+
+JOCASTA.
+
+From Corinth; he brings news that Polybus
+
+Your father is no more. He has met his death.
+
+OEDIPUS.
+
+How? Stranger, speak yourself. What she is saying ...
+
+STRANGER.
+
+Is true. If that is the first news you seek, I tell you, Polybus lies in his grave.
+
+OEDIPUS.
+
+Not murdered? How? Some passing illness?
+
+STRANGER.
+
+A slight thing brings an old life to its rest.
+
+[Sidenote: vv. 962-978]
+
+OEDIPUS.
+
+Poor father! So it is by sickness he is dead?
+
+STRANGER.
+
+The growing years lay heavy on his head.
+
+OEDIPUS.
+
+O wife, why then should man fear any more the voice of Pytho's shrine, or cower before these birds that shriek above us? They foretold that I would be my father's murderer; and look, he lies dead in Corinth, and here I am
+
+And never touched the sword. Or did he die in grief for me who left him? In that way I may have caused his death. But come what may, he sleeps in his grave and with him all this deadly prophecy, of no worth at all.
+
+JOCASTA.
+
+Dear Lord, did I not show you clearly long ago?
+
+OEDIPUS.
+
+Indeed, yes. I was twisted by my own fear.
+
+JOCASTA.
+
+Now you will cast it from you, and forget.
+
+OEDIPUS.
+
+Forget my mother? It is not over yet.
+
+JOCASTA.
+
+What should man do with fear, who has only Chance above him, and no sight or governance
+
+[Sidenote: vv. 979-993]
+
+Of things to come? To live as life may run, no fear, no worry, would be wisest under the sun. And you, do not fear your mother. Prophets consider a deed done that is only done in a dream. And he to whom these things mean nothing will best bear his burden.
+
+OEDIPUS.
+
+All you advise would be good, except that my mother still lives. And though your words are wise, for good or ill I still fear her.
+
+JOCASTA.
+
+Think of your father's tomb! Like light across our darkness it has come.
+
+OEDIPUS.
+
+Great light; but while she lives I flee from her.
+
+STRANGER.
+
+What woman, Prince, fills you so with fear?
+
+OEDIPUS.
+
+Meropê, friend, who lived with Polybus.
+
+STRANGER.
+
+What in Queen Meropê should frighten you so?
+
+OEDIPUS.
+
+A voice of God, stranger, of terrible meaning.
+
+STRANGER.
+
+Fit for my ears? Or of some secret kind?
+
+[Sidenote: vv. 994-1009]
+
+OEDIPUS.
+
+No, you must hear, and Corinth too. Long ago Apollo spoke a doom, that I should know
+
+My mother's flesh, and with my own hand spill my father's blood. It is that, and not my will, that has kept me always far from Corinth. So; life has dealt kindly with me, yet men know on earth no comfort like a mother's face.
+
+STRANGER.
+
+It is that which has kept you exiled in this place?
+
+OEDIPUS.
+
+That, and the fear too of my father's blood.
+
+STRANGER.
+
+Then, surely, Lord, I came only for your good, it would be well if from that fear I set you free.
+
+OEDIPUS.
+
+Ah, if you could! There would be rich reward for you.
+
+STRANGER.
+
+To tell the truth, I had hoped to lead you home now, and to get some good for myself from it.
+
+OEDIPUS.
+
+No; where my parents are I will not go.
+
+STRANGER.
+
+My son, it is very clear you do not know what road you are going.
+
+OEDIPUS.
+
+How? In God's name, tell me!
+
+How is it clear?
+
+[Sidenote: vv. 1010-1019]
+
+STRANGER.
+
+It is this that keeps you so long away from Corinth?
+
+OEDIPUS.
+
+It is the fear that that word may one day come true for me.
+
+STRANGER.
+
+Fear that you may take defilement from the two who gave you birth?
+
+OEDIPUS.
+
+That is it, old man, that is what fills the earth with terror.
+
+STRANGER.
+
+Then all your terror has been for nothing.
+
+OEDIPUS.
+
+How? Were your King and Queen not my parents?
+
+STRANGER.
+
+Polybus was nothing to you
+
+In blood.
+
+OEDIPUS.
+
+How? He, my father!
+
+STRANGER.
+
+That was he as much as I, but no more.
+
+OEDIPUS.
+
+You are nothing; it was he who fathered me.
+
+[Sidenote: vv. 1020-1028]
+
+STRANGER.
+
+It was not I who fathered Oedipus, nor was it he.
+
+OEDIPUS.
+
+What wild
+
+fancy, then, made him name me as his child?
+
+STRANGER.
+
+You were his child—by gift. Long years ago my own hand brought you to him.
+
+OEDIPUS.
+
+Coming so, from a stranger's hand, he gave me that great love?
+
+STRANGER.
+
+He had no child, and the desire for one
+
+held him.
+
+OEDIPUS.
+
+And did you find somewhere—or buy—a child for him?
+
+STRANGER.
+
+I found it in a high
+
+glen of Kithairon.
+
+[Movement of JOCASTA, who stands riveted with dread, unnoticed by the others.]
+
+OEDIPUS.
+
+Yonder? To what end
+
+were you travelling in those parts?
+
+STRANGER.
+
+I came to tend the flocks here on the mountain.
+
+[Sidenote: vv. 1029-1037]
+
+OEDIPUS.
+
+You were one who wandered, tending sheep for hire?
+
+STRANGER.
+
+My son, that day I was the saviour of a king.
+
+OEDIPUS.
+
+How saviour? Was I in some suffering
+
+or peril?
+
+STRANGER.
+
+Your own feet could tell the tale.
+
+OEDIPUS.
+
+Ah me! What ancient pain stirs half awake within me!
+
+STRANGER.
+
+It was a spike through both your feet. I set you free.
+
+OEDIPUS.
+
+A strange scorn that, to greet a baby new on the earth!
+
+STRANGER.
+
+From that they were glad to call you Oedipus, “Who-walks-in-pain.”
+
+OEDIPUS.
+
+Who called me so—father or mother? Oh,
+
+in God's name, speak!
+
+[Sidenote: vv. 1038-1046]
+
+STRANGER.
+
+I do not know. He should know who brought you.
+
+OEDIPUS.
+
+So: I was not found by you. You had me from another?
+
+STRANGER.
+
+Yes; to me
+
+one of the shepherds gave the baby, to carry far off.
+
+OEDIPUS.
+
+What shepherd? Do you not know? Declare all that you know.
+
+STRANGER.
+
+By my memory, then, I think they called him one of Laïus' men.
+
+OEDIPUS.
+
+That Laïus who was king in Thebes of old?
+
+STRANGER.
+
+The same. My man did herding in his fold.
+
+OEDIPUS.
+
+Is he yet living? Can I see his face?
+
+STRANGER.
+
+[Turning to the Chorus.]
+
+You will know that, being natives to the place.
+
+[Sidenote: vv. 1047-1062]
+
+OEDIPUS.
+
+How? Is there one of you within my household standing who knows the shepherd of his tale? Have you seen him on the hills? Or in this town? Speak! For the hour has come that all be known.
+
+LEADER.
+
+I think it will be the Peasant Man, the same you have sought long to see. His place and name our mistress, if she will, can tell most clearly.
+
+[JOCASTA remains as if she heard nothing.]
+
+OEDIPUS.
+
+You hear him, wife. The herd whose presence here we craved for, is it he this man would say?
+
+JOCASTA.
+
+He says ... What of it? Ask not; only pray not to remember. Tales are vainly told.
+
+OEDIPUS.
+
+It is my own birth. How can I, when I hold such clues as these, refrain from knowing all?
+
+JOCASTA.
+
+For God's love, no! Not if you care at all for your own life. My anguish is enough.
+
+OEDIPUS (bitterly).
+
+Fear not! Though I be thrice of slavish stuff from my third grand-dam down, it shames not you.
+
+[Sidenote: vv. 1063-1075]
+
+JOCASTA.
+
+Ask no more. I beg you. Promise me!
+
+OEDIPUS.
+
+To leave the truth half-found? It is not my mood.
+
+JOCASTA.
+
+I understand; and I tell you what is good.
+
+OEDIPUS.
+
+Your good does weary me.
+
+JOCASTA.
+
+O child of woe,
+
+I pray God, I pray God, you never know!
+
+OEDIPUS (turning from her).
+
+Go, fetch the herdsman straight! This queen of mine may walk alone to boast her royal line.
+
+JOCASTA.
+
+[She twice draws in her breath through her teeth, as if in some sharp pain.]
+
+Unhappy one, goodbye! Goodbye before
+
+I go: this once, and never, never more!
+
+She comes toward him as though to take a last farewell, then stops suddenly, turns, and rushes into the Palace.
+
+LEADER.
+
+King, what was that? She passed like one who flies in very anguish. Dread is over my eyes, lest from this silence break some storm of wrong.
+
+[Sidenote: vv. 1076-1097]
+
+OEDIPUS.
+
+Break what break will! My mind stays strong to know the roots, however low they are, which grew to Oedipus. This woman, she
+
+is proud, I think, and fears my birth and name will mar her nobleness. But I, no shame
+
+can ever touch me. I am Fortune's child, not man's; her mother face has ever smiled above me, and my brethren of the sky,
+
+the changing Moons, have changed me low and high. There is my true lineage, which none shall wrest from me; who then am I to fear this quest?
+
+CHORUS.
+
+They sing OEDIPUS as the foundling of their own Theban mountain, Kithairon, and doubtless of divine birth.
+
+Strophe.
+
+If I, O Kithairon, some vision can borrow from seercraft, if still there is wit in the old, long, long, through the deep-orbed Moon of the morrow—so hear me, Olympus!—your tale shall be told. O mountain of Thebes, a new Theban shall praise you, one born of your bosom, one nursed at your springs; and the old men shall dance to your glory, and raise you to worship, O bearer of joy to my kings. And you, we pray,
+
+look down in peace, O Apollo; I-ê, I-ê!
+
+[Sidenote: vv. 1098-1120]
+
+Antistrophe.
+
+What Oread mother, unaging, unweeping,
+
+did bear you, O Babe, to the Crag-walker Pan; or perchance to Apollo? He loves the leaping of herds on the rock-ways unhaunted of man. Or was it the lord of Cyllênê, who found you, or glad Dionysus, whose home is the height, who knew you his own on the mountain, as round you the White Brides of Helicon laughed for delight? 'Tis there, 'tis there,
+
+the joy most lives of all his dance and prayer.
+
+OEDIPUS.
+
+If I may judge, you Elders, who have never seen him, I think I see the shepherd there whom we have sought so long. His weight of years fits well with our Corinthian messenger's; and, more, I know the men who guide his way, bondsmen of my own house.
+
+You, friend, will say most surely, who have known the man of old.
+
+LEADER.
+
+I know him well. A shepherd of the fold
+
+of Laïus, one he trusted more than all.
+
+The SHEPHERD comes in, led by two thralls. He is an old man and seems terrified.
+
+OEDIPUS.
+
+You first, our guest from Corinth: say withal, is this the man?
+
+[Sidenote: vv. 1120-1130]
+
+STRANGER.
+
+This is the man, O King.
+
+OEDIPUS.
+
+Addressing the SHEPHERD.
+
+Old man! Look up, and answer everything
+
+I ask you.—You were Laïus' man of old?
+
+SHEPHERD.
+
+Born in his house I was, not bought with gold.
+
+OEDIPUS.
+
+What kind of work, what way of life, was yours?
+
+SHEPHERD.
+
+Most of my days I tended sheep or kine.
+
+OEDIPUS.
+
+What was your camping ground at midsummer?
+
+SHEPHERD.
+
+Sometimes Kithairon, sometimes mountains near.
+
+OEDIPUS.
+
+Did you ever see this man you see now there?
+
+SHEPHERD.
+
+There, Lord? What doing?—What man do you mean?
+
+OEDIPUS.
+
+Pointing to the STRANGER.
+
+Look! Has he ever crossed your path before?
+
+[Sidenote: vv. 1131-1146]
+
+SHEPHERD.
+
+I do not call him to mind, I must think more.
+
+STRANGER.
+
+Small wonder, O King! But I will shed light on his memories. I know well that he knows the time when, all through Kithairon, I with one wandering herd and he with two, three times we neighboured one another, from spring to the autumn stars, a good half-year. At winter's fall we parted; he drove down to his master's fold, and I back to my own. Do you recall it, friend? Was it as I say?
+
+SHEPHERD.
+
+It was. It was. It is all so far away.
+
+STRANGER.
+
+Say then: did you once give me, there in the wild, a baby to raise far off as my own child?
+
+SHEPHERD.
+
+[His terror returning.]
+
+What does this mean? Why do you ask?
+
+STRANGER.
+
+[Pointing to OEDIPUS.]
+
+That baby has grown, friend. He is our master now.
+
+SHEPHERD.
+
+[He slowly understands, then stands for a moment horror-struck.]
+
+No, in the name of death! Fool, hold your peace.
+
+[He lifts his staff at the STRANGER.]
+
+[Sidenote: vv. 1147-1157]
+
+OEDIPUS.
+
+Ha, old man! Would you strike him? It is not his offences, but your own, that we need to mend.
+
+SHEPHERD.
+
+Most gentle master, how do I offend?
+
+OEDIPUS.
+
+Where did that baby come from, the one he asks about?
+
+SHEPHERD.
+
+He does not know. It is folly, what he says.
+
+OEDIPUS.
+
+You will not speak for love; but pain maybe will make you.
+
+SHEPHERD.
+
+I am very old. You would not torture me.
+
+OEDIPUS.
+
+Bind his arms, you servants! Hold him so.
+
+[The thralls drag back the SHEPHERD'S arms, ready for torture.]
+
+SHEPHERD.
+
+Woe is me! What have I done? What do you want to know?
+
+OEDIPUS.
+
+Did you give this man the child, as he says?
+
+SHEPHERD.
+
+I did. Would to God I had died that day!
+
+[Sidenote: vv. 1158-1167]
+
+OEDIPUS.
+
+Before heaven, you shall yet die, if you do not speak the truth.
+
+SHEPHERD.
+
+It is more than death and darker, if I do.
+
+OEDIPUS.
+
+This dog, it seems, will keep us waiting.
+
+SHEPHERD.
+
+No, I said at first I gave it.
+
+OEDIPUS.
+
+In what way did it come to you? Was it your own child, or another's?
+
+SHEPHERD.
+
+No, it never crossed my door. It was another's.
+
+OEDIPUS.
+
+Whose? What man, what house, of those around you?
+
+SHEPHERD.
+
+In the name of God who sees, ask me no more!
+
+OEDIPUS.
+
+If I ask again, you die.
+
+SHEPHERD.
+
+From the folk of Laïus, then, it came.
+
+[Sidenote: vv. 1168-1176]
+
+OEDIPUS.
+
+A slave, or born of Laïus' blood?
+
+SHEPHERD.
+
+There comes the word I dread to speak, O God!
+
+OEDIPUS.
+
+And I to hear. Yet it must be heard.
+
+SHEPHERD.
+
+Know then, they said it was Laïus' child. But she within, your wife, best knows its fathering.
+
+OEDIPUS.
+
+It was she who gave it?
+
+SHEPHERD.
+
+It was she, O King.
+
+OEDIPUS.
+
+And told you to do what?
+
+SHEPHERD.
+
+Destroy it.
+
+OEDIPUS.
+
+Her own child? Cruel!
+
+SHEPHERD.
+
+Dark words of God had made her wild.
+
+OEDIPUS.
+
+What words?
+
+[Sidenote: vv. 1176-1192]
+
+SHEPHERD.
+
+The baby must slay his father; so it was written.
+
+OEDIPUS.
+
+Why did you, then, let him go with this old man?
+
+SHEPHERD.
+
+O King, I pitied him. I thought the man would save him to some dim and distant land, beyond all fear. And he, to worse than death, did save him! Truly, if you are the one this man speaks of, you are born to sore affliction.
+
+OEDIPUS.
+
+Enough! All, all shall be fulfilled. Oh, shed light no more on these eyes, you everlasting skies that know my sin! I have sinned in birth and breath. I have sinned with Woman. I have sinned with Death.
+
+[He rushes into the Palace. The SHEPHERD is led away by the thralls.]
+
+CHORUS.
+
+[Strophe.]
+
+Nothingness, nothingness,
+
+You Children of Man, and less
+
+I count you, waking or dreaming! And none among mortals, none,
+
+Seeking to live, has won
+
+More than to seem, and to cease
+
+Again from his seeming.
+
+[Sidenote: vv. 1193-1212]
+
+[Sidenote: vv. 1193-1212]
+
+While ever before my eyes
+
+One fate, one example, lies--
+
+Thine, thine, O Oedipus, sore
+
+Oppressed by God--
+
+What thing that is human more
+
+Dare I call blessed?
+
+[_Antistrophe._
+
+Straight his archery flew
+
+To the heart of the living; he knew
+
+Joy and the fullness of power,
+
+O Zeus, when the riddling breath
+
+Was stopped and the Maid of Death
+
+Slain, and we saw him through
+
+The death-cloud, a tower!
+
+For that he was called my king;
+
+Yes, every precious thing
+
+With which men are honored, down
+
+We cast before him,
+
+And great Thebes brought her crown and knelt to adore him.
+
+[_Strophe._
+
+But now, what man's story is such bitterness to speak? What life has Delusion so visited, and Pain, and swiftness of Disaster? O great King, our master, how did the one haven open to the slayer and the slain? And the furrows of your father, did they not turn nor shriek? Did they bear so long silent your casting of the grain?
+
+[1185] [Sidenote: vv. 1213-1235]
+
+[Sidenote: vv. 1213-1235]
+
+[_Antistrophe._
+
+It is Time, Time, desireless, that has shown you what you are. The long monstrous mating, it is judged and all its race. O child of him who sleeps, your land weeps, weeps, unfathered. Would God I had never seen your face! From you in great peril fell peace upon my heart. In you my eye clouded and the dark is coming quickly.
+
+[1189]
+
+Unfathered.... Would God, I had never seen thy face! From thee in great peril fell peace upon my heart, In thee mine eye clouded and the dark is come apace.
+
+[_A_ MESSENGER _rushes out from the Palace._
+
+MESSENGER.
+
+O you who are exalted in this land with ancient honor,
+
+What a tale shall you be told,
+
+What sights shall you see, and what tears of horror shed, if your hearts are still true to those who led your fathers! There runs no river, I well believe, not Phasis nor great Ister, that shall wash clean this house of all that hides within--no, nor all that creeps forth to face the day, of deliberate horror. And in misery that wounds most which men have willed to be.
+
+[1196] LEADER.
+
+LEADER.
+
+There was no lack in what we knew before of food for heaviness. What more do you bring?
+
+MESSENGER.
+
+One thing I bring you first. It is quickly said. Jocasta, our anointed queen, is dead.
+
+[Sidenote: vv. 1236-1260]
+
+LEADER.
+
+Unhappy woman! How did death come to her?
+
+MESSENGER.
+
+By her own hand. Oh, of what passed in there you have been spared the worst. You cannot see. However, with what is still left in me of mind and memory, you shall hear her fate. Like one entranced with passion, through the gate she passed, her white hands flashing over her head like blades that tear, and fled, unswerving fled, toward her old bridal room, and disappeared. And the doors crashed behind her. But we heard her voice within, crying to him of old, her Laïus, long dead; and things untold of the old kiss unforgotten, that should bring the lover's death and leave the loved a thing of horror, yes, a field beneath the plough for sire and son. Then wailing bitter-low across that bed of births unreconciled, husband from husband born and child from child. And after that, I know not how her death found her. For sudden, with a roar of wrath, Oedipus burst upon us. Then, I believe, we marked no more what passion held the Queen, but him, as in the fury of his stride, "A sword! A sword! And show me here," he cried, "that wife, no wife, that field of bloodstained earth where husband, father, sin on sin, had birth, polluted generations!" While he thus raged on, some god--for sure it was none of us--showed where she was; and with a shout away, as though some hand had pointed to the prey, he dashed himself on the chamber door. The straight door-bar of oak, it bent beneath his weight, shook from its sockets free, and in he burst to the dark chamber.
+
+[1206]
+
+Of the old kiss unforgotten, that should bring The lover's death and leave the loved a thing Of horror, yea, a field beneath the plough For sire and son: then wailing bitter-low Across that bed of births unreconciled,
+
+[1208]
+
+We marked no more what passion held the Queen, But him, as in the fury of his stride,
+
+[1210]
+
+Raged on, some god--for sure 'twas none of us-- Showed where she was; and with a shout away, As though some hand had pointed to the prey,
+
+[Sidenote: vv. 1261-1286]
+
+There we first saw her hanging from a noose, swinging like a dead bird. He fell back when he saw her. Then we heard a miserable groan, and straight away he found her, loosened the strangling knot, and laid her on the ground. Ah, then the truly horrible sight came! He tore the gold pin, broad-beaten like a flame, from off her breast, and dashed it left and right into the shuddering sockets of his eyes, crying: "Out! Out! You shall never more see me, nor my anguish, nor my sins.
+
+You looked on lives such as earth never bore, and you did not know the ones my spirit thirsted for. Therefore be dark forever!"
+
+Like a song his voice rose, and again and again the strong, stabbing hand fell, and the massacred, bleeding eyeballs streamed down upon his beard like wild rain, and gouts of hail amid the rain. Behold affliction, yes, afflictions two, from man and woman broken, now made one
+
+in downfall. All the riches yesterday's sun
+
+saw in this house were rich in truth.
+
+What do we now call our riches? Agony,
+
+delusion, death, shame, all that eye or ear has ever dreamed of misery, is here.
+
+LEADER.
+
+And now how is he? Does the storm abate?
+
+[Sidenote: vv. 1287-1308]
+
+MESSENGER.
+
+He shouts for someone to open wide the gate
+
+and lead him forth, and to display to all Thebes his father's murderer, his mother's—no, such words I will not speak. And his intent is set, to cast himself into banishment
+
+out to the wild, not to walk among human kind bearing the curse he bears. Yet he sorely needs strength and some guiding hand. For surely he has more burden now than any man may endure. But see, the gates fall back, and that appears which he who loathes shall pity—yes, with tears.
+
+[OEDIPUS _is led in, blinded and bleeding. The Old Men bow down and hide their faces; some of them weep._
+
+CHORUS.
+
+Oh, terrible! Oh, sight of all
+
+this life has crossed, most terrible! You man more wronged than tongue can tell, what madness took you? Do there crawl
+
+living things of evil from the deep
+
+to leap on man? Oh, what a leap
+
+was His that flung you to your fall!
+
+LEADER.
+
+O fallen, fallen in ghastly case,
+
+I dare not raise my eyes to you;
+
+I would gladly look and ask and see,
+
+but I shudder sickened from your face.
+
+OEDIPUS.
+
+Oh, pain; pain and woe!
+
+Whither? Whither?
+
+[Sidenote: vv. 1308-1328]
+
+They lead me and I go;
+
+and my voice drifts on the air far away.
+
+Where, Thing of Evil, where
+
+does your leaping end?
+
+LEADER.
+
+In fearful ends, which none may hear nor say.
+
+OEDIPUS.
+
+[_Strophe._
+
+Cloud of the dark, my own
+
+forever, horrible,
+
+stealing, stealing, silent, unconquerable, cloud that no wind, no summer can dispel! Again, again I groan,
+
+as through my heart together crawl the strong stabs of this pain and memories of old wrong.
+
+LEADER.
+
+Yes, twofold hosts of torment you have there, the stain to think on and the pain to bear.
+
+OEDIPUS.
+
+[_Antistrophe._
+
+O Friend, you my own
+
+still faithful, minister
+
+steadfast abiding alone of those that were, you bear with me and give the blind man care? Ah me! Not all unknown
+
+nor hidden you are. Deep in this dark a call comes and I know your voice in spite of all.
+
+LEADER.
+
+O fearful sufferer, and could you kill your living eyes? What God made blind your will?
+
+[Sidenote: vv. 1329-1351]
+
+OEDIPUS.
+
+[_Strophe._
+
+It is Apollo; all is Apollo,
+
+O you that love me, it is he who long has planned these things upon me evilly, evilly, dark things and full of blood.
+
+I knew not; I did but follow
+
+his way; but mine the hand
+
+and mine the anguish. What were my eyes to me when nothing to be seen was good?
+
+LEADER.
+
+It is even so; and Truth does speak in you.
+
+OEDIPUS.
+
+To see, to endure, to hear kind words spoken—should I find any joy in that?
+
+Get away, if you value your life,
+
+Send me swiftly into solitude, unbroken
+
+By word or touch.
+
+Am I not loaded with death,
+
+Loaded and filled to the brim with curses? And what man says
+
+God has hated him as much as this?
+
+LEADER.
+
+Your bitter will, your harsh misfortune—
+
+I wish I had never known you or looked upon you!
+
+OEDIPUS.
+
+[Antistrophe.]
+
+My curse, my curse upon him,
+
+That man whom pity held back in the wilderness, who saved the feet alive from the blood-fetter and loosened the barb from them!
+
+[Sidenote: vv. 1351-1377]
+
+That baby—what favor was done to him?
+
+If he had died without shelter,
+
+He would not have laid this grief upon himself to bear, nor upon all who loved him.
+
+LEADER.
+
+I too, my friend, would have been happier.
+
+OEDIPUS.
+
+He would not have found the way to his father's blood, nor brought the world's scorn upon his mother,
+
+The child and the husband together.
+
+But now, born of murderers, forsaken by God, brother to my own sons;
+
+All this—and if anything can fall
+
+Upon a man more dangerous
+
+And older in sin—behold, all of it
+
+Is the portion of Oedipus.
+
+LEADER.
+
+How can I call this decision of yours sound? You would be better dead than living blind.
+
+OEDIPUS.
+
+That this deed is not well and wisely done you cannot show me; so do not lecture me. Think—with what eyes, in the place of shadows, could I look upon my father's face, or my poor mother's? Both of them this hand has wronged too deeply for anyone to understand. Or my children—born as mine were born—would seeing their shapes bring me joy? Great God! To me
+
+[Sidenote: vv. 1378-1403]
+
+There is no joy in city nor in tower
+
+Nor temple. From all of them, in this my hour, I who alone was chief in Thebes, and ate the King's bread, have cut myself off forever. My own lips have commanded the land to cast out one so evil, one whose hand was dedicated to sin, whom God has shown birth-branded—and my blood is the dead King's own! All this I have proved myself. And can I then look with steady eyes into the eyes of men? I think not. No, if there had been any way to stop this fountain that wells in my ear for hearing, I would never have flinched or paused until this vile shell was made one dungeon, dark and soundless. This is how the mind would gladly find peace, self-imprisoned from a world of pain. O wild Kithairon, why did you choose
+
+To dam this fount that welleth in mine ear For hearing, I had never blenched nor stayed Till this vile shell were all one dungeon made, Dark, without sound. 'Tis thus the mind would fain Find peace, self-prisoned from a world of pain. O wild Kithairon, why was it thy will
+
+To save me? Why not take me at once and kill—kill, before I could ever make men know
+
+The thing I am, the thing from which I grow? You dead King Polybus, you city wall
+
+Of Corinth, you old castle I called
+
+My father's—what a life you began in me,
+
+What splendor rotted by the worm within, when you raised me! O Crossing of the Roads, O secret glen and dusk of crowding woods, O narrow footpath creeping to the brink
+
+Where the Three meet! I gave you blood to drink. Do you remember? It was my life-blood, hot from my own father's heart. Have you forgotten what deed I did among you, and what new
+
+And more terrible deed I fled from you to do?
+
+O flesh, horror of flesh!...
+
+[Sidenote: vv. 1409-1431]
+
+But what is shameful to do should not be spoken. In God's name, take me somewhere far off and hide me
+
+From sight, or kill me, or cast me into the sea where no eye may ever see me again.
+
+What? Do you fear to touch a man so sorely stricken? No, do not tremble. My misery
+
+Is mine, and shall be borne by no one but me.
+
+LEADER.
+
+Look, here comes Creon in answer to your prayer, to act and to decide. The care
+
+Of all our land is his now that you are weak.
+
+OEDIPUS.
+
+Alas, what word can I speak to Creon?
+
+How can I make him trust me now? He has lately seen so vile a heart in me, so full of hate.
+
+_Enter_ CREON.
+
+CREON.
+
+I have not come to mock you, Oedipus, nor to blame you
+
+for any past wrong.
+
+I seek you, but ... Ah God! You servants, have you no hearts? Or if you feel no pity for a man, at least fear to bring
+
+shame upon our Lord the Sun, who feeds all life; and do not expose such naked horror
+
+as this, which neither mother Earth may touch, nor God's clean rain nor sunlight. Quickly, inside! Guide him. The sorrows that exist in a house should be known and heard only by those of that house.
+
+[Sidenote: vv. 1432-1447]
+
+OEDIPUS.
+
+In God's name, since you have eased the fear within me by coming thus, with such nobility,
+
+to one so vile, grant me one single favor. I ask it more for your sake than for my own.
+
+CREON.
+
+Let me first hear what favor you would ask.
+
+OEDIPUS.
+
+Cast me from Thebes, now, quickly, where no one may see my face again, nor speak with me.
+
+CREON.
+
+I would have done that already, surely, except that I still tremble, and would rather ask Apollo's will.
+
+OEDIPUS.
+
+His will was clear enough: to stamp out the unclean thing, the bloody hand, the heart of sin.
+
+CREON.
+
+That is how he seemed to speak; but in this dire crisis we must learn more certainly than before.
+
+OEDIPUS.
+
+You must trouble God for one so low as me?
+
+CREON.
+
+Surely; you yourself will trust his answer now.
+
+OEDIPUS.
+
+I charge you further, and if you fail, my sin shall cling to you. For her who lies within,
+
+[Sidenote: vv. 1448-1472]
+
+arrange her burial as you will. It is your task to tend to your own. But me: let no one ask this ancient city of my fathers to give
+
+me shelter in life. Set me to live
+
+on the wild hills, and leave my name to those depths of Kithairon which my father and mother chose for my vast and living tomb. As they, my murderers, willed it, let my doom find me. For this my very heart knows: no sickness now, nor any mortal blow,
+
+shall slay this body. My breath would never have been kept burning in the midst of death, except for some frightful end. So, let my way go where it will.
+
+But my children—No, Creon, my sons will ask no care from you. They are men, and can find for themselves wherever they are what life requires. But my two poor desolate maidens.... There was never a table set
+
+apart for them, but whatever royal fare
+
+I tasted, they were with me and had a share in all of it.... Creon, I pray, do not forget them. And if it may be, go, bid them be brought,
+
+[CREON _goes and presently returns with the two princesses._ OEDIPUS _thinks he is there all the time._
+
+that I may touch their faces, and so weep.... Go, Prince. Go, noble heart!...
+
+If I might touch them, I should seem to keep them and not to have lost them, now that my eyes are gone.... What am I saying?
+
+In God's name, can it be that I hear my own
+
+[Sidenote: vv. 1473-1505]
+
+beloved ones sobbing? Creon, of his grace, has brought my two, my dearest, to this place. Is it true?
+
+CREON.
+
+It is true. I brought them, for I know your joy is in them, the same now as long ago.
+
+OEDIPUS.
+
+God bless you, and in this hard journey give you some better guide than mine to help you live. Children! Where are you? Come here; come to these arms of your ... brother, whose wild acts have brought much darkness on the once bright eyes of him who grew your garden; who, seeing nothing and understanding nothing, dug a ground the world shall shudder at. Children, my wound is yours too, and I cannot meet your gaze now, as I think of what remaining days
+
+The world has given you a bitter life. What dance of young women will you join, what feast of Thebes, before you quickly turn home in tears, before the feast or dancers even come? And, children, when you reach the age of love, who will dare to marry you, whose heart will rise above the danger, to take on himself all the shame
+
+That clings to my name and my children's name? God knows, it is enough!...
+
+My flowers, you must die, wasted, bereft, and fruitless.
+
+Creon, you alone are left as their father now, since both of us who cared for them are gone. Oh, do not leave them alone
+
+[Sidenote: vv. 1505-1518]
+
+To wander without a master, these your own kin, and beggared. Do not think of them with the same sin you all know in me, but let their fate touch you. They are so young, so desolate—of all save you. True man, give me your hand, and promise.
+
+[OEDIPUS _and_ CREON _clasp hands._
+
+If your age could understand, children, I could give you many counsels. But now I leave this one word: Pray to live as life may allow you, and find a road
+
+To travel easier than your father trod.
+
+CREON.
+
+Enough, your heart has poured out its tears; now go back into your house.
+
+OEDIPUS.
+
+I dread the house, yet I must go.
+
+CREON.
+
+The right season makes all things right.
+
+OEDIPUS.
+
+Give me one oath then, and I will go.
+
+CREON.
+
+Name it, and I will answer you.
+
+OEDIPUS.
+
+To cast me from this land.
+
+[Sidenote: vv. 1519-1523]
+
+CREON.
+
+You ask me for a gift that is not mine but God's.
+
+OEDIPUS.
+
+I am a thing abhorred by God.
+
+CREON.
+
+The more, then, will he grant your prayer.
+
+OEDIPUS.
+
+You give your oath?
+
+CREON.
+
+I see no light; and seeing not, I may not swear.
+
+OEDIPUS.
+
+Then take me away. I do not care.
+
+CREON.
+
+Go in peace, and give these children over.
+
+OEDIPUS.
+
+Ah no! Do not take away my daughters!
+
+[_They are taken from him._
+
+CREON.
+
+Do not seek to be master any more. Did not your masteries of old forsake you when the end was near?
+
+[Sidenote: vv. 1524-1530]
+
+CHORUS.
+
+You citizens of Thebes, behold; it is Oedipus that passes here, who read the riddle-word of Death, and stood mightiest of mortal men,
+
+And Fortune loved him, and the folk that saw him turned and looked again.
+
+Lo, he has fallen, and around him great storms and the outreaching sea! Therefore, O Man, beware, and look toward the end of things that be, the last of sights, the last of days; and count no man's life as gain before the full tale is finished and the darkness finds him without pain.
+
+[OEDIPUS _is led into the house and the doors close on him._
+
+NOTES TO
+
+###CHAPTER### Oedipus, King of Thebes
+
+P. 4, l. 21: Dry Ash of Ismênus.]—Divination by burnt offerings was practiced at an altar of Apollo by the river Ismenus in Thebes.
+
+Notice how many traits Oedipus retains of the primitive king, who was at once chief, medicine-man, and god. The Priest thinks it necessary to state explicitly that he does not regard Oedipus as a god, but he is clearly not quite like other men. And it seems as if Oedipus himself realized in this scene that the oracle from Delphi might well demand the king's life. Compare p. 6, "what deed of mine, what bitter task, May save my city"; p. 7, "any fear for mine own death." This thought, present probably in more minds than his, greatly increases the tension of the scene. Compare _Anthropology and the Classics_, pp. 74–79.]
+
+P. 7, l. 87, Message of joy.]—Creon says this for the sake of the omen. The first words uttered at such a crisis would be ominous and tend to fulfill themselves.]
+
+Pp. 13–16, ll. 216–275. The long cursing speech of Oedipus.]—Notice that this speech is broken into several divisions, with Oedipus at each point expecting an answer and receiving none. Thus it is not mere declamation; it involves action and reaction between a speaker and a crowd.—Every reader will notice how full it is of "tragic irony." Almost every paragraph carries with it some sinister meaning of which the speaker is unconscious. Compare such phrases as "if he tread my hearth," "had but his issue been more fortunate," "as I would for mine own father," and of course the whole situation.
+
+P. 25, l. 437, Who were they?]—This momentary doubt of Oedipus, who of course regarded himself as the son of Polybus, King of Corinth, is explained later (p. 46, l. 780).
+
+Pp. 29 ff. The Creon scene.]—The only part of the play which could possibly be said to drag. Creon's defense, p. 34, "from probabilities," as the rhetoricians would have called it, seems less interesting to us than it probably did to the poet's contemporaries. It is remarkably like Hippolytus's defense (pp. 52 f. of my translation), and probably one was suggested by the other. We cannot be sure which was the earlier play.
+
+The scene serves at least to quicken the pace of the drama, to bring out the impetuous and somewhat tyrannical nature of Oedipus, and to prepare the magnificent entrance of Jocasta.
+
+P. 36, l. 630, Thebes is my country.]—It must be remembered that to the Chorus Creon is a real Theban, Oedipus a stranger from Corinth.
+
+P. 41, Conversation of Oedipus and Jocasta.]—The technique of this wonderful scene, an intimate self-revealing conversation between husband and wife about the past, forming the pivot of the play, will remind a modern reader of Ibsen.
+
+P. 42, l. 718.]—Notice that Jocasta does not tell the whole truth. It was she herself who gave the child to be killed (p. 70, l. 1173).
+
+P. 42, l. 730, Crossing of Three Ways.]—Crossroads always had dark associations. This particular spot was well known to tradition and is still pointed out. "A bare isolated hillock of grey stone stands at the point where our road from Daulia meets the road to Delphi and a third road that stretches to the south.... The road runs up a frowning pass between Parnassus on the right hand and the spurs of the Helicon range on the left. Away to the south a wild and desolate valley opens, running up among the waste places of Helicon, a scene of inexpressible grandeur and desolation" (Jebb, abridged).
+
+P. 44, l. 754, Who could bring, &c.]—Oedipus of course thought he had killed them all. See his next speech.
+
+P. 51.]--Observe the tragic effect of this prayer. Apollo means to destroy Jocasta, not to save her. Her prayer is broken across by the entry of the Corinthian Stranger, which seems like a deliverance but is really a link in the chain of destruction. There is a very similar effect in Sophocles' _Electra_, 636-659, Clytaemnestra's prayer. Compare also the prayers to Cypris in Euripides' _Hippolytus_.
+
+P. 51, l. 899.]--Abae was an ancient oracular shrine in Boeotia. Olympia in Elis was the seat of the Olympian Games and of a great Temple of Zeus.
+
+P. 52, l. 918, O Slayer of the Wolf, O Lord of Light.]--The names Lykeios, Lykios, etc., seem to have two roots, one meaning "Wolf" and the other "Light."
+
+P. 56, l. 987, Thy father's tomb Like light across our darkness.]--This ghastly line does not show hardness of heart. It shows only the terrible position in which Oedipus and Jocasta are. Naturally Oedipus would give thanks if his father was dead. Compare his question above, p. 54, l. 960, "Not murdered?"--He cannot get the thought of the fated murder out of his mind.
+
+P. 57, l. 994.]--Why does Oedipus tell the Corinthian this oracle, which he has kept a secret even from his wife till today? Perhaps because, if there is any thought of his going back to Corinth, his long voluntary exile must be explained. Perhaps, too, the secret possesses his mind so overpoweringly that it can hardly help coming out.
+
+Pp. 57, 58, ll. 1000-1020.]--It is natural that the Corinthian hesitates before telling a king that he is really not of royal birth.
+
+Pp. 64, 65, ll. 1086-1109.]--This joyous Chorus strikes a curious note. Of course it forms a good contrast with what succeeds, but how can the Elders take such a serenely happy view of the discovery that Oedipus is a foundling just after they have been alarmed at the exit of Jocasta? It seems as if the last triumphant speech of Oedipus, "fey" and almost touched with megalomania as it was, had carried the feeling of the Chorus with it.
+
+P. 66, l. 1122.]--Is there any part in any tragedy so short and yet so effective as that of this Shepherd?
+
+P. 75, l. 1264, Like a dead bird.]--The curious word, [Greek: empeplêgmenên], seems to be taken from Odyssey xxii. 469, where it is applied to birds caught in a snare. As to the motives of Oedipus, his first blind instinct was to kill Jocasta as a thing that polluted the earth. When he saw her already dead, a revulsion came.
+
+P. 76, ll. 1305 ff.]--Observe how a climax of physical horror is immediately veiled and made beautiful by lyrical poetry. Sophocles does not, however, carry this plan of simply flooding the scene with sudden beauty nearly so far as Euripides does. See _Hipp._, p. 39; _Trojan Women_, p. 51.
+
+P. 83, ll. 1450 ff., Set me to live on the wild hills.]--These lines serve to explain the conception, existing in the poet's own time, of Oedipus as a daemon or ghost haunting Mount Kithairon.
+
+P. 86, l. 1520, Creon.]--Amid all Creon's whole-hearted forgiveness of Oedipus and his ready kindness there are one or two lines of his which strike a modern reader as tactless if not harsh. Yet I do not think that Sophocles meant to produce that effect. At the present day it is not in the best manners to moralise over a man who is down, any more than it is the part of a comforter to expound and insist upon his friend's misfortunes. But it looks as if ancient manners expected, and even demanded, both. Cf. the attitude of Theseus to Adrastus in Eur., _Suppliants_.

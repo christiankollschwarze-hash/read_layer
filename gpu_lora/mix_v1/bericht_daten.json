@@ -1,0 +1,559 @@
+[
+ {
+  "werk": "brennendes_geheimnis_jn_librivox",
+  "kandidaten": 1276,
+  "behalten": 821,
+  "stunden": 1.62,
+  "ms_je_zeichen": 0.0578,
+  "verworfen": {
+   "_referenz_woerter": 22520,
+   "_woerter": 22461,
+   "_ref_treffer": 21289,
+   "keine_pause_nach_satz": 186,
+   "_audio_min": 153.4,
+   "zeichen_verschliffen": 99,
+   "abschrift_unsicher": 93,
+   "zu_lang_ungeteilt": 32,
+   "zu_kurz": 22,
+   "ansage_librivox": 16,
+   "pruefung_verschmiert": 5,
+   "ziffern": 1,
+   "pruefung_vorlauf": 1
+  },
+  "speech_tokens_median": 163,
+  "beispiele": [
+   "Einer der Angekommenen, jung, durch gute Kleidung und eine natürliche Elastizität des Schrittes sympathisch auffallend, nahm den andern rasch voraus einen Fiaker zum Hotel.",
+   "sich bald wie Taschentücher zerknüllen, bald in Streifen zerfasern und schließlich im Schabernack den Bergen weiße Mützen aufsetzen.",
+   "Manchmal schien auch Duft von Schnee kühl aus den Bergen herüberzukommen, dann spürte man im Atem etwas, das süß und scharf war zugleich.",
+   "Alles in Luft und Erde war Bewegung und gärende Ungeduld.",
+   "Leise schnaubend liefen die Pferde den jetzt niedersteigenden Weg, die Schellen klirrten ihnen weit voraus."
+  ]
+ },
+ {
+  "werk": "menschenimkrieg_1403_librivox",
+  "kandidaten": 1913,
+  "behalten": 834,
+  "stunden": 1.96,
+  "ms_je_zeichen": 0.0625,
+  "verworfen": {
+   "_referenz_woerter": 36820,
+   "_woerter": 36744,
+   "_ref_treffer": 33534,
+   "abschrift_unsicher": 432,
+   "_audio_min": 270.7,
+   "zeichen_verschliffen": 261,
+   "keine_pause_nach_satz": 191,
+   "zu_lang_ungeteilt": 111,
+   "zu_kurz": 53,
+   "ansage_librivox": 12,
+   "pruefung_vorlauf": 10,
+   "pruefung_verschmiert": 5,
+   "pruefung_zu_lang": 2,
+   "ziffern": 2
+  },
+  "speech_tokens_median": 212,
+  "beispiele": [
+   "im Lazarettgarten einer kleinen österreichischen Provinzstadt, die am Fuße bewaldeter Hügel, wie hinter einer spanischen Wand verkrochen, ihr verschlafen friedfertiges Dreinschauen noch immer nicht abgelegt hatte.",
+   "Mit Raseschritten durcheilte die große Wut das Städtchen, ohne seine Ruhe verscheuchen zu können, als hätten die niederen,",
+   "Trotz der Spitalfahnen, die auf Schritt und Tritt von den Häusern wehten,",
+   "Wohl brummten in der Ferne die Kanonen, als kauerte eine ungeheure Dogge irgendwo tief unter der Erde, sprungbereit den Himmel anknurrend.",
+   "Auch die langen, niederen Häuserreihen zuckten klirrend zusammen, horchten erschüttert auf, so oft dies Husten den Boden krampfte, als läge die Kriegsnot, wie ein Alp, würgend auf der Brust der Welt."
+  ]
+ },
+ {
+  "werk": "lob_der_narrheit_1503_librivox",
+  "kandidaten": 1693,
+  "behalten": 837,
+  "stunden": 2.14,
+  "ms_je_zeichen": 0.0667,
+  "verworfen": {
+   "_referenz_woerter": 35217,
+   "_woerter": 35140,
+   "_ref_treffer": 30471,
+   "abschrift_unsicher": 445,
+   "_audio_min": 277.5,
+   "zeichen_verschliffen": 150,
+   "keine_pause_nach_satz": 134,
+   "zu_lang_ungeteilt": 73,
+   "zu_kurz": 19,
+   "pruefung_vorlauf": 15,
+   "ansage_librivox": 13,
+   "ziffern": 4,
+   "pruefung_verschmiert": 2,
+   "pruefung_zu_lang": 1
+  },
+  "speech_tokens_median": 228,
+  "beispiele": [
+   "von England, dem ihn gemeinsame humanistische Studien verbanden, erzählt der Verfasser, wie ihm die Idee zu dem Buche auf dem Heimritt von Welschland gekommen sei.",
+   "Erasmus selber hat wohl nie geahnt, daß die geistreiche aber leicht gezimmerte Arbeit, die ihm nichts als ein Ausruhen von ernsten, gelehrten Forschungen bedeutete, seinen internationalen Ruhm für alle Zeiten begründen würde.",
+   "Wollen Sie hierüber einen Beweis?",
+   "Hier ist ein überzeugender: Kaum war ich aufgetreten, um in dieser zahlreichen Versammlung eine Rede zu halten,",
+   "so ward plötzlich jedes Antlitz mit einem neuen und ungewöhnlichen Schimmer der Fröhlichkeit übergoldet;"
+  ]
+ },
+ {
+  "werk": "gemeindekind_jn_librivox",
+  "kandidaten": 3828,
+  "behalten": 1668,
+  "stunden": 2.78,
+  "ms_je_zeichen": 0.053,
+  "verworfen": {
+   "_woerter": 64804,
+   "keine_pause_nach_satz": 1129,
+   "_referenz_woerter": 701,
+   "zeichen_verschliffen": 531,
+   "_audio_min": 384.4,
+   "abschrift_unsicher": 293,
+   "zu_lang_ungeteilt": 60,
+   "ansage_librivox": 44,
+   "zu_kurz": 39,
+   "pruefung_nachklang": 26,
+   "_ref_datei_whisper": 19,
+   "pruefung_verschmiert": 16,
+   "ziffern": 11,
+   "pruefung_zu_lang": 8,
+   "pruefung_vorlauf": 3
+  },
+  "speech_tokens_median": 129,
+  "beispiele": [
+   "Gleich am ersten Tage hatte der Mann seinen Akkord mit der Gutsverwaltung abgeschlossen, seinem Weib, seinem Jungen und einigen gedrungenen Taglöhnern ihre Aufgabe zugewiesen und sich dann zum Schnaps ins Wirtshaus begeben.",
+   "Die Taglöhner, die nichts hören wollten von der auch ihnen zugemuteten Fügsamkeit unter die Hausordnung des Ziegelschlägers, wurden durch andere ersetzt, die gleichfalls, kehr um die Hand, verschwunden waren.",
+   "Das Mädchen nannte sich Milada und war ein feingliedriges, zierliches Geschöpf, aus dessen hellblauen Augen mehr Leben und Klugheit blitzte als aus den dunklen Barbaras und Pavels zusammen.",
+   "Die Kleine führte eine Art Kontrolle über die beiden und machte sich ihnen zugleich durch allerlei Handreichungen nützlich.",
+   "Ohne das Kind würde auf der Ziegelstätte nie ein Wort gewechselt worden sein."
+  ]
+ },
+ {
+  "werk": "totenhochzeit_1501_librivox",
+  "kandidaten": 787,
+  "behalten": 335,
+  "stunden": 0.77,
+  "ms_je_zeichen": 0.0633,
+  "verworfen": {
+   "_referenz_woerter": 17058,
+   "_woerter": 17022,
+   "_ref_treffer": 16416,
+   "keine_pause_nach_satz": 145,
+   "_audio_min": 125.2,
+   "zeichen_verschliffen": 121,
+   "zu_lang_ungeteilt": 92,
+   "abschrift_unsicher": 68,
+   "zu_kurz": 14,
+   "pruefung_vorlauf": 5,
+   "ansage_librivox": 4,
+   "ziffern": 2,
+   "pruefung_zu_lang": 1
+  },
+  "speech_tokens_median": 203,
+  "beispiele": [
+   "Die andere war ein altes verlumptes Weib, häßlich und abgewelkt, das die Dauer solchen Verfalls die gewöhnliche Zeit menschlichen Lebens um vieles überschritten zu haben schien.",
+   "Kein Sterblicher konnte sie an dem Ort ihres Begegnens sehen.",
+   "Zwergfichten bestanden die Hügel und ihre Abhänge bis zum Rand des tiefen Loches, dessen Boden gelbes verbleichtes Herbstgras deckte;",
+   "Die kühle Schönheit eines herbstlichen Sonnenunterganges vergoldete die Hügelspitzen, von denen ein bläßlicher Schein sich in die Höhle hinabstahl.",
+   "Sag schnell, was du von mir willst, denn nur eine kurze Stunde dürfen wir hier verweilen.«"
+  ]
+ },
+ {
+  "werk": "verteidigung_unsinns_1411_librivox",
+  "kandidaten": 1001,
+  "behalten": 321,
+  "stunden": 0.87,
+  "ms_je_zeichen": 0.0608,
+  "verworfen": {
+   "_referenz_woerter": 23264,
+   "_woerter": 23228,
+   "_ref_treffer": 22311,
+   "keine_pause_nach_satz": 284,
+   "zeichen_verschliffen": 181,
+   "_audio_min": 171.3,
+   "zu_lang_ungeteilt": 97,
+   "abschrift_unsicher": 88,
+   "zu_kurz": 11,
+   "pruefung_vorlauf": 9,
+   "ziffern": 5,
+   "ansage_librivox": 3,
+   "pruefung_nachklang": 1,
+   "pruefung_verschmiert": 1
+  },
+  "speech_tokens_median": 248,
+  "beispiele": [
+   "trifft man von Zeit zu Zeit ganze Täler voll loser Felsen und Steinblöcke, so gewaltig, als wären es losgebrochene Berge.",
+   "Oft hält es schwer, zu glauben, daß ein solcher kosmischer Auswurf anders als durch menschliche Mittel zustande gekommen sein kann.",
+   "Die zahmste und beliebteste Vorstellung erfaßt die Gegend als Schauplatz irgendwelcher Gigantenkämpfe.",
+   "Die Gegend ist das Denkmal einer uralten Furcht.",
+   "Wenn wir dieser phantastischen Laune nachgeben wollten, würde es schwerer halten, sich vorzustellen, durch welche entsetzliche Deutung oder welch wildes Bild des Weltalls diese erste Verfolgung heraufbeschworen ward,"
+  ]
+ },
+ {
+  "werk": "knaben_und_moerder_1411_librivox",
+  "kandidaten": 1717,
+  "behalten": 818,
+  "stunden": 1.5,
+  "ms_je_zeichen": 0.0605,
+  "verworfen": {
+   "_referenz_woerter": 28593,
+   "_woerter": 28556,
+   "_ref_treffer": 27518,
+   "keine_pause_nach_satz": 486,
+   "zeichen_verschliffen": 248,
+   "_audio_min": 196.8,
+   "zu_lang_ungeteilt": 62,
+   "abschrift_unsicher": 55,
+   "ansage_librivox": 17,
+   "zu_kurz": 12,
+   "pruefung_vorlauf": 7,
+   "pruefung_verschmiert": 6,
+   "ziffern": 3,
+   "pruefung_zu_lang": 2,
+   "pruefung_nachklang": 1
+  },
+  "speech_tokens_median": 141,
+  "beispiele": [
+   "Ich besitze nichts, was mich an meinen Vater erinnert, außer einem Brief an meine Mutter.",
+   "verließ meine Mutter, von einer starken Leidenschaft oder von Abenteuerlust getrieben, mit einem Ingenieur die Stadt und ließ mich vollständig mittellos mit einem Dienstmädchen in ihrer Wohnung zurück.",
+   "Bloß der vorhin erwähnte Brief wurde später von einem Gericht in Kanada als ihre Verlassenschaft meiner Heimatgemeinde übermittelt.",
+   "Damals war ich sechs Jahre alt.",
+   "Was mir gefehlt hat und wonach ich mich oft gesehnt habe, war ein warmer Mittagstisch oder ein Dach über den Kopf oder ein gutes Bett, aber einen Vater oder eine Mutter habe ich nie vermißt."
+  ]
+ },
+ {
+  "werk": "das_marchen_vom_karfunkelstein_1412_librivox",
+  "kandidaten": 1572,
+  "behalten": 584,
+  "stunden": 1.15,
+  "ms_je_zeichen": 0.0681,
+  "verworfen": {
+   "_woerter": 30863,
+   "keine_pause_nach_satz": 312,
+   "abschrift_unsicher": 256,
+   "_audio_min": 229.0,
+   "zeichen_verschliffen": 213,
+   "zu_lang_ungeteilt": 155,
+   "_referenz_woerter": 73,
+   "zu_kurz": 15,
+   "pruefung_verschmiert": 9,
+   "_ref_datei_whisper": 8,
+   "ansage_librivox": 8,
+   "pruefung_nachklang": 7,
+   "pruefung_vorlauf": 6,
+   "pruefung_zu_lang": 4,
+   "ziffern": 3
+  },
+  "speech_tokens_median": 156,
+  "beispiele": [
+   "Wollte der König Gravi Grübeling etwas genauer sehen, dann mußten ihm vier Zwerge die Augenbrauen mit silbernen Krücken in die Höhe spreizen.",
+   "So was lieben die Könige nicht.",
+   "Die wollten immer das gekrönte Haupt schön aufrecht tragen.",
+   "Nur ein einziges Kleinod aus dem Schatz des Riesen hatte der König Gravi -Grüveling nicht gewinnen können.",
+   "Und höher ist er, als die Wolken ziehen, höher, als ein Adler fliegen kann."
+  ]
+ },
+ {
+  "werk": "ahnen1ingraban_2003_librivox",
+  "kandidaten": 3481,
+  "behalten": 1730,
+  "stunden": 3.07,
+  "ms_je_zeichen": 0.0631,
+  "verworfen": {
+   "_woerter": 59070,
+   "_referenz_woerter": 751,
+   "keine_pause_nach_satz": 536,
+   "zeichen_verschliffen": 534,
+   "abschrift_unsicher": 527,
+   "_audio_min": 405.2,
+   "zu_lang_ungeteilt": 102,
+   "zu_kurz": 33,
+   "ansage_librivox": 13,
+   "_ref_datei_whisper": 10,
+   "pruefung_vorlauf": 4,
+   "pruefung_nachklang": 1,
+   "pruefung_zu_lang": 1
+  },
+  "speech_tokens_median": 143,
+  "beispiele": [
+   "Daß der Führer die Reisenden nicht als gewaltige Leute achtete, war durch sein Benehmen deutlich.",
+   "Durch Sand und über Steinblöcke zog sich der raue Pfad zwischen alten Kieferstämmen von einer Erdwelle zur anderen.",
+   "Es war still im Walde. Nur die Krähen schrien über den Wipfeln, die heiße Luft war mit Harzgeruch erfüllt, und kein Windeshauch kühlte die erhitzten Wangen.",
+   "Als der Weg einmal steil aufwärts ging, sprang der Jüngling ab, pflückte am Wege einen Strauß Beeren und bot ihn dem Reiter.",
+   "Unsere Rosse ermüden, die Sonne neigt zur Rast."
+  ]
+ },
+ {
+  "werk": "grab_herrn_schafbeck_1503_librivox",
+  "kandidaten": 549,
+  "behalten": 147,
+  "stunden": 0.29,
+  "ms_je_zeichen": 0.0606,
+  "verworfen": {
+   "_referenz_woerter": 9785,
+   "_woerter": 9612,
+   "_ref_treffer": 9089,
+   "keine_pause_nach_satz": 160,
+   "zeichen_verschliffen": 110,
+   "abschrift_unsicher": 82,
+   "_audio_min": 66.8,
+   "pruefung_vorlauf": 19,
+   "zu_lang_ungeteilt": 15,
+   "zu_kurz": 4,
+   "ansage_librivox": 4,
+   "pruefung_nachklang": 3,
+   "ziffern": 3,
+   "pruefung_verschmiert": 2
+  },
+  "speech_tokens_median": 169,
+  "beispiele": [
+   "Er hatte eine Zigarre im Munde, das schönste Herzsolo in der Hand, da plötzlich sah er, wie seine Spielgenossen leichenblaß wurden, wie sie ihn anstarrten, und wie sie die Karten wegwarfen.",
+   "Er wollte noch schimpfen, weil ihn das schöne Spiel reute, da fiel ihm die Zigarre aus dem Munde, er wollte noch die Aß trumpfen, da machte er eine Bewegung nach rückwärts, er wollte sich noch dagegen stemmen, da fiel er unter den Tisch.",
+   "So tönte es aufgeregt an sein Ohr. Und in das unverfälschte Münchnerisch der Freunde und Kaffeehausbesucher mischte sich aus den höheren Sphären das tadellose Hochdeutsch der singenden Engel und Cherubime.",
+   "Er sah sein ungeheures Schuldbuch aufgeschlagen, alles sauber notiert, jede Lüge, jede Völlerei, jede Unkeuschheit, vom ersten Tage bis heute.",
+   "Doch auch von unten, tief aus der Erde, kamen sonderbare Geräusche."
+  ]
+ },
+ {
+  "werk": "dietyphusmarie_2403_librivox",
+  "kandidaten": 720,
+  "behalten": 218,
+  "stunden": 0.36,
+  "ms_je_zeichen": 0.0579,
+  "verworfen": {
+   "_referenz_woerter": 70398,
+   "_woerter": 11871,
+   "keine_pause_nach_satz": 198,
+   "abschrift_unsicher": 131,
+   "zeichen_verschliffen": 109,
+   "_audio_min": 77.9,
+   "pruefung_vorlauf": 34,
+   "zu_lang_ungeteilt": 12,
+   "pruefung_nachklang": 5,
+   "zu_kurz": 5,
+   "ansage_librivox": 5,
+   "_ref_datei_whisper": 3,
+   "ziffern": 3
+  },
+  "speech_tokens_median": 128,
+  "beispiele": [
+   "Die Fenster waren verhangen, die Tische zusammengestellt und mit grünem Tuch überdeckt, so daß es aussah wie ein großer Tisch.",
+   "Dahinter saßen die sechs, Erwin Erhard, Siegfried Löwenstein, Graf Tassilo Thun, Walter von Aix, Hans del Greco und Randolph Ulbig.",
+   "Über die Bucht herüber drangen vom Hotel Carmen her zerrissene Jazzklänge.",
+   "Seine wasserblauen Augen zwinkerten und seine Lippen zuckten.",
+   "Randolph Ulbich war klein und rund, weißblond, seine Hände sahen aus wie Metzgerhände mit manikürten Nägeln."
+  ]
+ },
+ {
+  "werk": "todteninsel_crow_librivox",
+  "kandidaten": 688,
+  "behalten": 240,
+  "stunden": 0.48,
+  "ms_je_zeichen": 0.0568,
+  "verworfen": {
+   "_referenz_woerter": 12572,
+   "_woerter": 12572,
+   "_ref_treffer": 11555,
+   "keine_pause_nach_satz": 180,
+   "zeichen_verschliffen": 128,
+   "abschrift_unsicher": 95,
+   "_audio_min": 84.8,
+   "ziffern": 13,
+   "pruefung_nachklang": 7,
+   "zu_kurz": 7,
+   "zu_lang_ungeteilt": 6,
+   "pruefung_vorlauf": 6,
+   "pruefung_verschmiert": 3,
+   "pruefung_zu_lang": 3
+  },
+  "speech_tokens_median": 163,
+  "beispiele": [
+   "Was der menschliche Geist an Herrlichkeit, an Ueppigkeit und Vergeudung, an ungeheuerlichster Verworfenheit und schändlichem Laster hervorbringen konnte, ward ausgesprochen, wenn man Rom nannte.",
+   "Mit dem Wahnwitze Nero’s war die schreckliche und scheußliche Kaiserkrankheit bereits typisch geworden: es gab Nichts, was in der Welt, die jener Grimasse eines großen Herrschers unterthan war, unmöglich gewesen wäre.",
+   "Aber bereits schwebte über der Glorie dieser Götterwelt der Schatten des Kreuzes, unter dessen triumphirendem Zeichen der Glanz der goldenen Roma erblassen, die Tempel zerbrechen,",
+   "die Altäre stürzen, die Götter vergehen sollten; bereits stieg von Golgatha der Dunst vergossenen göttlichen Blutes auf, den alle Wohlgerüche Arabiens nicht zu überduften vermochten, und das",
+   "Nach dem Festlande zu hatte die Gewalt des unterirdischen Elementes den Kraterrand gesprengt, aus einander gerissen und theils in die Tiefe des Kraters selbst, theils in den Abgrund der Wellen geschleudert."
+  ]
+ },
+ {
+  "werk": "pascha_von_buda_1411_librivox",
+  "kandidaten": 751,
+  "behalten": 241,
+  "stunden": 0.47,
+  "ms_je_zeichen": 0.0557,
+  "verworfen": {
+   "_referenz_woerter": 13323,
+   "_woerter": 13162,
+   "_ref_treffer": 12520,
+   "keine_pause_nach_satz": 190,
+   "zeichen_verschliffen": 145,
+   "abschrift_unsicher": 98,
+   "_audio_min": 85.8,
+   "pruefung_vorlauf": 31,
+   "zu_lang_ungeteilt": 15,
+   "ziffern": 12,
+   "zu_kurz": 8,
+   "pruefung_nachklang": 6,
+   "ansage_librivox": 4,
+   "pruefung_verschmiert": 1
+  },
+  "speech_tokens_median": 167,
+  "beispiele": [
+   "Einen Beweis geben zwei kleine, artige Knaben, Cugny und Olivier.",
+   "In Cugnys Hause herrschte jederzeit die beste Ordnung, die größte Eintracht, die strengste Arbeitsamkeit.",
+   "Die Strafen des Abends waren am nächsten Morgen jedesmal richtig verschlafen und vergessen.",
+   "Der Schullehrer hielt viel auf ihn, denn keiner seiner Schüler schrieb eine so zierliche Hand, las mit so lebendigem Ausdruck, rechnete so fertig.",
+   "unter dessen Fahnen er gefochten."
+  ]
+ },
+ {
+  "werk": "kater_rosaurus_1411_librivox",
+  "kandidaten": 964,
+  "behalten": 325,
+  "stunden": 0.77,
+  "ms_je_zeichen": 0.0597,
+  "verworfen": {
+   "_referenz_woerter": 22002,
+   "_woerter": 21864,
+   "_ref_treffer": 18837,
+   "abschrift_unsicher": 212,
+   "keine_pause_nach_satz": 201,
+   "_audio_min": 146.5,
+   "zeichen_verschliffen": 117,
+   "zu_lang_ungeteilt": 28,
+   "ziffern": 23,
+   "pruefung_vorlauf": 23,
+   "zu_kurz": 22,
+   "ansage_librivox": 8,
+   "pruefung_nachklang": 5
+  },
+  "speech_tokens_median": 212,
+  "beispiele": [
+   "Die Spielsachen waren aber ganz außerordentlich schön.",
+   "Viele davon besaßen sehr schönes langes Haar, und es gewährte den Kindern große Freude, solches zu kämmen und zu flechten; andere hatten blos Locken, was ihnen auch sehr gut stand.",
+   "Es fehlte nicht an Windeln, Stopfläppchen und Wickelschnuren.",
+   "Des Abends wurde die Puppe immer in die Wiege gelegt, welche ebenfalls in der Puppenstube stand; und das war eine sehr schöne Wiege von Mahagoniholz, wie nur wenig Menschenkinder sie besitzen.",
+   "Es schläft sich nun zwar eben so gut in einer einfachen Wiege; aber für die Puppe einer kleinen Prinzessin heißt es doch: »je schöner, je besser«."
+  ]
+ },
+ {
+  "werk": "jonathan_frock_1312_librivox",
+  "kandidaten": 1428,
+  "behalten": 468,
+  "stunden": 0.84,
+  "ms_je_zeichen": 0.0651,
+  "verworfen": {
+   "_woerter": 22415,
+   "keine_pause_nach_satz": 418,
+   "zeichen_verschliffen": 239,
+   "abschrift_unsicher": 170,
+   "_audio_min": 164.2,
+   "pruefung_vorlauf": 52,
+   "zu_lang_ungeteilt": 49,
+   "pruefung_nachklang": 11,
+   "zu_kurz": 8,
+   "ansage_librivox": 7,
+   "ziffern": 4,
+   "pruefung_verschmiert": 1,
+   "pruefung_zu_lang": 1,
+   "_referenz_woerter": 0
+  },
+  "speech_tokens_median": 148,
+  "beispiele": [
+   "Fast ohne ein heller Geld war er in die Hauptstadt gekommen, als Sachwalter sein Brot zu verdienen.",
+   "Durch Übung und fortgesetzten Fleiß gewann er einen seltenen Grad der Vollkommenheit seines Berufs.",
+   "Überall vorgezogen mit Belohnungen, Geschenken, Ehrenbezeugungen und Schmeicheleien überhäuft, wurde er in die Kreise der angesehensten Männer eingeführt, in den besten Häusern vertrauter Freund.",
+   "Er heiratete eins der schönsten und reichsten Mädchen der Hauptstadt, ward von den Ministern angestellt, von Amt zu Amt befördert, vom König selbst geadelt, empfing dessen Orden.",
+   "Er hatte die glänzendsten Aussichten, großes Vermögen, bewundernswürdige Eigenschaften, die liebenswürdigste Frau, schöne Kinder."
+  ]
+ },
+ {
+  "werk": "frauleinelse_2403_librivox",
+  "kandidaten": 2241,
+  "behalten": 846,
+  "stunden": 1.0,
+  "ms_je_zeichen": 0.0624,
+  "verworfen": {
+   "_woerter": 24444,
+   "keine_pause_nach_satz": 659,
+   "zeichen_verschliffen": 339,
+   "abschrift_unsicher": 279,
+   "_audio_min": 167.4,
+   "zu_kurz": 34,
+   "ziffern": 25,
+   "pruefung_vorlauf": 18,
+   "pruefung_nachklang": 16,
+   "pruefung_verschmiert": 8,
+   "zu_lang_ungeteilt": 8,
+   "ansage_librivox": 6,
+   "pruefung_zu_lang": 3,
+   "_referenz_woerter": 0
+  },
+  "speech_tokens_median": 92,
+  "beispiele": [
+   "Oder lieber noch „Sissi !„ Ganz einfach.",
+   "Es sind noch volle zwei Stunden bis zum Dinner.",
+   "Mit mir ist's doch heut wahrhaftig kein Vergnügen .„",
+   "Und der rote Sweeter noch besser.",
+   "Daß sie was miteinander haben, Cousin Paul und Sissy Moore, darauf schwör ich."
+  ]
+ },
+ {
+  "werk": "antichrist_1504_librivox",
+  "kandidaten": 1206,
+  "behalten": 189,
+  "stunden": 0.45,
+  "ms_je_zeichen": 0.062,
+  "verworfen": {
+   "_referenz_woerter": 24754,
+   "_woerter": 24626,
+   "_ref_treffer": 21940,
+   "abschrift_unsicher": 492,
+   "keine_pause_nach_satz": 210,
+   "_audio_min": 174.7,
+   "zeichen_verschliffen": 167,
+   "zu_lang_ungeteilt": 53,
+   "zu_kurz": 35,
+   "pruefung_vorlauf": 32,
+   "ziffern": 19,
+   "ansage_librivox": 5,
+   "pruefung_zu_lang": 3,
+   "pruefung_nachklang": 1
+  },
+  "speech_tokens_median": 217,
+  "beispiele": [
+   "Vielleicht lebt selbst noch Keiner von ihnen.",
+   "Einige werden posthum geboren.",
+   "Man muß gleichgültig geworden sein, man muß nie fragen, ob die Wahrheit nützt, ob sie Einem Verhängniß wird...",
+   "Eine Erfahrung aus sieben Einsamkeiten.",
+   "Die Ehrfurcht vor sich; die Liebe zu sich; die unbedingte Freiheit gegen sich..."
+  ]
+ },
+ {
+  "werk": "weihnachtsabend_1411_librivox",
+  "kandidaten": 1486,
+  "behalten": 538,
+  "stunden": 1.01,
+  "ms_je_zeichen": 0.0574,
+  "verworfen": {
+   "_referenz_woerter": 27203,
+   "_woerter": 27109,
+   "_ref_treffer": 25002,
+   "keine_pause_nach_satz": 366,
+   "zeichen_verschliffen": 316,
+   "_audio_min": 175.4,
+   "abschrift_unsicher": 143,
+   "zu_lang_ungeteilt": 41,
+   "pruefung_vorlauf": 31,
+   "zu_kurz": 29,
+   "pruefung_nachklang": 9,
+   "ziffern": 6,
+   "ansage_librivox": 3,
+   "pruefung_zu_lang": 2,
+   "pruefung_verschmiert": 2
+  },
+  "speech_tokens_median": 147,
+  "beispiele": [
+   "Der Schein über seine Bestattung wurde von dem Geistlichen, dem Küster, dem Leichenbesorger und den vornehmsten Leidtragenden unterschrieben.",
+   "Scrooge und er waren, ich weiß nicht seit wie vielen Jahren, Handlungsgesellschafter.",
+   "Die Erwähnung von Marleys Begräbnistag bringt mich zu dem Ausgangspunkt meiner Erzählung wieder zurück.",
+   "Es ist ganz unzweifelhaft, daß Marley tot war.",
+   "Das muß scharf ins Auge gefaßt werden, sonst kann in der Geschichte, die ich eben erzählen will, nichts Wunderbares geschehen."
+  ]
+ }
+]

@@ -1,0 +1,39 @@
+{
+  "book_slug": "a-midsummer-night-s-dream",
+  "author_slug": "shakespeare-w",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q104871",
+  "publisher": "<eigenes-label>",
+  "titel_original": "A Midsummer Night's Dream",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "1514",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "A Midsummer Night's Dream",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Ein Sommernachtstraum",
+      "titel_quelle": "wikidata",
+      "titel_pruefen": false
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:23:54"
+}

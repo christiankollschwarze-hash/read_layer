@@ -1,0 +1,30 @@
+{
+ "variante": "p3_fp16_probe",
+ "paket": "u-mikemustermann-peter-and-wendy_en",
+ "kapitel": 1,
+ "wandzeit_s": 1496,
+ "gpu_s": 1469,
+ "audio_s": 842,
+ "zeichen": 16141,
+ "gpu_h_je_audio_h": 1.745,
+ "usd_geschaetzt": 0.326,
+ "usd_je_50k_zeichen": 1.011,
+ "fehler": 0,
+ "kapitel_details": [
+  {
+   "audio_s": 841.7,
+   "neu": 140,
+   "fehler": [],
+   "fp16_fallback": 0,
+   "zeichen": 16141,
+   "kap": "c001",
+   "saetze": 140,
+   "laden_s": 50.1,
+   "rechnen_s": 1418.9,
+   "gpu_s": 1469.1,
+   "parallel": 3,
+   "fp16": true,
+   "rtf": 1.686
+  }
+ ]
+}

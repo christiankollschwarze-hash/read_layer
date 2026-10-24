@@ -1,0 +1,19 @@
+{
+ "variante": "mix_v1",
+ "ckpt": "../../mix_v1/ckpt/step_01000.safetensors",
+ "stimme": "grossmutter_a",
+ "saetze": 140,
+ "audio_s": 941.6,
+ "pruefung": {
+  "ok": 139,
+  "nachklang": 1
+ },
+ "ve_aehnlich_referenz": 0.933,
+ "ve_aehnlich_ramona": 0.7864,
+ "ve_aehnlich_sprecher": {
+  "2037": 0.7077,
+  "5424": 0.692,
+  "9565": 0.5843
+ },
+ "gpu_min": 13.2
+}

@@ -1,0 +1,39 @@
+{
+  "book_slug": "anabasis",
+  "author_slug": "xenophon",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q73112",
+  "publisher": "<eigenes-label>",
+  "titel_original": "Anabasis",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "1170",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "Anabasis",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Anabasis",
+      "titel_quelle": "wikidata",
+      "titel_pruefen": false
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:26:46"
+}

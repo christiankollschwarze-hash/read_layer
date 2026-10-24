@@ -1,0 +1,39 @@
+{
+  "book_slug": "the-problem-of-cell-13",
+  "author_slug": "futrelle-j",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q3795335",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The problem of Cell 13",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "57669",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The problem of Cell 13",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Das Problem von Zelle 13",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:26:16"
+}

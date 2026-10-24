@@ -1,0 +1,39 @@
+{
+  "book_slug": "the-scarlet-letter",
+  "author_slug": "hawthorne-n",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q907568",
+  "publisher": "<eigenes-label>",
+  "titel_original": "The Scarlet Letter",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "25344",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "The Scarlet Letter",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Der scharlachrote Buchstabe",
+      "titel_quelle": "wikidata",
+      "titel_pruefen": false
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:26:30"
+}

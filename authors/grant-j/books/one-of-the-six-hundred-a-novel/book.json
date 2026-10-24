@@ -1,0 +1,39 @@
+{
+  "book_slug": "one-of-the-six-hundred-a-novel",
+  "author_slug": "grant-j",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q124085766",
+  "publisher": "<eigenes-label>",
+  "titel_original": "One of the Six Hundred: A Novel",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "55179",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "One of the Six Hundred: A Novel",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Einer von den Sechshundert: Ein Roman",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:28:20"
+}

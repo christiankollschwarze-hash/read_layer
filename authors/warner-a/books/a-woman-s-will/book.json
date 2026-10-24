@@ -1,0 +1,39 @@
+{
+  "book_slug": "a-woman-s-will",
+  "author_slug": "warner-a",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "Q124081249",
+  "publisher": "<eigenes-label>",
+  "titel_original": "A Woman's Will",
+  "originalsprache": "en",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "27225",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "A Woman's Will",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Der Wille einer Frau",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ],
+  "librivox_geprueft": "keine",
+  "librivox_geprueft_am": "2026-10-10T19:25:53"
+}
