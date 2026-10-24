@@ -91,6 +91,30 @@ def tor_test(werk):
     return 0 if gestoppt else 1
 
 
+def besetzen(werk):
+    """Figuren ohne Stimme mit den Archivstimmen aus tests/smoke/besetzung.json besetzen (Hand-Besetzung CK)."""
+    from pipeline import s410_casting
+    from pipeline import voice_registry as vr
+    hand = json.load(open(os.path.join(LESER, "tests", "smoke", "besetzung.json"), encoding="utf-8"))
+    reg = vr.laden()
+    p = s410_casting.casting_pfad(werk)
+    c = json.load(open(p, encoding="utf-8"))
+    n = 0
+    for e in c["plan"]["ensemble"]:
+        if e.get("id") or e.get("figur") not in hand:
+            continue
+        name = hand[e["figur"]]
+        if name not in reg:
+            print(f"[smoke] Archivstimme {name} fehlt im Register"); return 1
+        e.update(quelle="archiv_hand_smoke", stimme=name, id=reg[name].get("id"))
+        print(f"[smoke] {e['figur']} -> {name} ({e['id']})"); n += 1
+    tmp = p + ".tmp"
+    json.dump(c, open(tmp, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    os.replace(tmp, p)
+    print(f"[smoke] Hand-Besetzung: {n} Figur(en) gesetzt")
+    return 0
+
+
 def tor_frei(werk):
     t = _tor(werk)
     print(f"[smoke] Casting-Tor: {t}")
@@ -230,7 +254,7 @@ if __name__ == "__main__":
         print(__doc__); sys.exit(2)
     if a[0] == "schritt":
         sys.exit(schritt(a[1], a[a.index("--") + 1:]))
-    fn = {"setup": setup, "tor_test": tor_test, "tor_frei": tor_frei, "bericht": bericht}.get(a[0])
+    fn = {"setup": setup, "besetzen": besetzen, "tor_test": tor_test, "tor_frei": tor_frei, "bericht": bericht}.get(a[0])
     if a[0] == "linie":
         sys.exit(linie(a[1], a[2:]))
     if not fn:

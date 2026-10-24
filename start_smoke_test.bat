@@ -32,6 +32,7 @@ if exist "%WD%" rmdir /s /q "%WD%"
 %S% schritt 400-410_regie_casting -- py -3.11 tests\smoke\smoke.py linie %W% --line audio --from 400 --to 410 >> %LOG% 2>&1 || goto fehler
 %S% schritt 420_sprecher -- py -3.11 -m pipeline.s420_sprecher %W% >> %LOG% 2>&1 || goto fehler
 %S% schritt QF4_tor_stoppt_500 -- py -3.11 tests\smoke\smoke.py tor_test %W% >> %LOG% 2>&1 || goto fehler
+%S% schritt 410_hand_besetzung -- py -3.11 tests\smoke\smoke.py besetzen %W% >> %LOG% 2>&1 || goto fehler
 %S% schritt 410_freigeben -- py -3.11 -m pipeline.s410_casting %W% --freigeben >> %LOG% 2>&1 || goto fehler
 %S% schritt tor_freigegeben -- py -3.11 tests\smoke\smoke.py tor_frei %W% >> %LOG% 2>&1 || goto fehler
 %S% schritt 500_paket_de -- py -3.11 tools\tts_paket.py %W% de >> %LOG% 2>&1 || goto fehler
