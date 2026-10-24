@@ -345,7 +345,9 @@ def _esc(s: str) -> str:
 
 _HTML_OPEN = ('<?xml version="1.0" encoding="utf-8"?>\n'
               '<html xmlns="http://www.w3.org/1999/xhtml" '
-              'xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="{lang}">\n')
+              'xmlns:epub="http://www.idpf.org/2007/ops" '
+              'epub:prefix="z3998: http://www.daisy.org/z3998/2012/vocab/structure/#" '
+              'xml:lang="{lang}">\n')
 
 def _chapter_xhtml(idx: int, title: str, paragraphs, lang: str) -> str:
     head_title = _esc(title) if title else f"Chapter {idx}"
@@ -563,7 +565,7 @@ def _logo_inline_svg(color: str, width: int = 130) -> str:
         height = round(width * 0.56)
     g = re.search(r"(<g\b.*?</g>)", raw, re.S)
     inner = re.sub(r'fill="#0{3,6}"', f'fill="{color}"', g.group(1) if g else "")
-    return (f'<svg class="signet" width="{width}" height="{height}" viewBox="{vb}" '
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" class="signet" width="{width}" height="{height}" viewBox="{vb}" '
             f'preserveAspectRatio="xMidYMid meet" role="img" aria-label="SOMNIO">{inner}</svg>')
 
 LANG_LABEL = {
@@ -805,10 +807,11 @@ def _opf(meta: dict, manifest_items, spine_items) -> str:
             '\t<metadata xmlns:dc="http://purl.org/dc/elements/1.1/">\n'
             f'\t\t<dc:identifier id="uid">urn:uuid:{meta["uuid"]}</dc:identifier>\n'
             f'\t\t<meta property="dcterms:modified">{now}</meta>\n'
-            f'\t\t<dc:title id="title">{_esc(meta["title"])}</dc:title>\n'
-            f'\t\t<meta property="file-as" refines="#title">{_esc(meta["title_sort"])}</meta>\n'
-            f'\t\t<dc:creator id="author">{_esc(meta["author"])}</dc:creator>\n'
-            f'\t\t<meta property="file-as" refines="#author">{_esc(meta["author_sort"])}</meta>\n'
+            f'\t\t<dc:title id="title">{_esc(meta["title"])}</dc:title>\n' +
+            (f'\t\t<meta property="file-as" refines="#title">{_esc(meta["title_sort"])}</meta>\n'
+             if meta.get("title_sort") else "") +
+            f'\t\t<dc:creator id="author">{_esc(meta["author"] or "Unbekannt")}</dc:creator>\n'
+            f'\t\t<meta property="file-as" refines="#author">{_esc(meta["author_sort"] or meta["author"] or "Unbekannt")}</meta>\n'
             '\t\t<meta property="role" refines="#author" scheme="marc:relators">aut</meta>\n'
             f'\t\t<dc:language>{lang}</dc:language>\n'
             f'\t\t<dc:publisher>{_esc(meta["publisher"])}</dc:publisher>\n'
@@ -887,8 +890,9 @@ def build_epub(meta: dict, chapters, out_path: str) -> str:
     spine = []
     for pid, name, data in pages:
         files[f"epub/text/{name}"] = data.encode("utf-8")
+        props = ' properties="svg"' if "<svg" in data else ""   # 24.10.2026: Inline-SVG (OPF-014)
         manifest.append(f'\t\t<item href="text/{name}" id="{pid}" '
-                        f'media-type="application/xhtml+xml"/>')
+                        f'media-type="application/xhtml+xml"{props}/>')
         spine.append(f'\t\t<itemref idref="{pid}"/>')
 
     files["epub/content.opf"] = _opf(meta, manifest, spine).encode("utf-8")
@@ -956,6 +960,8 @@ def _gather_meta(book_id: str, lang: str | None = None) -> dict:
     author = aj.get(f"name_display_{lang}") or aj.get("name_display") or bj.get("author_slug", "")
     # 18.10.2026: Gutenberg-Schreibweise "H. G. (Herbert George) Wells" -> "H. G. Wells"
     author = re.sub(r"\s*\([^)]*\)", "", author).strip() or author
+    # 24.10.2026 (Smoke #2): User-ePub ohne author_slug -> Autor aus book.json, sonst "Unbekannt"
+    author = author or (bj.get("autor_name") or "").strip() or "Unbekannt"
     publisher = bj.get("publisher", "")
     if not publisher or publisher == "<eigenes-label>":
         publisher = "SOMNIO"
