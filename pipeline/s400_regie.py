@@ -275,6 +275,15 @@ def _qualitaets_stopp(data):
         return
     anteil = n_flag / n_bew
     grenze = getattr(config, "FLAG_MAX_ANTEIL", 0.03)
+    # 24.10.2026: kleine Werke (< FLAG_ANTEIL_AB_SAETZEN) -> absolute Grenze statt Anteil
+    if n_bew < getattr(config, "FLAG_ANTEIL_AB_SAETZEN", 300):
+        max_klein = getattr(config, "FLAG_MAX_KLEIN", 10)
+        if n_flag >= max_klein:
+            raise RuntimeError(
+                f"Stage 55: {n_flag} von {n_bew} Saetzen unter Score {qr.get('threshold')} "
+                f"(kleines Werk: >= {max_klein} geflaggt). Liste in 330_rueckuebersetzung.json -> "
+                f"meta.quality_report.flagged pruefen/nacharbeiten oder bewusst weiter mit READLAYER_WEITER=1.")
+        return
     if anteil > grenze:
         raise RuntimeError(
             f"Stage 55: {n_flag} von {n_bew} Saetzen unter Score {qr.get('threshold')} "

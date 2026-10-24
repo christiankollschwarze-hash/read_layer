@@ -284,6 +284,8 @@ TTS_DELAY_SECONDS = 6
 # ============================================================
 VALIDATION_THRESHOLD = 90   # Mindest-Score (0-100) bei Rueckuebersetzung
 FLAG_MAX_ANTEIL      = 0.03  # QF-6: max. Anteil Saetze unter Schwelle (Stage 55), sonst Stopp vor 56
+FLAG_ANTEIL_AB_SAETZEN = 300  # QF-6: Anteilsregel erst ab so vielen bewerteten Saetzen (24.10.2026)
+FLAG_MAX_KLEIN       = 10    # QF-6: darunter Stopp ab so vielen geflaggten Saetzen
 # QF-6: Pruefstopps (54 -> vor 55, 55 -> vor 56) uebergehen mit Umgebungsvariable READLAYER_WEITER=1
 MAX_REWORK_PASSES    = 2     # Wie oft ein durchgefallener Chunk nachbearbeitet wird
 
