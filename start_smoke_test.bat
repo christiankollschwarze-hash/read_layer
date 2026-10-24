@@ -39,6 +39,7 @@ if exist "%WD%" rmdir /s /q "%WD%"
 %S% schritt tor_freigegeben -- py -3.11 tests\smoke\smoke.py tor_frei %W% >> %LOG% 2>&1 || goto fehler
 %S% schritt 500_paket_de -- py -3.11 tools\tts_paket.py %W% de >> %LOG% 2>&1 || goto fehler
 %S% schritt 500_paket_en -- py -3.11 tools\tts_paket.py %W% en >> %LOG% 2>&1 || goto fehler
+%S% schritt 500_volume_leeren -- py -3.11 -m modal run gpu_tts/tts_modal_opt.py::leeren --paket %W% >> %LOG% 2>&1 || goto fehler
 %S% schritt 500_modal_de -- py -3.11 -m modal run gpu_tts/tts_modal_opt.py::main --paket %W%_de --batch 8 --no-herunterladen >> %LOG% 2>&1 || goto fehler
 %S% schritt 500_modal_en -- py -3.11 -m modal run gpu_tts/tts_modal_opt.py::main --paket %W%_en --batch 8 --no-herunterladen >> %LOG% 2>&1 || goto fehler
 %S% schritt 520-530_fertig_modal -- py -3.11 -m modal run gpu_tts/fertig_modal.py --werk %W% --sprachen en,de --variante auto >> %LOG% 2>&1 || goto fehler

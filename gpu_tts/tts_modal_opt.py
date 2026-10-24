@@ -299,6 +299,18 @@ def zeichen(sprache: str = "de"):
 
 
 @app.local_entrypoint()
+def leeren(paket: str):
+    """24.10.2026 (Smoke #12): alle Ausgabeordner out/<paket>_* auf dem Volume loeschen,
+    damit 500 wirklich neu vertont (Smoke-Test vor 500)."""
+    if not paket.startswith("u-smoketest"):
+        raise SystemExit(f"leeren nur fuer Smoke-Pakete (u-smoketest-*), nicht {paket}")
+    weg = [e.path for e in vol.listdir("out") if e.path.split("/")[-1].startswith(paket + "_")]
+    for p in weg:
+        vol.remove_file(p, recursive=True)
+    print(f"Volume geleert: {len(weg)} Ordner" + (f" ({', '.join(x.split('/')[-1] for x in weg)})" if weg else ""))
+
+
+@app.local_entrypoint()
 def main(paket: str, kapitel_nur: str = "", parallel: int = 1, fp16: bool = False, herunterladen: bool = True,
          batch: int = 0, zusatz: str = "", s3batch: bool = False):
     import time
