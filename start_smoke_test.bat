@@ -15,6 +15,8 @@ set W=u-smoketest-the-mirror-sisters
 set WD=users\smoketest\works\%W%
 set LOG=cockpit\logs\smoke_test.txt
 set S=py -3.11 tests\smoke\smoke.py
+rem Eigenes Stimmenregister (Kopie, legt smoke.py setup an): globales stimmen_archiv\stimmen.json bleibt unveraendert
+set READLAYER_STIMMEN_REGISTER=%CD%\%WD%\stimmen_test.json
 if not exist cockpit\logs mkdir cockpit\logs
 echo Laeuft, Fortschritt in %LOG% ...
 echo === SMOKE-TEST START %date% %time% === > %LOG%

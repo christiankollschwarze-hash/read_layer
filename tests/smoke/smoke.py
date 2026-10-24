@@ -6,7 +6,7 @@
   py -3.11 tests\\smoke\\smoke.py tor_frei <werk>                  Exit 0 nur bei tor == freigegeben
   py -3.11 tests\\smoke\\smoke.py bericht <werk>                   cockpit\\logs\\smoke_test_bericht.txt
 """
-import glob, io, json, os, shutil, subprocess, sys, time, contextlib
+import glob, hashlib, io, json, os, shutil, subprocess, sys, time, contextlib
 
 LESER = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, LESER)
@@ -15,6 +15,7 @@ LOGS = os.path.join(LESER, "cockpit", "logs")
 ZEITEN = os.path.join(LOGS, "smoke_test_zeiten.jsonl")
 BERICHT = os.path.join(LOGS, "smoke_test_bericht.txt")
 EPUB_IN = os.path.join(LESER, "tests", "smoke", "spiegelschwestern.epub")
+REG_GLOBAL = os.path.join(LESER, "stimmen_archiv", "stimmen.json")
 SOLL_FIGUREN = {"imogen": "Imogen", "ros": "Rosalind (Ros)", "ashworth": "Mr. Ashworth"}
 
 
@@ -36,8 +37,29 @@ def schritt(name, befehl):
     return rc
 
 
+def _sha(p):
+    return hashlib.sha256(open(p, "rb").read()).hexdigest() if os.path.exists(p) else "-"
+
+
+def _register_kopie(werk):
+    """Smoke #6: Testregister = Kopie des globalen Registers; Pruefsumme des globalen merken."""
+    test = os.environ.get("READLAYER_STIMMEN_REGISTER")
+    if not test or os.path.abspath(test) == os.path.abspath(REG_GLOBAL):
+        print("[smoke] FEHLER: READLAYER_STIMMEN_REGISTER fehlt -> Smoke wuerde ins globale Register schreiben")
+        return 1
+    os.makedirs(os.path.dirname(test), exist_ok=True)
+    shutil.copyfile(REG_GLOBAL, test)
+    sha = _sha(REG_GLOBAL)
+    open(os.path.join(_cfg().book_dir(werk), "work", "stimmen_global.sha256"), "w").write(sha)
+    print(f"[smoke] Testregister {test} (global sha256 {sha[:12]})")
+    return 0
+
+
 def setup(werk):
     cfg = _cfg()
+    os.makedirs(os.path.join(cfg.book_dir(werk), "work"), exist_ok=True)
+    if _register_kopie(werk):
+        return 1
     p = os.path.join(cfg.book_dir(werk), "book.json")
     b = json.load(open(p, encoding="utf-8"))
     b["rechte"] = "eigene"
@@ -239,6 +261,16 @@ def bericht(werk):
         if not da:
             fehler.append(f"Figur {label} nicht erkannt")
     L.append(f"   Casting-Tor: {cast.get('tor', '-')}")
+    L.append("")
+    # 6 Globales Stimmenregister unveraendert (Smoke #6)
+    L.append("6. STIMMENREGISTER")
+    shp = os.path.join(wd, "stimmen_global.sha256")
+    vor = open(shp).read().strip() if os.path.exists(shp) else "-"
+    nach = _sha(REG_GLOBAL)
+    gleich = vor != "-" and vor == nach
+    L.append(f"   stimmen_archiv\\stimmen.json vor {vor[:12]} / nach {nach[:12]} -> {'unveraendert' if gleich else 'VERAENDERT'}")
+    if not gleich:
+        fehler.append("Globales Stimmenregister veraendert (oder Pruefsumme fehlt)")
     L.append("")
     if os.environ.get("READLAYER_WEITER") == "1":
         L.append("HINWEIS: Pruefstopp-Override READLAYER_WEITER=1 war aktiv (tests\\smoke\\override_weiter.txt)")

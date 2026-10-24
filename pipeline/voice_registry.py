@@ -34,6 +34,9 @@ from config import config
 
 STIMMEN_DIR = getattr(config, "STIMMEN_DIR", os.path.join(config.BASE_DIR, "stimmen_archiv"))
 REGISTER = os.path.join(STIMMEN_DIR, "stimmen.json")
+# 24.10.2026 (Smoke #6): eigenes Register per Umgebungsvariable (Smoke-Test) -> globales bleibt unberuehrt.
+# Stimm-Audios liegen weiter unter STIMMEN_DIR.
+REGISTER = os.environ.get("READLAYER_STIMMEN_REGISTER") or REGISTER
 MAX_STIMMEN = 200
 
 ALTER = ["kind", "jung", "mittel", "alt", "greis"]
@@ -68,7 +71,7 @@ def laden() -> dict:
 
 
 def speichern(reg: dict) -> None:
-    os.makedirs(STIMMEN_DIR, exist_ok=True)
+    os.makedirs(os.path.dirname(REGISTER) or ".", exist_ok=True)
     tmp = REGISTER + ".tmp"
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(reg, f, ensure_ascii=False, indent=1)
