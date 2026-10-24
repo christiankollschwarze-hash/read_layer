@@ -29,12 +29,11 @@ foreach ($r in $repos) {
 }
 
 # 7. Aufgabenplanung: taeglich 23:00, unabhaengig von Anmeldung, Reaktivieren, verpassten Start nachholen
-$cred = Get-Credential -UserName "$env:USERDOMAIN\$env:USERNAME" -Message "Windows-Kennwort fuer die naechtliche Aufgabe"
+$principal = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\$env:USERNAME" -LogonType Interactive
 $action   = New-ScheduledTaskAction -Execute "C:\Users\sabin\read_layer\start_git_sicherung.bat"
 $trigger  = New-ScheduledTaskTrigger -Daily -At 23:00
 $settings = New-ScheduledTaskSettingsSet -WakeToRun -StartWhenAvailable
-Register-ScheduledTask -TaskName "READ LAYER Git-Sicherung" -Action $action -Trigger $trigger -Settings $settings `
-  -User $cred.UserName -Password $cred.GetNetworkCredential().Password -Force | Out-Null
+Register-ScheduledTask -TaskName "READ LAYER Git-Sicherung" -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Force | Out-Null
 Write-Host "Aufgabe angelegt."
 
 # 8. Testlauf
