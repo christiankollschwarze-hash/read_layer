@@ -14,7 +14,11 @@ git --version
 foreach ($r in $repos) { git config --global --add safe.directory ($r -replace '\\','/') }
 
 # 6. GitHub-Verbindung (Repos read_layer und taella-app vorher privat und OHNE README auf github.com anlegen)
-$user = Read-Host "GitHub-Benutzername"
+$user = "christiankollschwarze-hash"
+# Commits dem GitHub-Konto zuordnen (noreply-Adresse)
+$gh = Invoke-RestMethod "https://api.github.com/users/$user"
+$mail = "$($gh.id)+$user@users.noreply.github.com"
+foreach ($r in $repos) { git -C $r config user.email $mail }
 foreach ($r in $repos) {
   $name = Split-Path $r -Leaf
   Set-Location $r
