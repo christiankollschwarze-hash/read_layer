@@ -77,7 +77,7 @@ def fertig(rel_werk: str, werk: str, lang: str, quelle: str, tempo: str) -> dict
         if sp.exists():
             tar.add(sp, arcname=f"work/{sp.name}")
     vol.commit()
-    return {"lang": lang, "saetze": n, "minuten": round((time.time() - t0) / 60, 1),
+    return {"lang": lang, "saetze": n, "minuten": round((time.time() - t0) / 60, 1), "gpu_s": round(time.time() - t0, 1),
             "log": "\n".join(x.splitlines()[0] + " | " + x.splitlines()[-1] for x in log)}
 
 
@@ -109,6 +109,8 @@ def main(werk: str, sprachen: str = "en,de", variante: str = "b8", tempo: str = 
     print("Tempo: " + ", ".join(f"{a[2]} {a[4]}" for a in auftraege), flush=True)
     for erg in fertig.starmap(auftraege):
         print(f"[{erg['lang']}] {erg['saetze']} Saetze fertiggestellt in {erg['minuten']} min\n{erg['log']}", flush=True)
+        from pipeline import usage_log   # 24.10.2026 (Smoke #7): Modal-Kosten 520/530 ins Werk
+        usage_log.log_gpu(werk, "520", erg.get("gpu_s") or erg["minuten"] * 60, extra={"sprache": erg["lang"]})
     for l in langs:
         print(f"[{l}] lade Paket ...", flush=True)
         daten = b"".join(vol.read_file(f"/fertig/{rel}/paket_{l}.tar"))

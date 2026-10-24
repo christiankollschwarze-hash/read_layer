@@ -192,7 +192,7 @@ def bericht(werk):
     L.append("")
     # 2 Kosten
     L.append("2. KOSTEN (work\\kosten.jsonl)")
-    text_usd, modal_usd, je = 0.0, 0.0, {}
+    text_usd, modal_usd, je, je_modal = 0.0, 0.0, {}, {}
     kp = os.path.join(wd, "kosten.jsonl")
     if os.path.exists(kp):
         for z in open(kp, encoding="utf-8"):
@@ -204,17 +204,24 @@ def bericht(werk):
             ist_modal = "modal" in str(k.get("modell", "")).lower() or str(k.get("quelle", "")).lower() == "modal"
             if ist_modal:
                 modal_usd += usd
+                je_modal[str(k.get("stage"))] = je_modal.get(str(k.get("stage")), 0) + usd
             else:
                 text_usd += usd
                 je[str(k.get("stage"))] = je.get(str(k.get("stage")), 0) + usd
     for st in sorted(je):
         L.append(f"   Stage {st:<10} {je[st]:.4f} $")
     L.append(f"   Text/API gesamt: {text_usd:.4f} $  (Ziel < 0,10 $) -> {'ok' if text_usd < 0.10 else 'UEBER ZIEL'}")
+    for st in sorted(je_modal):
+        L.append(f"   Modal Stage {st:<4} {je_modal[st]:.4f} $")
     L.append(f"   Modal (GPU):     {('%.4f $' % modal_usd) if modal_usd else 'nicht in kosten.jsonl erfasst'}")
+    L.append(f"   GESAMT:          {text_usd + modal_usd:.4f} $")
+    for st in ("340", "420"):   # Smoke #7: CLI-Stages muessen Kosten schreiben
+        if st not in je:
+            fehler.append(f"Kosten Stage {st} fehlen in kosten.jsonl")
     if text_usd >= 0.10:
         fehler.append(f"Textkosten {text_usd:.4f} $ >= 0,10 $")
     if not modal_usd:
-        fehler.append("Modal-Kosten nicht in kosten.jsonl (Stufe 4 Nr. 9 offen)")
+        fehler.append("Modal-Kosten nicht in kosten.jsonl")
     L.append("")
     # 3 Saetze / WAV / Wortzeiten
     L.append("3. SAETZE, WAV, WORTZEITEN")

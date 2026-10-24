@@ -243,6 +243,7 @@ TTS_LORA = {"de": "mix_v1"}
 # DeepSeek: Spitzenpreise (Nebenzeit rechnet usage_log automatisch zum halben Preis), Stand 10.10.2026.
 # Gemini: Developer-API-Preisliste laut CK, Stand 10.10.2026. "ab" = Preiswechsel zum Datum,
 # "gross" = Aufschlag ab Schwelle Eingabe-Token je Aufruf. Fehlt ein Modell, werden nur Token gezaehlt.
+MODAL_L4_USD_H = 0.80   # Modal L4 inkl. CPU/RAM-Anteil, $/h (Messung 16.10.) -> kosten.jsonl (Smoke #7, 24.10.2026)
 PREISE = {
     "deepseek-v4-pro":       {"in": 1.32, "cache": 0.044, "out": 3.96},
     "deepseek-v4-flash":     {"in": 0.30, "cache": 0.006, "out": 1.20},

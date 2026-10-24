@@ -330,7 +330,7 @@ def main(paket: str, kapitel_nur: str = "", parallel: int = 1, fp16: bool = Fals
     gpu_s = sum(e["gpu_s"] for e in ergebnisse)
     audio_s = sum(e["audio_s"] for e in ergebnisse)
     zeichen = sum(e["zeichen"] for e in ergebnisse)
-    usd = gpu_s / 3600 * L4_USD_H
+    usd = gpu_s / 3600 * getattr(config, "MODAL_L4_USD_H", L4_USD_H)
     messung = {
         "variante": variante, "paket": paket, "kapitel": len(kaps), "wandzeit_s": round(time.time() - t0),
         "gpu_s": round(gpu_s), "audio_s": round(audio_s), "zeichen": zeichen,
@@ -345,6 +345,10 @@ def main(paket: str, kapitel_nur: str = "", parallel: int = 1, fp16: bool = Fals
     json.dump(messung, open(HIER / paket / f"messung_{variante}.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print(f"MESSUNG {variante}: GPU {gpu_s/60:.1f} min fuer {audio_s/60:.1f} min Audio "
           f"(x{messung['gpu_h_je_audio_h']}) | ~{usd:.2f} $ | {messung['usd_je_50k_zeichen']:.3f} $ je 50.000 Zeichen")
+    if daten.get("werk"):   # 24.10.2026 (Smoke #7): Modal-Kosten ins Werk (kosten.jsonl)
+        from pipeline import usage_log
+        usage_log.log_gpu(daten["werk"], "500", gpu_s, extra={"paket": paket, "variante": variante,
+                                                              "sprache": daten.get("lang")})
     if not herunterladen:
         return
     _holen(paket, variante, kapitel_nur, daten)
