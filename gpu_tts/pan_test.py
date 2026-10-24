@@ -19,6 +19,8 @@ VON, BIS = 122, 160
 ADAPTER = {"mix_v1": "/vol/lora/adapter/mix_v1.safetensors",
            "mix_v2": "/vol/lora/mix_v2/ckpt/step_01250.safetensors"}
 STIMMEN = {"grandma": "/ref/grandma.wav", "herr_a": "/ref/herr_a.wav"}
+# CK 24.10. 09:39: Prosodie kaum hoerbar -> Regler fuer Saetze MIT Stimmung aufdrehen (neutral bleibt 0.5 / 0.5 / 0.8)
+EXAG_EMO, CFG_EMO, TEMP_EMO = 1.0, 0.3, 0.9     # exaggeration hoch, cfg niedrig (folgt der Vorlage staerker), etwas mehr Varianz
 
 
 def _hf_token():
@@ -70,7 +72,9 @@ def lauf(saetze: list, tempo: float = 0.91) -> dict:
             for nr, (sid, text, st) in enumerate(saetze, 1):
                 ref = f"/emoji/{st}_de.wav" if st else sref
                 torch.manual_seed(1000 + nr); random.seed(1000 + nr); np.random.seed(1000 + nr)
-                w = m.generate(text, language_id="de", audio_prompt_path=ref, exaggeration=0.5).float().cpu().reshape(1, -1)
+                kw = dict(exaggeration=EXAG_EMO, cfg_weight=CFG_EMO, temperature=TEMP_EMO) if st else \
+                    dict(exaggeration=0.5, cfg_weight=0.5, temperature=0.8)
+                w = m.generate(text, language_id="de", audio_prompt_path=ref, **kw).float().cpu().reshape(1, -1)
                 with tempfile.TemporaryDirectory() as td:
                     torchaudio.save(f"{td}/r.wav", w.clamp(-1, 1), m.sr)
                     if st:                                  # Klangtausch auf Werkstimme

@@ -802,3 +802,4 @@ Offen: Abstandsregel in Stage 57 + Klaviatur; Modal-Volume fuer Modellgewichte; 
 - Bewertungsordner mix_v2 (Peter Pan): hoeren nur basis / mix_v1 / lora_bester (= mix_v2) bzw. herr_a_*; lora_letzter + ramona_* = nur Messung.
 - 24.10. 09:30 CK: "Clarke" mit hoerbarem e -> pan_test lief ohne Aussprache-Lexikon (Werk hatte keins, Skript nutzte Rohtext). Fix: pan_test.py wendet
   work/aussprache_de.json an (erzwingen, da Test); start_pan_test.bat baut das Lexikon vorher (tools/aussprache_lexikon.py). Lauf 1 (09:23) = ohne Lexikon.
+- 24.10. 09:39 CK: Prosodie im Pan-Test kaum hoerbar (Lauf 1). Aufgedreht fuer Saetze mit Stimmung: exaggeration 1.0 (vorher 0.5), cfg_weight 0.3 (0.5), temperature 0.9 (0.8); neutral unveraendert. Konstanten EXAG_EMO/CFG_EMO/TEMP_EMO in gpu_tts/pan_test.py.

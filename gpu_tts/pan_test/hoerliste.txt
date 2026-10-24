@@ -1,9 +1,9 @@
 Hoerliste Pan-Test (je Satz: grandma v1 / v2, herr_a v1 / v2)
 
 01 [liebevoll] „Ja, Lieber.“
-02 [nachdenklich] „Hört Ihr das, Clarke?
+02 [nachdenklich] „Hört Ihr das, Klark?
 03 [neutral] Ihr seid mein Zeuge.
-04 [neutral] Hier ist der Stuhl, Mary.
+04 [neutral] Hier ist der Stuhl, Mehri.
 05 [neutral] Es ist ganz einfach.
 06 [freundlich] Setz dich einfach hinein und lehn dich zurück.
 07 [nachdenklich] Bist du bereit?"
@@ -14,12 +14,12 @@ Hoerliste Pan-Test (je Satz: grandma v1 / v2, herr_a v1 / v2)
 12 [neutral] Das Mädchen senkte die Lider, als wäre sie müde und sehnte sich nach Schlaf, und Raymond hielt ihr die grüne Phiole an die Nasenlöcher.
 13 [aengstlich] Ihr Gesicht wurde weiß, weißer als ihr Kleid.
 14 [traurig] Sie wehrte sich schwach, und dann, mit einem starken Gefühl der Hingabe, kreuzte sie die Arme über der Brust wie ein kleines Kind, das gleich seine Gebete sprechen will.
-15 [nachdenklich] Das helle Licht der Lampe fiel voll auf sie, und Clarke beobachtete, wie Veränderungen über ihr Gesicht zogen wie die Veränderungen der Hügel, wenn Sommerwolken über die Sonne treiben.
+15 [nachdenklich] Das helle Licht der Lampe fiel voll auf sie, und Klark beobachtete, wie Veränderungen über ihr Gesicht zogen wie die Veränderungen der Hügel, wenn Sommerwolken über die Sonne treiben.
 16 [neutral] Dann lag sie ganz weiß und still da, und der Doktor hob eines ihrer Augenlider an.
 17 [erschrocken] Sie war völlig bewusstlos.
 18 [neutral] Raymond drückte fest auf einen der Hebel, und der Stuhl sank augenblicklich zurück.
-19 [neutral] Clarke sah, wie er einen Kreis, wie eine Tonsur, aus ihrem Haar schnitt, und die Lampe wurde näher gerückt.
-20 [aengstlich] Raymond nahm ein kleines glitzerndes Instrument aus einem kleinen Etui, und Clarke wandte sich schaudernd ab.
+19 [neutral] Klark sah, wie er einen Kreis, wie eine Tonsur, aus ihrem Haar schnitt, und die Lampe wurde näher gerückt.
+20 [aengstlich] Raymond nahm ein kleines glitzerndes Instrument aus einem kleinen Etui, und Klark wandte sich schaudernd ab.
 21 [neutral] Als er wieder hinsah, verband der Doktor gerade die Wunde, die er gemacht hatte.
 22 [neutral] „Sie wird in fünf Minuten erwachen."
 23 [neutral] Raymond war noch immer vollkommen ruhig.
@@ -27,15 +27,15 @@ Hoerliste Pan-Test (je Satz: grandma v1 / v2, herr_a v1 / v2)
 25 [neutral] Die Minuten vergingen langsam.
 26 [fluesternd] Sie konnten ein langsames, schweres Ticken hören.
 27 [neutral] Es gab eine alte Uhr im Korridor.
-28 [aengstlich] Clarke war übel und schwach; seine Knie zitterten unter ihm, und er konnte kaum stehen.
+28 [aengstlich] Klark war übel und schwach; seine Knie zitterten unter ihm, und er konnte kaum stehen.
 29 [ueberrascht] Plötzlich, während sie beobachteten, hörten sie einen langgezogenen Seufzer, und plötzlich kehrte die Farbe, die verschwunden war, in die Wangen des Mädchens zurück, und plötzlich öffneten sich ihre Augen.
-30 [erschrocken] Clarke wich vor ihnen zurück.
+30 [erschrocken] Klark wich vor ihnen zurück.
 31 [ueberrascht] Sie leuchteten mit einem furchtbaren Licht, blickten in weite Ferne, und ein großes Staunen legte sich auf ihr Gesicht, und ihre Hände streckten sich aus, als wollten sie berühren, was unsichtbar war.
 32 [erschrocken] Doch im Nu verblasste das Staunen und machte dem entsetzlichsten Schrecken Platz.
 33 [erschrocken] Die Muskeln ihres Gesichts verzerrten sich auf grauenhafte Weise, und sie zitterte von Kopf bis Fuß.
 34 [aengstlich] Die Seele schien zu kämpfen und zu schaudern im Haus des Fleisches.
-35 [erschrocken] Es war ein schrecklicher Anblick, und Clarke stürzte vor, als sie schreiend zu Boden fiel.
-36 [neutral] Drei Tage später führte Raymond Clarke an Marys Bett.
+35 [erschrocken] Es war ein schrecklicher Anblick, und Klark stürzte vor, als sie schreiend zu Boden fiel.
+36 [neutral] Drei Tage später führte Raymond Klark an Marys Bett.
 37 [traurig] Sie lag hellwach da, rollte den Kopf von einer Seite zur anderen und grinste leer.
 38 [neutral] „Ja“, sagte der Doktor, noch immer ganz ruhig, „es ist ein großes Unglück; sie ist eine hoffnungslose Idiotin.
-39 [feierlich] Doch es war nicht zu ändern; und schließlich hat sie den Großen Gott Pan gesehen.“
+39 [feierlich] Doch es war nicht zu ändern; und schließlich hat sie den Großen Gott Pänn gesehen.“
