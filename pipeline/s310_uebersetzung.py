@@ -184,6 +184,40 @@ def translate_chapter(items, target_lang, pretranslation, profile):
     return clean, missing
 
 
+_AUF_VOR = set(" \t\n([{\u2014\u2013-/\u00a0")
+_ZEICHEN_NACH = set(" \t\n,.;:!?\u2026")
+
+
+def anfuehrung_de(text: str) -> str:
+    """24.10.2026 (Smoke #8): deutsche Anfuehrungszeichen vereinheitlichen.
+    Doppelt: " “ ” -> „ (oeffnend) / “ (schliessend). Einfach (nur paarig): ' ‘ ’ -> ‚…‘.
+    Apostrophe im Wort (geht's) bleiben. Idempotent; Guillemets bleiben unberuehrt."""
+    if not text or not any(c in text for c in "\"\u201c\u201d'\u2018\u2019"):
+        return text
+    import re as _re
+    out, offen = [], False
+    for i, c in enumerate(text):
+        if c == "\u201e":
+            offen = True
+            out.append(c)
+            continue
+        if c not in "\"\u201c\u201d":
+            out.append(c)
+            continue
+        vor = text[i - 1] if i else " "
+        nach = text[i + 1] if i + 1 < len(text) else " "
+        if not offen and vor in _AUF_VOR and nach not in _ZEICHEN_NACH:
+            out.append("\u201e")
+            offen = True
+        else:
+            out.append("\u201c")
+            offen = False
+    t = "".join(out)
+    t = _re.sub(r"(?<![\w])['\u2018\u2019\u201a](?=\w)(.+?)(?<=[\w.!?,\u2026])['\u2018\u2019](?![\w])",
+                "\u201a\\1\u2018", t)
+    return t
+
+
 def run(book_id: str, chapter: str = None) -> dict:
     # Wenn ein 310_uebersetzung schon existiert, darauf AUFSETZEN (bereits uebersetzte
     # Kapitel bleiben erhalten); sonst von 300_voruebersetzung starten.
@@ -210,6 +244,16 @@ def run(book_id: str, chapter: str = None) -> dict:
                     data["content"][tag_id][lang] = translation
             if missing:
                 errors.append((chapter_id, lang, len(missing)))
+
+    if "de" in config.TARGET_LANGUAGES:   # Smoke #8: „…“ / ‚…‘ einheitlich
+        n_q = 0
+        for e in data["content"].values():
+            if isinstance(e, dict) and isinstance(e.get("de"), str):
+                neu = anfuehrung_de(e["de"])
+                n_q += neu != e["de"]
+                e["de"] = neu
+        if n_q:
+            print(f"[stage53] Anfuehrungszeichen DE vereinheitlicht: {n_q} Saetze")
 
     out_path = config.work_path(book_id, "310_uebersetzung")
     with open(out_path, "w", encoding="utf-8") as f:
