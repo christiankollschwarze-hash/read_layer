@@ -4,8 +4,9 @@ Legt ein fertiges Werk in den Demo-Ordner der TAELLA-App und pflegt dort den Kat
 
 Aufruf:
   python tools/export_demo.py <book_slug> [<demo-ordner>] [--audio] [--hoerspiel]
-  --hoerspiel: Saetze mit Figurenrede aus fassungen/<lang>/audio_overlay/vc (Hoerspiel-Schicht, VC-Overlay)
-               statt der Einzelstimmen-Fassung (bis die App einen Umschalter hat)
+  --hoerspiel: Hoerspiel-Schicht (Saetze mit Figurenrede aus fassungen/<lang>/audio_overlay/vc) ZUSAETZLICH
+               nach audio_hoerspiel/<lang>/; Erzaehler bleibt unveraendert in audio/<lang>/ (N-3, 24.10.2026:
+               die App schaltet je Werk zwischen Erzaehler und Hoerspiel um)
   Default demo-ordner: ../taella-app/public/demo
 
 Erzeugt:
@@ -14,6 +15,9 @@ Erzeugt:
   <demo>/<slug>/blurb.json, cover_<lang>.jpg, wordtimes_<lang>.json   (ueber tools/export_app.py)
   <demo>/<slug>/cover.<ext>               Fallback, wenn kein cover_final_<lang>.jpg existiert
   <demo>/<slug>/audio/<lang>/*.wav        NUR mit --audio (gross: ~1 GB je Hoerbuch)
+  <demo>/<slug>/audio_hoerspiel/<lang>/*.wav   NUR mit --audio --hoerspiel; Manifest dann zusaetzlich:
+      hoerspiel: true, hoerspiel_saetze: [tag_id, ...], hoerspiel_sprecher: {tag_id: Figur}
+  <demo>/<slug>/wordtimes_<lang>_hoerspiel.json  Wortzeiten der Hoerspiel-Saetze (falls 520_..._hoerspiel.json)
 
 Ohne --audio stehen im Manifest keine Audio-Pfade; der Katalog vermerkt aber, ob Audio
 im read_layer vorhanden ist.
@@ -42,6 +46,31 @@ def _titel(book, lang, fallback):
     return fallback
 
 
+def _kopiere(wavs, adir):
+    """WAVs nach adir; neu kopiert wird bei abweichender Groesse oder Zeitmarke (copy2 haelt die Zeitmarke)."""
+    adir.mkdir(parents=True, exist_ok=True)
+    for w in wavs:
+        dst = adir / w.name
+        if not dst.exists() or dst.stat().st_size != w.stat().st_size \
+                or int(dst.stat().st_mtime) != int(w.stat().st_mtime):
+            shutil.copy2(w, dst)
+
+
+def _hoerspiel_sprecher(bdir, lang, tags):
+    """Figur je Hoerspiel-Satz: erste Figur ausser Erzaehler aus work/sprecher.json."""
+    spj = bdir / "work" / "sprecher.json"
+    if not spj.exists():
+        return {}
+    sp = json.loads(spj.read_text(encoding="utf-8"))
+    out = {}
+    for t in tags:
+        for seg in sp.get(t, {}).get(lang, []):
+            if seg.get("s") and seg["s"].lower() not in ("erzaehler", "erzähler", "narrator"):
+                out[t] = seg["s"]
+                break
+    return out
+
+
 def main(slug: str, demo: Path, mit_audio: bool, hoerspiel: bool = False):
     bdir = Path(config.book_dir(slug))
     ziel = demo / slug
@@ -67,34 +96,38 @@ def main(slug: str, demo: Path, mit_audio: bool, hoerspiel: bool = False):
             if (bdir / "fassungen" / lang / "audio").is_dir() else []
         audio_info[lang] = len(wavs)
         uris = {}
+        hs_wavs, hs_sprecher = [], {}
         ov = bdir / "fassungen" / lang / "audio_overlay" / "vc"
         if hoerspiel and ov.is_dir():
-            ersatz = {w.name: w for w in ov.glob("*.wav")}
-            wavs = [ersatz.get(w.name, w) for w in wavs]
-            print(f"  {lang}: Hoerspiel-Schicht fuer {len(ersatz)} Saetze")
-            # 22.10.2026: Wortzeiten der Hoerspiel-Saetze (overlay_montage) in wordtimes_<lang>.json einsetzen
+            basis = {w.name for w in wavs}
+            hs_wavs = sorted(w for w in ov.glob("*.wav") if w.name in basis)
+            hs_sprecher = _hoerspiel_sprecher(bdir, lang, [w.stem for w in hs_wavs])
+            print(f"  {lang}: Hoerspiel-Schicht {len(hs_wavs)} Saetze, {len(hs_sprecher)} mit Figur")
+            # Wortzeiten der Hoerspiel-Saetze (overlay_montage) getrennt; Erzaehler-Wortzeiten bleiben unberuehrt
             hw = bdir / "work" / f"520_wortzeiten_{lang}_hoerspiel.json"
-            wt = ziel / f"wordtimes_{lang}.json"
-            if hw.exists() and wt.exists():
-                w = json.loads(wt.read_text(encoding="utf-8"))
+            if hw.exists():
+                tags = {}
                 for tid, ws in json.loads(hw.read_text(encoding="utf-8")).get("tags", {}).items():
                     starts = [None] * (max(x["i"] for x in ws) + 1)
                     for x in ws:
                         starts[x["i"]] = x["t0"]
-                    w["tags"][tid] = starts
-                wt.write_text(json.dumps(w, separators=(",", ":")), encoding="utf-8")
-                print(f"  {lang}: Wortzeiten Hoerspiel eingesetzt")
+                    tags[tid] = starts
+                (ziel / f"wordtimes_{lang}_hoerspiel.json").write_text(
+                    json.dumps({"tags": tags}, separators=(",", ":")), encoding="utf-8")
+                print(f"  {lang}: wordtimes_{lang}_hoerspiel.json ({len(tags)} Saetze)")
         if mit_audio and wavs:
-            adir = ziel / "audio" / lang
-            adir.mkdir(parents=True, exist_ok=True)
-            for w in wavs:
-                dst = adir / w.name
-                if not dst.exists() or dst.stat().st_size != w.stat().st_size:
-                    shutil.copy2(w, dst)
-                uris[w.stem] = f"audio/{lang}/{w.name}"
+            _kopiere(wavs, ziel / "audio" / lang)
+            uris = {w.stem: f"audio/{lang}/{w.name}" for w in wavs}
+            if hs_wavs:
+                _kopiere(hs_wavs, ziel / "audio_hoerspiel" / lang)
         m = s60._build_manifest(slug, lang, werk_id, content, uris)
         if not m["saetze"]:
             continue
+        if mit_audio and hs_wavs:
+            m["hoerspiel"] = True
+            m["hoerspiel_saetze"] = [w.stem for w in hs_wavs]
+            if hs_sprecher:
+                m["hoerspiel_sprecher"] = hs_sprecher
         (ziel / f"manifest_{lang}.json").write_text(
             json.dumps(m, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
         manifeste[lang] = m
@@ -116,6 +149,7 @@ def main(slug: str, demo: Path, mit_audio: bool, hoerspiel: bool = False):
         "woerter": woerter,
         "audio_vorhanden": {l: n > 0 for l, n in audio_info.items()},
         "audio_im_demo": mit_audio,
+        "hoerspiel": {l: True for l, m in manifeste.items() if m.get("hoerspiel")},
         "pfad": f"demo/{slug}/",
         "aktualisiert": datetime.datetime.now().isoformat(timespec="seconds"),
     }
