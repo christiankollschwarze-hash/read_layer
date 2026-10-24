@@ -132,11 +132,13 @@ def _epubcheck(pfad):
         r"C:\Program Files\Eclipse Adoptium\*\bin\java.exe"), reverse=True)), None)
     for jar in sorted(glob.glob(os.path.join(LESER, "tools", "epubcheck*", "epubcheck.jar")), reverse=True):
         if java:
-            kandidaten.append([java, "-jar", jar, pfad])
+            kandidaten.append([java, "-Duser.language=en", "-jar", jar, pfad])
     if not kandidaten:
         return False, "epubcheck nicht installiert (weder PATH noch tools\\epubcheck*\\epubcheck.jar + java)"
     r = subprocess.run(kandidaten[0], capture_output=True, text=True, encoding="utf-8", errors="replace")
-    zeilen = [z for z in (r.stdout + r.stderr).splitlines() if z.startswith(("ERROR", "FATAL"))]
+    import re
+    zeilen = [re.sub(r"[^\s:]*?([^/\\\s]+\.epub)/", r"\1/", z)
+              for z in (r.stdout + r.stderr).splitlines() if z.startswith(("ERROR", "FATAL"))]
     return r.returncode == 0, ("keine Fehler" if r.returncode == 0 else f"{len(zeilen)} Fehler: " + " | ".join(zeilen[:3]))
 
 
