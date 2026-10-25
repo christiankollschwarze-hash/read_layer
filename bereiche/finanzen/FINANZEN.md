@@ -1,5 +1,90 @@
-# FINANZEN — CFO TÆLLA / Read Layer / SOMNIO
-Stand: 17.10.2026 (Sitzung 1). Basis: taella_ertragsmodell.xlsx, kosten.jsonl (254 Werke), PROJEKTSTAND.md, ANFORDERUNGEN.md, VERTRIEB.md.
+# FINANZEN – Statusdatei CFO (TÆLLA / Read Layer / SOMNIO)
+
+Stand: 25.10.2026. Zusammengeführt aus Projektfassung (H3, 24./25.10.) und lokaler Fassung (Sitzung 1, 17.10.).
+
+Projektdatei Ertragsmodell: **taella_ertragsmodell_2026-10-24.xlsx** (ersetzt taella_ertragsmodell.xlsx, Stand Juli). Blätter: Annahmen, TÆLLA, Read Layer, SOMNIO, Gesamt, Neue Felder, TÆLLA Verlagstitel (Variante). 24 Monate ab 01/2027, 3 Szenarien, alle Treiber änderbar (Annahmen, blau/gelb).
+
+## Ertragsmodell H3 (24.10.2026)
+
+Kurs: 1 EUR = 1,1193 USD (EZB 23.10.2026).
+
+### Kosten je Werk (Ø Katalogwerk 99.500 Wörter, EN+DE, 10,7 Audio-h je Sprache)
+| Baustein | € je Werk | Basis |
+|---|---|---|
+| Text EN+DE (DeepSeek) | 8,00 | 0,09 $/1.000 Wörter |
+| Basis-Audio EN+DE (Chatterbox) | 17,96 | 0,94 $/Audio-h |
+| Wortzeiten EN+DE (Modal) | 2,91 | 0,15 $/Audio-h (Smoke Stage 520) |
+| **Katalogwerk Basis** | **28,87** | Text + Basis-Audio + Wortzeiten |
+| Zusatz Premium-Hörbuch (Gemini 2027) | 30,96 | 1,62 $/Audio-h |
+| Zusatz Hörspiel (Premium + VC/57b/Messung) | 32,33 | + 1,37 € Schicht |
+| Verlagstitel 80.000 W: BFSG-EPUB ohne Audio | 0,28 | |
+| Verlagstitel: EPUB 3 + Media Overlays (Basis, 1 Sprache) | 8,67 | |
+| Verlagstitel: Alignment Verlagsaudio | 1,45 | ohne STT-Kosten 58_3rd_prty (nicht gemessen) |
+| Pilot (Text EN+DE, Audio DE, Hörspiel-Kapitel) | 16,19 | |
+
+Smoke-Kalibrierung (Lauf 5): Text gemessen 0,051 $/1.000 W (Ansatz 0,09 bleibt), Modal roh 0,70 $/Audio-h, Chatterbox nach Tempo 0,73 ≈ 8.750 Wörter/h (Ansatz 9.300, ACX).
+
+### Break-even (Monat 1 = 01/2027, inkl. Marketing und Personal)
+| Bereich | vorsichtig – „teures Hobby“ | mittel – „profitabler Nebenerwerb“ | stark – „skalierbares Business“ |
+|---|---|---|---|
+| TÆLLA – monatlich / kumuliert | nicht in 24 M | 04/2028 / nicht in 24 M | 12/2027 / 07/2028 |
+| Read Layer – monatlich / kumuliert | 08/2027 / 02/2028 | 04/2027 / 04/2027 | 03/2027 / 03/2027 |
+| SOMNIO – monatlich / kumuliert | nicht in 24 M | 10/2027 / 03/2028 | 07/2027 / 08/2027 |
+| **Gesamt – monatlich / kumuliert** | **nicht in 24 M** | **04/2027 / 08/2027** | **03/2027 / 04/2027** |
+
+24-Monats-Summen gesamt (mit S-Kurve, 25.10.): Umsatz 8,0 / 70,8 / 384,5 T€; Ergebnis −6,2 / 38,0 / 212,6 T€; tiefster kumulierter Stand −6,2 / −2,8 / −4,0 T€; Run-Rate Monat 24 −40 € / 3.770 € / 23.970 €. Fixkosten 24 Monate 5,2 T€.
+Marketing je Monat (vorsichtig/mittel/stark): TÆLLA 200/500/2.000 €, Read Layer 50/150/400 €, SOMNIO 0/100/300 €. Personal: 4.500 € je FTE; CK betreut selbst bis 1.000 Zahlende bzw. 8 Titel-Äquivalente/Monat; darüber 1 FTE je 3.000 Zahlende bzw. 15 Titel-Äquivalente. Stark Monat 24: TÆLLA 1,5 FTE, Read Layer 0,5 FTE. Alles Annahmen CFO – CK entscheidet. Ohne Unternehmerlohn CK und ohne Ertragsteuern.
+
+### Variante Verlagstitel in TÆLLA + Read Layer (Blatt „TÆLLA Verlagstitel“, Stand 25.10.2026)
+Barter-Katalog: Verlagstitel im Vollzugang, Onboarding über Verlags-Cockpit (Kuratierung + Endabnahme beim Verlag). TÆLLA schüttet aus: Abo-Umsatz netto × Nutzungsanteil Verlagstitel × effektiver Verlagsanteil (Staffel 35 / 50 / 75 %, Nutzungsgewichte 20 / 30 / 50 % → 59,5 %). Read Layer erlöst je Verlagstitel den TÆLLA-Preis (≤ 50 % Wettbewerb: BFSG-EPUB 100 € + Media Overlays 250 €), 20 % gratis als Barter. MAU als S-Kurve zum Marktpotenzial 50.000 / 200.000 / 500.000 (Anker: 4,2 Mio. digitale Hörbuch-Nutzer·innen DE 2025, Börsenverein) statt fester Deckel – gilt auch im Basisblatt TÆLLA. Zuschläge auf Wachstum und Conversion = Annahmen, nicht belegt.
+
+| Monat 24 bzw. 24 Monate | vorsichtig | mittel | stark |
+|---|---|---|---|
+| Verlagstitel im Katalog | 38 | 105 | 220 |
+| MAU ohne / mit | 920 / 1.090 | 9.060 / 22.590 | 70.270 / 307.970 |
+| Zahlende ohne / mit | 30 / 37 | 500 / 1.390 | 5.170 / 30.790 |
+| Ergebnis TÆLLA ohne / mit | −7,7 / −7,9 T€ | −1,0 / +1,9 T€ | 62,0 / 116,1 T€ |
+| Ausschüttung an Verlage | 0,4 T€ | 13,2 T€ | 301,6 T€ |
+| Zusatzumsatz / -DB Read Layer | 10,6 / 10,3 T€ | 29,4 / 28,5 T€ | 61,6 / 59,7 T€ |
+| Ergebnis gesamt ohne / mit Variante | −6,2 / +4,0 T€ | 38,0 / 69,5 T€ | 212,6 / 326,4 T€ |
+| Tiefster kum. Stand gesamt ohne / mit | −6,2 / −3,4 T€ | −2,8 / −2,8 T€ | −4,0 / −4,0 T€ |
+| Break-even gesamt mit Variante monatlich / kumuliert | 06/2027 / 04/2028 | 04/2027 / 05/2027 | 03/2027 / 03/2027 |
+
+Basiswerte (Break-even-Tabelle oben) sind durch die S-Kurve leicht gesunken: gesamt −6,2 / 38,0 / 212,6 T€.
+Offen: SOMNIO-Lizenz 25 % an TÆLLA, Freigaben-Vergütung Studierende – noch nicht im Modell.
+
+### Preisvorschlag Schnitt-Aufschlag (A-001)
+**15 min manuelle Prüfzeit je Audio-Stunde × 60 €/h, mindestens 95 € je Titel.** Ø Verlagstitel (8,6 Audio-h): 129 € netto. Begründung: Stichprobe und Korrektur der Abweichungen Text–Audio bei ungeschnittenem Verlagsaudio sind Handarbeit; Rechenkosten Alignment nur 1,45 €.
+
+### Preisvorschläge Read Layer (netto, unter Markt)
+| Leistung | Preis | Markt (Quelle) |
+|---|---|---|
+| BFSG-EPUB 3 je Titel | 149 € | EPUB-Konvertierung 119–350 €/Titel (ki-syndikat.de, Freiberufler-Liste) |
+| + Media Overlays mit Basis-Vertonung | 390 € | KI-Vertonung Bookwire ca. 500–1.200 €/Titel (ki-syndikat.de, Schätzung) |
+| Alignment Verlagsaudio | 190 € | kein Dienstleisterpreis veröffentlicht |
+| Vertonung Premium je fertiger Stunde | 89 € | Sprecher·in 200–500 €/PFH (bookfoundry.ai); ACX 300–400 $/PFH (acx.com) |
+| Übersetzung je Normseite | 6 € | Literaturübersetzung Ø 18,72 €/NS 2018 (VdÜ) |
+| Modernisierung je Normseite | 4 € | – |
+| Zusatzformat je Titel (A-003) | 49 € | – |
+
+### Plattform-Konditionen SOMNIO (Quellen im Blatt Annahmen)
+- KDP: überwiegend gemeinfreie Inhalte nur 35 % Tantieme; KI-Übersetzungen/-Inhalte meldepflichtig.
+- Apple/Google/Kobo E-Book je 70 % (Sekundärquelle).
+- Audible/ACX: KI-Stimmen nur über Virtual Voice (Amazon entscheidet je Titel) → nicht im Modell.
+- tolino media Hörbuch seit 31.03.2026: 70 % Netto-Erlös, keine Vertriebsgebühr.
+- Findaway/Spotify: 80 % des Partner-Netto, KI-Narration zugelassen und gekennzeichnet.
+- AI Act Art. 50: Transparenzpflichten seit 02.08.2026; KI-Stimme kennzeichnen (TECHNIK §9).
+- Zahlungsweg: Apple Small Business 15 %; Stripe EWR 1,5 % + 0,25 €.
+
+### Kosten > 100 € (CFO prüfen)
+Gründung UG 496 € · Leipziger Buchmesse 350 € (Annahme) · Rechtsprüfung IT-Recht 800 € (Annahme) · eigene GPU 1.000 € (nicht geplant).
+
+### Top-3 neue Geschäftsfelder (Blatt „Neue Felder“)
+1. **Barrierefreiheits-Prüfdienst** – Ace/epubcheck-Bericht + Nachbesserung für Verlage; 5–25 T€/Jahr; Aufwand S.
+2. **Bildungsverlage / Schullektüren** – zweisprachige Lektüren mit Audio und Vokabelschicht (Klett Sprachen, Hueber, Reclam); 10–60 T€/Jahr; Aufwand M.
+3. **Lizenzierung von PD-Übersetzungen** – Text-Lizenz an PDL/Plattformen/Verlage; 2–15 T€/Jahr; Aufwand S.
+
+## Stand 17.10.2026 (Sitzung 1)
 Währung: API-Kosten in $ (so abgerechnet), Preise in €.
 
 ## 1 Ist-Kosten (nachgerechnet aus work/kosten.jsonl)
@@ -58,15 +143,27 @@ Kapazität: 1,08 Mio. Sätze je Sprache; Gemini-Limit 10.000 Anfragen/Tag -> mit
 - Unit Economics belegt: Direktkosten < 2,50 $/Audio-h, Rohmarge Verlagspakete > 90 %.
 - Katalog: ≥ 50 Werke EN+DE Text+Audio live.
 
-## 7 Befunde Ertragsmodell (Umbau = nächstes Arbeitspaket CFO)
-- READ LAYER rechnet 49 €/Werk + 79 € Extra und 2 Werke je Kunde jeden Monat -> auf Pakete P0–P3 (einmalig je Titel) umstellen.
-- TÆLLA rechnet Abo 2,99 € / 3 % -> Preisstruktur 5,99/7,99 €/Monat, 59,99/79,99 €/Jahr, Patenschaften 59,99/74,99 € fehlen.
-- Fixkosten 40 €/Monat und Unternehmerlohn 0 € -> echte Werte einsetzen.
-- Monat 0 ohne Kalenderdatum; TTS-Kosten/Titel 18 € passt für 2027 (17,30 $ je Sprache).
-- Modell-Ergebnis aktuell (alte Annahmen): Break-even monatlich Monat 9, kumuliert Monat 11, Run-Rate M35 6.094 €.
+## 7 Befunde Ertragsmodell (Juli-Modell)
+- Umgesetzt 24./25.10.2026 in taella_ertragsmodell_2026-10-24.xlsx (Pakete statt 49 €/Werk, Preisstruktur 12.10., Patenschaften, Fixkosten-Plan, Monat 1 = 01/2027). Alte Befunde damit erledigt.
+- Abweichung Gründungskosten: hier 479,75 € (Notar 148,75 €), im Modell 496 € (firma.de, Notar 164,89 € brutto) – im Modell auf 480 € angleichen, falls CK bestätigt.
 
 ## Offen an CK
 1. Monatsfixkosten (Claude-Abo, Domains, Hosting, Modal über Freiguthaben, sonstige Abos).
 2. Monat 0 im Modell = November 2026?
 3. Eigenmittel-Budget bis Leipzig (Obergrenze).
 ENTSCHIEDEN 17.10.: Firma „TAELLA UG (haftungsbeschränkt)“, Sitz Haßfurt; Gegenstand in TAELLA_UG_Unternehmensgegenstand.md. Postfach finanzen@taella.io einrichten.
+
+## Finanzierungsquellen (vorgemerkt)
+
+### Modal for Startups – GPU-Credits (Stand 18.10.2026)
+- Credits: 500–5.000 $ für Bootstrapped-Startups (bis 25.000 $ mit VC-Partnern), einmalig, 12 Monate gültig, kein Rollover, nur Compute (keine Abo-Gebühren)
+- Bedingungen: Startup < 5 Jahre, neu bei Modal, aktive Firmen-Website, Vollzeit an der Firma, geteilter Workspace (kein persönlicher), Zahlungsmittel hinterlegt
+- Höhere Stufe (bis 25.000 $, lt. LP bis 50.000 $): abhängig von Traktion, eingeworbenem Kapital und Investment durch einen Modal-VC-Partner
+- Nutzen: Chatterbox-Vertonung (DE/EN), MMS_FA-Alignment, später LoRA-Feintuning
+- Blocker heute: TAELLA UG nicht eingetragen; CK nicht Vollzeit; Website taella.io muss live sein
+- Nächster Schritt: Antrag nach Eintragung der TAELLA UG; Antwortentwurf liegt im Chat vom 18.10.2026
+- Quelle: https://modal.com/startups
+
+### Modal-VC-Partnerliste als Investorenkanal (später)
+- Idee: Partnerliste (Anfrage über startups@modal.com) als Zielliste für Early-Stage-Investoren nutzen; Investment eines Partners hebt zugleich die Modal-Credits
+- Entscheidung CK (18.10.2026): kommt erst deutlich später in Frage
