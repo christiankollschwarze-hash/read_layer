@@ -27,12 +27,15 @@ Smoke-Kalibrierung (Lauf 5): Text gemessen 0,051 $/1.000 W (Ansatz 0,09 bleibt),
 ### Break-even (Monat 1 = 01/2027, inkl. Marketing und Personal)
 | Bereich | vorsichtig – „teures Hobby“ | mittel – „profitabler Nebenerwerb“ | stark – „skalierbares Business“ |
 |---|---|---|---|
-| TÆLLA – monatlich / kumuliert | nicht in 24 M | 04/2028 / nicht in 24 M | 12/2027 / 07/2028 |
+| TÆLLA – monatlich / kumuliert | nicht in 24 M | 03/2028 / nicht in 24 M | 07/2027 / 03/2028 |
 | Read Layer – monatlich / kumuliert | 08/2027 / 02/2028 | 04/2027 / 04/2027 | 03/2027 / 03/2027 |
 | SOMNIO – monatlich / kumuliert | nicht in 24 M | 10/2027 / 03/2028 | 07/2027 / 08/2027 |
-| **Gesamt – monatlich / kumuliert** | **nicht in 24 M** | **04/2027 / 08/2027** | **03/2027 / 04/2027** |
+| **Gesamt – monatlich / kumuliert** | **nicht in 24 M** | **04/2027 / 01/2028** | **03/2027 / 06/2027** |
 
-24-Monats-Summen gesamt (mit S-Kurve, 25.10.): Umsatz 8,0 / 70,8 / 384,5 T€; Ergebnis −6,2 / 38,0 / 212,6 T€; tiefster kumulierter Stand −6,2 / −2,8 / −4,0 T€; Run-Rate Monat 24 −40 € / 3.770 € / 23.970 €. Fixkosten 24 Monate 5,2 T€.
+24-Monats-Summen gesamt (Stand 25.10.: S-Kurve, PD-Freigaben, Probezeitraum, Werbung, Markenschutz DE + WIPO, Aktion Büchereiausweis): Umsatz 8,7 / 79,0 / 463,2 T€; Ergebnis −14,4 / 33,6 / 278,8 T€; tiefster kumulierter Stand −14,4 / −9,6 / −10,4 T€; Run-Rate Monat 24 −140 € / 4.180 € / 34.260 €. Fixkosten 24 Monate 10,6 T€.
+Aktion Büchereiausweis (CK 25.10.): Foto hochladen → 3 Monate Vollzugang PD-Katalog (Foto nicht speichern; Verlagstitel nur im Abo oder per Kauf). Einmalige Kohorte 300 / 1.500 / 5.000 Nutzer ab Monat 5 / 4 / 3, danach 5 / 5 / 8 % → Abo und 30 % bleiben Gratis-Leser·innen; Kohorte wächst nicht mit der Wachstumsrate. Alles Annahmen.
+Probezeitraum 30 Tage Vollzugang (Conversion um 1 Monat verzögert; kostet bei Umsatztopf-Modell fast nichts). Fremdwerbung für Gratis-Nutzer ab Monat 13 / 10 / 7, 0,05 / 0,10 / 0,20 € je Gratis-MAU und Monat (Spotify Q4 2025 ≈ 0,36 €; Zielgruppe gehobene Bildung/Einkommen → Premium-Werbepartner, CK 25.10.); dezent in Übergängen, nie im Hör-/Lesefluss (BOARD.md). Im starken Szenario trägt Werbung rund die Hälfte des TÆLLA-Ergebnisses – größter Einzeltreiber, nicht belegt.
+PD-Katalog-Freigaben durch Studierende: 3 Freigaben × (8 € Grundbetrag + 4 € Bonus nach Endabnahme) = 36 € je Werk → Katalogwerk 64,87 € statt 28,87 € (Annahmen; Bonus-Kopplung arbeitsrechtlich prüfen). Fixkosten 24 Monate 5,2 T€.
 Marketing je Monat (vorsichtig/mittel/stark): TÆLLA 200/500/2.000 €, Read Layer 50/150/400 €, SOMNIO 0/100/300 €. Personal: 4.500 € je FTE; CK betreut selbst bis 1.000 Zahlende bzw. 8 Titel-Äquivalente/Monat; darüber 1 FTE je 3.000 Zahlende bzw. 15 Titel-Äquivalente. Stark Monat 24: TÆLLA 1,5 FTE, Read Layer 0,5 FTE. Alles Annahmen CFO – CK entscheidet. Ohne Unternehmerlohn CK und ohne Ertragsteuern.
 
 ### Variante Verlagstitel in TÆLLA + Read Layer (Blatt „TÆLLA Verlagstitel“, Stand 25.10.2026)
@@ -41,17 +44,18 @@ Barter-Katalog: Verlagstitel im Vollzugang, Onboarding über Verlags-Cockpit (Ku
 | Monat 24 bzw. 24 Monate | vorsichtig | mittel | stark |
 |---|---|---|---|
 | Verlagstitel im Katalog | 38 | 105 | 220 |
-| MAU ohne / mit | 920 / 1.090 | 9.060 / 22.590 | 70.270 / 307.970 |
-| Zahlende ohne / mit | 30 / 37 | 500 / 1.390 | 5.170 / 30.790 |
-| Ergebnis TÆLLA ohne / mit | −7,7 / −7,9 T€ | −1,0 / +1,9 T€ | 62,0 / 116,1 T€ |
-| Ausschüttung an Verlage | 0,4 T€ | 13,2 T€ | 301,6 T€ |
-| Zusatzumsatz / -DB Read Layer | 10,6 / 10,3 T€ | 29,4 / 28,5 T€ | 61,6 / 59,7 T€ |
-| Ergebnis gesamt ohne / mit Variante | −6,2 / +4,0 T€ | 38,0 / 69,5 T€ | 212,6 / 326,4 T€ |
-| Tiefster kum. Stand gesamt ohne / mit | −6,2 / −3,4 T€ | −2,8 / −2,8 T€ | −4,0 / −4,0 T€ |
-| Break-even gesamt mit Variante monatlich / kumuliert | 06/2027 / 04/2028 | 04/2027 / 05/2027 | 03/2027 / 03/2027 |
+| MAU ohne / mit | 1.010 / 1.180 | 9.440 / 22.830 | 70.810 / 305.930 |
+| Zahlende ohne / mit | 30 / 36 | 460 / 1.160 | 4.430 / 24.570 |
+| Ergebnis TÆLLA ohne / mit | −13,8 / −14,0 T€ | −3,3 / +2,5 T€ | 130,4 / 356,2 T€ |
+| davon Werbeerlös ohne / mit | 0,4 / 0,5 T€ | 6,5 / 11,7 T€ | 78,8 / 283,1 T€ |
+| Ausschüttung an Verlage | 0,4 T€ | 12,2 T€ | 242,4 T€ |
+| Zusatzumsatz / -DB Read Layer | 11,1 / 10,4 T€ | 31,1 / 29,1 T€ | 66,4 / 61,3 T€ |
+| Ergebnis gesamt ohne / mit Variante | −14,4 / −4,2 T€ | 33,6 / 68,4 T€ | 278,8 / 565,9 T€ |
+| Tiefster kum. Stand gesamt ohne / mit | −14,4 / −9,6 T€ | −9,6 / −9,1 T€ | −10,4 / −10,4 T€ |
+| Break-even gesamt mit Variante monatlich / kumuliert | 06/2027 / nicht in 24 M | 04/2027 / 09/2027 | 03/2027 / 05/2027 |
 
-Basiswerte (Break-even-Tabelle oben) sind durch die S-Kurve leicht gesunken: gesamt −6,2 / 38,0 / 212,6 T€.
-Offen: SOMNIO-Lizenz 25 % an TÆLLA, Freigaben-Vergütung Studierende – noch nicht im Modell.
+Kuratierung Verlagstitel (CK 25.10.: selbst machen oder bezahlen): Anteil gebucht 20 / 30 / 40 %, Preis = Studierenden-Kosten 36 € + 50 % Aufschlag = 54 € je Titel, Erlös Read Layer.
+Offen: SOMNIO-Lizenz 25 % an TÆLLA – noch nicht im Modell.
 
 ### Preisvorschlag Schnitt-Aufschlag (A-001)
 **15 min manuelle Prüfzeit je Audio-Stunde × 60 €/h, mindestens 95 € je Titel.** Ø Verlagstitel (8,6 Audio-h): 129 € netto. Begründung: Stichprobe und Korrektur der Abweichungen Text–Audio bei ungeschnittenem Verlagsaudio sind Handarbeit; Rechenkosten Alignment nur 1,45 €.
@@ -77,12 +81,13 @@ Offen: SOMNIO-Lizenz 25 % an TÆLLA, Freigaben-Vergütung Studierende – noch n
 - Zahlungsweg: Apple Small Business 15 %; Stripe EWR 1,5 % + 0,25 €.
 
 ### Kosten > 100 € (CFO prüfen)
-Gründung UG 496 € · Leipziger Buchmesse 350 € (Annahme) · Rechtsprüfung IT-Recht 800 € (Annahme) · eigene GPU 1.000 € (nicht geplant).
+Gründung UG 496 € · Marke TAELLA: deutsche Basismarke 290 € (DPMA, 3 Klassen 9/41/42) + IR-Marke WIPO mit Benennung EU ≈ 1.942 € (DPMA 180 € + WIPO 653 CHF + EU 981 CHF, Kurs 0,9272 CHF/€; CK 25.10.: WIPO-Schutz, Vielsprachigkeit = Kern der Marke; weitere Benennungen US, GB, NO, AU, NZ ≈ 3.244 € (WIPO Individual Fees, Stand 17.10.2026; CK 25.10.: US = größter Hörbuchmarkt, Skandinavien/GB/IE/Ozeanien als Beifang; IE, SE, DK, FI über EU); Markenschutz gesamt ≈ 5.476 €, ohne Anwaltskosten bei Beanstandungen · Leipziger Buchmesse 350 € (Annahme) · Rechtsprüfung IT-Recht 800 € (Annahme) · eigene GPU 1.000 € (nicht geplant).
 
 ### Top-3 neue Geschäftsfelder (Blatt „Neue Felder“)
 1. **Barrierefreiheits-Prüfdienst** – Ace/epubcheck-Bericht + Nachbesserung für Verlage; 5–25 T€/Jahr; Aufwand S.
 2. **Bildungsverlage / Schullektüren** – zweisprachige Lektüren mit Audio und Vokabelschicht (Klett Sprachen, Hueber, Reclam); 10–60 T€/Jahr; Aufwand M.
 3. **Lizenzierung von PD-Übersetzungen** – Text-Lizenz an PDL/Plattformen/Verlage; 2–15 T€/Jahr; Aufwand S.
+Ergänzt 25.10.: **YouTube-Fassung für Verlage** (Video mit echtem Buchtext + Wortmarkierung statt Standbild/Auto-Untertitel; Referenzfall Lübbe Audio, Zielverlag #13; 3–25 T€/Jahr, M) und **YouTube-Kanal TÆLLA/SOMNIO** (Schaufenster + Werbefläche, später Werbeerlös; YPP-Regel gegen schablonenhafte KI-Inhalte → variables Layout).
 
 ## Stand 17.10.2026 (Sitzung 1)
 Währung: API-Kosten in $ (so abgerechnet), Preise in €.
