@@ -10,7 +10,9 @@ Je Satz (Whisper, frei und - falls nicht Deutsch erkannt - zusaetzlich deutsch e
   top                  erkannte Sprache
   cer                  Zeichenfehlerrate der deutschen Abschrift gegen den Solltext (0 = deckungsgleich)
   verdacht             0..1  = max(1 - p_de, cer/0.6), kurze Saetze (< 1,2 s oder < 3 Woerter) halb gewichtet
-  stufe                gekippt (top != Zielsprache) | verdacht (verdacht >= 0,35) | ok
+  wort_unsicher        (AP 57) Woerter der erzwungenen Abschrift mit Konfidenz < P_WORT (fremd gesprochen?)
+  wort_en              (AP 57) Woerter der freien Abschrift, die im EN-Satz stehen, aber nicht im Solltext
+  stufe                gekippt (top != Zielsprache) | verdacht (verdacht >= 0,35 oder wort_en) | ok
 Namen: Grossgeschriebene Woerter, die im DE- und EN-Text desselben Satzes stehen, plus Anreden (Mr., Sir, Le ...).
 Ergebnis: authors/.../work/sprachpruefung_<lg>.json (+ BERICHT) -> Cockpit "Sprachpruefung" (CK: kippt / ok -> Schwelle).
 """
@@ -21,7 +23,7 @@ import soundfile as sf
 HIER = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SR = 16000
 ANREDEN = {"Mr.", "Mrs.", "Dr.", "Sir", "Lady", "Lord", "Miss", "Monsieur", "Madame", "Le", "La", "De"}
-AUDIO_TYPEN = ("h", "s", "dl", "qt")
+AUDIO_TYPEN = ("h", "s", "dl", "qt", "vs")
 
 
 def werk_dir(book):
@@ -113,6 +115,30 @@ def namen(de, en, figuren):
     return sorted(set(gruppen))
 
 
+def wort_en(soll, en, abschrift):
+    """AP 57: Woerter, die Whisper in der freien Abschrift in englischer Form hoert: stehen im EN-Satz,
+    nicht im deutschen Solltext (z. B. "the", "said", "Queen" statt "Koenigin"). Namen (in beiden Texten) zaehlen nicht."""
+    if not en or not abschrift:
+        return []
+    s_ = set(_norm(soll).split())
+    e_ = set(_norm(en).split())
+    return sorted({w for w in _norm(abschrift).split() if w in e_ and w not in s_ and len(w) > 1})
+
+
+P_WORT = 0.25   # AP 57: Wort-Konfidenz der erzwungenen Zielsprach-Abschrift darunter = unsicher (Kalibrierung mit CK-Urteilen)
+
+
+def wort_unsicher(woerter):
+    """AP 57: Woerter mit niedriger Konfidenz in der erzwungenen Abschrift (fremd gesprochen?).
+    Zahlen und Woerter bis 2 Buchstaben zaehlen nicht."""
+    out = []
+    for w, p in woerter or []:
+        n = _norm(w)
+        if p < P_WORT and len(n) > 2 and not n.isdigit():
+            out.append([n, p])
+    return out
+
+
 def auswerten(book, lg):
     werk = werk_dir(book)
     z = paket_dir(book, lg)
@@ -142,16 +168,18 @@ def auswerten(book, lg):
             continue
         soll = T[t]["soll"]
         p_ziel = float(r.get("probs", {}).get(lg, 0.0))
-        ab = r.get("text_ziel") or r.get("text_frei") or ""
+        ab = (r.get("text_ziel") if r.get("top") != lg else r.get("text_frei")) or r.get("text_ziel") or ""
         c_ = cer(soll, ab)
         kurz = r.get("dauer", 0) < 1.2 or len(soll.split()) < 3
         v = max(1 - p_ziel, min(1.0, c_ / 0.6))
         if kurz:
             v *= 0.5
-        stufe = "gekippt" if r.get("top") != lg and not kurz else ("verdacht" if v >= 0.35 else "ok")
+        we = wort_en(soll, T[t]["en"], r.get("text_frei", "")) if lg != "en" else []
+        wu = wort_unsicher(r.get("woerter"))
+        stufe = "gekippt" if r.get("top") != lg and not kurz else ("verdacht" if v >= 0.35 or ((we or wu) and not kurz) else "ok")
         S[t] = {"p_ziel": round(p_ziel, 3), "p_en": round(float(r.get("probs", {}).get("en", 0)), 3),
                 "p_fr": round(float(r.get("probs", {}).get("fr", 0)), 3), "top": r.get("top"),
-                "cer": c_, "dauer": r.get("dauer"), "kurz": kurz, "verdacht": round(v, 3), "stufe": stufe,
+                "cer": c_, "wort_en": we, "wort_unsicher": wu, "dauer": r.get("dauer"), "kurz": kurz, "verdacht": round(v, 3), "stufe": stufe,
                 "text_frei": r.get("text_frei", ""), "text_ziel": r.get("text_ziel", ""), "soll": soll,
                 "typ": T[t]["typ"], "namen": namen(soll, T[t]["en"], figuren) if lg != "en" else [],
                 "audio": os.path.relpath(os.path.join(werk, "fassungen", lg, "audio", t + ".wav"), HIER).replace("\\", "/")}

@@ -1,6 +1,6 @@
 """READ LAYER — Overlay-Montage (lokal/VM, keine API).
 Setzt die Chatterbox-Spannen in die Single-Speaker-Saetze ein.
-Aufruf:  python tools/overlay_montage.py <book_id> [de|en]
+Aufruf:  python tools/overlay_montage.py <book_id> [de|en] [--nur-wortzeiten]
 Ablage:  authors/.../<werk>/fassungen/<lg>/audio_overlay/
            vc/<tag>.wav      Satz mit VC-Rede   (Variante A)
            tts/<tag>.wav     Satz mit TTS-Rede  (Variante B)
@@ -112,5 +112,28 @@ def main(book_id, lg="de"):
     print(f"[montage] {len(je_tag)} Saetze x 2 Varianten -> {ziel}  (Probleme: {fehl})")
 
 
+def nur_wortzeiten(book_id, lg="de"):
+    """26.10.2026 (AP 56): nur 520_wortzeiten_<lg>_hoerspiel.json erzeugen, ohne Montage-Neulauf.
+    Spannenlaengen aus spannen/vc_korr (identisch mit den eingesetzten Spannen der vorhandenen vc/-Clips)."""
+    werk = glob.glob(os.path.join(HIER, "authors", "*", "books", book_id))[0]
+    paket = os.path.join(HIER, "gpu_overlay", f"{book_id}_{lg}")
+    jobs = json.load(open(os.path.join(paket, "jobs.json"), encoding="utf-8"))["jobs"]
+    if os.path.exists(os.path.join(paket, "jobs_gemini.json")):
+        jobs = jobs + json.load(open(os.path.join(paket, "jobs_gemini.json"), encoding="utf-8"))["jobs"]
+    sp = os.path.join(werk, "fassungen", lg, "audio_overlay", "spannen", "vc_korr")
+    je_tag, neu_len = {}, {}
+    for j in jobs:
+        je_tag.setdefault(j["tag"], []).append(j)
+        f = os.path.join(sp, j["id"] + ".wav")
+        if os.path.exists(f):
+            with wave.open(f) as w:
+                neu_len[j["id"]] = w.getnframes() / w.getframerate()
+    _wortzeiten_hoerspiel(werk, lg, je_tag, neu_len)
+
+
 if __name__ == "__main__":
-    main(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else "de")
+    if "--nur-wortzeiten" in sys.argv:
+        a = [x for x in sys.argv[1:] if x != "--nur-wortzeiten"]
+        nur_wortzeiten(a[0], a[1] if len(a) > 1 else "de")
+    else:
+        main(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else "de")

@@ -304,6 +304,7 @@ TAG_TYPES = {
     "h":    "h",     # chapter heading / section title
     "dl":   "dl",    # dialog line (standalone quote)
     "qt":   "qt",    # block quotation, inscription, sign
+    "vs":   "vs",    # verse/song stanza (AP 58: Lieder als eigene Knoten, Zeilen mit \n)
     "p":    "p",     # paragraph break (no audio, text = "")
     "fn":   "fn",    # footnote
     "ep":   "ep",    # epigraph
@@ -326,6 +327,7 @@ PAUSE_AFTER_MS = {
     "s":    350,   # normaler Satz: kurzer Atemzug
     "dl":   450,   # nach Dialogzeile: etwas mehr Raum
     "qt":   600,   # nach Zitat/Inschrift: wirken lassen
+    "vs":   700,   # nach Liedstrophe
     "ep":   700,   # nach Epigraph
     "fn":   300,   # Fussnote
     "p":    800,   # Absatzgrenze: deutliche Pause (kein Audio, nur Stille)
@@ -346,6 +348,9 @@ PAUSE_BY_PUNCTUATION = {
 # ============================================================
 # MARKUP-KONVENTION (manuelle Vorbereitung)
 # ============================================================
+# AP 58: Vorbereitungs-Marke fuer Lied-/Versstrophen (tools/pooh_vorbereiten.py) -> s200 setzt Typ vs
+VERS_MARKE = "\u3014V\u3015"
+
 MARKERS = {
     "title":    "###TITLE###",
     "author":   "###AUTHOR###",

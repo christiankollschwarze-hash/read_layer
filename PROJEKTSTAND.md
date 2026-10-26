@@ -21,6 +21,163 @@ A – direkt am Produkt
 4. Hoertest fuer Dritte teilen (Artifact "TÆLLA Hörtest Stimmen", Teilnehmer als Mitwirkende) + auswerten (tools/blindtest_auswerten.py).
 
 B – Pipeline/Prozess
+4b. NEU 26.10.: AP 54a Vergleichslauf lokaler Aligner (SimAlign mBERT m/a/i, awesome-align mBERT + awesome-align-with-co) gegen s340 (DeepSeek-Wortanker), Werk Call of the Wild.
+    GELAUFEN 26.10. (Hugging Face in Claude-Sandboxen gesperrt -> Lauf ueber Modal): start_aligner_vergleich.bat [werk]
+    -> gpu_align/align_vergleich_modal.py (3x T4 ganzes Werk + 3x CPU 4 Kerne/100 Saetze fuer NUC-Hochrechnung, geschaetzt < 0,20 $)
+    -> tools/aligner_vergleich_auswerten.py -> work/_aligner_vergleich/tabelle.md, auswertung.json, laufzeit.json, stichprobe_<aligner>.txt.
+    Metriken: Abdeckung (54a-Metrik = Anteil EN-Woerter nicht 'unresolved'; 340 aktuell 98,13 %, Validierung 17.07.: 97,0 %; Wert 96,98 % nicht im Projektstand gefunden),
+    Deckung mit 54a-Ankern, Null-Einigkeit. Achtung: Abdeckung allein misst keine Richtigkeit (Aligner setzt fast immer einen Anker) -> Entscheidung ueber Deckung + Stichprobe.
+    Ausgabeformat (Grundlage Tokenisierungsbruecke 54a<->MMS_FA): je Satz {"id","w":[[i,[[de_start,de_end],...]],...]}; i = EN-Index wie s340.tokenize_en (\S+),
+    Spans = Zeichenpositionen im DE-Satz, Satzzeichen-Links verworfen, mehrere DE-Spans je EN-Wort moeglich. Auswertung mit Testdaten geprueft (26.10.).
+    ERGEBNIS 26.10. 12:38 (Modal, work/_aligner_vergleich/tabelle.md): Abdeckung / Deckung mit 54a / Null-Einigkeit / T4 s / $ je Buch / CPU-4-Kerne s
+      54a DeepSeek 98,13 / 100 / 100 / - / ~0,08 / -
+      awesome_co 89,98 / 87,68 / 43,7 / 39 / 0,006 / 427 ; awesome_mbert 87,71 / 85,03 / 42,2 / 33 / 0,005 / 366
+      simalign i 93,55 / 87,67 / 25,8 / 288 / 0,047 / 353 ; simalign m 98,42 / 88,03 / 6,2 ; simalign a 83,41 / 81,65 / 50,3
+    Stichprobe (Unteragent, 40 Saetze je Aligner, nur Abweichungen): awesome_co R40/A30/B43/F4, simalign_i R44/A45/B44/F4.
+      Aligner: fehlende Anker (Funktionswoerter, Mehrwort, Partikelverben), Nachbar-Verwechslung. 54a: Verschiebungsketten um 1 Wort
+      (fast alle A-Faelle, z. B. c004_00118_s, c007_00105_s), Mehrwort-Anker zu breit.
+    ENTSCHEIDUNG (Empfehlung Claude): 54a NICHT ersetzen. awesome-align-with-co (awesome_co) als PRUEFALIGNER neben 54a einbauen:
+      Verschiebungsketten erkennen (Folge von >= 3 EN-Woertern, bei denen awesome_co den Nachbaranker von 54a trifft) -> Satz neu an DeepSeek.
+      Kosten ~0,006 $/Buch (T4), CPU/NUC ~7 min/Buch moeglich. Ausgabeformat siehe oben (gilt fuer awesome_co).
+    Naechstes AP: Tokenisierungsbruecke 54a <-> MMS_FA (+ Verschiebungsdetektor mit awesome_co).
+4c. AP 54b 26.10.: Tokenisierungsbruecke + Verschiebungsdetektor - FERTIG inkl. DeepSeek-Nachlauf und Manifest-Export (26.10. 13:04).
+    Sicherung: archive/2026-10-26_54b/ (s340/s520/s710, fa_modal, fertig_modal, export_*, PROJEKTSTAND, CotW-work 340/520/710/kosten).
+    NEU pipeline/s525_wortbruecke.py (EINE Stelle fuer Lautwoerter + Token-Bindung; s520 importiert sie, fa_modal/fertig_modal laden sie mit):
+      Zeichenposition = Bruecke; ’->' ; Token ohne Zeit zwischen Nachbarn interpoliert; fehlende de_span neu verortet
+      (gap_fallback nur <=2 Woerter ohne Satzende, unresolved/mehrteilig "x ... y" -> mehrere Spans); Teil-Token (Kompositum) = Zeitanteil nach Buchstaben.
+      Ausgabe work/525_wortbruecke.json {i, t, tq, zspans, tz, sq}; s710 haengt t/tz (+ reparierten de_span, zspans) an jeden Anker im EN-Manifest.
+    NEU pipeline/s345_verschiebung.py + gpu_align/pruefaligner_modal.py: awesome_co trifft Nachbaranker von 340 bei >=3 EN-Woertern gleicher Richtung
+      -> nur diese Saetze an DeepSeek (340-Prompt + Hinweis); uebernommen nur bei weniger Kettentreffern und <=10 % Ankerverlust; Sicherung work/340_wortalignment_vor345.json.
+    Start: start_verschiebung.bat [werk] (Modal nur, wenn work/345_pruefaligner.json fehlt; CotW: aus 54a uebernommen) -> 345 --nachlauf -> 525 -> tools/regression_54b.py -> Kostenlog.
+    Tokenisierung CotW (31.754 EN-Token): 1:1 31.219; mehrere Lautwoerter 534 (272 ’-Apostroph, 260 Bindestrich, 41 Gedankenstrich); 0 Lautwoerter 1 (1897).
+      DE (31.067): mehrere Lautwoerter 76, 0 Lautwoerter 49 (–, 1897). Anker ohne de_span 1.042 (gap 449, unresolved 593), Mehrtoken-Spans 418, Teil-Token 44.
+    MESSUNG CotW (Anteil EN-Woerter):  vorher / nachher Bruecke
+      Anker (DE-Span) 87,81 / 88,68 ; Wortzeit EN 99,74 / 99,75 ; Wortzeit DE 87,80 / 88,68 ; Anker+EN+DE 87,58 / 88,46
+      Rest: 8,9 % "none" (korrekt ohne Entsprechung), 573 unresolved = geratene Woerter (bleiben ohne Anker), 8 Saetze ohne EN-Audio.
+    Regression Manifest EN: 0 fremde Abweichungen, 278 reparierte de_span, 31.676 Anker mit t, 28.159 mit tz.
+    Detektor CotW: 72/1637 Saetze markiert, 389 Woerter; Stichprobe 20 (Unteragent): 16 echt, 4 teilweise, 0 Fehlalarm (work/345_stichprobe.txt).
+      Trockenlauf Nachlauf (Pruefaligner als Ersatzantwort): Annahmelogik ok (66/72 uebernommen). Kosten: Pruefaligner 0 $ (aus 54a), DeepSeek geschaetzt < 0,01 $.
+    NACHLAUF 26.10. 13:00 (start_verschiebung.bat): 71/72 Saetze uebernommen; danach 2 Saetze / 6 Woerter markiert (vorher 72/389).
+      MESSUNG nach Nachlauf (vorher 340 neu / nach Bruecke): Anker 88,39 / 89,22 ; Wortzeit EN 99,74 / 99,75 ; Wortzeit DE 88,38 / 89,22 ; Anker+EN+DE 88,16 / 89,00
+      Gesamt AP 54b: Anker+EN+DE 87,58 -> 89,00 %. Regression: 0 fremde Abweichungen, 265 reparierte Spans, 31.676 Anker mit t, 28.330 mit tz -> OK.
+      Kosten DeepSeek 345: 8 Aufrufe, 0,0145 $ (Pruefaligner 0 $).
+    ERLEDIGT 26.10. 13:04: s710 call-of-the-wild --lang en --manifest-only -> manifest_en.json (1906 Knoten, 1629 mit Audio, t/tz je Anker) in gs://readlayer-taella-content/werke/london-j_call-of-the-wild/.
+    Naechster Schritt: Frontend liest t/tz/zspans fuer Wort-Hervorhebung EN+DE; start_verschiebung.bat fuer weitere Werke.
+4d. AP 54c 26.10.: Wort-Hervorhebung EN+DE (Wort + Gegenwort) im Mock-up - GEBAUT, Browser-Hoertest offen (Dev-Server lief nicht).
+    Sicherung: archive/2026-10-26_54c/ (ListenView.jsx, useListen.js, App.css, Demo-Manifeste CotW, export_demo/export_app, start_verschiebung.bat, PROJEKTSTAND).
+    Bestand: Loader taella-app/src/lib/loader.js liest align nur aus dem Manifest der Originalsprache; genutzt bisher en_span/de_span
+      (Satz.jsx: Flyover-Phrase; ListenView: Untertitel-Karaoke per Span-Ueberlappung) + wordtimes_<lang>.json (export_app.py aus 520).
+    Export: kein Code-Umbau noetig - export_demo.py nutzt s710._build_manifest (haengt t/tz/zspans an). DE-Manifest braucht nichts (Gegenrichtung aus EN-Ankern).
+      CotW neu exportiert (export_demo --audio --hoerspiel): 31.754 Anker, 31.676 mit t, 28.330 mit tz.
+    Frontend: NEU src/lib/wortpaar.js (Fenster je Anker; EN: t, DE: tz je zspan; n:1 zusammengefasst; Zeichenzustand -> Teil-Token-Markierung).
+      ListenView: Untertitel-Schalter CC -> andere Sprache -> EN·DE (beide Zeilen) -> aus; gehoerte Zeile Token-Karaoke + Ankerfenster im Token,
+      Gegenzeile Gegenwort hervorgehoben; ohne Anker kein Gegenwort; Hoerspiel-Clip -> bisheriger Weg (t/tz gelten nur fuer Erzaehler-Audio). App.css: .listen-subs, .listen-sub--gegen.
+      Syntax geprueft (esbuild). Commit taella-app offen.
+    Test ohne Browser: tools/test_wortpaar_54c.mjs (Kap. c001/c004/c007): EN 13.178 Woerter, 89,1 % mit Gegenwort; DE 11.764, 100 %;
+      Abweichung Ankerzeit/520-Tokenzeit Median 0 ms, P95 0 ms (gleiche Quelle). Stichprobe 20 (Unteragent, work/_54c/stichprobe20.tsv):
+      R 15 / T 3 / F 1 / LF 1 - Fehler liegen in den 54a-Ankern (would->haetten, destined ohne Anker), nicht in der Hervorhebung.
+    BROWSER-TEST 26.10. 14:05 (Ruf der Wildnis, Erzaehler, EN·DE): synchron in beiden Richtungen (DE hast->ain't got, murren->coming; EN had->waren, skyward->in die Hoehe).
+      Befund lange Saetze: zweite Zeile ragte in Zeitleiste -> Schriftgroesse aus Gesamtlaenge beider Zeilen (ListenView subLen) -> passt. Commit taella-app offen (git braucht Loeschrecht).
+    OFFEN nach AP 54c (Stand 26.10. 14:05) -> abgearbeitet in AP 55 (Punkt 4e):
+      a) Commit taella-app: src/lib/wortpaar.js (neu), src/components/ListenView.jsx, src/App.css, public/demo/* (Manifeste CotW, Alice, Sleepy Hollow, AYLI, Jekyll, Baskerville, katalog.json).
+         Claude braucht dafuer Loeschrecht im Ordner taella-app (git-Sperrdateien) - sonst CK selbst committen.
+      b) Teil-Token (Kompositum) im Browser noch nicht live gesehen (nur Simulation tools/test_wortpaar_54c.mjs).
+      c) Hoerspiel-Modus: kein Wort+Gegenwort (t/tz gelten nur fuers Erzaehler-Audio). Braucht Wortbruecke auf 520_wortzeiten_<lang>_hoerspiel.json.
+      d) Lesemodus (Reader) hebt beim Hoeren weder Satz noch Wort hervor (bestehendes Verhalten, FRONTEND.md).
+      e) Die Spiegelschwestern (DE-Original): s345/s525 setzen Quelle EN voraus -> Richtung DE->EN nachruesten, dann start_verschiebung.bat.
+      f) GCS: Manifeste der 6 Werke (s710 --manifest-only) ohne Audio-Pfade, weil dort kein Audio liegt -> Cloud-Upload Audio (Punkt 10) bevor App aus GCS liest.
+      g) Ankerqualitaet 54a: Stichprobe 20 -> 1 falsch, 1 fehlend, 3 teilweise; nach Nachlauf noch markiert: Alice 14, Sleepy 3, AYLI 2, Jekyll 16, P&W 11, Baskerville 17 Saetze.
+         Option: zweiter Nachlauf nur fuer diese Saetze (Kosten < 0,01 $/Werk).
+      h) Weitere Werke mit 340 aber ohne Wortzeiten EN+DE (u. a. Carmilla, Great God Pan, Time Machine, Hamlet): erst Vertonung + 520, dann start_verschiebung.bat.
+    Weitere Werke: start_verschiebung_alle.bat (start_verschiebung.bat jetzt mit NOPAUSE) fuer Alice, Sleepy Hollow, AYLI, Jekyll, Peter & Wendy, Baskerville
+      (~191.500 Woerter, geschaetzt 0,13-0,20 $), danach s710 --manifest-only + export_demo --audio. Nicht dabei: Spiegelschwestern (DE-Original, s345 setzt EN voraus).
+    GELAUFEN 26.10. 13:55 (start_verschiebung_alle.bat), Anker+EN+DE nach Bruecke / Nachlauf uebernommen / Regression:
+      Alice 92,86 % / 26 von 34 / 0 fremde Abw. ; Sleepy Hollow 94,98 % / 34 von 37 / 0 ; AYLI 93,67 % / 29 von 30 / 0
+      Jekyll 94,23 % / 48 von 60 / 0 ; Peter & Wendy 94,94 % / 37 von 47 / 0 ; Baskerville 92,55 % / 99 von 113 / 0
+      Kosten: Modal je Werk 0,005-0,007 $, DeepSeek 345 ~0,01 $ je Werk -> gesamt ~0,09 $. Demo-Export ok (5 Werke; Peter & Wendy nicht im Demo).
+      Hinweis: s710 --manifest-only fand fuer diese Werke keine Audio-Pfade in GCS (Manifeste in GCS ohne Audio, wie vorher).
+4e. AP 55 26.10.: Offene Punkte aus AP 54c abgearbeitet (Stand 26.10. ~15:00).
+    Sicherung: archive/2026-10-26_55/ (s345/s520/s525/s710, export_demo/export_app/regression_54b, wortpaar.js/ListenView/useListen/loader, Demo-Manifeste Spiegelschwestern, PROJEKTSTAND).
+    a) ERLEDIGT: Commit taella-app d5ee987 (AP 54c) + 9c48947 (AP 55). Loeschrecht taella-app fuer git in dieser Sitzung erteilt.
+    b) ERLEDIGT Browser (CotW c001_00048_dl, DE gehoert): Teil-Token live - "Verdreh" <-> "Twist", "s" <-> "it,", "wuergst" <-> "choke" (Markierung mitten im Wort).
+    c) ERLEDIGT Hoerspiel-Modus: s525 liest zusaetzlich 520_wortzeiten_<lg>_hoerspiel.json -> je Anker ths (Quell-Clip) / tzhs (Ziel-Clip);
+       s710 haengt ths/tzhs an; wortpaar.js/ListenView: laufender Clip Hoerspiel -> ths/tzhs statt t/tz. regression_54b erlaubt ths/tzhs.
+       Spiegelschwestern: 164 Hoerspiel-Saetze, 906 Anker mit ths; Browser: synchron (Weiblich->Female, soweit->as far as, n:1 ok), keine Konsolenfehler.
+       Einschraenkung: nur wo 520_..._hoerspiel existiert (tools/overlay_montage.py schreibt sie). CotW hat 63 Hoerspiel-Clips DE, aber keine Hoerspiel-Wortzeiten -> dort Fallback (bisherige Karaoke) bis overlay_montage neu laeuft.
+    e) CODE ERLEDIGT: s525/s345/pruefaligner_modal setzen Richtung per config.werk_sprachen(werk) (vorher SOURCE_LANGUAGE vor dem ersten work_path gelesen -> DE-Werk lief als EN).
+       s525 Spiegelschwestern (DE->EN) gelaufen: Anker+Quelle+Ziel 79,92 -> 85,96 % (7.940 Woerter); Regression 0 fremde Abweichungen; Demo neu exportiert.
+       OFFEN: Pruefaligner (Modal) + 345-Nachlauf Spiegelschwestern -> start_ap55.bat (Windows; VM hat kein Modal/DeepSeek-Netz).
+    g) VORBEREITET: zweiter Nachlauf = 345 --nachlauf erneut (erkennt nur noch markierte Saetze). Rest: CotW 2, Alice 14, Sleepy 3, AYLI 2, Jekyll 16, P&W 11, Baskerville 17 = 65 Saetze.
+       Kosten geschaetzt aus Lauf 1 (~0,0002 $/Satz): ~0,015 $ + Spiegelschwestern (Modal ~0,002 $, DeepSeek ~0,005 $) -> gesamt < 0,03 $.
+       s345 behaelt den Bericht von Lauf 1 als work/345_verschiebung_vorher.json. Start: start_ap55.bat (e + g + Demo-Export), Bilanz: tools/ap55_bilanz.py.
+    BEWERTET, nicht gebaut:
+    d) Reader-Hervorhebung beim Hoeren: rein Frontend, wortpaar.js liefert Zeichenzustand schon -> Hoerzustand (idx/time) an Reader/Satz.jsx geben. 1 AP, nach Bestaetigung b/c im Alltag. Prioritaet mittel.
+    f) GCS-Audio: Voraussetzung fuer App aus GCS (Punkt 10, Android). Gehoert in das AP Cloud-Audio; vorher nicht noetig (Mock-up laeuft lokal). Prioritaet mit Punkt 10.
+    h) Weitere Werke (Carmilla, Great God Pan, Time Machine, Hamlet): erst Vertonung + 520 (Modal ~1 $/Audio-h), dann start_verschiebung.bat (~0,02 $/Werk). Nur wenn Werk ins Demo/Programm soll.
+    GELAUFEN 26.10. 15:05 (start_ap55.bat), markiert vorher -> nachher / uebernommen / Anker+Quelle+Ziel; Regression ueberall 0 fremde Abweichungen:
+      Spiegelschwestern 1->0 / 1/1 / 85,94 % ; CotW 2->0 / 2/2 / 89,02 % ; Alice 14->4 / 11/14 / 92,95 % ; Sleepy 3->1 / 2/3 / 94,96 %
+      AYLI 2->0 / 2/2 / 93,68 % ; Jekyll 16->4 / 12/16 / 94,22 % ; P&W 11->3 / 8/11 / 94,98 % ; Baskerville 17->2 / 16/17 / 92,57 %
+      Gesamt: 66 -> 14 markierte Saetze (54 uebernommen). Kosten: Modal Spiegelschwestern 0,004 $, DeepSeek ~0,015 $ (Schaetzung). Demo-Export neu.
+    Rest-14 Saetze: kein dritter Lauf (DeepSeek verwirft dort wiederholt) -> bei Bedarf Kuratormodus/Hand.
+    Offen aus AP 55: Commit taella-app der neu exportierten Demo-Manifeste; CotW-Hoerspiel-Wortzeiten (overlay_montage); d) Reader-Hervorhebung als eigenes AP.
+4f. AP 56 26.10.: Folgepunkte aus AP 55 (Stand 26.10. ~16:00). Sicherung: archive/2026-10-26_56/ (read_layer: PROJEKTSTAND, overlay_montage, export_demo, s525; taella-app: Reader/Satz/Page/ListenView/App, wortpaar/useListen/loader, CotW-Demo-JSONs).
+    1) ERLEDIGT CotW-Hoerspiel-Wortzeiten DE: Pruefung vorhandene vc/-Clips = Erzaehler + (vc_korr-Spanne - ersetzte Stelle), 63/63 exakt (0,0 s) -> KEIN Montage-Neulauf.
+       tools/overlay_montage.py neu: --nur-wortzeiten (Spannenlaengen aus spannen/vc_korr) -> work/520_wortzeiten_de_hoerspiel.json (63 Saetze).
+       s525 CotW: 700 Anker tzhs (DE-Hoerspiel-Ziel), Anker+Quelle+Ziel 89,02 %; regression_54b 0 fremde Abweichungen. export_demo --audio --hoerspiel.
+       Browser: Hoerspiel EN·DE (c001_00194_dl, Perrault) Wort + Gegenwort synchron (er<>he, Blick<>eyes, fiel<>lit). Commit taella-app fcfdd1d.
+    2) ERLEDIGT d) Lesen beim Hoeren: Reader-Knopf im Hoeren laesst den Ton weiterlaufen (ListenView unsichtbar, Steuerpille Pause/Hoeren/x).
+       src/lib/hoerzustand.js (Store, nur der gehoerte Satz rendert neu); wortpaar.hoerZeichen() = gleicher Weg wie ListenView (Token-Karaoke + Ankerzeit, Hoerspiel ths).
+       Satz.jsx: Satz getoent + aktuelles Wort markiert, Flyover bleibt. Seite folgt dem gehoerten Satz (ab Satzbeginn; manuelles Blaettern wird bis zum naechsten Satz respektiert).
+       Browser CotW Hoerspiel DE: Satz/Wort laufen mit, Pause/Weiter/zurueck zum Hoeren/Schliessen ok, keine Konsolenfehler. Commit taella-app 6ac0840.
+    3) ERLEDIGT Rest-14 als Kurator-Vorlage (nichts geaendert): tools/ap56_rest_liste.py -> je Werk work/345_rest_kurator.json + docs/AP56_rest_saetze_345.md
+       (Alice 4, Jekyll 4, P&W 3, Baskerville 2, Sleepy 1; je Wort: Quellwort | jetzt s340 | Pruefaligner-Vorschlag).
+    Nicht gebaut (bei Bedarf): f) GCS-Audio (mit Punkt 10), h) weitere Werke vertonen.
+    Offen: CK prueft Lesen beim Hoeren im Alltag; Rest-14 im Kuratormodus entscheiden (Uebernahme Pruefaligner-Vorschlag waere eigenes kleines Werkzeug).
+4g. AP 57 26.10.: Stage 560 Sprachpruefung mit Neuvertonung (CK: DE-Audio kippt ins Englische, Alice + Baskerville; Gemini bleibt).
+    Sicherung: archive/2026-10-26_57/ (sprachpruefung, neu_vertonen, sprache_modal, start_*.bat, run.py, Baskerville-Pruefung vorher).
+    GEBAUT (nicht gelaufen - Modal/Gemini nur Windows):
+    - gpu_sprache/sprache_modal.py: immer zweiter Whisper-Durchgang in der Zielsprache erzwungen, mit Wort-Konfidenz ("woerter").
+    - tools/sprachpruefung.py: neu wort_unsicher (Wort-Konfidenz < 0,25) + wort_en (englische Form gehoert, im EN-Satz, nicht im Soll) -> Stufe verdacht.
+      Befund alte Baskerville-Daten: p_de + wort_en allein fangen feine Akzente kaum -> Wort-Konfidenz ist der neue Hauptmelder.
+    - tools/s560_sprachpruefung.py: --auswahl (gekippt | p<0,5 | wort_en | >=2 unsichere Woerter oder eines <0,10 | CK kippt; CK ok nie;
+      CK-kippt-Urteile nach Neuvertonung ungueltig; max. 2 Runden je Satz; HALT bei > 20 % Auswahl, Exit 4) und --bericht
+      (work/BERICHT_560_<lg>.md Rest fuer Kuratormodus + aussprache_<lg>_vorschlag.json, nicht angewendet).
+    - tools/neu_vertonen.py --stage560: Gemini (config MODELS tts = gemini-3.8-flash-tts, wie Alice 11.10./Baskerville 12.10. vertont),
+      gleiche Stimme je Figur (casting/sprecher), deutsche Regie, Lexikon nur wenn freigegeben; Lauf mit quelle s560 + modell protokolliert.
+    - start_s560.bat <werk> [lg]: Pruefen -> Auswahl -> Gemini -> Wortzeiten (fa_modal, sonst s520) -> Pruefen, bis 2 Runden; dann Bericht, s525, Demo-Export.
+      start_ap57.bat = Alice, dann Baskerville. Trockentest Auswahl/Liste/Bericht an alten Baskerville-Daten ok.
+    OFFEN: CK startet start_ap57.bat. Schwellen (P_WORT 0,25 / 0,10) nach Alice-Lauf mit Cockpit-Urteilen kalibrieren;
+      bei HALT erst Bericht ansehen, dann mit S560_OHNE_GRENZE=1 starten. Kosten Schaetzung: Whisper ~0,3-0,5 $/Werk, Gemini nur Auswahl.
+4h. AP 58 26.10.: Vollproduktion Winnie-the-Pooh + Illustrationen (laeuft). Sicherung: archive/2026-10-26_58/.
+    ERLEDIGT 1 Import: Werk milne-aa/winnie-the-pooh (Gutenberg #67098, Quelle _epub_import/winnie-the-pooh/: pg67098.txt + HTML-ZIP).
+       book.json: rechte gemeinfrei, gemeinfrei_eu_ab/veroeffentlichen_ab 2027-01-01 (Milne +1956), Shepard-Bilder nicht verwendet;
+       glossar_fest (Pu, Ferkel, I-Ah, Eule, Kaenga, Ruh, Kaninchen, Christopher Robin ...), DE-Titel "Winnie-der-Pu" (titel_pruefen).
+       KEINE Modernisierung (Original 1:1): tools/pooh_vorbereiten.py schreibt work/modernized/ + raw_modernized.txt (11 Kapitel inkl. Einleitung).
+       Lieder als eigene Knoten: neuer Tag-Typ vs (Strophe, Zeilen mit \n; 18 Strophen). Vorbereitung setzt config.VERS_MARKE, s200 macht daraus vs.
+       Geaendert: config (TAG_TYPES/PAUSE vs, VERS_MARKE), s200 (Regel + Marke->vs), s210 (book.json glossar_fest), s310 (Vers-Hinweis: Reim,
+       gleiche Zeilenzahl), s420/audio_plausi/sprachpruefung/tts_paket (vs = Audio-Typ), s630 (vs eigener Absatz).
+    ERLEDIGT 2 Bildanker: tools/pooh_bildanker.py (27 Bilder, Anker = letzter Satz des Absatzes bzw. Kapitelueberschrift) -> work/bilder.json
+       nach Tagging; Probe gegen Quelltext 21/21 Textanker eindeutig.
+    3 Bild-Probe: 5 Bilder (Nr. 4, 7, 14, 54, 114) Gemini 3.1 Flash Bild, One-Line, nur Text; Ausgabe C:\Users\sabin\Claude\gemini-mcp\output\*pooh_*.jpg
+       (Ordner fuer Claude nicht freigegeben). CK 26.10. 17:47: alle 5 brauchbar.
+    ERLEDIGT 3 Rest: 22 Bilder erzeugt (alle 27 fertig). 5 Prompts von Gemini blockiert (IP-Filter: Baer+Ferkel/Ensemble-Szenen 27, 30, 39, 85, 90)
+       -> neu mit neutralen Figuren ("round little toy animal", ohne Namen) erzeugt. Gemini-Pruefung 22/22: eine Linie, kein Text, kein grober Fehler.
+       Kosten ~27 x 0,039 $ = ~1,05 $ (blockierte Anfragen kosten nichts). Kopieren ins Werk: start_ap58_bilder.bat -> images/bilder/pooh_NNN.jpg.
+    ERLEDIGT Cover (CK 26.10. 18:06): Bild 103 (Schirmboot) = Titelbild. images/cover.jpg = 2:3-Flaeche #faf8f4, Bild mittig (Grund angeglichen);
+       s615 gelaufen -> fassungen/en|de/output/cover_final_*.jpg ("Winnie-the-Pooh" / "Winnie-der-Pu"). Kein s610-Lauf (0 $).
+    Textkette 26.10.: 200-340 gelaufen (0,75 $), 18/18 Strophen vs, Uebersetzung vollstaendig, 27/27 Bildanker. DE-Titel "Winnie-der-Pu" CK-frei.
+       Tor 330: 89/1403 unter Score 90 (61 davon 85-89; Schnitt 96) = idiomatische DE-Fassung -> READLAYER_WEITER=1 in start_ap58_text.bat.
+    ERLEDIGT Stage 400 (Regie). Text komplett bis 400 + 340.
+    Casting vorbereitet (tools/pooh_casting.py -> work/casting.json, Tor offen): Gemini-Standardstimmen EN+DE gleich,
+       Erzaehler Algieba; Pu Umbriel, Ferkel Leda, I-Ah Algenib, Eule Rasalgethi, Kaenga Sulafat, Ruh Laomedeia, Kaninchen Fenrir,
+       Christopher Robin Puck. Figurenrede spaeter direkt mit Gemini (overlay_gemini), keine VC. Lieder (vs) -> singende Figur (s420).
+       start_ap58_casting.bat: s420 + Hoerprobe Kapitel I EN/DE (work/_hoerprobe/<lg>/c002.wav), ~0,5 $. Danach CK-Freigabe.
+    ERLEDIGT Casting: s420 gelaufen (sprecher.json; 32 unsichere Saetze in work/sprecher_pruefen.txt, Rueckfaelle = Erzaehler),
+       Hoerprobe Kap. I EN 17,3 / DE 18,1 min, TTS 0,39 $. CK 19:03 abgenommen -> casting.json tor freigegeben, book.json stimmen_freigabe/besetzung.
+    Vollvertonung: start_ap58_vertonung.bat (hoerprobe_mehrstimmig alle --satzdateien -> manifest_schreiben -> fa_modal EN+DE -> start_s560 EN + DE).
+       Schaetzung: TTS ~3,6 $ (22.500 Woerter, ~3 h Audio je Sprache), Modal ~1-3 $, s560 ~1 $.
+    OFFEN (alt): CK startet start_ap58_text.bat (200-400 + 340 + Bildanker, Pruefung tools/ap58_pruefen.py). Dann Casting (s410 + Freigabe), Vertonung EN/DE,
+       start_s560.bat, Reader (Knoten typ bild). Kosten: docs/AP58_kosten.md (Schaetzung ~12-16 $; Bild-Probe ~0,20 $).
 5. Drama-Erkennung automatisch (Cockpit/Stage 11); Dramen (Macbeth, Hamlet, Romeo and Juliet, Tempest, Earnest, Lysistrata, Pygmalion) Text neu ab Stage 11.
 6. 57b-Rueckfaelle automatisch in kleinen Paketen wiederholen; Kosten von 57/57b ins Kostenlog.
 7. Stimmen der Musterwerke nachtraeglich per Probe/Freigabe pruefen (Kandidaten ohne CK-Freigabe).

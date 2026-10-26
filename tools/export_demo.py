@@ -12,6 +12,8 @@ Aufruf:
 Erzeugt:
   <demo>/katalog.json                     Liste aller Demo-Werke (wird aktualisiert, nicht ersetzt)
   <demo>/<slug>/manifest_<lang>.json      wie Stage 60, Audio-Pfade relativ: audio/<lang>/<tag>.wav
+      (AP 54c: Anker im Manifest der Originalsprache tragen t/tz/zspans aus work/525_wortbruecke.json ueber
+       s710._build_manifest; das Gegen-Manifest braucht nichts - die App liest die Gegenrichtung aus denselben Ankern)
   <demo>/<slug>/blurb.json, cover_<lang>.jpg, wordtimes_<lang>.json   (ueber tools/export_app.py)
   <demo>/<slug>/cover.<ext>               Fallback, wenn kein cover_final_<lang>.jpg existiert
   <demo>/<slug>/audio/<lang>/*.wav        NUR mit --audio (gross: ~1 GB je Hoerbuch)
@@ -71,6 +73,45 @@ def _hoerspiel_sprecher(bdir, lang, tags):
     return out
 
 
+def _bilder(bdir, ziel):
+    """AP 58: Abbildungen aus work/bilder.json -> <demo>/<slug>/bilder/, Rueckgabe {anker: [eintrag, ...]}."""
+    bj = bdir / "work" / "bilder.json"
+    if not bj.exists():
+        return {}
+    out = {}
+    (ziel / "bilder").mkdir(parents=True, exist_ok=True)
+    try:
+        from PIL import Image
+    except ImportError:
+        Image = None
+    for b in json.loads(bj.read_text(encoding="utf-8")).get("bilder", []):
+        src = bdir / b.get("datei", "")
+        if b.get("status") != "fertig" or not b.get("anker") or not src.is_file():
+            continue
+        dst = ziel / "bilder" / (src.stem + ".jpg")
+        if Image:
+            im = Image.open(src).convert("RGB")
+            im.thumbnail((1000, 1000))
+            im.save(dst, "JPEG", quality=82, optimize=True)
+        else:
+            shutil.copy2(src, dst)
+        out.setdefault(b["anker"], []).append({"nr": b["nr"], "bild": f"bilder/{dst.name}", "alt": b.get("szene", "")})
+    return out
+
+
+def _bilder_einfuegen(saetze, bilder):
+    """Knoten typ "bild" direkt nach dem Ankersatz einfuegen (ohne Text/Audio)."""
+    if not bilder:
+        return saetze
+    neu = []
+    for s in saetze:
+        neu.append(s)
+        for b in bilder.get(s["tag_id"], []):
+            neu.append({"tag_id": f"{s['tag_id']}_bild{b['nr']:03d}", "typ": "bild",
+                        "kapitel": s.get("kapitel"), "text": "", "bild": b["bild"], "alt": b["alt"]})
+    return neu
+
+
 def main(slug: str, demo: Path, mit_audio: bool, hoerspiel: bool = False):
     bdir = Path(config.book_dir(slug))
     ziel = demo / slug
@@ -90,6 +131,9 @@ def main(slug: str, demo: Path, mit_audio: bool, hoerspiel: bool = False):
                 covers = [f"cover.{ext}"]
                 break
 
+    bilder = _bilder(bdir, ziel)
+    if bilder:
+        print(f"  bilder/: {sum(len(v) for v in bilder.values())} Abbildungen")
     audio_info, manifeste = {}, {}
     for lang in LANGS:
         wavs = sorted((bdir / "fassungen" / lang / "audio").glob("*.wav")) \
@@ -123,6 +167,7 @@ def main(slug: str, demo: Path, mit_audio: bool, hoerspiel: bool = False):
         m = s60._build_manifest(slug, lang, werk_id, content, uris)
         if not m["saetze"]:
             continue
+        m["saetze"] = _bilder_einfuegen(m["saetze"], bilder)
         if mit_audio and hs_wavs:
             m["hoerspiel"] = True
             m["hoerspiel_saetze"] = [w.stem for w in hs_wavs]
@@ -137,6 +182,7 @@ def main(slug: str, demo: Path, mit_audio: bool, hoerspiel: bool = False):
     en = manifeste.get("en") or next(iter(manifeste.values()))
     kapitel = sorted({s["kapitel"] for s in en["saetze"] if s.get("kapitel")})
     woerter = sum(len(s["text"].split()) for s in en["saetze"])
+    n_bilder = sum(1 for s in en["saetze"] if s.get("typ") == "bild")
     eintrag = {
         "slug": slug,
         "werk_id": werk_id,
@@ -150,6 +196,7 @@ def main(slug: str, demo: Path, mit_audio: bool, hoerspiel: bool = False):
         "audio_vorhanden": {l: n > 0 for l, n in audio_info.items()},
         "audio_im_demo": mit_audio,
         "hoerspiel": {l: True for l, m in manifeste.items() if m.get("hoerspiel")},
+        "bilder": n_bilder,
         "pfad": f"demo/{slug}/",
         "aktualisiert": datetime.datetime.now().isoformat(timespec="seconds"),
     }

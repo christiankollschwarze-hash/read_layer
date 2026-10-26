@@ -210,6 +210,15 @@ def run(book_id: str) -> dict:
 
     print(f"[stage51] Erstelle Buch-Profil ({config.RUN_MODE}-Modus)...")
     profile = build_profile(data)
+    # AP 58: feste Begriffe aus book.json ("glossar_fest": {Begriff: {lg: Ziel}}) ueberschreiben das LLM-Glossar
+    try:
+        _bj = json.load(open(os.path.join(config.book_dir(book_id), "book.json"), encoding="utf-8"))
+        _fest = _bj.get("glossar_fest") or {}
+        if _fest:
+            profile.setdefault("glossary", {}).update(_fest)
+            print(f"[stage51] glossar_fest aus book.json: {len(_fest)} Begriffe")
+    except (OSError, ValueError):
+        pass
 
     # Profil unter meta haengen — Content bleibt unberuehrt
     data["meta"]["profile"] = profile

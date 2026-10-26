@@ -19,6 +19,7 @@ image = (
     .add_local_dir(str(LESER / "config"), remote_path="/rl/config", ignore=["*.bak*", "__pycache__"])
     .add_local_file(str(LESER / "pipeline" / "__init__.py"), remote_path="/rl/pipeline/__init__.py")
     .add_local_file(str(LESER / "pipeline" / "s520_wortzeiten.py"), remote_path="/rl/pipeline/s520_wortzeiten.py")
+    .add_local_file(str(LESER / "pipeline" / "s525_wortbruecke.py"), remote_path="/rl/pipeline/s525_wortbruecke.py")
     .add_local_file(str(LESER / "daten" / "index.json"), remote_path="/rl/daten/index.json")
 )
 

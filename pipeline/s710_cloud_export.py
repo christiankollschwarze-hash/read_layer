@@ -2,7 +2,7 @@
 Funktion:     Auslieferung an TAELLA ueber Google Cloud Storage.
 Wirkungsweise: WAV -> MP3, Upload nach readlayer-taella-content, Manifest je Sprache, catalog.json; private Werke unter users/.
 Komponenten:  pipeline/s710_cloud_export.py, pydub, google-cloud-storage
-Zulieferer:   s340 Wort-Alignment, s400 Regie, s500 Vertonung, s520 Wortzeiten, s410 Casting
+Zulieferer:   s340 Wort-Alignment, s400 Regie, s500 Vertonung, s520 Wortzeiten, s525 Wortbruecke, s410 Casting
 Abnehmer:     TAELLA-App (manifest_<lang>.json, catalog.json), work/710_cloud_export_<lang>.json
 (Nomenklatur seit 18.10.2026, Uebersicht: docs/Pipeline_Strang_Matrix.xlsx)
 
@@ -169,16 +169,46 @@ def _pause_for(pause_map, tag_id, lang):
 # Audio-Zeitstempel (en_time/de_time) werden hier NICHT als Leerfeld reserviert,
 # sondern spaeter dort ergaenzt, wo sie entstehen (Stage 58b MMS_FA fuer EN,
 # Piper include_alignments fuer DE) - kein Ballast, bis der Fall gebaut ist.
-def _slim_align(align):
-    """Reduziert die volle 54a-Wortliste auf die Frontend-Felder."""
+def _slim_align(align, bruecke=None):
+    """Reduziert die volle 54a-Wortliste auf die Frontend-Felder.
+    26.10.2026 (AP 54b): mit Wortbruecke (s525) zusaetzlich je Anker
+      t   = [t0,t1] Wortzeit im Quell-Audio (Sekunden, clip-relativ, Tempo 1.0)
+      tz  = [[t0,t1],...] Wortzeit(en) des Ziel-Ankers im Ziel-Audio (je Ziel-Span ein Fenster)
+      <ziel>_span = von s525 reparierter Span, wo s340 keinen hatte; zspans bei mehreren Spans."""
     slim = []
+    br = {b["i"]: b for b in (bruecke or [])}
     for w in align:
         k_src_span, k_tgt, k_tgt_span = config.align_keys()   # je Werk (22.10.2026)
         node = {"i": w.get("i"), k_src_span: w.get(k_src_span), k_tgt: w.get(k_tgt)}
         if w.get(k_tgt_span) is not None:
             node[k_tgt_span] = w[k_tgt_span]
+        b = br.get(w.get("i"))
+        if b:
+            if b.get("zspans") and node.get(k_tgt_span) is None:
+                node[k_tgt_span] = b["zspans"][0]
+            if len(b.get("zspans") or []) > 1:
+                node["zspans"] = b["zspans"]
+            if b.get("t"):
+                node["t"] = b["t"]
+            if b.get("tz"):
+                node["tz"] = b["tz"]
+            if b.get("ths"):        # AP 55: Hoerspiel-Clip-Zeiten
+                node["ths"] = b["ths"]
+            if b.get("tzhs"):
+                node["tzhs"] = b["tzhs"]
         slim.append(node)
     return slim
+
+
+def _lade_bruecke(book_slug):
+    """work/525_wortbruecke.json (AP 54b) -> {tid: [...]}; fehlt sie, exportiert s710 wie bisher."""
+    p = Path(config.work_path(book_slug, "525_wortbruecke"))
+    if not p.exists():
+        return {}
+    try:
+        return json.loads(p.read_text(encoding="utf-8")).get("tags", {})
+    except Exception:
+        return {}
 
 def _build_manifest(book_slug, lang, werk_id, stage06, audio_uris):
     # (400_regie kann in Wahrheit 340_wortalignment-Inhalt sein — dann tragen Knoten 'align'.)
@@ -211,6 +241,7 @@ def _build_manifest(book_slug, lang, werk_id, stage06, audio_uris):
 
     saetze = []
     audio_hits = 0
+    bruecke = _lade_bruecke(book_slug) if lang == config.SOURCE_LANGUAGE else {}
     for tag_id, entry in content.items():
         typ = entry.get("type", "s")
         # Zielsprachiger Text; fuer nicht-en Fassungen KEIN en-Fallback
@@ -243,7 +274,7 @@ def _build_manifest(book_slug, lang, werk_id, stage06, audio_uris):
         if lang == config.SOURCE_LANGUAGE:   # Anker = Originalsprache (22.10.2026)
             al = entry.get("align")
             if al:
-                node["align"] = _slim_align(al)
+                node["align"] = _slim_align(al, bruecke.get(tag_id))
         saetze.append(node)
 
     manifest = {
@@ -256,7 +287,7 @@ def _build_manifest(book_slug, lang, werk_id, stage06, audio_uris):
         "audio_vollstaendig": audio_hits > 0 and audio_hits >= sum(
             1 for s in saetze if s["typ"] not in NO_AUDIO_TYPES),
         "audio_count": audio_hits,
-        "erstellt": datetime.datetime.utcnow().isoformat() + "Z",
+        "erstellt": datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None).isoformat() + "Z",
         "modus": meta.get("modus", ""),
         "sprecher_geschlecht": _sprecher_geschlecht(book_slug),
         "saetze": saetze,
@@ -304,8 +335,8 @@ def _update_catalog(bucket, werk_id, book_slug, lang, manifest, has_audio, dry):
         existing.setdefault("sprachen", []).append(lang)
     # Audio-Verfuegbarkeit pro Sprache transparent halten
     existing.setdefault("audio", {})[lang] = bool(has_audio)
-    existing["aktualisiert"] = datetime.datetime.utcnow().isoformat() + "Z"
-    catalog["aktualisiert"] = datetime.datetime.utcnow().isoformat() + "Z"
+    existing["aktualisiert"] = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None).isoformat() + "Z"
+    catalog["aktualisiert"] = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None).isoformat() + "Z"
 
     _upload_json(bucket, catalog, "catalog.json", dry)
     print(f"  catalog.json aktualisiert ({len(catalog['werke'])} Werk(e))")
@@ -407,7 +438,7 @@ def run(book_slug: str, lang: str, force: bool = False, dry: bool = False,
         "manifest_path": manifest_blob,
         "audio_count": len(audio_uris),
         "audio_vollstaendig": manifest["audio_vollstaendig"],
-        "exportiert": datetime.datetime.utcnow().isoformat() + "Z",
+        "exportiert": datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None).isoformat() + "Z",
     }
     out = Path(config.work_dir(book_slug)) / f"{STAGE_NAME}_{lang}.json"
     if not dry:

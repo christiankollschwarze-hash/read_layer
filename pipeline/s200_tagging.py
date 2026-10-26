@@ -98,6 +98,11 @@ def _renumber_chapter(chapter_num: int, chapter_title: str, content: dict) -> di
     seq += 1
     # 2) Restliche Knoten in Modell-Reihenfolge neu durchnummerieren.
     for _old_id, entry in body:
+        # AP 58: Versmarke -> Typ vs, Marke entfernen (deterministisch, unabhaengig vom LLM)
+        _t = str(entry.get(config.SOURCE_LANGUAGE, "") or "").lstrip()
+        if _t.startswith(config.VERS_MARKE):
+            entry["type"] = "vs"
+            entry[config.SOURCE_LANGUAGE] = _t[len(config.VERS_MARKE):].strip()
         typ = entry.get("type", "s")
         out[_new_tag_id(chapter_num, seq, typ)] = entry
         seq += 1
@@ -144,6 +149,11 @@ DIALOG RULE — apply strictly:
 PARAGRAPH BREAKS:
   Insert type "p" at every paragraph boundary. The text field must be "".
 
+VERSE RULE (songs, poems, hums):
+  A paragraph that starts with the marker {config.VERS_MARKE} is ONE verse stanza.
+  Emit exactly ONE tag of type "vs" for it. Keep the marker at the start of the text
+  and keep its line breaks as \\n. Never split a stanza, never merge it with prose.
+
 QUALITY:
   Never merge two sentences into one tag.
   Never split one sentence across two tags.
@@ -169,6 +179,7 @@ def _type_description(t: str) -> str:
         "h":    "chapter heading or section title",
         "dl":   "dialog line (standalone quoted speech)",
         "qt":   "block quotation, inscription, sign",
+        "vs":   "verse/song stanza (lines kept, separated by \\n)",
         "p":    'paragraph break (text = "", no audio)',
         "fn":   "footnote",
         "ep":   "epigraph",

@@ -5,6 +5,7 @@ Aufruf:
   py -3.11 tools/neu_vertonen.py <werk> <lg> --probe [12]      Hoerprobe: N Saetze neu -> work/_neuvertonung/probe/ (alt + neu)
   py -3.11 tools/neu_vertonen.py <werk> <lg> --los             alle ausgewaehlten Saetze neu (fassungen/<lg>/audio)
   ... --los --tags a,b,c       nur diese Saetze (z. B. nach Sprecher-Korrektur in sprecher.json)
+  ... --los --stage560        Stage 560 (AP 57): Auswahl aus work/560_auswahl_<lg>.json, Lexikon nur wenn freigegeben
   ... --los --nur-whisper     Nachrunde: nur Saetze, die Whisper nach der Neuvertonung noch als gekippt hoert (p < 0,5)
   (Windows: start_neu_vertonen.bat <werk> [lg] [probe|los])
 
@@ -33,6 +34,7 @@ RATE = 24000
 LANG = {"en": "en-GB", "de": "de-DE"}
 PAUSE_SEG = 0.25
 NUR_WHISPER = "--nur-whisper" in sys.argv
+STAGE560 = "--stage560" in sys.argv   # AP 57: Auswahl aus work/560_auswahl_<lg>.json, Lexikon nur wenn freigegeben
 def _tags_lesen():
     """--tags a,b,c oder --tags a b c (Windows-Batch trennt Kommas in Argumente auf)."""
     if "--tags" not in sys.argv:
@@ -74,6 +76,11 @@ def auswahl(book_id, lg, lex):
     S, U = sp["saetze"], sp.get("urteile", {})
     data = json.load(open(config.work_path(book_id, "400_regie"), encoding="utf-8"))["content"]
     out = {}
+    if STAGE560:
+        aw = json.load(open(os.path.join(wd, f"560_auswahl_{lg}.json"), encoding="utf-8"))
+        return {t: {"gruende": ["s560"], "verdacht": S.get(t, {}).get("verdacht", 0),
+                    "text": (data.get(t, {}).get(lg) or "").strip()}
+                for t in aw["tags"] if (data.get(t, {}).get(lg) or "").strip()}
     if TAGS:   # feste Auswahl (z. B. nach Sprecher-Korrektur), unabhaengig von Pruefung und CK-Urteil
         return {t: {"gruende": ["manuell"], "verdacht": 1.0, "text": (data.get(t, {}).get(lg) or "").strip()}
                 for t in TAGS if (data.get(t, {}).get(lg) or "").strip()}
@@ -148,7 +155,9 @@ def main(book_id, lg, modus, n_probe=12):
         for t, a in sorted(A.items(), key=lambda kv: -kv[1]["verdacht"])[:40]:
             print(f"  {t:16} {'+'.join(a['gruende']):22} {anwenden(a['text'], lex)[:90]}")
         return
-    if modus == "los" and not frei:
+    if STAGE560 and not frei:
+        lex = {}   # AP 57: unfreigegebenes Lexikon nicht anwenden, Stage laeuft trotzdem (deutsche Regie)
+    elif modus == "los" and not frei:
         sys.exit("Lexikon nicht freigegeben (work/aussprache_%s.json: \"freigegeben\": true) - erst Hoerprobe anhoeren." % lg)
     v, spr = stimmen(book_id)
     adir = os.path.join(config.book_dir(book_id), "fassungen", lg, "audio")
@@ -203,6 +212,7 @@ def main(book_id, lg, modus, n_probe=12):
     pp = os.path.join(config.work_dir(book_id), f"neuvertonung_{lg}.json")
     alt = json.load(open(pp, encoding="utf-8")) if os.path.exists(pp) else {"laeufe": []}
     alt["laeufe"].append({"datum": heute, "saetze": {t: A[t]["gruende"] for t in fertig}, "fehler": fehler,
+                          "quelle": "s560" if STAGE560 else "manuell", "modell": config.MODELS.get("tts"),
                           "sicherung": os.path.relpath(sich, config.book_dir(book_id))})
     json.dump(alt, open(pp, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print(f"  Sicherung alt: {sich}\n  Weiter: py -3.11 -m pipeline.s520_wortzeiten {book_id} --lang {lg}"

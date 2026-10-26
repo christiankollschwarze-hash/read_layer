@@ -1,9 +1,9 @@
 """STAGE 520 — Wortzeiten
 Funktion:     Wort-Zeitstempel fuer Karaoke-Highlighting.
 Wirkungsweise: Forced Alignment (torchaudio MMS_FA) je Satz-WAV, Bindung an die Wortanker aus s340.
-Komponenten:  pipeline/s520_wortzeiten.py; auf Modal: gpu_fa/fa_modal.py, gpu_tts/fertig_modal.py
+Komponenten:  pipeline/s520_wortzeiten.py, pipeline/s525_wortbruecke.py (Lautwoerter + Bindung); auf Modal: gpu_fa/fa_modal.py, gpu_tts/fertig_modal.py
 Zulieferer:   s500 Vertonung (WAVs), s340 Wort-Alignment (work/340_wortalignment.json)
-Abnehmer:     s710 Cloud-Export, TAELLA-App (work/520_wortzeiten_<lang>.json)
+Abnehmer:     s525 Wortbruecke, s710 Cloud-Export, TAELLA-App (work/520_wortzeiten_<lang>.json)
 (Nomenklatur seit 18.10.2026, Uebersicht: docs/Pipeline_Strang_Matrix.xlsx)
 
 --- Bisherige Beschreibung ---
@@ -85,57 +85,8 @@ CHECKPOINT_ALLE = 200
 # ---------------------------------------------------------------------------
 # Text -> Lautwoerter mit Zeichen-Offset
 # ---------------------------------------------------------------------------
-def _lautwoerter(text):
-    """Zerlegt den Satztext in Woerter, wie das Aussprachemodell sie erwartet:
-    nur Buchstaben und Apostroph, kleingeschrieben, ohne Interpunktion.
-    Behaelt den Zeichen-Offset im ORIGINALTEXT -- das ist die Bruecke zu 54a.
-    Rueckgabe: [ {"c0":..., "c1":..., "w": "house"} ]"""
-    out = []
-    for m in re.finditer(r"[^\W\d_]+(?:'[^\W\d_]+)*", text):
-        w = _romanisieren(m.group().lower()).strip("'")
-        if w:
-            out.append({"c0": m.start(), "c1": m.end(), "w": w})
-    return out
-
-
-def _romanisieren(w):
-    """Umlaute/Akzente auf den a-z-Zeichenvorrat von MMS_FA abbilden:
-    ae/oe/ue -> a/o/u, sz -> ss, Akzente entfernen (ca -> ca)."""
-    w = w.replace("\u00df", "ss")
-    w = unicodedata.normalize("NFKD", w)
-    return "".join(c for c in w if not unicodedata.combining(c))
-
-
-def _bind_to_tokens(zeiten, text):
-    """Zielsprache: Lautwort-Zeiten den \\S+-Tokens des Satztexts zuordnen
-    (gleiche Logik wie _bind_to_anchors, nur mit eigenen Spans)."""
-    tokens = [(m.start(), m.end()) for m in re.finditer(r"\S+", text)]
-    key = config.align_keys()[0]   # Quell-Span-Schluessel je Werk (22.10.2026)
-    align = [{"i": i, key: [a, b]} for i, (a, b) in enumerate(tokens)]
-    return _bind_to_anchors(zeiten, align)
-
-
-def _bind_to_anchors(zeiten, align):
-    """Ordnet Lautwort-Zeiten den 54a-Ankern zu -- ueber die Zeichenposition,
-    nicht ueber den Wortindex (siehe Kopfkommentar). zeiten = [{c0,c1,t0,t1}]."""
-    treffer = {}
-    key = config.align_keys()[0]   # en_span (EN-Werk) bzw. de_span (DE-Werk)
-    for z in zeiten:
-        mitte = (z["c0"] + z["c1"]) / 2.0
-        for a in align:
-            sp = a.get(key)
-            if not (isinstance(sp, list) and len(sp) == 2):
-                continue
-            if sp[0] <= mitte <= sp[1]:
-                i = a.get("i")
-                if i in treffer:
-                    treffer[i][0] = min(treffer[i][0], z["t0"])
-                    treffer[i][1] = max(treffer[i][1], z["t1"])
-                else:
-                    treffer[i] = [z["t0"], z["t1"]]
-                break
-    return [{"i": i, "t0": round(v[0], 3), "t1": round(v[1], 3)}
-            for i, v in sorted(treffer.items())]
+# 26.10.2026 (AP 54b): Lautwort-Zerlegung und Token-Bindung liegen an EINER Stelle -> pipeline/s525_wortbruecke.py
+from pipeline.s525_wortbruecke import lautwoerter as _lautwoerter, bind_to_tokens as _bind_to_tokens  # noqa: E402
 
 
 # ---------------------------------------------------------------------------
@@ -298,8 +249,8 @@ def run(book_id, lang=None, limit=None, force=False):
             n_wort_zeit += 1
             treffer.append({"c0": x["c0"], "c1": x["c1"], "t0": z[0], "t1": z[1]})
 
-        eintraege = (_bind_to_anchors(treffer, align) if quellsprache
-                     else _bind_to_tokens(treffer, text))
+        # Quellsprache: s340-Index i = \\S+-Index (en_span = Token-Span) -> gleiche Bindung fuer beide Sprachen
+        eintraege = _bind_to_tokens(treffer, text)
         if eintraege:
             ergebnis[tid] = eintraege
             n_ok += 1

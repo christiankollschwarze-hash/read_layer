@@ -1,0 +1,107 @@
+{
+  "book_slug": "winnie-the-pooh",
+  "author_slug": "milne-aa",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "",
+  "publisher": "<eigenes-label>",
+  "titel_original": "Winnie-the-Pooh",
+  "originalsprache": "en",
+  "erscheinungsjahr": 1926,
+  "gutenberg_id": "67098",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "en",
+      "titel": "Winnie-the-Pooh",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Winnie-der-Pu",
+      "titel_quelle": "eigene_uebersetzung",
+      "titel_pruefen": false,
+      "titel_freigabe": "CK 26.10.2026"
+    }
+  ],
+  "rechte": "gemeinfrei",
+  "gemeinfrei_eu_ab": "2027-01-01",
+  "veroeffentlichen_ab": "2027-01-01",
+  "rechte_hinweis": "Milne +1956: EU gemeinfrei erst ab 1.1.2027 -> produzieren ja, veroeffentlichen ab 2027. Shepard-Illustrationen bis 2046 geschuetzt -> eigene Bilder (One-Line), nichts nach Shepard/Disney.",
+  "illustrator_original": "Ernest H. Shepard (nicht verwendet)",
+  "modernisierung": "keine (Original 1:1, AP 58)",
+  "glossar_fest": {
+    "Winnie-the-Pooh": {
+      "de": "Winnie-der-Pu"
+    },
+    "Pooh": {
+      "de": "Pu"
+    },
+    "Edward Bear": {
+      "de": "Eduard Bär"
+    },
+    "Piglet": {
+      "de": "Ferkel"
+    },
+    "Eeyore": {
+      "de": "I-Ah"
+    },
+    "Owl": {
+      "de": "Eule"
+    },
+    "Kanga": {
+      "de": "Känga"
+    },
+    "Roo": {
+      "de": "Ruh"
+    },
+    "Baby Roo": {
+      "de": "Baby Ruh"
+    },
+    "Rabbit": {
+      "de": "Kaninchen"
+    },
+    "Christopher Robin": {
+      "de": "Christopher Robin"
+    },
+    "Heffalump": {
+      "de": "Heffalump"
+    },
+    "Woozle": {
+      "de": "Wusel"
+    },
+    "Hundred Acre Wood": {
+      "de": "Hundertsechzig-Morgen-Wald"
+    },
+    "HUNNY": {
+      "de": "HUNIG"
+    },
+    "Expotition": {
+      "de": "Expotition"
+    }
+  },
+  "besetzung_modus": "ensemble",
+  "stimmen_freigabe": "CK 26.10.2026 (Hoerprobe Kap. I)",
+  "audio_voice": "Algieba",
+  "besetzung": {
+    "Pooh": "Umbriel",
+    "Piglet": "Leda",
+    "Eeyore": "Algenib",
+    "Owl": "Rasalgethi",
+    "Kanga": "Sulafat",
+    "Roo": "Laomedeia",
+    "Rabbit": "Fenrir",
+    "Christopher Robin": "Puck"
+  }
+}

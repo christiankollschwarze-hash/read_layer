@@ -13,7 +13,7 @@ Kapitel-Erzaehlers (refs + stil je Satz, Mechanik wie --stil-refs). Gilt auch fu
 import glob, json, os, re, shutil, sys
 
 HIER = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-TYPEN = {"h", "s", "dl", "qt", "ep"}   # 22.10.2026: ep (Motto/Kopfzeile) wie Gemini mitsprechen
+TYPEN = {"h", "s", "dl", "qt", "ep", "vs"}   # 22.10.2026: ep (Motto/Kopfzeile) wie Gemini mitsprechen
 
 # Prosodie-Klassen -> Chatterbox-Regler (17.10.2026, Startwerte; Mitte = bisheriger Standard 0,5/0,5)
 STILE = {

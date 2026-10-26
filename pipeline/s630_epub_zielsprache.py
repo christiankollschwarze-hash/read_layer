@@ -165,6 +165,12 @@ def _build_chapters_from_stage06(book_id: str, target: str):
             # Absatzgrenze: neuen (leeren) Absatz beginnen
             slot["paras"].append([])
             continue
+        # AP 58: Liedstrophe = eigener Absatz
+        if typ == "vs":
+            if text:
+                slot["paras"].append([text.replace("\n", " / ")])
+            slot["paras"].append([])
+            continue
         # echter Satz (s/dl/qt/ep/...)
         if not slot["paras"]:
             slot["paras"].append([])

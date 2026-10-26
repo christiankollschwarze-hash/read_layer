@@ -34,7 +34,7 @@ from config import config
 from pipeline import api_layer
 
 ERZ = "Erzaehler"
-TYPEN = {"s", "dl", "qt"}
+TYPEN = {"s", "dl", "qt", "vs"}
 
 
 # 14.10.2026: Kosten-Hebel. Nur Saetze mit Rede-Spuren gehen ans LLM (+ Nachbarn als Kontext).
@@ -61,7 +61,7 @@ def _kandidaten(eintraege, tgt, src="en"):
     ids, offen = set(), {src: False, tgt: False}
     zeichen = OEFFNEN | SCHLIESSEN | BEIDES
     for tid, e in eintraege:
-        spur = e.get("type") in ("dl", "qt") or any(offen.values())
+        spur = e.get("type") in ("dl", "qt", "vs") or any(offen.values())
         for lg in (src, tgt):
             t = e.get(lg, "")
             if any(ch in zeichen for ch in t):

@@ -30,6 +30,7 @@ image = (
     .add_local_dir(str(LESER / "config"), remote_path="/rl/config", ignore=["*.bak*", "__pycache__"])
     .add_local_file(str(LESER / "pipeline" / "__init__.py"), remote_path="/rl/pipeline/__init__.py")
     .add_local_file(str(LESER / "pipeline" / "s520_wortzeiten.py"), remote_path="/rl/pipeline/s520_wortzeiten.py")
+    .add_local_file(str(LESER / "pipeline" / "s525_wortbruecke.py"), remote_path="/rl/pipeline/s525_wortbruecke.py")
     .add_local_file(str(LESER / "tools" / "raender_schneiden.py"), remote_path="/rl/tools/raender_schneiden.py")
     .add_local_file(str(LESER / "tools" / "tempo_anpassen.py"), remote_path="/rl/tools/tempo_anpassen.py")
     .add_local_file(str(LESER / "tools" / "satzpruefung.py"), remote_path="/rl/tools/satzpruefung.py")

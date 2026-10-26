@@ -16,7 +16,7 @@ Linien:
   epub : 120 Modernisierung -> 600 Klappentext -> 610 Cover -> 615 Cover final -> 620 ePub Original -> 630 ePub Zielsprache -> 640 Teaser
   audio: 120 -> 200 Tagging -> 210 Profil -> 300 Vorübersetzung -> 310 Uebersetzung -> 320 Integritaet
          -> 330 Rueckuebersetzung -> 400 Regie -> 410 Casting -> 500 Vertonung -> 710 Cloud-Export
-  ausserhalb: 340 Wort-Alignment, 420 Sprecher, 520 Wortzeiten, 700 Guard (Cockpit, Bats, Modal)
+  ausserhalb: 340 Wort-Alignment, 420 Sprecher, 520 Wortzeiten, 560 Sprachpruefung (start_s560.bat), 700 Guard (Cockpit, Bats, Modal)
 
 Aufruf:
   python run.py <book_id>                     # EPUB-Linie (Default)

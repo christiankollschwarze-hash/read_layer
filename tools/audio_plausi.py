@@ -15,7 +15,7 @@ def main(book_id, lg):
     werte, fehlt = {}, []
     for t, e in d.items():
         txt = (e.get(lg) or "").strip()
-        if e.get("type") not in ("h", "s", "dl", "qt") or not txt:
+        if e.get("type") not in ("h", "s", "dl", "qt", "vs") or not txt:
             continue
         p = os.path.join(audio, f"{t}.wav")
         if not os.path.exists(p):

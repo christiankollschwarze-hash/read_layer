@@ -94,6 +94,11 @@ def _build_prompt(items, target_lang, pretranslation, profile) -> str:
                       "Choose era-appropriate wording (e.g. avoid anachronistic modern "
                       "terms). Context:\n- " + "\n- ".join(style_bits) + "\n")
 
+    vers_hint = ""
+    if any("_vs" in tid for tid, _ in items):
+        vers_hint = ("\nIDs containing '_vs' are song/verse stanzas: translate them as verse in "
+                     f"{target_lang} -- same number of lines (keep every \\n), keep rhyme, rhythm and "
+                     "playfulness; meaning may move freely within the stanza.\n")
     return f"""Translate each sentence from {src} into {target_lang}.
 Translate directly from the source, never through a third language.
 
@@ -101,7 +106,7 @@ Each sentence has a unique ID. Return the translation under the SAME ID.
 You MUST return every ID exactly once — including very short ones like "See?",
 "Why not?" or "Just think!". Never merge two sentences into one entry, and
 never split one sentence into two entries. Keep one translation per ID.
-{style_hint}{context}{glossary_hint}
+{style_hint}{vers_hint}{context}{glossary_hint}
 Return ONLY a JSON object mapping each ID to its translation, nothing else:
 {{ "<id1>": "<translation>", "<id2>": "<translation>", ... }}
 

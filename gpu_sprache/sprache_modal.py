@@ -1,7 +1,7 @@
 """READ LAYER - Sprachpruefung auf Modal: Whisper large-v3 (faster-whisper) je Satz-Audio.
 Aufruf (start_sprachpruefung.bat):  py -3.11 -m modal run gpu_sprache/sprache_modal.py --paket <werk>_<lg>
 Je Satz: Sprachwahrscheinlichkeiten (de/en/fr ...), freie Abschrift, bei anderer Sprache zusaetzlich Abschrift in der
-Zielsprache. Pakete zu je 400 Saetzen, hoechstens 10 GPUs gleichzeitig. Wiederaufnehmbar (fertige Saetze werden
+Zielsprache (AP 57: immer, mit Wort-Konfidenz 'woerter'). Pakete zu je 400 Saetzen, hoechstens 10 GPUs gleichzeitig. Wiederaufnehmbar (fertige Saetze werden
 uebersprungen). Ergebnis: gpu_sprache/<paket>/ergebnis_<n>.json -> tools/sprachpruefung.py --auswerten
 """
 import json
@@ -41,10 +41,13 @@ def lauf(paket: str, tags: list, lg: str) -> dict:
             frei = " ".join(s.text.strip() for s in segs)
             probs = {k: round(float(v), 4) for k, v in (info.all_language_probs or [])[:8]}
             r = {"dauer": round(len(a) / 16000, 2), "top": info.language, "probs": probs, "text_frei": frei}
-            if info.language != lg:
-                segs, _ = m.transcribe(a, language=lg, beam_size=1, without_timestamps=True,
-                                       condition_on_previous_text=False)
-                r["text_ziel"] = " ".join(s.text.strip() for s in segs)
+            # AP 57: immer zusaetzlich in der Zielsprache erzwungen, mit Wort-Konfidenz (englisch gesprochene
+            # Woerter bekommen in der deutschen Dekodierung niedrige Wahrscheinlichkeiten)
+            segs, _ = m.transcribe(a, language=lg, beam_size=1, word_timestamps=True,
+                                   condition_on_previous_text=False, vad_filter=False)
+            segs = list(segs)
+            r["text_ziel"] = " ".join(s.text.strip() for s in segs)
+            r["woerter"] = [[w.word.strip(), round(float(w.probability), 3)] for s in segs for w in (s.words or [])]
             out[t] = r
         except Exception as e:
             out[t] = {"fehler": f"{type(e).__name__}: {e}"[:200]}
