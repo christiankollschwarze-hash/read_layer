@@ -1,0 +1,21 @@
+c007_00033_dl#0 March Hare <- ref 0.00-3.31s
+c007_00033_dl#1 Erzaehler  <- erz 3.19-4.84s
+c007_00035_dl#0 Alice      <- ref 0.00-1.38s
+c007_00035_dl#1 Erzaehler  <- erz 1.41-2.80s
+c007_00037_dl#0 March Hare <- ref 0.00-3.41s
+c007_00037_dl#1 Erzaehler  <- erz 2.79-4.52s
+c007_00039_dl#0 Alice      <- ref 0.00-1.60s
+c007_00039_dl#1 Erzaehler  <- erz 1.33-3.34s
+c007_00039_dl#2 Alice      <- ref 4.30-11.02s
+c007_00041_dl#0 Hatter     <- ref 0.00-2.42s
+c007_00041_dl#1 Erzaehler  <- erz 2.65-4.40s
+c007_00042_s#0 Hatter     <- ref 0.00-6.36s
+c007_00044_dl#0 March Hare <- ref 0.00-2.26s
+c007_00044_dl#1 Erzaehler  <- erz 2.20-4.07s
+c007_00044_dl#2 March Hare <- ref 5.02-10.38s
+c007_00046_dl#0 Dormouse   <- ref 0.00-3.12s
+c007_00046_dl#1 Erzaehler  <- erz 2.75-6.53s
+c007_00046_dl#2 Dormouse   <- ref 9.07-13.50s
+c007_00048_dl#0 Hatter     <- ref 0.00-2.64s
+c007_00048_dl#1 Erzaehler  <- erz 2.74-7.44s
+c007_00049_s#0 Erzaehler  <- erz 0.00-9.84s

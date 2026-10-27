@@ -178,6 +178,30 @@ B – Pipeline/Prozess
        Schaetzung: TTS ~3,6 $ (22.500 Woerter, ~3 h Audio je Sprache), Modal ~1-3 $, s560 ~1 $.
     OFFEN (alt): CK startet start_ap58_text.bat (200-400 + 340 + Bildanker, Pruefung tools/ap58_pruefen.py). Dann Casting (s410 + Freigabe), Vertonung EN/DE,
        start_s560.bat, Reader (Knoten typ bild). Kosten: docs/AP58_kosten.md (Schaetzung ~12-16 $; Bild-Probe ~0,20 $).
+4i. AP 60 27.10.: Hoerprobe woertliche Rede - Kontext-Tripel (A) vs. Voice Conversion (B) gegen Sprachdrift kurzer Repliken (Folge AP 57).
+    Sicherung: archive/2026-10-27_60/ (PROJEKTSTAND vorher + neue Skripte). Produktion unveraendert.
+    Testpassage: Alice Kap. VII, c007_00033..c007_00049 (10 Saetze, 12 Rede-Segmente: Maerzhase, Alice, Hutmacher, Haselmaus), 9 Einheiten (Tripel).
+    GEBAUT (nicht gelaufen - Gemini/Modal nur Windows): start_ap60.bat ->
+    - tools/ap60_vorbereiten.py: tests/ap60/passage.json (Segmente aus sprecher.json, Stimmen aus casting.json), Referenz = fassungen/<lg>/audio, Stimmproben = stimmen_archiv/<stimme>/muster_<lg>.wav.
+    - tools/ap60_gemini.py: A = je Tripel EIN Multi-Speaker-Aufruf (speech_config [{speaker, voice}], max. 2 Stimmen), B-Basis = Satz komplett mit Erzaehlerstimme.
+      Sprache fest: Feld "language" (de-DE/en-GB) in speech_config; lehnt die API ab -> ohne Feld, nur style (vermerkt in gemini_bericht.json: sprachfeld_angenommen).
+    - gpu_tts/ap60_modal.py: MMS_FA schneidet Rede-Segmente (A, B, Referenz), B: Chatterbox VC auf Figurenstimme; Whisper large-v3 Sprach-ID je Segment;
+      je Sprache 3 durchgehende Dateien, loudnorm -18 LUFS, Pause 0,6 s -> tests/ap60/ergebnis/<lg>_A_multispeaker|B_voiceconversion|Referenz.wav, tabelle.md.
+    Schaetzung: Gemini ~0,10 $ (~6 min Audio), Modal ~0,15-0,25 $. OFFEN: CK startet start_ap60.bat, hoert ab; Ergebnis/Tabelle hier nachtragen.
+    GELAUFEN 27.10.: Gemini 60 s, 0,065 $, Sprachfeld language (de-DE/en-GB) von der API ANGENOMMEN (Multi-Speaker = ein Text-Item je Turn mit speech_metadata.speaker).
+      Hoerproben tests/ap60/ergebnis/ (A, B, Referenz je Sprache). Whisper-Tabelle fehlt (1. Lauf: requests fehlte im Image; Neulauf start_ap60_modal.bat haengt > 20 min im VC-Schritt).
+    ENTSCHEIDUNG CK 27.10. 16:24: Weg B (Voice Conversion) VERWORFEN wegen Rechendauer.
+    HOERURTEIL CK 27.10. 16:37: Referenz = direkte Rede mit Abstand am ausdrucksstaerksten, aber Inquit-Saetze ("sagte Alice") verrutscht.
+      A Multi-Speaker = Inquits sauber, Prosodie der Rede leidet, teils falsche Stimme zum Text. B VC = Stimme/Text stimmen, Inquits sauber, Prosodie hinter Referenz.
+    FAZIT CK: Hybrid (Variante C) - Figurenrede aus dem Erstlauf (Segment je Figur wie Produktion), Erzaehlerspur aus One-Voice-Vertonung
+      (ganzer Satz mit Erzaehlerstimme, Inquits per MMS_FA herausgeschnitten). Hoerspiel-Anspruch rechtfertigt Mehrkosten (zweite Erzaehler-Take nur fuer Saetze mit Rede).
+    ZIELPROZESS Hoerspiel (CK 27.10. 16:52, abgenommen):
+      1. Erzaehlerfassung: ganzes Werk mit vorab festgelegter Erzaehlstimme (bleibt auch im Hoerspiel); bei wechselnder Ich-Perspektive (z. B. Spiegelschwestern) Erzaehlstimme je Kapitel.
+      2. Saetze mit direkter Rede extrahieren, Figuren zuweisen (s420 / sprecher.json).
+      3. Casting je Figur mit Charakterbeschreibung (z. B. "Mann, 50, Seemann, raue tiefe Stimme, leicht engl. Akzent") (s410).
+      4. Figurenrede vertonen (Segment einzeln, Sprachfeld language gesetzt, KEIN "pronounced as in English") und in der Hoerspielfassung
+         NUR die Rede-Segmente der Erzaehlersaetze ersetzen (Schnitt per MMS_FA); Einschuebe ("sagte Alice") bleiben aus der Erzaehlerfassung.
+      Nebenbefund: tools/hoerprobe_mehrstimmig.py _aussprache setzt "<Name> pronounced as in English" -> Ursache fuer "said Alice" in DE; streichen.
 5. Drama-Erkennung automatisch (Cockpit/Stage 11); Dramen (Macbeth, Hamlet, Romeo and Juliet, Tempest, Earnest, Lysistrata, Pygmalion) Text neu ab Stage 11.
 6. 57b-Rueckfaelle automatisch in kleinen Paketen wiederholen; Kosten von 57/57b ins Kostenlog.
 7. Stimmen der Musterwerke nachtraeglich per Probe/Freigabe pruefen (Kandidaten ohne CK-Freigabe).

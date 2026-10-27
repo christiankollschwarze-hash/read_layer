@@ -1,0 +1,325 @@
+{
+ "werk": "alice-s-adventures-in-wonderland",
+ "von": "c007_00033",
+ "bis": "c007_00049",
+ "stimmen": {
+  "Erzaehler": "voice_3y3xcimr5b7l",
+  "Alice": "voice_qwux23wou4mi",
+  "Hatter": "voice_bjgjm17oauwo",
+  "March Hare": "voice_6mxyu6caoalo",
+  "Dormouse": "voice_jhwuqg4rkugp"
+ },
+ "muster": {
+  "Erzaehler": "grossmutter_a",
+  "Alice": "w_kind_hoch_neugierig",
+  "Hatter": "m_mittel_mittel_albern",
+  "March Hare": "m_mittel_hoch_albern",
+  "Dormouse": "m_alt_tief_schlaefrig"
+ },
+ "saetze": [
+  {
+   "tid": "c007_00033_dl",
+   "en": [
+    {
+     "t": "“Do you mean that you think you can find out the answer to it?”",
+     "s": "March Hare"
+    },
+    {
+     "t": "said the March Hare.",
+     "s": "Erzaehler"
+    }
+   ],
+   "de": [
+    {
+     "t": "„Meinst du, daß du die Antwort darauf herausfinden kannst?“",
+     "s": "March Hare"
+    },
+    {
+     "t": "fragte der Märzhase.",
+     "s": "Erzaehler"
+    }
+   ]
+  },
+  {
+   "tid": "c007_00035_dl",
+   "en": [
+    {
+     "t": "“Exactly so,”",
+     "s": "Alice"
+    },
+    {
+     "t": "said Alice.",
+     "s": "Erzaehler"
+    }
+   ],
+   "de": [
+    {
+     "t": "„Ganz genau,“",
+     "s": "Alice"
+    },
+    {
+     "t": "sagte Alice.",
+     "s": "Erzaehler"
+    }
+   ]
+  },
+  {
+   "tid": "c007_00037_dl",
+   "en": [
+    {
+     "t": "“Then you should say what you mean,”",
+     "s": "March Hare"
+    },
+    {
+     "t": "the March Hare went on.",
+     "s": "Erzaehler"
+    }
+   ],
+   "de": [
+    {
+     "t": "„Dann solltest du sagen, was du meinst,“",
+     "s": "March Hare"
+    },
+    {
+     "t": "fuhr der Märzhase fort.",
+     "s": "Erzaehler"
+    }
+   ]
+  },
+  {
+   "tid": "c007_00039_dl",
+   "en": [
+    {
+     "t": "“I do,”",
+     "s": "Alice"
+    },
+    {
+     "t": "Alice hastily replied;",
+     "s": "Erzaehler"
+    },
+    {
+     "t": "“at least—at least I mean what I say—that’s the same thing, you know.”",
+     "s": "Alice"
+    }
+   ],
+   "de": [
+    {
+     "t": "„Das thue ich,“",
+     "s": "Alice"
+    },
+    {
+     "t": "antwortete Alice schnell;",
+     "s": "Erzaehler"
+    },
+    {
+     "t": "„wenigstens – wenigstens meine ich, was ich sage – das ist doch dasselbe, weißt du.“",
+     "s": "Alice"
+    }
+   ]
+  },
+  {
+   "tid": "c007_00041_dl",
+   "en": [
+    {
+     "t": "“Not the same thing a bit!”",
+     "s": "Hatter"
+    },
+    {
+     "t": "said the Hatter.",
+     "s": "Erzaehler"
+    }
+   ],
+   "de": [
+    {
+     "t": "„Ganz und gar nicht dasselbe!“",
+     "s": "Hatter"
+    },
+    {
+     "t": "sagte der Hutmacher.",
+     "s": "Erzaehler"
+    }
+   ]
+  },
+  {
+   "tid": "c007_00042_s",
+   "en": [
+    {
+     "t": "“You might just as well say that ‘I see what I eat’ is the same thing as ‘I eat what I see’!”",
+     "s": "Hatter"
+    }
+   ],
+   "de": [
+    {
+     "t": "„Du könntest ebenso gut sagen: ‚Ich sehe, was ich esse‘ ist dasselbe wie ‚Ich esse, was ich sehe‘!“",
+     "s": "Hatter"
+    }
+   ]
+  },
+  {
+   "tid": "c007_00044_dl",
+   "en": [
+    {
+     "t": "“You might just as well say,”",
+     "s": "March Hare"
+    },
+    {
+     "t": "added the March Hare,",
+     "s": "Erzaehler"
+    },
+    {
+     "t": "“that ‘I like what I get’ is the same thing as ‘I get what I like’!”",
+     "s": "March Hare"
+    }
+   ],
+   "de": [
+    {
+     "t": "„Du könntest ebenso gut sagen,“",
+     "s": "March Hare"
+    },
+    {
+     "t": "fügte der Märzhase hinzu,",
+     "s": "Erzaehler"
+    },
+    {
+     "t": "„‚Ich mag, was ich bekomme‘ ist dasselbe wie ‚Ich bekomme, was ich mag‘!“",
+     "s": "March Hare"
+    }
+   ]
+  },
+  {
+   "tid": "c007_00046_dl",
+   "en": [
+    {
+     "t": "“You might just as well say,”",
+     "s": "Dormouse"
+    },
+    {
+     "t": "added the Dormouse, who seemed to be talking in his sleep,",
+     "s": "Erzaehler"
+    },
+    {
+     "t": "“that ‘I breathe when I sleep’ is the same thing as ‘I sleep when I breathe’!”",
+     "s": "Dormouse"
+    }
+   ],
+   "de": [
+    {
+     "t": "„Du könntest ebenso gut sagen,“",
+     "s": "Dormouse"
+    },
+    {
+     "t": "fügte das Murmelthier hinzu, das im Schlafe zu sprechen schien,",
+     "s": "Erzaehler"
+    },
+    {
+     "t": "„‚Ich athme, wenn ich schlafe‘ ist dasselbe wie ‚Ich schlafe, wenn ich athme‘!“",
+     "s": "Dormouse"
+    }
+   ]
+  },
+  {
+   "tid": "c007_00048_dl",
+   "en": [
+    {
+     "t": "“It is the same thing with you,”",
+     "s": "Hatter"
+    },
+    {
+     "t": "said the Hatter, and here the conversation dropped.",
+     "s": "Erzaehler"
+    }
+   ],
+   "de": [
+    {
+     "t": "„Bei dir ist es allerdings dasselbe,“",
+     "s": "Hatter"
+    },
+    {
+     "t": "sagte der Hutmacher, und hierbei schlief das Gespräch ein.",
+     "s": "Erzaehler"
+    }
+   ]
+  },
+  {
+   "tid": "c007_00049_s",
+   "en": [
+    {
+     "t": "The party sat silent for a minute, while Alice thought over all she could remember about ravens and writing-desks, which wasn’t much.",
+     "s": "Erzaehler"
+    }
+   ],
+   "de": [
+    {
+     "t": "Die Gesellschaft saß eine Minute schweigend, während Alice sich an alles zu erinnern suchte, was sie von Raben und Schreibtischen wußte, was nicht viel war.",
+     "s": "Erzaehler"
+    }
+   ]
+  }
+ ],
+ "einheiten": [
+  {
+   "tids": [
+    "c007_00033_dl"
+   ],
+   "figur": "March Hare",
+   "folge": false
+  },
+  {
+   "tids": [
+    "c007_00035_dl"
+   ],
+   "figur": "Alice",
+   "folge": false
+  },
+  {
+   "tids": [
+    "c007_00037_dl"
+   ],
+   "figur": "March Hare",
+   "folge": false
+  },
+  {
+   "tids": [
+    "c007_00039_dl"
+   ],
+   "figur": "Alice",
+   "folge": false
+  },
+  {
+   "tids": [
+    "c007_00041_dl"
+   ],
+   "figur": "Hatter",
+   "folge": false
+  },
+  {
+   "tids": [
+    "c007_00042_s"
+   ],
+   "figur": "Hatter",
+   "folge": false
+  },
+  {
+   "tids": [
+    "c007_00044_dl"
+   ],
+   "figur": "March Hare",
+   "folge": false
+  },
+  {
+   "tids": [
+    "c007_00046_dl"
+   ],
+   "figur": "Dormouse",
+   "folge": false
+  },
+  {
+   "tids": [
+    "c007_00048_dl",
+    "c007_00049_s"
+   ],
+   "figur": "Hatter",
+   "folge": true
+  }
+ ]
+}

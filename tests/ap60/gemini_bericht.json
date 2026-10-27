@@ -1,0 +1,21 @@
+{
+ "modell": "gemini-3.8-flash-tts",
+ "sprachfeld_angenommen": true,
+ "laufzeit_s": 59.6,
+ "audio_s": {
+  "A": {
+   "de": 70.7,
+   "en": 72.1
+  },
+  "B": {
+   "de": 73.3,
+   "en": 70.9
+  }
+ },
+ "usd": 0.065,
+ "usd_je_variante": {
+  "A": 0.032,
+  "B": 0.032
+ },
+ "log": []
+}
