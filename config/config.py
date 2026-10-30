@@ -445,3 +445,9 @@ CASTING_GENRE_ERZAEHLER = {    # Erzaehler je Genre (CK, 11.10.2026)
 }
 
 TTS_PARALLEL = 8               # gleichzeitige Gemini-TTS-Anfragen (Tier 2 seit 11.10.2026)
+
+# AP 62 (29.10.2026): Sprachfeld zentral an Gemini-TTS (an), Hoerspiel-Hybrid als Stufe 510 (nur fuer HYBRID_WERKE).
+TTS_SPRACHFELD = True
+HYBRID_WERKE = []          # Werk-IDs, fuer die Stufe 510 laeuft (leer = aus)
+HYBRID_TESTDIR = ""        # gesetzt = Stufe 510 arbeitet nur in diesem Ordner (Produktion unberuehrt)
+HYBRID_SCHNITT = "modal"   # AP 62 Punkt 4: Schnitt-Zeitpunkte auf Modal (gpu_fa/schnitt_modal.py); sonst "cpu"

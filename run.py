@@ -170,6 +170,13 @@ EPUB_LINE = [
     {"key": "640", "module": "pipeline.s640_teaser",          "done": _work_json("640_teaser"),         "per_lang": False},
 ]
 
+def _hybrid_done(book_id, lang=None):
+    # AP 62: Stufe 510 gilt als fertig, wenn ein Protokoll existiert ODER das Werk nicht in HYBRID_WERKE steht
+    if book_id not in getattr(config, "HYBRID_WERKE", []):
+        return True
+    return os.path.exists(os.path.join(config.work_dir(book_id), f"hybrid_{lang}.json"))
+
+
 AUDIO_LINE = [
     {"key": "120", "module": "pipeline.s120_modernisierung",        "done": _modernized,            "per_lang": False},
     {"key": "200", "module": "pipeline.s200_tagging",           "done": _work_json("200_tagging"),  "per_lang": False},
@@ -181,6 +188,7 @@ AUDIO_LINE = [
     {"key": "400", "module": "pipeline.s400_regie",        "done": _work_json("400_regie"),  "per_lang": False},
     {"key": "410", "module": "pipeline.s410_casting",          "done": _casting_done,          "per_lang": False},
     {"key": "500", "module": "pipeline.s500_vertonung_gemini",        "done": _audio_done,            "per_lang": True},
+    {"key": "510", "module": "pipeline.s510_hoerspiel_hybrid",   "done": _hybrid_done,           "per_lang": True},
     # QF-5 (18.10.2026): Stage 59 defekt (Signatur/Pfade), bis Neudefinition (S-3) aus der Linie.
     # {"key": "650", "module": "pipeline.s650_hoerbuch",        "done": _assembler_done,        "per_lang": True},
     {"key": "710", "module": "pipeline.s710_cloud_export",     "done": _cloud_export_done,     "per_lang": True},

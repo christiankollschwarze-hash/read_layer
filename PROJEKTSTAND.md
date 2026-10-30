@@ -202,6 +202,20 @@ B – Pipeline/Prozess
       4. Figurenrede vertonen (Segment einzeln, Sprachfeld language gesetzt, KEIN "pronounced as in English") und in der Hoerspielfassung
          NUR die Rede-Segmente der Erzaehlersaetze ersetzen (Schnitt per MMS_FA); Einschuebe ("sagte Alice") bleiben aus der Erzaehlerfassung.
       Nebenbefund: tools/hoerprobe_mehrstimmig.py _aussprache setzt "<Name> pronounced as in English" -> Ursache fuer "said Alice" in DE; streichen.
+4j. AP 61 28.10.: Hoerspiel-Hybrid (Variante C, CK-abgenommen) ins Werk - zuerst Alice. Sicherung archive/2026-10-28_61/.
+    GEBAUT: tools/hybrid_einbau.py + start_hybrid.bat <werk> [de|en|beide] [liste|takes|los].
+    Je gemischtem Satz (Erzaehler+Figur in sprecher.json): Erzaehler-Take ganzer Satz (Gemini, Sprachfeld language, Cache work/_hybrid/<lg>/erz/),
+    Einschuebe aus Take, Figurenrede aus Erstlauf (Sicherung fassungen/<lg>/audio_alt_<datum>_hybrid/), Schnitt MMS_FA lokal, RMS-Angleich Erzaehler an Figur.
+    Kein sauberer Schnitt -> Satz bleibt alt. Danach Wortzeiten (fa_modal, Fallback s520) + Sprachpruefung. Protokoll work/hybrid_<lg>.json.
+    Alice: je 706 gemischte Saetze, ~101 min (de) / ~97 min (en) -> Gemini ~2,7 $ fuer beide Sprachen. OFFEN: CK startet, Hoerprobe Kap. VII.
+    29.10.: DE FERTIG - 705/706 eingebaut (c010_00006_dl alt: kein Schnitt), Gemini 1,37 $, Wortzeiten neu, Sprachpruefung DE 1529 Saetze: 4 gekippt, 9 Verdacht
+      (keiner in Einschueben; "Wau!", "Hinab, hinab" wie bisher). hybrid_einbau.py wiederaufnehmbar (fertig.txt, Sicherung audio_alt_20261028_hybrid). EN OFFEN (nur 13 Takes).
+    29.10.: EN FERTIG - 703/706 eingebaut (alt: c002_00042_dl + c005_00144_dl = Gemini "policy" 400, c010_00006_dl kein Schnitt), Gemini ~1,30 $,
+      Wortzeiten neu (1529), Sprachpruefung EN: 0 gekippt, 18 Verdacht (Interjektionen/Zahlen, keine Drift). AP 61 Alice ABGESCHLOSSEN, Gesamt ~2,7 $.
+      fa_modal.py / sprache_modal.py: gpu=["L4","A10G","T4"] (Fallback bei L4-Engpass, 29.10. 20 min Warteschlange). OFFEN: CK-Hoerabnahme in der App.
+4k. AP 62 VORGEMERKT (29.10.): Hoerspiel-Hybrid als feste Pipeline-Stufe (Prompt von CK in neuer Sitzung). Reihenfolge der Aufgaben:
+    Stufe benennen/einhaengen -> Sprachfeld zentral in tts_client.py + "pronounced as in English" entfernen -> Montage aus hybrid_einbau.py uebernehmen
+    -> Schnitt auf Modal (L4/A10G/T4, CPU-Rueckfall) -> Policy-Ablehnungen automatisch Rueckfall. Test: Dialog-Kapitel neues Werk + Alice Kap. VII Gegenprobe.
 5. Drama-Erkennung automatisch (Cockpit/Stage 11); Dramen (Macbeth, Hamlet, Romeo and Juliet, Tempest, Earnest, Lysistrata, Pygmalion) Text neu ab Stage 11.
 6. 57b-Rueckfaelle automatisch in kleinen Paketen wiederholen; Kosten von 57/57b ins Kostenlog.
 7. Stimmen der Musterwerke nachtraeglich per Probe/Freigabe pruefen (Kandidaten ohne CK-Freigabe).
@@ -984,3 +998,20 @@ Offen: Abstandsregel in Stage 57 + Klaviatur; Modal-Volume fuer Modellgewichte; 
 - 24.10. 09:30 CK: "Clarke" mit hoerbarem e -> pan_test lief ohne Aussprache-Lexikon (Werk hatte keins, Skript nutzte Rohtext). Fix: pan_test.py wendet
   work/aussprache_de.json an (erzwingen, da Test); start_pan_test.bat baut das Lexikon vorher (tools/aussprache_lexikon.py). Lauf 1 (09:23) = ohne Lexikon.
 - 24.10. 09:39 CK: Prosodie im Pan-Test kaum hoerbar (Lauf 1). Aufgedreht fuer Saetze mit Stimmung: exaggeration 1.0 (vorher 0.5), cfg_weight 0.3 (0.5), temperature 0.9 (0.8); neutral unveraendert. Konstanten EXAG_EMO/CFG_EMO/TEMP_EMO in gpu_tts/pan_test.py.
+
+## 29.10.2026 — AP 62: Hoerspiel-Hybrid als Pipeline-Stufe (Teil 1: Punkte 1, 2, 3, 5 gebaut; Punkt 4 OFFEN)
+Sicherung: archive/2026-10-29_62/ (PROJEKTSTAND, hybrid_einbau.py, tts_client.py, ap60_gemini.py).
+- Punkt 1: pipeline/s510_hoerspiel_hybrid.py, run.py AUDIO_LINE nach 500 eingehaengt (Key 510), done = _hybrid_done. Stufe 510 ist AUS, solange config.HYBRID_WERKE leer ist.
+- Punkt 2: config.TTS_SPRACHFELD = True; pipeline/tts_client.py: _speech_cfg() setzt "language" aus lang_code (Rueckfall ohne Feld bei API-Ablehnung, mit Ausgabe). "pronounced as in English" aus tools/hoerprobe_mehrstimmig.py gestrichen (neu_vertonen.py war schon sauber).
+- Punkt 3: Montage aus hybrid_einbau.py in s510; wiederaufnehmbar (_hybrid/<lg>/fertig.txt), Fortschritt je 25 Saetze, Fehler (ausser Policy) stoppen die Batch. Protokoll work/hybrid_<lg>.json.
+- Punkt 5: Gemini-"policy" -> Satz bleibt unveraendert, Eintrag "policy" im Protokoll (Interpretation: kein Ersatz durch eine andere Fassung).
+- Testmodus: config.HYBRID_TESTDIR setzen; schreibt nur dorthin, kopiert Produktions-Audio, 520-Tags bleiben unberuehrt.
+- OFFEN Punkt 4: Schnitt noch CPU (_Aligner). Verlagerung auf Modal (gpu L4/A10G/T4, CPU-Rueckfall) noch nicht gebaut.
+- OFFEN: 520 (Wortzeiten) hat in run.py done = Datei vorhanden, laeuft nach 510 also nicht von selbst neu. Nach Einbau 520 manuell fuer die Werke starten.
+- NICHT gelaufen (nur Code geprueft, py_compile ok). Test-.bat und Kostenschaetzung noch nicht vorbereitet.
+- 29.10. Nachtrag Punkt 4 GEBAUT (nicht gelaufen): gpu_fa/schnitt_modal.py (Modal, gpu L4/A10G/T4, Volume readlayer-tts, Pfad s510/<werk>/<lg>/<stamp>/);
+  s510 holt Schnittzeiten dort (config.HYBRID_SCHNITT="modal"), bei Modal-Fehler CPU-Rueckfall mit Log. Alte Version: archive/2026-10-29_62/s510_vor_modal.py.
+  Offen: Modal-Lauf und Schnittzeiten-Probe; Upload je Lauf ca. 2 WAVs je gemischtem Satz (Alice ~700).
+- 29.10. Test-Vorbereitung GEBAUT (nicht gelaufen): start_ap62_test.bat [liste|los] -> tools/hybrid_test_ap62.py
+  (alice-s-adventures-in-wonderland, Kap. VII = c007, de+en) -> Testordner tests/ap62/<werk>/ (Audio nur Kapitel kopiert). Produktion unberuehrt.
+  Kapitelfilter in s510 (run(chapter=...), liste=True: nur Kosten, kein Gemini/Modal). Erst 'liste' fahren, dann Freigabe fuer 'los'.

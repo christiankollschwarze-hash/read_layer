@@ -42,7 +42,7 @@ def _englische_namen(data, lg):
 
 def _aussprache(text, namen):
     treffer = [n for n in namen if re.search(r"(?<!\w)" + re.escape(n) + r"(?!\w)", text)]
-    return f"{', '.join(treffer)} pronounced as in English" if treffer else ""
+    return ""  # AP 62 (29.10.): "pronounced as in English" entfernt (verursachte "said Alice" in DE)
 
 
 def stille(sek):

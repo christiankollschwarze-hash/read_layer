@@ -27,7 +27,7 @@ image = (
 )
 
 
-@app.function(image=image, gpu="L4", timeout=3600)
+@app.function(image=image, gpu=["L4", "A10G", "T4"], timeout=3600)
 def lauf(paket: str, tags: list, lg: str) -> dict:
     from faster_whisper import WhisperModel
     from faster_whisper.audio import decode_audio

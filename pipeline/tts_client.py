@@ -91,7 +91,15 @@ def _find_audio_b64(obj):
     return None
 
 
-def _gemini_payload(text: str, style: str, voice: str, mime: str) -> dict:
+def _speech_cfg(voice: str, lang: str = None) -> dict:
+    """AP 62: Sprachfeld zentral. lang z. B. 'de-DE'/'en-GB'; Schalter config.TTS_SPRACHFELD."""
+    sc = {"voice": voice or config.TTS_VOICE}
+    if lang and getattr(config, "TTS_SPRACHFELD", True):
+        sc["language"] = lang
+    return sc
+
+
+def _gemini_payload(text: str, style: str, voice: str, mime: str, lang: str = None) -> dict:
     meta = {"type": "speech_metadata"}
     if style and style.strip():
         meta["style"] = style.strip()
@@ -103,15 +111,15 @@ def _gemini_payload(text: str, style: str, voice: str, mime: str) -> dict:
         "model": model(),
         "input": [{"type": "user_input", "content": [item]}],
         "response_format": rf,
-        "generation_config": {"speech_config": [{"voice": voice or config.TTS_VOICE}]},
+        "generation_config": {"speech_config": [_speech_cfg(voice, lang)]},
     }
 
 
-def _gemini_call(text: str, style: str, voice: str, mime: str) -> bytes:
+def _gemini_call(text: str, style: str, voice: str, mime: str, lang: str = None) -> bytes:
     import requests
     if not config.GEMINI_API_KEY:
         raise EnvironmentError("GEMINI_API_KEY fehlt (live-Modus).")
-    payload = _gemini_payload(text, style, voice, mime)
+    payload = _gemini_payload(text, style, voice, mime, lang)
     last = None
     for attempt in range(RETRIES):
         resp = requests.post(
@@ -127,6 +135,12 @@ def _gemini_call(text: str, style: str, voice: str, mime: str) -> bytes:
         if resp.status_code in (500, 502, 503, 504):
             last = f"{resp.status_code} (Versuch {attempt+1}/{RETRIES})"
             time.sleep(3 * (attempt + 1))
+            continue
+        if resp.status_code == 400 and lang and "language" in resp.text:
+            # AP 62: API lehnt das Sprachfeld ab -> ohne Feld wiederholen (Sprache dann nur ueber style)
+            print(f"[tts] API lehnt Sprachfeld ab -> ohne Feld: {resp.text[:160]}")
+            lang = None
+            payload = _gemini_payload(text, style, voice, mime, None)
             continue
         if resp.status_code >= 400:
             raise RuntimeError(f"TTS {resp.status_code}: {resp.text[:400]}")
@@ -249,7 +263,7 @@ def synthesize_bytes(text: str, style: str = "", voice: str = None,
             fest = getattr(config, "TTS_SPRACH_STIL", {}).get((lang_code or "")[:2], "")
             if fest:
                 style = f"{fest} {style}".strip() if style else fest
-            return _gemini_call(text, style, voice, mime)
+            return _gemini_call(text, style, voice, mime, lang_code)
         except QuotaError as e:
             # Designte Stimmen (voice_...) gibt es nur bei Google -> kein fal-Ueberlauf (12.10.2026)
             if str(voice or "").startswith("voice_"):
