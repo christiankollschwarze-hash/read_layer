@@ -15,7 +15,7 @@ if __name__ == "__main__":
         sys.exit(__doc__)
     book, chapter, langs = sys.argv[1], sys.argv[2], sys.argv[3].split(",")
     modus = sys.argv[4] if len(sys.argv) > 4 else "liste"
-    config.HYBRID_TESTDIR = os.path.join(ROOT, "tests", "ap62", book)
+    config.HYBRID_TESTDIR = os.path.join(ROOT, "tests", "ap62")
     from pipeline.s510_hoerspiel_hybrid import run  # noqa: E402
     for lg in langs:
         run(book, chapter=chapter, lang=lg, force=True, liste=(modus == "liste"))

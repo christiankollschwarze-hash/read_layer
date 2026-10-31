@@ -1015,3 +1015,10 @@ Sicherung: archive/2026-10-29_62/ (PROJEKTSTAND, hybrid_einbau.py, tts_client.py
 - 29.10. Test-Vorbereitung GEBAUT (nicht gelaufen): start_ap62_test.bat [liste|los] -> tools/hybrid_test_ap62.py
   (alice-s-adventures-in-wonderland, Kap. VII = c007, de+en) -> Testordner tests/ap62/<werk>/ (Audio nur Kapitel kopiert). Produktion unberuehrt.
   Kapitelfilter in s510 (run(chapter=...), liste=True: nur Kosten, kein Gemini/Modal). Erst 'liste' fahren, dann Freigabe fuer 'los'.
+
+## 31.10.2026 — AP 62 ABGENOMMEN (Test Alice Kap. VII, c007, de+en)
+- Lauf 30.10.: Schnitt auf Modal (CPU-Rückfall nicht nötig), 102/102 je Sprache eingebaut, 0 Policy, 0 ohne Schnitt. Takes aus Vorlauf, keine neuen Gemini-Kosten.
+- Korrigiert: Modal-Image ohne s525 (ergänzt), Testpfad doppelt verschachtelt (aufgelöst), Audio auf Erstlauf zurückgesetzt, fertig.txt -> fertig_altlauf.txt.
+- Hörprobe: bestanden (durch Christian). Testergebnis: tests\ap62\alice-s-adventures-in-wonderland\bd\fassungen\{de,en}\audio\.
+- Offen: Vergleich gegen AP 61, Kosten je Stunde Audio, Wortzeiten (520) der Test-Fassung neu, leere Hülle tests\ap62\...\alice-s-adventures-in-wonderland\alice-s-adventures-in-wonderland\ manuell löschen.
+- Produktion und fertige Werke unberührt. HYBRID_WERKE leer (Stufe 510 aus).
