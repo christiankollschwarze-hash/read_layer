@@ -81,12 +81,8 @@ def wirksame_vorgaenger(stage, laeuft, in_kette):
 
 # ------------------------------------------------------------------ Bedarf aus Bestellung
 def eingangsart(roh):
-    q = (roh.get("quelle") or "").strip().lower()
-    if q in ("gutenberg", "user_epub", "verlag_epub", "fremd_audio"):
-        return q
-    if roh.get("herkunft") in ("privat_upload", "eigenwerk", "epub", "user_epub"):
-        return "user_epub"
-    return "gutenberg"
+    from pipeline import s090_eingang
+    return s090_eingang.eingangsart(roh)[0]
 
 
 def bedarf(b, roh=None):

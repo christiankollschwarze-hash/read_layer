@@ -79,7 +79,9 @@ class Kette(unittest.TestCase):
         config.work_dir = lambda b: self.tmp.name
         config.book_dir = lambda b: self.tmp.name
         json.dump({"quellsprache": "en", "produkte": TEXT_EPUB_EN, "fassung": "original",
-                   "rechte": {"art": "eigene", "bearbeitung": True}, "herkunft": "privat_upload"},
+                   "rechte": {"art": "eigene", "bearbeitung": True, "drm_frei": True,
+                              "versichert": {"wer": "CK", "wann": "2026-11-01T12:00:00"}},
+                   "herkunft": "privat_upload"},
                   open(os.path.join(self.tmp.name, "book.json"), "w"))
         import run
         self.run = run

@@ -62,7 +62,10 @@ def setup(werk):
         return 1
     p = os.path.join(cfg.book_dir(werk), "book.json")
     b = json.load(open(p, encoding="utf-8"))
-    b["rechte"] = "eigene"
+    # 090 Eingangsweiche: user_epub mit Rechte-Versicherung
+    b["quelle"] = "user_epub"
+    b["rechte"] = {"art": "eigene", "bearbeitung": True, "drm_frei": True,
+                   "versichert": {"wer": "smoke", "wann": time.strftime("%Y-%m-%dT%H:%M:%S")}}
     b["besetzung_modus"] = "ensemble"
     b["smoke_test"] = True
     # Bestellung (095): Text TAELLA+EPUB und Hoerbuch Basic TAELLA in en/de
@@ -74,7 +77,7 @@ def setup(werk):
     tmp = p + ".tmp"
     json.dump(b, open(tmp, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
     os.replace(tmp, p)
-    print(f"[smoke] setup {werk}: rechte=eigene, besetzung_modus=ensemble, DE-Titel, Produkte en/de Text+Hoerbuch Basic")
+    print(f"[smoke] setup {werk}: quelle=user_epub, rechte=eigene (versichert), besetzung_modus=ensemble, DE-Titel, Produkte en/de Text+Hoerbuch Basic")
     return 0
 
 

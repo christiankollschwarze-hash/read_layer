@@ -47,6 +47,7 @@ ZUSAETZE = ("sound_carpet",)
 BETA = ("sound_carpet",)
 FASSUNGEN = ("modernisiert", "original")
 RECHTE_ARTEN = ("gemeinfrei", "eigene", "lizenz", "verlag")
+QUELLEN = ("gutenberg", "user_epub", "verlag_epub", "fremd_audio")   # Eingangsart (090)
 
 # Gueltigkeitsmatrix (Katalog Produktmodell 095): (inhalt, stufe) -> erlaubte Kanaele
 MATRIX = {
@@ -298,7 +299,7 @@ def lesen(werk):
 
 
 # ------------------------------------------------------------ Schreiben
-FELDER = ("quellsprache", "produkte", "fassung", "mandant", "besitzer", "rechte")
+FELDER = ("quellsprache", "produkte", "fassung", "mandant", "besitzer", "rechte", "quelle", "wunsch")
 
 
 def schreiben(werk, **felder):
@@ -322,9 +323,22 @@ def schreiben(werk, **felder):
         raise ValueError(f"fassung {felder['fassung']!r} ungueltig")
     if "rechte" in felder:
         felder["rechte"] = rechte_norm(felder["rechte"], roh)
+    if "quelle" in felder and felder["quelle"] not in QUELLEN:
+        raise ValueError(f"quelle {felder['quelle']!r} ungueltig")
+    if "wunsch" in felder and not isinstance(felder["wunsch"], dict):
+        raise ValueError("wunsch muss ein Objekt sein")
     roh.update(felder)
     json_atomar(_book_json(ordner), roh, indent=2)
     _config_cache_loeschen(roh.get("book_slug") or os.path.basename(ordner))
+    return lesen_ordner(ordner)
+
+
+def feld_setzen(werk, **felder):
+    """Nicht-Bestellfelder in book.json setzen (z. B. gutenberg_id aus 090), atomar."""
+    ordner = werkordner(werk)
+    roh = _roh(ordner)
+    roh.update(felder)
+    json_atomar(_book_json(ordner), roh, indent=2)
     return lesen_ordner(ordner)
 
 

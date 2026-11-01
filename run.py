@@ -13,7 +13,7 @@ Eine Kette fuer jedes Werk, Reihenfolge laut Gate-Katalog (pipeline.status.STAGE
             (Stopp nur per Admin-Override: --override <stage> --wer CK --rolle admin --grund "...").
 
 Uebergang bis zum Umbau der Stages (Phase 2, je Stage):
-- Stages ohne Modul (080 090 095 115 190 195 530 540 650) und manuelle Vorbedingungen (100/110 tools/
+- Stages ohne Modul (095 115 190 195 530 540 650) und manuelle Vorbedingungen (100/110 tools/
   s100_anlegen.py + s110_wikidata, 150 ePub-Import) laufen nicht in der Kette; ihre Vorgaenger
   treten an ihre Stelle (kette.wirksame_vorgaenger).
 - Altstages schreiben noch kein eigenes Gate. run.py bewertet sie mit ihrer bisherigen Ausgabepruefung
@@ -45,7 +45,19 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from config import config
 
 # Stages, die ihr Gate selbst ueber gate.py/status.py schreiben (waechst mit jedem Stage-Umbau).
-UMGEBAUT = {"080"}
+UMGEBAUT = {"080", "090"}
+
+
+def _neu(modul, **kw):
+    """Kettenaufruf einer umgebauten Stage: run(book_id, wer=...) -> auto/mensch/stopp."""
+    def f(book_id, b, force, wer):
+        import importlib
+        return importlib.import_module(modul).run(book_id, wer=wer, **kw)
+    return f
+
+
+# Umgebaute Stages mit eigenem Gate (080 laeuft als Querschicht vorab)
+NEU = {"090": _neu("pipeline.s090_eingang")}
 
 
 # ---- Altpruefung (Ausgabe vorhanden) ------------------------------------
@@ -239,11 +251,15 @@ def _alt_abgleichen(book_id, stages, b):
 
 
 # ---- Kette --------------------------------------------------------------
-def _stage_ausfuehren(book_id, stage, b, force, only_lang):
+def _stage_ausfuehren(book_id, stage, b, force, only_lang, wer=None):
     """Eine Stage. Rueckgabe Zustand nach dem Lauf: frei | mensch | stopp."""
     from pipeline import kette, mock, status, usage_log
+    if stage in NEU:
+        usage_log.set_context(book_id, stage)
+        NEU[stage](book_id, b, force, wer)
+        return status.zustand(book_id, stage)
     if stage in UMGEBAUT:
-        raise NotImplementedError("Umgebaute Stages bringen ihren Kettenaufruf selbst mit")
+        raise NotImplementedError(f"Stage {stage}: Kettenaufruf fehlt in NEU")
     aufruf = ALT[stage][0]
     langs = kette.sprachen(stage, b)
     met = {"modus": mock.modus(), "altpruefung": True}
@@ -366,7 +382,7 @@ def run_pipeline(book_id, start_from=None, stop_to=None, only=None, force=False,
         print(f"\n--- Stage {s} ---")
         t0 = time.time()
         try:
-            z = _stage_ausfuehren(book_id, s, b, force, only_lang)
+            z = _stage_ausfuehren(book_id, s, b, force, only_lang, wer=wer)
         except gate.GateHalt as e:
             print(f"\n[{e.ergebnis.upper()}] Stage {s}: " + "; ".join(e.gruende))
             return e.exit_code
