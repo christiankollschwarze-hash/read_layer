@@ -6,8 +6,9 @@ Automatisiert die zweiphasige Werk-Titel-Stufe aus pipeline/s110_wikidata.py:
   2. bester Kandidat: Titel-Ueberschneidung + Autor/Werkart in der Beschreibung,
      Film/Oper/Musical/Album abgewertet
   3. confirm_work  -> etablierte Laendertitel je Sprache (Wikidata-Sitelink),
-     sonst Gemini/DeepSeek-Fallback (titel_pruefen=true -> am Cover-Tor kontrollieren)
-Kein passender Kandidat -> nur Fallback-Titel je Zielsprache (titel_pruefen=true).
+     sonst DeepSeek-Fallback (titel_pruefen=true -> Gate 110 Mensch)
+Seit Phase 2 (01.11.2026) laeuft der Ablauf als Gate 110 in pipeline/s110_wikidata.run; dieses Modul
+liefert nur noch die Kandidatenwahl (waehle, _kandidaten, _varianten, _nachname).
 
 Aufruf:  python tools/titel_auto.py <book_slug>
 """
@@ -58,11 +59,12 @@ def _kandidaten(suchwort, src):
             for h in hits]
 
 
-def waehle(cands, titel, nachname):
+def waehle(cands, titel, nachname, schwelle=0.5):
+    """Bester Werk-Kandidat: Jaccard >= schwelle (Regler 110), Autor/Werkart in der Beschreibung."""
     best, best_s = None, 0.0
     for c in cands:
         ov = max(wd._title_overlap(c.get("label", ""), t) for t in _varianten(titel))
-        if ov < 0.5:
+        if ov < schwelle:
             continue
         b = (c.get("beschreibung") or "").lower()
         s = ov
@@ -77,67 +79,10 @@ def waehle(cands, titel, nachname):
     return best if best_s >= 0.9 else None
 
 
-_EN_FUNKTION = {"the", "of", "and", "a", "an", "in", "on", "to", "from", "with"}
-
-
-def _de_pruefen(slug, titel):
-    """Wikidata liefert als DE-Titel manchmal den englischen (dewiki-Lemma). Dann
-    Uebersetzungsvorschlag holen und zum Pruefen markieren."""
-    bp = os.path.join(config.book_dir(slug), "book.json")
-    bj = json.load(open(bp, encoding="utf-8"))
-    for lang in config.TARGET_LANGUAGES:
-        f = next((x for x in bj.get("fassungen", []) if x.get("sprache") == lang), None)
-        if not f or (f.get("titel") or "").strip().lower() != titel.strip().lower():
-            continue
-        if not (set(re.findall(r"[a-z]+", titel.lower())) & _EN_FUNKTION):
-            continue
-        vorschlag = wd._fallback_title(titel, lang) or titel
-        wd._set_fassung_title(bj, lang, vorschlag, "llm", True)
-        print(f"  ~ {lang}: Wikidata = Originaltitel -> Vorschlag \"{vorschlag}\" [PRUEFEN]")
-    json.dump(bj, open(bp, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
-
-
 def main(slug):
-    bp = os.path.join(config.book_dir(slug), "book.json")
-    bj = json.load(open(bp, encoding="utf-8"))
-    titel = (bj.get("titel_original") or "").strip() or slug
-    src = bj.get("originalsprache") or config.SOURCE_LANGUAGE
-    if bj.get("work_wikidata_id"):
-        print(f"[titel] {slug}: work_wikidata_id={bj['work_wikidata_id']} vorhanden -> bestaetigen")
-        wd.confirm_work(slug, bj["work_wikidata_id"], force=True)
-        _de_pruefen(slug, titel)
-        return 0
-    c = None
-    try:
-        for v in _varianten(titel):
-            cands = _kandidaten(v, src)
-            print(f"[titel] Suche \"{v}\": {len(cands)} Kandidaten")
-            for k in cands:
-                print(f"    {k['wikidata_id']}  {k['label']} — {k['beschreibung']}")
-            c = waehle(cands, titel, _nachname(bj))
-            if c:
-                break
-    except Exception as e:
-        # Netzfehler -> NICHT auf geratene Titel ausweichen, Schritt scheitert und laeuft spaeter neu
-        print(f"[FEHLER] Wikidata nicht erreichbar: {e}")
-        return 1
-    if c:
-        print(f"[titel] gewaehlt: {c['wikidata_id']} {c['label']} — {c.get('beschreibung','')}")
-        wd.confirm_work(slug, c["wikidata_id"], force=True)
-        _de_pruefen(slug, titel)
-        return 0
-    # kein sicherer Treffer -> Fallback je Zielsprache, zum Pruefen markiert
-    print("[titel] kein sicherer Wikidata-Treffer -> Uebersetzer-Fallback (pruefen)")
-    bj = json.load(open(bp, encoding="utf-8"))
-    for lang in config.ALL_LANGUAGES:
-        if lang == src:
-            wd._set_fassung_title(bj, lang, titel, "original", False)
-        else:
-            t = wd._fallback_title(titel, lang) or titel
-            wd._set_fassung_title(bj, lang, t, "llm", True)
-            print(f"  + {lang}: \"{t}\"  [llm -> PRUEFEN]")
-    json.dump(bj, open(bp, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
-    return 0
+    """Cockpit-Schritt "titel": seit Phase 2 = Gate 110 (pipeline.s110_wikidata.run)."""
+    from pipeline import gate
+    return gate.EXIT[wd.run(slug)]
 
 
 if __name__ == "__main__":

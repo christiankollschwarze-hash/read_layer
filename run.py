@@ -13,8 +13,7 @@ Eine Kette fuer jedes Werk, Reihenfolge laut Gate-Katalog (pipeline.status.STAGE
             (Stopp nur per Admin-Override: --override <stage> --wer CK --rolle admin --grund "...").
 
 Uebergang bis zum Umbau der Stages (Phase 2, je Stage):
-- Stages ohne Modul (115 190 195 530 540 650) und manuelle Vorbedingungen (110 s110_wikidata,
-  150 ePub-Import) laufen nicht in der Kette; ihre Vorgaenger
+- Stages ohne Modul (115 190 195 530 540 650) und manuelle Vorbedingung (150 ePub-Import) laufen nicht in der Kette; ihre Vorgaenger
   treten an ihre Stelle (kette.wirksame_vorgaenger).
 - Altstages schreiben noch kein eigenes Gate. run.py bewertet sie mit ihrer bisherigen Ausgabepruefung
   (Altpruefung): Ausgabe vorhanden -> auto, 410 Casting-Tor nicht freigegeben -> mensch, Ausgabe fehlt
@@ -45,7 +44,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from config import config
 
 # Stages, die ihr Gate selbst ueber gate.py/status.py schreiben (waechst mit jedem Stage-Umbau).
-UMGEBAUT = {"080", "090", "095", "100"}
+UMGEBAUT = {"080", "090", "095", "100", "110"}
 
 
 def _neu(modul, **kw):
@@ -59,7 +58,8 @@ def _neu(modul, **kw):
 # Umgebaute Stages mit eigenem Gate (080 laeuft als Querschicht vorab)
 NEU = {"090": _neu("pipeline.s090_eingang"),
        "095": _neu("pipeline.s095_produktwahl"),
-       "100": _neu("tools.s100_anlegen")}        # --force der Kette laedt raw.txt nicht neu (nur Stage-CLI)
+       "100": _neu("tools.s100_anlegen"),
+       "110": _neu("pipeline.s110_wikidata")}        # --force der Kette laedt raw.txt nicht neu (nur Stage-CLI)
 
 
 # ---- Altpruefung (Ausgabe vorhanden) ------------------------------------
@@ -199,7 +199,7 @@ ALT = {
     "700": (lambda w, lg, b, f: _alt_700(w, b), None),
     "710": (lambda w, lg, b, f: _mod("pipeline.s710_cloud_export").run(w, lg, force=f), _cloud_export_done),
 }
-MANUELL = {"110", "150"}          # Vorbedingung ausserhalb der Kette
+MANUELL = {"150"}          # Vorbedingung ausserhalb der Kette
 IN_KETTE = set(ALT) | UMGEBAUT
 
 

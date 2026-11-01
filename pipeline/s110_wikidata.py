@@ -1,10 +1,21 @@
-"""STAGE 110 — Wikidata
-Funktion:     Verifizierte Autor-Fakten und Werktitel je Zielsprache.
-Wirkungsweise: Zweiphasig --propose/--confirm (Mensch waehlt Q-ID); Titel aus Sitelinks, sonst DeepSeek-Fallback mit titel_pruefen.
-Komponenten:  pipeline/s110_wikidata.py, tools/titel_auto.py (Cockpit), api_layer (Fallback)
-Zulieferer:   s100 Anlegen (book.json)
-Abnehmer:     s600 Klappentext (author.json), s620/s630 ePub (Titel), s710 Cloud-Export (Katalog)
-(Nomenklatur seit 18.10.2026, Uebersicht: docs/Pipeline_Strang_Matrix.xlsx)
+"""STAGE 110 — Wikidata (nur Gutenberg; GATE_KATALOG.md, Phase 2 01.11.2026)
+Funktion:     Verifizierte Autor-Fakten (author.json verified) und Werktitel je Sprache (book.json
+              fassungen[].titel/titel_quelle) + Werk-Q-ID + erscheinungsjahr (P577).
+Gate:         Autor: Kandidaten mit Namens- und Todesjahr-Treffer (+-1 zu Gutendex); genau 1 -> auto
+              bestaetigt; 0/mehrere -> Mensch (Kandidatenliste). PD mit Wikidata-Todesjahr verletzt -> Stopp
+              (Ruecksprung 100). Werk: Jaccard Titel >= Schwelle -> Wikidata-Titel auto; LLM-Titel oder kein
+              Kandidat -> Mensch. Titel je Sprache = Quellsprache + bestellte Zielsprachen (book.json).
+              Wikidata nicht erreichbar -> Stopp (neu abfragen).
+Regler:       --autor-qid Q, --werk-qid Q, --titel de="..." (mehrfach), --jaccard 0.5, --neu.
+Befunde 110:  Autor-Teil laeuft jetzt in der Kette (vorher nie vom Cockpit); Sanity-Pruefung Autor ueber
+              Name + Todesjahr; Schreibvorgaenge atomar; Abgleich Todesjahr Wikidata <-> Gutendex (Hinweis);
+              Fallback-Titel per DeepSeek (api_layer "translator"), nicht Gemini.
+Kosten:       Wikidata 0 $; Fallback-Titel DeepSeek, Bruchteil eines Cents je Sprache.
+
+Aufruf (Kette):  python -m pipeline.s110_wikidata <werk> [--autor-qid Q42] [--werk-qid Q183883]
+                 [--titel de="Der Ruf der Wildnis"] [--neu] [--wer CK]
+Altweg:          --author <slug> --propose|--confirm Q  /  --work <slug> --propose|--confirm Q
+Exit: 0 auto, 2 Stopp, 3 Mensch.
 
 --- Bisherige Beschreibung ---
 
@@ -68,6 +79,7 @@ def _find_root(start: str) -> str:
 
 sys.path.insert(0, _find_root(os.path.dirname(os.path.abspath(__file__))))
 from config import config
+from pipeline.manifest import json_atomar
 
 WD_API = "https://www.wikidata.org/w/api.php"
 UA     = {"User-Agent": "ReadLayer/1.0 (https://somnio-publishing.net; title lookup, low volume)"}
@@ -217,7 +229,7 @@ def propose(author_slug: str, limit: int = 7):
     aj = _read_author(author_path)
     name = aj.get("name_display", "").strip()
     if not name:
-        sys.exit(f"author.json hat kein name_display ({author_path}).")
+        raise ValueError(f"author.json hat kein name_display ({author_path}).")
 
     print(f"Suche Wikidata-Kandidaten fuer: \"{name}\"\n")
 
@@ -284,7 +296,7 @@ def confirm(author_slug: str, qid: str):
         "languages": "|".join(LABEL_LANGS),
     }).get("entities", {}).get(qid)
     if not ent:
-        sys.exit(f"Q-ID {qid} nicht gefunden.")
+        raise LookupError(f"Q-ID {qid} nicht gefunden.")
 
     geb = _year_from_time(_first_value(ent, "P569"))
     tod = _year_from_time(_first_value(ent, "P570"))
@@ -325,7 +337,7 @@ def confirm(author_slug: str, qid: str):
     if not aj.get("name_display"):
         aj["name_display"] = _label_of(ent)
 
-    json.dump(aj, open(author_path, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+    json_atomar(author_path, aj, indent=2)
 
     # --- Index pflegen: authors[slug] = Q-ID ---
     idx = config._load_index()
@@ -365,9 +377,9 @@ def _author_path(author_slug: str) -> str:
 
 def _read_author(path: str) -> dict:
     if not os.path.exists(path):
-        sys.exit(f"author.json fehlt: {path}\n"
-                 f"Erst anlegen.py laufen lassen (Autor-Skelett).")
-    return json.load(open(path, encoding="utf-8"))
+        raise FileNotFoundError(f"author.json fehlt: {path} (erst Stage 100)")
+    with open(path, encoding="utf-8") as f:
+        return json.load(f)
 
 
 # ============================================================
@@ -389,8 +401,9 @@ def _book_path(book_slug: str) -> str:
 def _read_book(book_slug: str) -> dict:
     p = _book_path(book_slug)
     if not os.path.exists(p):
-        sys.exit(f"book.json fehlt: {p}\nErst anlegen.py laufen lassen (Werk-Skelett).")
-    return json.load(open(p, encoding="utf-8"))
+        raise FileNotFoundError(f"book.json fehlt: {p} (erst Stage 100)")
+    with open(p, encoding="utf-8") as f:
+        return json.load(f)
 
 
 # Stopwoerter (Artikel/Konjunktionen), die fuer den Titel-Abgleich nicht zaehlen.
@@ -413,13 +426,17 @@ def _title_overlap(a: str, b: str) -> float:
     return len(ta & tb) / len(ta | tb)
 
 
+class WerkUnplausibel(ValueError):
+    pass
+
+
 def _sanity_check_work(qid: str, ent_label: str, titel_original: str, force: bool):
     """Plausibilitaet: heisst die bestaetigte Q-ID ueberhaupt wie das Werk?
     Faengt verwechselte Q-IDs ab (z.B. 'Der Faenger im Roggen' auf Jekyll),
     BEVOR falsche Titel ins book.json wandern. Abbruch ausser bei --force."""
     overlap = _title_overlap(ent_label, titel_original)
     if overlap < 0.34 and not force:
-        sys.exit(
+        raise WerkUnplausibel(
             f"\nSTOP: {qid} heisst \"{ent_label}\" — dein titel_original ist "
             f"\"{titel_original}\".\nDie stimmen kaum ueberein (Overlap {overlap:.0%}) "
             f"— vermutlich die FALSCHE Wikidata-Entitaet (Film/anderes Werk?).\n"
@@ -515,7 +532,9 @@ def _set_fassung_title(bj: dict, lang: str, titel: str, quelle: str, pruefen: bo
     entry["titel_pruefen"] = pruefen        # True nur beim LLM-Fallback
 
 
-def confirm_work(book_slug: str, qid: str, force: bool = False):
+def confirm_work(book_slug: str, qid: str, force: bool = False, langs=None):
+    """Laendertitel je Sprache (langs; Standard: Quellsprache + bestellte Zielsprachen aus book.json)
+    und Erscheinungsjahr (P577). Rueckgabe {sprache: titel_quelle}."""
     bj = _read_book(book_slug)
     titel_original = (bj.get("titel_original") or "").strip() or book_slug
     src = bj.get("originalsprache") or config.SOURCE_LANGUAGE
@@ -524,44 +543,264 @@ def confirm_work(book_slug: str, qid: str, force: bool = False):
     ent = _api_get({
         "action": "wbgetentities",
         "ids": qid,
-        "props": "labels|sitelinks",
+        "props": "labels|sitelinks|claims",
         "languages": "|".join(LABEL_LANGS),
     }).get("entities", {}).get(qid)
     if not ent:
-        sys.exit(f"Q-ID {qid} nicht gefunden.")
+        raise LookupError(f"Q-ID {qid} nicht gefunden.")
 
     # Plausibilitaet: passt die Entitaet ueberhaupt zum Werk? (faengt verwechselte Q-IDs ab)
     _sanity_check_work(qid, _label_of(ent), titel_original, force)
 
     sitelinks = ent.get("sitelinks", {})
-    langs = config.ALL_LANGUAGES
-    print(f"  Zielsprachen (config.ALL_LANGUAGES): {', '.join(langs)} | Quellsprache: {src}")
+    from pipeline import bestellung
+    bb = bestellung.lesen(config.book_dir(book_slug))
+    src = bb.quellsprache                      # nicht config.SOURCE_LANGUAGE (global, werkfremd)
+    if langs is None:
+        langs = bb.sprachen
+    print(f"  Sprachen: {', '.join(langs)} | Quellsprache: {src}")
 
+    quellen = {}
     flagged = 0
     for lang in langs:
         if lang == src:
             _set_fassung_title(bj, lang, titel_original, "original", False)
+            quellen[lang] = "original"
             print(f"  + {lang}: \"{titel_original}\"  [original]")
             continue
         sl = sitelinks.get(f"{lang}wiki")
         title = _strip_paren_suffix(sl.get("title", "")) if sl else ""
         if title:
             _set_fassung_title(bj, lang, title, "wikidata", False)
+            quellen[lang] = "wikidata"
             print(f"  + {lang}: \"{title}\"  [wikidata]")
         else:
             fb = _fallback_title(titel_original, lang)
             _set_fassung_title(bj, lang, fb, "llm", True)
+            quellen[lang] = "llm"
             flagged += 1
             print(f"  + {lang}: \"{fb}\"  [llm -> PRUEFEN]")
 
     bj["work_wikidata_id"] = qid
-    json.dump(bj, open(_book_path(book_slug), "w", encoding="utf-8"),
-              ensure_ascii=False, indent=2)
+    jahr = _year_from_time(_first_value(ent, "P577"))
+    if jahr and not bj.get("erscheinungsjahr"):
+        bj["erscheinungsjahr"] = jahr          # Befund 100: Gutendex liefert kein Jahr
+    json_atomar(_book_path(book_slug), bj, indent=2)
 
     print(f"\nbook.json aktualisiert: work_wikidata_id={qid}, "
           f"{len(langs)} Fassungs-Titel gesetzt ({flagged} zu pruefen).")
     if flagged:
-        print("HINWEIS: 'llm'-Titel mit titel_pruefen=true beim Cover-Review kontrollieren.")
+        print("HINWEIS: 'llm'-Titel mit titel_pruefen=true -> Gate 110 Mensch.")
+    return quellen
+
+
+# ============================================================
+# GATE 110 (Phase 2, 01.11.2026) — Kette: Autor + Werk automatisch, Mensch nur bei Unklarheit
+# ============================================================
+STAGE = "110"
+JACCARD = 0.5
+PD_JAHRE = 70
+TITEL_OK = ("original", "wikidata", "manuell")
+
+
+def autor_kandidaten(name, limit=7):
+    """Wikidata-Personen zum Namen mit Lebensjahren (ein Suchaufruf + ein wbgetentities)."""
+    hits = _api_get({"action": "wbsearchentities", "search": name, "language": config.SOURCE_LANGUAGE,
+                     "type": "item", "limit": limit}).get("search", [])
+    if not hits:
+        return []
+    detail = _api_get({"action": "wbgetentities", "ids": "|".join(h["id"] for h in hits),
+                       "props": "labels|descriptions|claims",
+                       "languages": "|".join(LABEL_LANGS)}).get("entities", {})
+    out = []
+    for h in hits:
+        ent = detail.get(h["id"], {})
+        out.append({"wikidata_id": h["id"], "label": _label_of(ent) or h.get("label", ""),
+                    "beschreibung": _description_of(ent) or h.get("description", ""),
+                    "geburtsjahr": _year_from_time(_first_value(ent, "P569")),
+                    "todesjahr": _year_from_time(_first_value(ent, "P570"))})
+    return out
+
+
+def _tokens(s):
+    return set(re.findall(r"\w+", (s or "").lower(), re.UNICODE))
+
+
+def autor_treffer(kandidaten, name, todesjahr):
+    """Katalog: Namens- und Todesjahr-Treffer (+-1 zu Gutendex)."""
+    teile = [t for t in re.findall(r"\w+", (name or "").lower()) if len(t) > 1]
+    nach = teile[-1] if teile else ""
+    out = []
+    for c in kandidaten:
+        if not nach or nach not in _tokens(c.get("label")):
+            continue
+        if todesjahr is None or c.get("todesjahr") is None or abs(int(c["todesjahr"]) - int(todesjahr)) > 1:
+            continue
+        out.append(c)
+    return out
+
+
+def _autor_ohne_abfrage(aslug, aj):
+    return aslug == "unbekannt" or (aj or {}).get("wikidata_abfrage") is False
+
+
+def autor_teil(g, aslug, autor_qid=None, neu=False, jahr=None):
+    """Autor verifizieren (auto bei genau 1 Treffer), PD mit Wikidata-Todesjahr pruefen."""
+    import datetime
+    jahr = jahr or datetime.date.today().year
+    ap = _author_path(aslug)
+    try:
+        aj = _read_author(ap)
+    except (FileNotFoundError, ValueError) as e:
+        g.pflicht("author_json", False, wert=str(e), ruecksprung="100", text=f"author.json: {e}")
+        return
+    if _autor_ohne_abfrage(aslug, aj):
+        g.hinweis("autor_abfrage", False, text=f"Autor {aslug!r} ohne Wikidata-Abfrage (wikidata_abfrage=false)")
+        return
+    tj_gutendex = aj.get("todesjahr")
+    if autor_qid:
+        confirm(aslug, autor_qid)
+        g.metrik("autor_quelle", "manuell")
+    elif neu or not (aj.get("verified") and aj.get("wikidata_id")):
+        kand = autor_kandidaten(aj.get("name_display") or "")
+        treffer = autor_treffer(kand, aj.get("name_display"), tj_gutendex)
+        g.metrik("autor_kandidaten", len(kand))
+        g.metrik("autor_treffer", len(treffer))
+        liste = "; ".join(f"{c['wikidata_id']} {c['label']} ({c.get('geburtsjahr') or '?'}–"
+                          f"{c.get('todesjahr') or '?'})" for c in kand[:7]) or "keine"
+        if len(treffer) != 1:
+            g.pflicht("autor_eindeutig", False, wert=len(treffer), bei_fehler="mensch", ruecksprung="110",
+                      text=f"Autor {aj.get('name_display')!r} (+{tj_gutendex}): {len(treffer)} Treffer mit Name + "
+                           f"Todesjahr ±1 – Kandidaten: {liste}; Regler --autor-qid Q…")
+            return
+        confirm(aslug, treffer[0]["wikidata_id"])
+        g.metrik("autor_quelle", "wikidata_auto")
+        g.pflicht("autor_eindeutig", True, wert=1, text=f"Autor eindeutig: {treffer[0]['wikidata_id']}")
+    else:
+        g.metrik("autor_quelle", "bereits_verifiziert")
+    aj = _read_author(ap)
+    g.metrik("autor_qid", aj.get("wikidata_id"))
+    tj = aj.get("todesjahr")
+    if tj is None:
+        g.pflicht("pd_wikidata", False, bei_fehler="mensch", ruecksprung="110",
+                  text=f"Wikidata {aj.get('wikidata_id')}: kein Todesjahr (P570)")
+    else:
+        g.pflicht("pd_wikidata", int(tj) + PD_JAHRE < jahr, wert=int(tj), ruecksprung="100",
+                  text=f"EU-PD (Wikidata): Todesjahr {tj} + {PD_JAHRE} < {jahr}")
+        if tj_gutendex is not None and abs(int(tj) - int(tj_gutendex)) > 1:
+            g.hinweis("todesjahr_abgleich", False, wert=f"{tj_gutendex}/{tj}",
+                      text=f"Todesjahr Gutendex/manuell {tj_gutendex} ≠ Wikidata {tj}")
+
+
+_EN_FUNKTION = {"the", "of", "and", "a", "an", "in", "on", "to", "from", "with"}
+
+
+def _gleich_original_markieren(book_slug, titel, langs, src):
+    """Wikidata liefert als Zieltitel manchmal den Originaltitel (Lemma) -> LLM-Vorschlag, pruefen."""
+    bj = _read_book(book_slug)
+    geaendert = False
+    for lang in langs:
+        if lang == src:
+            continue
+        f = next((x for x in bj.get("fassungen", []) if x.get("sprache") == lang), None)
+        if not f or f.get("titel_quelle") != "wikidata" or (f.get("titel") or "").strip().lower() != titel.strip().lower():
+            continue
+        if src == "en" and not (_tokens(titel) & _EN_FUNKTION):
+            continue
+        _set_fassung_title(bj, lang, _fallback_title(titel, lang) or titel, "llm", True)
+        geaendert = True
+    if geaendert:
+        json_atomar(_book_path(book_slug), bj, indent=2)
+
+
+def werk_teil(g, book_slug, b, werk_qid=None, neu=False, titel=None, jaccard=JACCARD):
+    """Werk-Q-ID + Titel je Sprache. Wikidata-Titel -> auto; LLM-Titel / kein Kandidat -> Mensch."""
+    langs, src = b.sprachen, b.quellsprache
+    titel_original = (b.roh.get("titel_original") or "").strip() or book_slug
+    fass = {f.get("sprache"): f for f in b.roh.get("fassungen", []) if isinstance(f, dict)}
+    fehlt = [lg for lg in langs if not (fass.get(lg) or {}).get("titel")]
+    qid = werk_qid or b.roh.get("work_wikidata_id")
+    if werk_qid or neu or fehlt:
+        if werk_qid:
+            confirm_work(book_slug, werk_qid, force=True, langs=langs)
+            g.metrik("werk_quelle", "manuell")
+        elif qid and not neu:
+            confirm_work(book_slug, qid, force=True, langs=langs)
+            _gleich_original_markieren(book_slug, titel_original, langs, src)
+            g.metrik("werk_quelle", "vorhanden")
+        else:
+            from tools import titel_auto
+            c = None
+            for v in titel_auto._varianten(titel_original):
+                c = titel_auto.waehle(titel_auto._kandidaten(v, src), titel_original,
+                                      titel_auto._nachname(b.roh), schwelle=jaccard)
+                if c:
+                    break
+            if c:
+                ov = max(_title_overlap(c["label"], t) for t in titel_auto._varianten(titel_original))
+                g.metrik("werk_jaccard", round(ov, 2))
+                confirm_work(book_slug, c["wikidata_id"], force=True, langs=langs)
+                _gleich_original_markieren(book_slug, titel_original, langs, src)
+                g.metrik("werk_quelle", "wikidata_auto")
+            else:
+                bj = _read_book(book_slug)
+                for lang in langs:
+                    if lang == src:
+                        _set_fassung_title(bj, lang, titel_original, "original", False)
+                    elif not (fass.get(lang) or {}).get("titel") or neu:
+                        _set_fassung_title(bj, lang, _fallback_title(titel_original, lang) or titel_original,
+                                           "llm", True)
+                json_atomar(_book_path(book_slug), bj, indent=2)
+                g.metrik("werk_quelle", "kein_kandidat")
+                g.pflicht("werk_kandidat", False, bei_fehler="mensch", ruecksprung="110",
+                          text=f"kein Wikidata-Werk mit Jaccard ≥ {jaccard} zu {titel_original!r} – "
+                               f"Regler --werk-qid Q… oder --titel")
+    if titel:
+        bj = _read_book(book_slug)
+        for lang, t in titel.items():
+            _set_fassung_title(bj, lang, t, "manuell", False)
+        json_atomar(_book_path(book_slug), bj, indent=2)
+    bj = _read_book(book_slug)
+    fass = {f.get("sprache"): f for f in bj.get("fassungen", []) if isinstance(f, dict)}
+    g.metrik("werk_qid", bj.get("work_wikidata_id") or None)
+    qu = {}
+    for lang in langs:
+        f = fass.get(lang) or {}
+        q = f.get("titel_quelle") if f.get("titel") else None
+        qu[lang] = q
+        g.pflicht(f"titel_{lang}", q in TITEL_OK, wert=q, bei_fehler="mensch", ruecksprung="110",
+                  text=f"Titel {lang}: {f.get('titel')!r} [{q or 'fehlt'}]"
+                       + ("" if q in TITEL_OK else " – pruefen, Regler --titel " + lang + "=…"))
+    g.metrik("titelquelle", qu)
+
+
+def pruefen(g, slug, b, autor_qid=None, werk_qid=None, titel=None, jaccard=JACCARD, neu=False, jahr=None):
+    try:
+        autor_teil(g, b.roh.get("author_slug") or config.author_of(slug), autor_qid, neu, jahr)
+        werk_teil(g, slug, b, werk_qid, neu, titel, jaccard)
+    except (OSError, LookupError, ValueError) as e:
+        g.pflicht("abfrage", False, wert=f"{type(e).__name__}: {e}", ruecksprung="110",
+                  text=f"Wikidata-Abfrage fehlgeschlagen ({type(e).__name__}: {e}) – neu abfragen (--neu)")
+
+
+def run(werk, wer=None, autor_qid=None, werk_qid=None, titel=None, jaccard=JACCARD, neu=False, jahr=None):
+    """Gate 110 (nur Gutenberg). Rueckgabe auto | mensch | stopp."""
+    from pipeline import bestellung, gate, s080_mandant
+    wer = s080_mandant.nutzer(wer)
+    if autor_qid or werk_qid or titel or neu:
+        s080_mandant.darf(werk, "bestellen", wer)
+    ordner = bestellung.werkordner(werk)
+    slug = os.path.basename(os.path.normpath(ordner))
+    b = bestellung.lesen(werk)
+    g = gate.Gate(slug, STAGE, ruecksprung="110", wer=wer)
+    g.metrik("jaccard_schwelle", jaccard)
+    if config.eigene_rechte(slug):
+        g.hinweis("eigenes_werk", False, text="eigenes Werk (rechte=eigene) – keine Wikidata-Abfrage")
+    else:
+        pruefen(g, slug, b, autor_qid, werk_qid, titel, jaccard, neu, jahr)
+    e = g.entscheide()
+    print(g.bericht())
+    return e
 
 
 # ============================================================
@@ -642,43 +881,61 @@ _MOCK_ENTITIES = {
 # ============================================================
 # CLI
 # ============================================================
-def main():
-    ap = argparse.ArgumentParser(description="Stage 08b — Wikidata-Anreicherung (Autor + Werk-Titel)")
-    target = ap.add_mutually_exclusive_group(required=True)
-    target.add_argument("--author", help="autor-slug (Ordner unter authors/)")
-    target.add_argument("--work",   help="book-slug (Werk-Titel je Fassung holen)")
-    g = ap.add_mutually_exclusive_group(required=True)
-    g.add_argument("--propose", action="store_true", help="Phase 1: Kandidaten vorschlagen")
-    g.add_argument("--confirm", metavar="Q-ID", help="Phase 2: Q-ID bestaetigen + schreiben")
-    ap.add_argument("--limit", type=int, default=7, help="Anzahl Kandidaten (Phase 1)")
-    ap.add_argument("--force", action="store_true",
-                    help="Werk-Confirm trotz Titel-Abweichung erzwingen (Sanity-Check umgehen)")
-    args = ap.parse_args()
+def main(argv=None):
+    ap = argparse.ArgumentParser(description="Stage 110 Wikidata (Autor + Werktitel)")
+    ap.add_argument("werk", nargs="?", help="Book-ID/Werkordner (Gate 110)")
+    ap.add_argument("--wer")
+    ap.add_argument("--autor-qid")
+    ap.add_argument("--werk-qid")
+    ap.add_argument("--titel", action="append", default=[], metavar="LG=TITEL",
+                    help="Titel je Sprache ueberschreiben, z. B. de=\"Der Ruf der Wildnis\"")
+    ap.add_argument("--jaccard", type=float, default=JACCARD)
+    ap.add_argument("--neu", action="store_true", help="Neu abfragen (auch bei verifiziertem Autor/Titeln)")
+    ap.add_argument("--author", help="Altweg: autor-slug")
+    ap.add_argument("--work", help="Altweg: book-slug")
+    g = ap.add_mutually_exclusive_group()
+    g.add_argument("--propose", action="store_true")
+    g.add_argument("--confirm", metavar="Q-ID")
+    ap.add_argument("--limit", type=int, default=7)
+    ap.add_argument("--force", action="store_true", help="Altweg: Werk-Confirm trotz Titel-Abweichung")
+    args = ap.parse_args(argv)
 
     if config.RUN_MODE == "mock":
         print(">>> RUN_MODE=mock — feste Beispieldaten, keine echte Wikidata-Abfrage.\n")
-
-    # 22.10.2026: eigene Werke / Autor "unbekannt" -> keine Wikidata-Abfrage (CK)
+    if args.werk:
+        from pipeline import gate
+        titel = {}
+        for t in args.titel:
+            lg, _, v = t.partition("=")
+            if not v.strip():
+                ap.error(f"--titel {t!r}: Form LG=TITEL")
+            titel[lg.strip().lower()] = v.strip()
+        return gate.EXIT[run(args.werk, args.wer, args.autor_qid, args.werk_qid, titel or None,
+                             args.jaccard, args.neu)]
+    if not (args.author or args.work) or not (args.propose or args.confirm):
+        ap.error("werk oder --author/--work mit --propose/--confirm")
     if args.work and config.eigene_rechte(args.work):
         print(f"[110] '{args.work}' ist ein eigenes Werk (book.json rechte=eigene) -> keine Wikidata-Abfrage.")
-        return
+        return 0
     if args.author:
-        _ap = os.path.join(config.author_dir(args.author), "author.json")
         try:
-            _abfrage = json.load(open(_ap, encoding="utf-8")).get("wikidata_abfrage", True)
+            aj = _read_author(_author_path(args.author))
         except (OSError, ValueError):
-            _abfrage = True
-        if args.author == "unbekannt" or _abfrage is False:
+            aj = {}
+        if _autor_ohne_abfrage(args.author, aj):
             print(f"[110] Autor '{args.author}' ohne Wikidata-Abfrage (wikidata_abfrage=false).")
-            return
-
+            return 0
     if args.work:
-        if args.propose: propose_work(args.work, limit=args.limit)
-        else:            confirm_work(args.work, args.confirm, force=args.force)
+        if args.propose:
+            propose_work(args.work, limit=args.limit)
+        else:
+            confirm_work(args.work, args.confirm, force=args.force)
+    elif args.propose:
+        propose(args.author, limit=args.limit)
     else:
-        if args.propose: propose(args.author, limit=args.limit)
-        else:            confirm(args.author, args.confirm)
+        confirm(args.author, args.confirm)
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
