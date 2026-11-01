@@ -103,6 +103,9 @@ class Kette(unittest.TestCase):
         # 150 ePub-Import als Attrappe (eigenes Gate, Test in test_s150)
         run.NEU["150"] = lambda w, b, f, wer: (self.gelaufen.append("150"),
                                                S.ergebnis(w, "150", "auto", wer="test"))
+        # 120 Modernisierung als Attrappe (eigenes Gate, Test in test_s120)
+        run.NEU["120"] = lambda w, b, f, wer: (self.gelaufen.append("120"),
+                                               S.ergebnis(w, "120", "auto", wer="test"))
 
     def tearDown(self):
         self.run.ALT.clear(); self.run.ALT.update(self._alt)
