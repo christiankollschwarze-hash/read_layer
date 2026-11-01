@@ -140,32 +140,32 @@ def unique_author_slug(name_display: str) -> str:
 # ============================================================
 # SPRACHEN
 # ============================================================
-# Sprachweiche je Werk (CK 22.10.2026): nur EN und DE. Die Originalsprache des Werks
-# (book.json "originalsprache") ist die Quelle, die jeweils andere das Ziel.
-# Gesetzt wird beim Aufloesen des Werkordners (book_dir); ohne Werk gilt EN -> DE.
-WERK_SPRACHPAARE = {"en": ["de"], "de": ["en"]}
-SOURCE_LANGUAGE = "en"                        # Ausgangssprache des aktuellen Titels
-TARGET_LANGUAGES = ["de"]   # Zielsprachen
-# Alle Sprachen, die im JSON gefuehrt werden (Quelle + Ziele):
+# Sprachliste (Katalog 01.11.2026): unterstuetzte Ausgangssprachen, weitere auf Anfrage.
+# Sprachpaar und Bestellung stehen NUR in book.json (quellsprache, produkte) und werden ueber
+# pipeline/bestellung.py gelesen (b = bestellung.lesen(werk); b.quellsprache, b.zielsprachen, ...).
+# SOURCE_LANGUAGE/TARGET_LANGUAGES/ALL_LANGUAGES sind Altschnittstelle: book_dir() setzt sie aus der
+# Bestellung des zuletzt aufgeloesten Werks. Stages stellen beim Phase-2-Umbau auf bestellung um.
+SPRACHLISTE = ("en", "de", "es", "fr", "it")
+SOURCE_LANGUAGE = "en"                        # Altschnittstelle (siehe oben)
+TARGET_LANGUAGES = ["de"]
 ALL_LANGUAGES = [SOURCE_LANGUAGE] + TARGET_LANGUAGES
 _WERK_SPRACHEN_CACHE = {}
 
 def _werk_sprachen_setzen(book_id, pfad):
-    """Setzt SOURCE_LANGUAGE/TARGET_LANGUAGES/ALL_LANGUAGES aus book.json des Werks."""
+    """Setzt SOURCE_LANGUAGE/TARGET_LANGUAGES/ALL_LANGUAGES aus der Bestellung (pipeline.bestellung)."""
     global SOURCE_LANGUAGE, TARGET_LANGUAGES, ALL_LANGUAGES
-    src = _WERK_SPRACHEN_CACHE.get(book_id)
-    if src is None:
-        src = "en"
+    paar = _WERK_SPRACHEN_CACHE.get(book_id)
+    if paar is None:
+        paar = ("en", ["de"])
         try:
-            with open(os.path.join(pfad, "book.json"), encoding="utf-8") as f:
-                o = (_json.load(f).get("originalsprache") or "en").split("-")[0].lower()
-            if o in WERK_SPRACHPAARE:
-                src = o
+            from pipeline import bestellung as _b
+            b = _b.lesen_ordner(pfad)
+            paar = (b.quellsprache, b.zielsprachen or _b.ziel_default(b.quellsprache))
         except (OSError, ValueError):
             pass
-        _WERK_SPRACHEN_CACHE[book_id] = src
-    SOURCE_LANGUAGE = src
-    TARGET_LANGUAGES = list(WERK_SPRACHPAARE[src])
+        _WERK_SPRACHEN_CACHE[book_id] = paar
+    SOURCE_LANGUAGE = paar[0]
+    TARGET_LANGUAGES = list(paar[1])
     ALL_LANGUAGES = [SOURCE_LANGUAGE] + TARGET_LANGUAGES
 
 def werk_sprachen(book_id):

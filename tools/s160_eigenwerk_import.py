@@ -83,7 +83,7 @@ def parse_markdown(text):
 def main():
     ap = argparse.ArgumentParser(description="Stage 160 - eigenes Werk aus Markdown anlegen")
     ap.add_argument("md")
-    ap.add_argument("--sprache", required=True, choices=sorted(config.WERK_SPRACHPAARE))
+    ap.add_argument("--sprache", required=True, choices=config.SPRACHLISTE)
     ap.add_argument("--slug")
     ap.add_argument("--titel")
     ap.add_argument("--autor", default="unbekannt", help="autor_slug (Default: unbekannt)")
