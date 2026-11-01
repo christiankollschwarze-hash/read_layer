@@ -368,20 +368,24 @@ def neu_designen(name: str, figur: dict, ensemble: list, muster: dict, werk: str
     if r.status_code >= 400:
         raise RuntimeError(f"Voice Design {r.status_code}: {r.text[:300]}")
     d = r.json()
+    from pipeline import usage_log   # Fundament 5: Voice Design + Muster-TTS unter Stage 410
+    usage_log.log_stueck("gemini-voice-design", 1, book_id=werk, stage="410",
+                         extra={"task": "voice_design", "stimme": name})
     vid = d.get("id") or d.get("name", "").split("/")[-1]
     ordner = os.path.join(STIMMEN_DIR, name)
     os.makedirs(ordner, exist_ok=True)
     probe = (d.get("sample_audio") or d.get("sampleAudio") or {}).get("data")
     if probe:
         _wav_aus_b64(probe, os.path.join(ordner, "hoerprobe.wav"))
-    for lg, text in (muster or {}).items():
-        if text:
-            tts_client.synthesize_wav(text, "", os.path.join(ordner, f"muster_{lg}.wav"), vid, LANG_CODES.get(lg))
-    try:  # AP 63: Archiv-Regel - Klon-Text (Nordwind) je Sprache mit vertonen
-        from pipeline.hoerprobe import fuer_neue_stimme
-        fuer_neue_stimme(name, ordner)
-    except Exception as e:
-        print(f"[voice_registry] Klon-Hoerprobe nicht angelegt: {type(e).__name__}")
+    with usage_log.kontext(werk, "410", teil="voice_design"):
+        for lg, text in (muster or {}).items():
+            if text:
+                tts_client.synthesize_wav(text, "", os.path.join(ordner, f"muster_{lg}.wav"), vid, LANG_CODES.get(lg))
+        try:  # AP 63: Archiv-Regel - Klon-Text (Nordwind) je Sprache mit vertonen
+            from pipeline.hoerprobe import fuer_neue_stimme
+            fuer_neue_stimme(name, ordner)
+        except Exception as e:
+            print(f"[voice_registry] Klon-Hoerprobe nicht angelegt: {type(e).__name__}")
     f0 = grundton(os.path.join(ordner, "muster_en.wav")) or grundton(os.path.join(ordner, "hoerprobe.wav"))
     eintrag = {
         "id": vid,

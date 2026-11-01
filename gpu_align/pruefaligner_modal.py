@@ -78,8 +78,7 @@ def main(werk: str):
     out, sek = lauf.remote(paare)
     ziel = Path(config.work_path(werk, "345_pruefaligner"))
     ziel.write_text(json.dumps(out, ensure_ascii=False), encoding="utf-8")
-    usd = round(sek * PREIS_T4_S, 4)
-    with open(ziel.parent / "kosten.jsonl", "a", encoding="utf-8") as f:
-        f.write(json.dumps({"zeit": time.strftime("%Y-%m-%dT%H:%M:%S"), "stage": "345_pruefaligner",
-                            "modell": "modal-T4 awesome_co", "sekunden": sek, "usd": usd}) + "\n")
+    from pipeline import usage_log   # Fundament 5: Stage 340 (345 Teil von 340), Modal-Sekunden
+    usd = usage_log.log_gpu(werk, "340", sek, gpu="T4", extra={"teil": "345_pruefaligner", "aligner": "awesome_co"})
+    usd = usd if usd is not None else round(sek * PREIS_T4_S, 4)
     print(f"Geschrieben: {ziel} ({len(out)} Saetze, {sek} s, ~{usd} $)")

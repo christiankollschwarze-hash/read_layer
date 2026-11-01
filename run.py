@@ -232,7 +232,7 @@ def _ctx(book_id, key, lang=None):
     """Token-/Kostenzaehler: Werk + Stage fuer alle API-Aufrufe dieser Stage."""
     try:
         from pipeline import usage_log
-        usage_log.set_context(book_id, f"{key}_{lang}" if lang else key)
+        usage_log.set_context(book_id, key, **({"sprache": lang} if lang else {}))
     except Exception:
         pass
 

@@ -62,7 +62,7 @@ def werk(p):
     book_dir = os.path.dirname(os.path.dirname(p))
     book_id = os.path.basename(book_dir)
     try:
-        usage_log.set_context(book_id, "nachlauf_geschlecht")
+        usage_log.set_context(book_id, "600", teil="nachlauf_geschlecht")
     except Exception:
         pass
     try:

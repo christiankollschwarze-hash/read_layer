@@ -107,7 +107,7 @@ def _hinweis(tid, kett, align):
 def nachlauf(book_id, data, markiert, pruef):
     from pipeline import api_layer, usage_log
     from pipeline import s340_wortalignment as s340
-    usage_log.set_context(book_id, f"{STAGE}_verschiebung")
+    usage_log.set_context(book_id, "340", teil="345_verschiebung")
     src, tgt = config.SOURCE_LANGUAGE, config.TARGET_LANGUAGES[0]
     c = data["content"]
     ids = list(markiert)

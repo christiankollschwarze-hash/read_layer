@@ -28,7 +28,7 @@ Freigabe eines Stopps nur per Admin-Override mit Protokoll (python -m pipeline.s
 import os
 import sys
 
-from pipeline import status
+from pipeline import mock, status
 
 EXIT = {"auto": 0, "stopp": 2, "mensch": 3, "reparatur": 4}
 SCHWERE = ("stopp", "mensch", "reparatur", "reparatur_stopp", "hinweis")
@@ -57,7 +57,7 @@ class Gate:
         self.book_id, self.stage, self.scope = book_id, status._norm(stage), scope
         self.reparatur_max, self.ruecksprung, self.wer = reparatur_max, ruecksprung, wer
         self.pruefungen = []     # dicts: name, ok, wert, schwelle, bei_fehler, ruecksprung, text
-        self.metriken = {}
+        self.metriken = {"modus": mock.modus()}
         self.ergebnis = None
         for v in ALT_UMGEHUNG:
             if os.environ.get(v):
@@ -98,6 +98,14 @@ class Gate:
 
     def metrik(self, name, wert):
         self.metriken[name] = wert
+
+    def mock(self, anzahl, beispiele=None, ruecksprung=None):
+        """Mock-Artefakte im Eingang/Ausgang: im Live-Lauf Stopp, im Mock-Lauf nur Hinweis."""
+        txt = f"mock = {anzahl}" + (f" ({', '.join(beispiele)})" if beispiele and anzahl else "")
+        if mock.aktiv():
+            return self.hinweis("mock", anzahl == 0, anzahl, text=txt + " [Mock-Lauf]")
+        return self.pruefe("mock", anzahl == 0, anzahl, "= 0 im Live-Lauf", "stopp",
+                           ruecksprung or self.ruecksprung, txt + " im Live-Lauf")
 
     # ---------------------------------------------------------- Entscheidung
     def fehler(self):
@@ -166,10 +174,18 @@ def vorgaenger_frei(book_id, stage, vorgaenger, wer="pipeline"):
     d = status.laden(book_id)
     offen = [(status._norm(v), status.zustand(book_id, v, d=d)) for v in vorgaenger]
     offen = [(v, z) for v, z in offen if z not in status.FREI]
+    gruende = [f"Gate {v} nicht frei ({z})" for v, z in offen]
+    if not mock.aktiv():     # Fundament 5: Mock-Ergebnis eines Vorgaengers darf nicht in den Live-Lauf
+        for v in vorgaenger:
+            v = status._norm(v)
+            st = d["stages"].get(v) or {}
+            teile = [st] + list((st.get("teile") or {}).values())
+            if any((t.get("metriken") or {}).get("modus") == "mock" for t in teile):
+                offen.append((v, "mock"))
+                gruende.append(f"Gate {v} im Mock-Lauf erzeugt – im Live-Lauf neu ausfuehren")
     if not offen:
         status.start(book_id, stage, wer=wer)
         return True
-    gruende = [f"Gate {v} nicht frei ({z})" for v, z in offen]
     status.ergebnis(book_id, stage, "stopp", gruende=gruende, ruecksprung=offen[0][0], wer=wer)
     raise GateHalt(status._norm(stage), "stopp", gruende)
 

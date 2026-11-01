@@ -68,7 +68,7 @@ def bauen(werk, lg="de"):
     quelle = b.get("originalsprache") or config.SOURCE_LANGUAGE
     if begriffe and quelle != lg:
         try:
-            usage_log.set_context(book_id, "aussprache_lexikon")
+            usage_log.set_context(book_id, "400", teil="aussprache_lexikon")
         except Exception:
             pass
         roh = api_layer.call_model("validator", PROMPT.format(

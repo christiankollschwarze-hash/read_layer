@@ -270,10 +270,9 @@ def _style_guard(direction: str, typ: str) -> str:
 
 
 def _write_mock_wav(out_path: str):
-    """Mock: kurze Stille als gueltige WAV -> beweist Pfad + Manifest."""
-    with wave.open(out_path, "wb") as w:
-        w.setnchannels(1); w.setsampwidth(2); w.setframerate(24000)
-        w.writeframes(b"\x00\x00" * 2400)
+    """Mock: kurze Stille als gueltige WAV mit Marker READLAYER-MOCK (pipeline/mock.py)."""
+    from pipeline import mock
+    mock.wav(out_path)
 
 
 # ============================================================
