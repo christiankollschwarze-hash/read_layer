@@ -51,7 +51,7 @@ class T(unittest.TestCase):
         S.override(self.w, "320", "CK", "admin", "Test")
         self.assertTrue(S.ist_frei(self.w, "320"))
         self.assertEqual(S.laden(self.w)["stages"]["320"]["override"]["von"], "stopp")
-        self.assertEqual(S.main([self.w, "--override", "330", "--wer", "CK", "--rolle", "kurator", "--grund", "x"]), 2)
+        self.assertEqual(S.main([self.w, "--override", "330", "--wer", "gast", "--rolle", "admin", "--grund", "x"]), 2)  # 080: Rolle aus Register
 
     def test_parallel(self):
         def lauf(n):

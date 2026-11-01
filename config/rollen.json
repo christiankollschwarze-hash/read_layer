@@ -1,0 +1,10 @@
+{
+  "_hinweis": "Stage 080 Rollenregister. rolle: admin | kurator | verlag. Kurator: uid (Standard = Schluessel), grenzen (Aktionen lauf/bestellen/entscheiden/zuruecksetzen), mandanten (weitere eigene Mandanten). Verlag: verlag (id). Nutzer je Lauf: --wer, READLAYER_NUTZER, sonst standard.",
+  "standard": "CK",
+  "nutzer": {
+    "CK": {"rolle": "admin", "name": "Christian Koll-Schwarze"}
+  },
+  "mandanten": {
+    "somnio": {"imprint": "SOMNIO"}
+  }
+}

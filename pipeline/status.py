@@ -316,10 +316,15 @@ def main(argv=None):
     ap.add_argument("--nach", default="frei")
     ap.add_argument("--zuruecksetzen", metavar="STAGE")
     ap.add_argument("--wer")
-    ap.add_argument("--rolle", default="kurator")
+    ap.add_argument("--rolle", help="veraltet: Rolle kommt aus config/rollen.json (Stage 080)")
     ap.add_argument("--grund")
     a = ap.parse_args(argv)
     try:
+        if a.entscheiden or a.override or a.zuruecksetzen:     # Stage 080: Rolle aus config/rollen.json
+            from pipeline import s080_mandant as m
+            a.wer = m.nutzer(a.wer)
+            aktion = "entscheiden" if a.entscheiden else ("override" if a.override else "zuruecksetzen")
+            a.rolle = m.darf(a.werk, aktion, a.wer)
         if a.entscheiden:
             entscheiden(a.werk, a.entscheiden[0], a.entscheiden[1], a.wer, a.grund, a.scope, a.rolle)
         elif a.override:

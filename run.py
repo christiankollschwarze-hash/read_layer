@@ -30,6 +30,10 @@ Aufruf:
   python run.py <werk> --force            frei/Ausgabe vorhanden ignorieren, neu ausfuehren
   python run.py <werk> --live             RUN_MODE=live fuer diesen Lauf
   python run.py <werk> --plan             nur zeigen: Stage, laeuft/entfaellt, Zustand, Vorgaenger
+  python run.py <werk> --wer anna         Nutzer des Laufs (sonst READLAYER_NUTZER bzw. config/rollen.json)
+
+080 Mandant & Rechte ist Querschicht: laeuft bei jedem Aufruf zuerst (auch mit --from/--only);
+ohne Berechtigung fuer "lauf" -> Stopp, Exit 2.
 """
 import argparse
 import json
@@ -41,7 +45,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from config import config
 
 # Stages, die ihr Gate selbst ueber gate.py/status.py schreiben (waechst mit jedem Stage-Umbau).
-UMGEBAUT = set()
+UMGEBAUT = {"080"}
 
 
 # ---- Altpruefung (Ausgabe vorhanden) ------------------------------------
@@ -295,9 +299,10 @@ def plan(book_id):
     return 0
 
 
-def run_pipeline(book_id, start_from=None, stop_to=None, only=None, force=False, only_lang=None, line=None):
+def run_pipeline(book_id, start_from=None, stop_to=None, only=None, force=False, only_lang=None, line=None,
+                 wer=None):
     """Kette ausfuehren. Rueckgabe Exit-Code (0 frei, 2 Stopp, 3 Mensch, 1 Fehler)."""
-    from pipeline import gate, kette, status
+    from pipeline import gate, kette, status, s080_mandant
     config.werk_sprachen(book_id)          # Altschnittstelle config-Globals fuer Altstages
     b, laeuft, fehler = kette.bedarf_setzen(book_id)
     print("=" * 60)
@@ -312,6 +317,14 @@ def run_pipeline(book_id, start_from=None, stop_to=None, only=None, force=False,
     if line:
         print(f"  Hinweis: --line {line} ist abgeschafft; Stages kommen aus der Bestellung (095).")
     print("=" * 60)
+
+    # 080 Querschicht: jeder Lauf prueft den Nutzer (Gate schreibt Wer/Wann in status.json)
+    wer = s080_mandant.nutzer(wer)
+    if "080" in laeuft:
+        print(f"--- Stage 080 (Nutzer {wer}) ---")
+        if s080_mandant.run(book_id, wer=wer) != "auto":
+            print(f"\n[STOPP] Stage 080: {wer} darf {book_id} nicht bearbeiten")
+            return gate.EXIT["stopp"]
 
     for n, s in (("--from", start_from), ("--to", stop_to), ("--only", only)):
         if s is not None and status._norm(s) not in status.STAGES:
@@ -329,6 +342,8 @@ def run_pipeline(book_id, start_from=None, stop_to=None, only=None, force=False,
             continue
         if stop_to and idx(s) > idx(stop_to):
             break
+        if s == "080":
+            continue                                   # oben geprueft
         if s not in laeuft:
             print(f"[entfaellt] Stage {s}")
             continue
@@ -342,7 +357,7 @@ def run_pipeline(book_id, start_from=None, stop_to=None, only=None, force=False,
         vorg = kette.wirksame_vorgaenger(s, laeuft, IN_KETTE)
         _alt_abgleichen(book_id, vorg, b)
         try:
-            gate.vorgaenger_frei(book_id, s, vorg, wer="run.py")
+            gate.vorgaenger_frei(book_id, s, vorg, wer=wer)
         except gate.GateHalt as e:
             print(f"\n[STOPP] Stage {s}: " + "; ".join(e.gruende))
             print(f"[STOPP] Status: python -m pipeline.status {book_id}")
@@ -389,6 +404,7 @@ def main(argv=None):
     ap.add_argument("--force", action="store_true")
     ap.add_argument("--live", action="store_true")
     ap.add_argument("--plan", action="store_true")
+    ap.add_argument("--wer")
     ap.add_argument("--line", help=argparse.SUPPRESS)        # abgeschafft, nur Hinweis
     a = ap.parse_args(argv)
     if a.live:
@@ -396,7 +412,7 @@ def main(argv=None):
     if a.plan:
         sys.exit(plan(a.book_id))
     sys.exit(run_pipeline(a.book_id, start_from=a.start_from, stop_to=a.stop_to, only=a.only,
-                          force=a.force, only_lang=a.lang, line=a.line))
+                          force=a.force, only_lang=a.lang, line=a.line, wer=a.wer))
 
 
 if __name__ == "__main__":
