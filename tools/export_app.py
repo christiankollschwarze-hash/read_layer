@@ -60,7 +60,7 @@ def main(book: Path, public: Path):
             json.dumps({"sprache": lang, "tags": kompakt}, separators=(",", ":")), encoding="utf-8")
         wt.append(f"{lang}:{len(kompakt)}")
 
-    print(f"Wortzeiten: {wt or 'keine (Stage 58c laufen lassen)'}")
+    print(f"Wortzeiten: {wt or 'keine (Stage 520 laufen lassen)'}")
     print(f"Cover: {covers}  |  blurb.json: {len(out['koeder'])}/{len(out['einordnung'])}/{len(out['autor_info'])} Sätze")
 
 if __name__ == "__main__":

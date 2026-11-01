@@ -151,16 +151,16 @@ def run(book_id: str, force: bool = False):
     out_png = os.path.join(img_dir, "cover.png")
 
     if os.path.exists(out_png) and not force:
-        print(f"[stage12] Cover existiert -> ueberspringe ({out_png}). --force zum Neugenerieren.")
+        print(f"[610] Cover existiert -> ueberspringe ({out_png}). --force zum Neugenerieren.")
         return out_png
 
     title, author = _meta(book_id)
     prompt = _build_prompt(title, author, _mood(book_id), _motiv(book_id))
-    print(f"[stage12] Cover-Prompt:\n  {prompt}\n")
+    print(f"[610] Cover-Prompt:\n  {prompt}\n")
 
     if config.RUN_MODE == "mock":
         open(out_png, "wb").write(_MOCK_PNG)
-        print(f"[stage12] (mock) Platzhalter-Cover -> {out_png}")
+        print(f"[610] (mock) Platzhalter-Cover -> {out_png}")
         return out_png
 
     api_key = config.GEMINI_API_KEY
@@ -173,7 +173,7 @@ def run(book_id: str, force: bool = False):
     ext = "jpg" if "jpeg" in mime else "png"
     out = os.path.join(img_dir, f"cover.{ext}")
     open(out, "wb").write(data)
-    print(f"[stage12] Cover ({model}, {mime}, {len(data)} Bytes) -> {out}")
+    print(f"[610] Cover ({model}, {mime}, {len(data)} Bytes) -> {out}")
     return out
 
 

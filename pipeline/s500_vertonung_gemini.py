@@ -140,9 +140,16 @@ def _chapter_of(tag_id: str) -> str:
 # ============================================================
 # STIMME (Speaker-Definer) -- Werk-Parameter mit Fallback
 # ============================================================
-def _load_voice(book_id: str, override: str = None) -> str:
+def _load_voice(book_id: str, override: str = None, lang: str = None) -> str:
     if override:
         return override
+    try:  # AP 63: Stimmen-Gate (book.json "stimme") hat Vorrang
+        from pipeline.gate import stimme, gemini_voice
+        g = gemini_voice(stimme(book_id, lang)) if lang else None
+        if g:
+            return g
+    except Exception:
+        pass
     path = os.path.join(config.book_dir(book_id), "book.json")
     try:
         bj = json.load(open(path, encoding="utf-8"))
@@ -161,7 +168,7 @@ def _load_block_regie(book_id: str) -> str:
         from pipeline.s400_regie import directions_from_reglers, _load_reglers
         return directions_from_reglers(_load_reglers(book_id)).get("s", "")
     except Exception as e:
-        print(f"[stage58] WARN: Block-Regie nicht ladbar ({type(e).__name__}) -> leer")
+        print(f"[500] WARN: Block-Regie nicht ladbar ({type(e).__name__}) -> leer")
         return ""
 
 
@@ -249,7 +256,7 @@ def _style_guard(direction: str, typ: str) -> str:
     if not tts_client.is_gemini_api() or not direction.startswith("Read "):
         return direction
     if not _LEGACY_WARNED:
-        print("[stage58] WARN: 400_regie enthaelt alte Regie-Saetze -> fuer 3.8 gekuerzt. "
+        print("[500] WARN: 400_regie enthaelt alte Regie-Saetze -> fuer 3.8 gekuerzt. "
               "Empfehlung: Stage 56 neu laufen lassen.")
         _LEGACY_WARNED.append(1)
     base = _REGIE_38.get(typ) or _REGIE_38.get("s") or "calm audiobook narration"
@@ -345,7 +352,7 @@ def run(book_id: str, chapter: str = None, lang: str = None, force: bool = False
         cut_guard: float = 0.10,
         keep_blocks: bool = False, reuse_blocks: bool = False) -> dict:
     in_path = config.work_path(book_id, "400_regie")
-    print(f"[stage58] Lese: {in_path}")
+    print(f"[500] Lese: {in_path}")
     with open(in_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
@@ -364,18 +371,18 @@ def run(book_id: str, chapter: str = None, lang: str = None, force: bool = False
     prev_hash_all = _prev_prod.get("alignment_hash", {})
 
     # Modell kommt AUSSCHLIESSLICH aus config (eine Quelle der Wahrheit); hier nur Anzeige.
-    print(f"[stage58] TTS-Modell (aus config): {config.MODELS.get('tts', 'gemini-3.8-flash-tts')}")
+    print(f"[500] TTS-Modell (aus config): {config.MODELS.get('tts', 'gemini-3.8-flash-tts')}")
 
     direction_layer = data.get("production", {}).get("direction", {})
     langs = [lang] if lang else list(config.ALL_LANGUAGES)
     is_mock = (config.RUN_MODE == "mock")
 
-    voice_name = _load_voice(book_id, voice)
+    voice_name = _load_voice(book_id, voice, lang)
     from tools.tts_paket import lexikon as _lexikon
     for _lg in langs:
         _LEX[_lg] = _lexikon(config.book_dir(book_id), _lg)
         if _LEX[_lg]:
-            print(f"[stage58] Aussprache-Lexikon {_lg}: {len(_LEX[_lg])} Eintraege")
+            print(f"[500] Aussprache-Lexikon {_lg}: {len(_LEX[_lg])} Eintraege")
     regie_s = _load_block_regie(book_id)
     if tts_client.is_gemini_api():
         try:
@@ -383,8 +390,8 @@ def run(book_id: str, chapter: str = None, lang: str = None, force: bool = False
             _REGIE_38.update(directions_from_reglers(_load_reglers(book_id)))
         except Exception:
             pass
-        print(f"[stage58] Backend: Gemini-API (3.8-Steuerung) | Block-Stil: '{regie_s}'")
-    print(f"[stage58] Stimme: {voice_name}"
+        print(f"[500] Backend: Gemini-API (3.8-Steuerung) | Block-Stil: '{regie_s}'")
+    print(f"[500] Stimme: {voice_name}"
           f"{' (CLI)' if voice else ' (book.json/Fallback)'}  |  Modus: {'mock' if is_mock else 'live'}")
 
     # Block-Planer auf config-Typen ausrichten (p = Absatzgrenze; p/skip = kein Audio)
@@ -407,7 +414,7 @@ def run(book_id: str, chapter: str = None, lang: str = None, force: bool = False
     client = None if is_mock else _get_client()
     keep = keep_blocks or reuse_blocks      # Block-WAVs fuer Schnitt-Wiederholung behalten
     if reuse_blocks:
-        print("[stage58] reuse-blocks: vorhandene Block-WAVs werden wiederverwendet (kein TTS).")
+        print("[500] reuse-blocks: vorhandene Block-WAVs werden wiederverwendet (kein TTS).")
     manifest = {}
     total_done = 0
     qa = {}                # je Sprache: geflaggte Bloecke (Solo-Fallback genutzt)
@@ -424,7 +431,7 @@ def run(book_id: str, chapter: str = None, lang: str = None, force: bool = False
         fa_report[lg] = []
 
         seg_list = plan[:limit] if limit else plan
-        print(f"[stage58] {lg} ({lang_code}): {len(seg_list)} Segmente"
+        print(f"[500] {lg} ({lang_code}): {len(seg_list)} Segmente"
               f"{' | Kapitel '+chapter if chapter else ''}"
               f"{' | LIMIT '+str(limit) if limit else ''}")
 
@@ -584,7 +591,7 @@ def run(book_id: str, chapter: str = None, lang: str = None, force: bool = False
             qa[lg]["block_clean"] += 1
             print(f"  {label}: ok (Block geschnitten -> {len(sentences)} WAVs)")
 
-        print(f"[stage58] {lg}: Bloecke {qa[lg]['block_clean']}/{qa[lg]['blocks']} sauber, "
+        print(f"[500] {lg}: Bloecke {qa[lg]['block_clean']}/{qa[lg]['blocks']} sauber, "
               f"{len(qa[lg]['fallback_blocks'])} im Fallback, {qa[lg]['solo']} Solo-Tags")
 
         # ----- Wort-Alignment (nativ, schnipsel-relativ) fuer UI-Highlighting -----
@@ -624,7 +631,7 @@ def run(book_id: str, chapter: str = None, lang: str = None, force: bool = False
                 alignment_hash[lg][tag_id] = cur_hash
                 n_new += 1
             n_words = sum(len(v) for v in alignment[lg].values())
-            print(f"[stage58] {lg}: Wort-Alignment {n_new} neu / {n_reused} uebernommen "
+            print(f"[500] {lg}: Wort-Alignment {n_new} neu / {n_reused} uebernommen "
                   f"({len(alignment[lg])} Schnipsel, {n_words} Woerter) -> production.alignment")
 
     # Schlankes Manifest + QA fuer Resume / Assembler / Pruefung
@@ -662,7 +669,7 @@ def run(book_id: str, chapter: str = None, lang: str = None, force: bool = False
         except OSError:
             pass
 
-    print(f"[stage58] Fertig: {total_done} Schnipsel vertont "
+    print(f"[500] Fertig: {total_done} Schnipsel vertont "
           f"({'mock' if is_mock else 'live'}), Stimme {voice_name}. Manifest -> {out_json}")
     return data
 

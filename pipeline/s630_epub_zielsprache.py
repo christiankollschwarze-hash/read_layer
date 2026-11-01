@@ -194,17 +194,17 @@ def run(book_id: str, target: str = "de", lang: str = None):
     if lang: target = lang
     src = config.SOURCE_LANGUAGE
     if target == src:
-        print(f"[stage31] Zielsprache == Quellsprache ({src}) -> nimm Stage 30 direkt.")
+        print(f"[630] Zielsprache == Quellsprache ({src}) -> nimm Stage 620 direkt.")
         return epub.run(book_id)
 
-    print(f"[stage31] Baue {target}-EPUB aus kanonischer Quelle (400_regie), "
+    print(f"[630] Baue {target}-EPUB aus kanonischer Quelle (400_regie), "
           f"KEINE Neu-Uebersetzung ...")
     chapters = _build_chapters_from_stage06(book_id, target)
     # Mobil-Absaetze wie beim EN-EPUB anwenden (gleiche Darstellung)
     chapters = [(t, epub._split_for_mobile(paras)) for t, paras in chapters]
 
     n_paras = sum(len(p) for _, p in chapters)
-    print(f"[stage31] {len(chapters)} Kapitel, {n_paras} Absaetze aus 400_regie uebernommen.")
+    print(f"[630] {len(chapters)} Kapitel, {n_paras} Absaetze aus 400_regie uebernommen.")
 
     # lang=target -> dc:language = Ziel UND Titel = fassung.titel (Fallback Originaltitel)
     meta = epub._gather_meta(book_id, lang=target)
@@ -217,15 +217,15 @@ def run(book_id: str, target: str = "de", lang: str = None):
             meta["blurb_html"] = epub._blurb_xhtml(stage09, target, target,
                                                    epub._is_modernized(book_id))
         except Exception as e:
-            print(f"[stage31] HINWEIS: Klappentext uebersprungen ({type(e).__name__}).")
+            print(f"[630] HINWEIS: Klappentext uebersprungen ({type(e).__name__}).")
 
     out_dir = os.path.join(config.book_dir(book_id), "fassungen", target, "output")
     os.makedirs(out_dir, exist_ok=True)
     out_path = os.path.join(out_dir, f"{book_id}.epub")
     epub.build_epub(meta, chapters, out_path)
 
-    print(f"[stage31] EPUB ({target}) -> {out_path}")
-    print(f"[stage31] Kapitel: {len(chapters)}, Absaetze: {n_paras}, "
+    print(f"[630] EPUB ({target}) -> {out_path}")
+    print(f"[630] Kapitel: {len(chapters)}, Absaetze: {n_paras}, "
           f"Klappentext: {'ja' if meta.get('blurb_html') else 'nein'}, "
           f"Titel: {meta['title']!r}, Sprache: {target}")
     return out_path

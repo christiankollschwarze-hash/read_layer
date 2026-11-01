@@ -347,7 +347,7 @@ def _update_catalog(bucket, werk_id, book_slug, lang, manifest, has_audio, dry):
 
 def run(book_slug: str, lang: str, force: bool = False, dry: bool = False,
         manifest_only: bool = False):
-    print(f"[stage60] {book_slug} / {lang} — Cloud-Export startet"
+    print(f"[710] {book_slug} / {lang} — Cloud-Export startet"
           + (" (NUR Manifest)" if manifest_only else ""))
 
     global _PREFIX
@@ -446,7 +446,7 @@ def run(book_slug: str, lang: str, force: bool = False, dry: bool = False,
             json.dump(checkpoint, f, ensure_ascii=False, indent=2)
         print(f"  Checkpoint: {out}")
 
-    print(f"[stage60] fertig — gs://{bkt.name}/{_PREFIX}/{werk_id}/")
+    print(f"[710] fertig — gs://{bkt.name}/{_PREFIX}/{werk_id}/")
 
 # ---------------------------------------------------------------------------
 # CLI

@@ -331,10 +331,10 @@ def run(book_id, lang=None, model_size=None, force=False):
     chapters = list(stage00["meta"]["chapters"].keys())   # ['c001', ...] in Reihenfolge
 
     if len(mp3s) != len(chapters):
-        print(f"[stage58_3rd] WARNUNG: {len(mp3s)} MP3s, aber {len(chapters)} Kapitel "
+        print(f"[schnitt_librivox] WARNUNG: {len(mp3s)} MP3s, aber {len(chapters)} Kapitel "
               f"in 200_tagging -> Strom-Modus (Abgleich ueber das ganze Buch).")
 
-    print(f"[stage58_3rd] LibriVox-Audio [{lang}] | {len(mp3s)} Kapitel | "
+    print(f"[schnitt_librivox] LibriVox-Audio [{lang}] | {len(mp3s)} Kapitel | "
           f"Plosiv {PLOSIV_MS}ms Frikativ {FRIK_MS}ms")
 
     stt_lang = lang   # faster-whisper-Sprachcode = Fassungssprache
@@ -379,7 +379,7 @@ def run(book_id, lang=None, model_size=None, force=False):
         for ch in chapters:
             alle += _audio_units(stage00, ch, lang)
         nwort = [len(re.findall(r"\w+", u[2])) for u in alle]
-        print(f"[stage58_3rd] STROM-MODUS: {len(mp3s)} Abschnitte gegen {len(alle)} Einheiten "
+        print(f"[schnitt_librivox] STROM-MODUS: {len(mp3s)} Abschnitte gegen {len(alle)} Einheiten "
               f"({len(chapters)} Kapitel)")
         zeiger, gefunden = 0, set()
         for idx, mp3 in enumerate(mp3s):
@@ -403,7 +403,7 @@ def run(book_id, lang=None, model_size=None, force=False):
         # Fensterueberhang ist kein Fehler: geflaggt ist nur, was in KEINEM Abschnitt gefunden wurde
         total_flagged = [u[0] for u in alle if u[0] not in gefunden]
 
-    print(f"\n[stage58_3rd] fertig [{lang}]: {total_written} Schnipsel geschrieben, "
+    print(f"\n[schnitt_librivox] fertig [{lang}]: {total_written} Schnipsel geschrieben, "
           f"{len(total_flagged)} geflaggt -> {audio_dir}")
     return audio_dir
 

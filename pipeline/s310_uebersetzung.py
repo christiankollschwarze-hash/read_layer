@@ -228,7 +228,7 @@ def run(book_id: str, chapter: str = None) -> dict:
     # Kapitel bleiben erhalten); sonst von 300_voruebersetzung starten.
     base = config.work_path(book_id, "310_uebersetzung")
     in_path = base if os.path.exists(base) else config.work_path(book_id, "300_voruebersetzung")
-    print(f"[stage53] Lese: {in_path}{' | NUR Kapitel '+chapter if chapter else ''}")
+    print(f"[310] Lese: {in_path}{' | NUR Kapitel '+chapter if chapter else ''}")
     with open(in_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
@@ -236,7 +236,7 @@ def run(book_id: str, chapter: str = None) -> dict:
     pretrans = data["meta"].get("pretranslation", {})
     chapters = _collect_translatable(data, chapter)
 
-    print(f"[stage53] Kapitel: {len(chapters)} | Zielsprachen: {config.TARGET_LANGUAGES}")
+    print(f"[310] Kapitel: {len(chapters)} | Zielsprachen: {config.TARGET_LANGUAGES}")
 
     errors = []
     for chapter_id, items in chapters.items():
@@ -258,18 +258,18 @@ def run(book_id: str, chapter: str = None) -> dict:
                 n_q += neu != e["de"]
                 e["de"] = neu
         if n_q:
-            print(f"[stage53] Anfuehrungszeichen DE vereinheitlicht: {n_q} Saetze")
+            print(f"[310] Anfuehrungszeichen DE vereinheitlicht: {n_q} Saetze")
 
     out_path = config.work_path(book_id, "310_uebersetzung")
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
-    print(f"[stage53] Geschrieben: {out_path}")
+    print(f"[310] Geschrieben: {out_path}")
     if errors:
-        print(f"[stage53] WARNUNG — fehlende Tags bei: {errors}")
-        print(f"[stage53] Hinweis: Befehl erneut laufen lassen fuellt fehlende nach.")
+        print(f"[310] WARNUNG — fehlende Tags bei: {errors}")
+        print(f"[310] Hinweis: Befehl erneut laufen lassen fuellt fehlende nach.")
     else:
-        print(f"[stage53] Alle Kapitel/Sprachen vollstaendig uebersetzt.")
+        print(f"[310] Alle Kapitel/Sprachen vollstaendig uebersetzt.")
     return data
 
 

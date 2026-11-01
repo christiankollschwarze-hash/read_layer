@@ -297,7 +297,10 @@ def _lauf(book, lg, chapter=None, liste=False):
 
 
 def run(book_id, chapter=None, lang=None, force=False, liste=False, **_):
-    if not force and book_id not in getattr(config, "HYBRID_WERKE", []):
+    from pipeline.gate import hoerspiel_gate
+    g = hoerspiel_gate(book_id)
+    erlaubt = (g == "ja") if g is not None else (book_id in getattr(config, "HYBRID_WERKE", []))
+    if not force and not erlaubt:
         print(f"[510] {book_id}: nicht in HYBRID_WERKE - uebersprungen", flush=True)
         return
     for lg in ([lang] if lang else ["de", "en"]):

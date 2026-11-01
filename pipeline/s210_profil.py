@@ -154,7 +154,7 @@ def build_profile(data: dict) -> dict:
         prof = api_layer.parse_json(raw)
     except ValueError:
         prof = _abgeschnitten_retten(raw)
-        print("[stage51] WARNUNG: Antwort abgeschnitten (Wiederholungsschleife?) -> vollstaendige Eintraege gerettet")
+        print("[210] WARNUNG: Antwort abgeschnitten (Wiederholungsschleife?) -> vollstaendige Eintraege gerettet")
     return _kappen(prof)
 
 
@@ -204,11 +204,11 @@ def _abgeschnitten_retten(raw: str) -> dict:
 
 def run(book_id: str) -> dict:
     in_path = config.work_path(book_id, "200_tagging")
-    print(f"[stage51] Lese: {in_path}")
+    print(f"[210] Lese: {in_path}")
     with open(in_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    print(f"[stage51] Erstelle Buch-Profil ({config.RUN_MODE}-Modus)...")
+    print(f"[210] Erstelle Buch-Profil ({config.RUN_MODE}-Modus)...")
     profile = build_profile(data)
     # AP 58: feste Begriffe aus book.json ("glossar_fest": {Begriff: {lg: Ziel}}) ueberschreiben das LLM-Glossar
     try:
@@ -216,7 +216,7 @@ def run(book_id: str) -> dict:
         _fest = _bj.get("glossar_fest") or {}
         if _fest:
             profile.setdefault("glossary", {}).update(_fest)
-            print(f"[stage51] glossar_fest aus book.json: {len(_fest)} Begriffe")
+            print(f"[210] glossar_fest aus book.json: {len(_fest)} Begriffe")
     except (OSError, ValueError):
         pass
 
@@ -224,7 +224,7 @@ def run(book_id: str) -> dict:
     data["meta"]["profile"] = profile
 
     # Kurze Zusammenfassung ausgeben
-    print(f"[stage51] Profil-Kategorien:")
+    print(f"[210] Profil-Kategorien:")
     for key in ["style", "characters", "untranslated", "glossary", "idioms"]:
         val = profile.get(key, {})
         count = len(val) if isinstance(val, dict) else 0
@@ -236,7 +236,7 @@ def run(book_id: str) -> dict:
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
-    print(f"[stage51] Geschrieben: {out_path}")
+    print(f"[210] Geschrieben: {out_path}")
     return data
 
 

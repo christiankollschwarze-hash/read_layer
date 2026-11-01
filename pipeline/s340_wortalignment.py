@@ -162,6 +162,40 @@ def try_compound_pair(de_text, frag1, frag2):
     return cands[0] if cands else None
 
 
+def _mehrdeutige_korrigieren(de_text, rows, en_len):
+    """Befund 8 (CK 01.11.2026): Bei Woertern, die im Zielsatz mehrfach vorkommen ("so ... so"),
+    landete der Anker oft auf dem falschen Vorkommen (Cursor-Sprung + Rueckfall auf den ersten Treffer).
+    Mehrdeutige Spans werden auf das Vorkommen gesetzt, das zwischen die eindeutigen Nachbaranker passt.
+    Gleiche Logik wie tools/satzweise.anker_reparieren (Reparatur bestehender Exporte)."""
+    kand, eindeutig = {}, []
+    for k, r in enumerate(rows):
+        t, span = r[0], r[2]
+        if not span:
+            continue
+        c = _boundary_candidates(de_text, de_text[span[0]:span[1]])
+        if len(c) > 1:
+            kand[k] = c
+        else:
+            eindeutig.append((t["start"], span[0]))
+    eindeutig.sort()
+    for k, c in kand.items():
+        q0, sp = rows[k][0]["start"], rows[k][2]
+        vor = [e for e in eindeutig if e[0] < q0]
+        nach = [e for e in eindeutig if e[0] > q0]
+        if vor and nach:
+            (qa, za), (qb, zb) = vor[-1], nach[0]
+            soll = za + (zb - za) * (q0 - qa) / max(1, qb - qa)
+        elif vor:
+            soll = vor[-1][1] + (q0 - vor[-1][0])
+        elif nach:
+            soll = nach[0][1] - (nach[0][0] - q0)
+        else:
+            soll = q0 / max(1, en_len) * len(de_text)
+        best = min(c, key=lambda x: abs(x[0] - soll))
+        if best[0] != sp[0] and abs(best[0] - soll) + 0.1 * len(de_text) < abs(sp[0] - soll):
+            rows[k][2] = best
+
+
 def resolve_alignment(en_text, de_text, model_result):
     """Wendet alle drei Passes an (direkt -> Luecke -> Kompositum-Paar) und
     gibt die fertige 'words'-Liste fuers Output-Schema zurueck."""
@@ -175,6 +209,7 @@ def resolve_alignment(en_text, de_text, model_result):
         if span:
             cursor = span[0]
         rows.append([t, frag, span, None, None])  # token, frag, span, gap, compound_span
+    _mehrdeutige_korrigieren(de_text, rows, len(en_text))
 
     for i in range(len(rows)):
         t, frag, span = rows[i][0], rows[i][1], rows[i][2]

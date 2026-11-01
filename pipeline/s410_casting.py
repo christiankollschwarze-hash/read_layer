@@ -108,6 +108,10 @@ def casting_pfad(book_id):
 def aktiv(book_id) -> bool:
     """Casting nur fuer Werke mit Ensemble-Modus (book.json besetzung_modus)
     oder global per config.CASTING_AKTIV."""
+    from pipeline.gate import hoerspiel_gate
+    g = hoerspiel_gate(book_id)
+    if g is not None:
+        return g == "ja"
     if getattr(config, "CASTING_AKTIV", False):
         return True
     return _book_json(book_id).get("besetzung_modus") in ("erzaehler", "ensemble")
@@ -210,7 +214,7 @@ WORK: {titel} — {autor}
 def steckbriefe_erzeugen(data):
     text, n_dl = _text_mit_ids(data)
     task = "caster" if "caster" in config.MODELS else "profiler"
-    print(f"[stage57] Steckbriefe per {config.MODELS[task]} ({len(text):,} Zeichen, {n_dl} Dialogzeilen) ...")
+    print(f"[410] Steckbriefe per {config.MODELS[task]} ({len(text):,} Zeichen, {n_dl} Dialogzeilen) ...")
     # QF-8 (18.10.2026): max_tokens explizit (Default 8192 schnitt grosse Ensembles ab),
     # abgeschnittenes JSON wie in Stage 51 retten.
     roh = api_layer.call_model(task, _prompt(data, text, n_dl), temperature=0.2, max_tokens=16000)
@@ -218,7 +222,7 @@ def steckbriefe_erzeugen(data):
         sb = api_layer.parse_json(roh)
     except Exception:
         from pipeline.s210_profil import _abgeschnitten_retten
-        print("[stage57] WARNUNG: Steckbrief-JSON unvollstaendig -- gerettet, letzte Figur ggf. gekappt.")
+        print("[410] WARNUNG: Steckbrief-JSON unvollstaendig -- gerettet, letzte Figur ggf. gekappt.")
         sb = _abgeschnitten_retten(roh)
     for f in sb.get("figuren", []):
         f["merkmale"] = vr.normalisieren(f.get("merkmale"))
@@ -435,7 +439,7 @@ def freigeben(book_id):
     if not c["plan"]["erzaehler"].get("id"):
         offen.insert(0, "Erzaehler")
     if offen:
-        print(f"[stage57] Nicht freigegeben — ohne Stimme: {', '.join(offen)} (erst --design).")
+        print(f"[410] Nicht freigegeben — ohne Stimme: {', '.join(offen)} (erst --design).")
         return False
     bp = _book_json_pfad(book_id)
     bj = _book_json(book_id)
@@ -462,7 +466,7 @@ def freigeben(book_id):
     c["freigegeben_am"] = time.strftime("%Y-%m-%d %H:%M")
     with open(casting_pfad(book_id), "w", encoding="utf-8") as f:
         json.dump(c, f, ensure_ascii=False, indent=1)
-    print(f"[stage57] Freigegeben: Erzaehler {bj['erzaehler_stimme']}, {len(bj['besetzung'])} Figurenstimmen -> book.json")
+    print(f"[410] Freigegeben: Erzaehler {bj['erzaehler_stimme']}, {len(bj['besetzung'])} Figurenstimmen -> book.json")
     return True
 
 
@@ -474,7 +478,7 @@ def run(book_id: str, lang: str = None, design: bool = None, neu: bool = False, 
     if design is None:
         design = getattr(config, "CASTING_AUTO_DESIGN", False)
     data, pfad = _quelle_laden(book_id, quelle)
-    print(f"[stage57] Lese: {pfad}")
+    print(f"[410] Lese: {pfad}")
     cp = casting_pfad(book_id)
     alt = None
     if os.path.exists(cp):
@@ -482,22 +486,22 @@ def run(book_id: str, lang: str = None, design: bool = None, neu: bool = False, 
             alt = json.load(f)
     if alt and alt.get("steckbriefe") and not neu:
         sb = alt["steckbriefe"]
-        print("[stage57] Steckbriefe aus casting.json wiederverwendet (--neu fuer neue).")
+        print("[410] Steckbriefe aus casting.json wiederverwendet (--neu fuer neue).")
     else:
         sb = steckbriefe_erzeugen(data)
         with open(cp, "w", encoding="utf-8") as f:   # sofort sichern (LLM-Kosten)
             json.dump({"werk": book_id, "datum": time.strftime("%Y-%m-%d %H:%M"), "quelle": pfad,
                        "tor": "offen", "steckbriefe": sb, "plan": None}, f, ensure_ascii=False, indent=1)
     reg = vr.laden()
-    print(f"[stage57] Archiv: {len(vr.verfuegbar(reg))} nutzbare Stimmen, {vr.belegte_plaetze(reg)}/{vr.MAX_STIMMEN} Plaetze")
-    print(f"[stage57] {len(sb.get('figuren', []))} sprechende Figuren erkannt. Besetze ({'mit' if design else 'ohne'} Design) ...")
+    print(f"[410] Archiv: {len(vr.verfuegbar(reg))} nutzbare Stimmen, {vr.belegte_plaetze(reg)}/{vr.MAX_STIMMEN} Plaetze")
+    print(f"[410] {len(sb.get('figuren', []))} sprechende Figuren erkannt. Besetze ({'mit' if design else 'ohne'} Design) ...")
     plan = besetzen(book_id, data, sb, design=design)
     out = {"werk": book_id, "datum": time.strftime("%Y-%m-%d %H:%M"), "quelle": pfad,
            "tor": "offen", "steckbriefe": sb, "plan": plan}
     with open(cp, "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, indent=1)
     _zusammenfassung(plan)
-    print(f"[stage57] Geschrieben: {cp}")
+    print(f"[410] Geschrieben: {cp}")
     return out
 
 

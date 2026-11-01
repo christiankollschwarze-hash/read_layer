@@ -377,6 +377,11 @@ def neu_designen(name: str, figur: dict, ensemble: list, muster: dict, werk: str
     for lg, text in (muster or {}).items():
         if text:
             tts_client.synthesize_wav(text, "", os.path.join(ordner, f"muster_{lg}.wav"), vid, LANG_CODES.get(lg))
+    try:  # AP 63: Archiv-Regel - Klon-Text (Nordwind) je Sprache mit vertonen
+        from pipeline.hoerprobe import fuer_neue_stimme
+        fuer_neue_stimme(name, ordner)
+    except Exception as e:
+        print(f"[voice_registry] Klon-Hoerprobe nicht angelegt: {type(e).__name__}")
     f0 = grundton(os.path.join(ordner, "muster_en.wav")) or grundton(os.path.join(ordner, "hoerprobe.wav"))
     eintrag = {
         "id": vid,

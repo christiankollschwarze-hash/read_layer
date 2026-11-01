@@ -145,21 +145,21 @@ def run(book_id: str, lang: str = None, chapter: str = None,
 
     voice_name = _voice_name(book_id, voice)
     model_path = _find_model(voice_name)
-    print(f"[stage58_local] {book_id} / {lang} | Stimme: {voice_name}")
-    print(f"[stage58_local] Modell: {model_path}")
+    print(f"[501] {book_id} / {lang} | Stimme: {voice_name}")
+    print(f"[501] Modell: {model_path}")
 
     # Piper laden (einmal -- bleibt im Speicher ueber alle Saetze).
     from piper import PiperVoice
     from piper.config import SynthesisConfig
     piper_voice = PiperVoice.load(model_path)
     syn_config = SynthesisConfig(length_scale=length_scale)
-    print(f"[stage58_local] Tempo (length_scale): {length_scale}  (>1.0 = langsamer)")
+    print(f"[501] Tempo (length_scale): {length_scale}  (>1.0 = langsamer)")
 
     audio_dir = os.path.join(config.book_dir(book_id), "fassungen", lang, "audio")
     os.makedirs(audio_dir, exist_ok=True)
 
     tags = _audio_tags(data, lang, chapter)
-    print(f"[stage58_local] {len(tags)} sprechbare Saetze [{lang}]"
+    print(f"[501] {len(tags)} sprechbare Saetze [{lang}]"
           f"{' (Kapitel '+chapter+')' if chapter else ''}")
 
     n_done, n_skip, n_fail = 0, 0, 0
@@ -190,7 +190,7 @@ def run(book_id: str, lang: str = None, chapter: str = None,
         if i % 100 == 0 or i == len(tags):
             print(f"  ... {i}/{len(tags)} (neu {n_done}, skip {n_skip}, Fehler {n_fail})")
 
-    print(f"[stage58_local] fertig [{lang}]: {n_done} neu, {n_skip} uebersprungen, "
+    print(f"[501] fertig [{lang}]: {n_done} neu, {n_skip} uebersprungen, "
           f"{n_fail} Fehler -> {audio_dir}")
     return audio_dir
 

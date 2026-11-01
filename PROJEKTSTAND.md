@@ -1022,3 +1022,35 @@ Sicherung: archive/2026-10-29_62/ (PROJEKTSTAND, hybrid_einbau.py, tts_client.py
 - Hörprobe: bestanden (durch Christian). Testergebnis: tests\ap62\alice-s-adventures-in-wonderland\bd\fassungen\{de,en}\audio\.
 - Offen: Vergleich gegen AP 61, Kosten je Stunde Audio, Wortzeiten (520) der Test-Fassung neu, leere Hülle tests\ap62\...\alice-s-adventures-in-wonderland\alice-s-adventures-in-wonderland\ manuell löschen.
 - Produktion und fertige Werke unberührt. HYBRID_WERKE leer (Stufe 510 aus).
+
+## 31.10.2026 — AP 63 (Teil 1: Punkte 1, 2 teilweise, 6-Hinweis; Sicherung)
+- Sicherung: archive/2026-10-31_63/ (hybrid_de.json, hybrid_en.json, test_de_audio/, test_en_audio/). Vor 520-Lauf angelegt.
+- Punkt 1 Vergleich AP 61 (Produktion authors/carroll-l/books/alice-s-adventures-in-wonderland/fassungen) vs. Testfassung Kap. VII (c007):
+  - de: 164 Dateien je Seite, 102 geaendert (= eingebaut), Dauer 1044,6 s -> 1031,5 s (-13,2 s, -1,3 %)
+  - en: 164 Dateien je Seite, 102 geaendert, Dauer 1019,2 s -> 999,2 s (-20,1 s, -2,0 %)
+  - Keine Dateien nur auf einer Seite. Auffaelligkeit: Kuerzung je Figurenrede ueber Erzaehler-Einschub; Protokoll zeigt Mischungen "#0alt #1erz #2alt".
+- Punkt 2 Kosten: Protokoll enthaelt keine Token-/Kostenangaben, Modal-Log nicht gefunden. Offen.
+- Punkt 3 (520 Test-Lauf): zurueckgestellt bis Freigabe.
+- Punkt 4 (Policy-Rueckfall): offen, Entscheidung durch Christian. policy-Liste in beiden Protokollen leer.
+- Punkt 5 (Rollout-Liste): offen.
+- 31.10. Nachtrag (Christian): Kosten beim naechsten Voll-Lauf mitschreiben. Auszulesen je Lauf: Reader EUR je 1000 Woerter je Sprache; Hoerbuch EUR je Audiostunde; Hoerspiel-Zusatzkosten EUR je Audiostunde je Sprache (zusaetzlich zu Hoerbuch). Rollout-Planung (Punkt 5) erst danach.
+- 31.10. Leere Huelle tests/ap62/.../alice-s-adventures-in-wonderland/ nach archive/2026-10-31_63/leere_huelle_alice verschoben (Christian).
+- 31.10. Hoerspiel-Gate eingebaut (Schritte 1+2, Entwurf): book.json "hoerspiel": "offen" | "ja" | "nein". Neues Modul pipeline/gate.py (hoerspiel_gate). s410.aktiv(), run.py _hybrid_done und s510.run() folgen dem Gate; ohne Eintrag bleibt das Legacy-Verhalten (besetzung_modus, HYBRID_WERKE). Sicherung des Codes: archive/2026-10-31_63/code_vor_gate/. py_compile ok. Noch nicht gelaufen. Offen: Cockpit-Umschalter, Rollback bei "nein", Kostenanzeige (braucht Kostenerfassung im Voll-Lauf).
+- 31.10. MAGI (the-gift-of-the-magi) als Kosten-Pruefwerk: book.json hoerspiel=offen gesetzt (Backup archive/2026-10-31_63/book_magi_vor_gate.json). Bleibt offen, bis Kosten bekannt sind.
+- 31.10. MAGI DE: Thorsten-Vertonung (150 WAVs, 10.10.) auf Wunsch von Christian nach archive/2026-10-31_63/magi_de_thorsten/audio verschoben. DE-Audio ist damit leer; DE-Stufe 500 (Gemini) wuerde neu laufen -- nicht gestartet.
+- 31.10. start_magi_de.bat vorbereitet (Gemini DE, --to 500). Nicht gestartet, Freigabe durch Christian erteilt -- Lauf erfolgt auf dem Rechner.
+- 31.10. MAGI DE: Lauf mit lokaler Thorsten-Stimme (config.TTS_ENGINE_DE=thorsten) abgebrochen bei 100/150. Entstandene WAVs nach archive/2026-10-31_63/magi_de_thorsten_teil/. Engine-Wahl muss je Werk/Sprache (book.json) umgestellt werden: DE gemini, EN chatterbox.
+- 31.10. tts je Werk/Sprache eingebaut (pipeline/gate.py tts_engine, run.py _stage58_module). MAGI: de=gemini, en=chatterbox. Chatterbox-Modul in der Pipeline fehlt noch: Abbruch statt Fallback.
+- 31.10. Chatterbox EN eingebaut: pipeline/s502_vertonung_chatterbox.py (Paket kostenlos ueber tools/cb_neu.py <werk> <lg> liste --alle; Modal nur per start_cb_neu.bat <werk> <lg> los --alle). cb_neu.py: neue Quelle --alle. run.py: tts=chatterbox -> Stufe 502. Sicherung archive/2026-10-31_63/code_vor_cb/. Nicht gelaufen.
+- 31.10. start_magi_en_paket.bat vorbereitet (EN Chatterbox-Paket, kostenlos). Noch nicht gelaufen.
+- 31.10. MAGI EN Referenzstimme: w_jung_hoch_ruhig (voice_7x79jocb431j, Archiv-Status kandidat). ref.wav = erste 15 s aus stimmen_archiv/w_jung_hoch_ruhig/hoerprobe.wav in gpu_tts/the-gift-of-the-magi_en/. jobs.json nur als Referenz-Traeger (leer).
+- 31.10. MAGI EN Chatterbox Modal-Vertonung gelaufen: 150/150 in fassungen/en/audio_neu_20261031 (12,0 min, GPU 5,3 min, ~0,07 $). Einspielen scheiterte: Zielordner fassungen/en/audio fehlte -> angelegt. Offen: einspielen, Wortzeiten (Modal), abschluss.
+- 31.10. MAGI EN: work/520_wortzeiten_en.json als leere Basis angelegt (einspielen brauchte sie). Audio bereits eingespielt (150). Offen: einspielen erneut (Protokoll), Wortzeiten (Modal), abschluss.
+- 31.10. MAGI Kosten (Ist): DE Gemini 150 Schnipsel, 12,6 min, 2045 Woerter, 0,182 USD (~0,87 USD/h, ~0,089 USD/1000 W, Stimme Charon = Fallback). EN Chatterbox 13,2 min, GPU 0,070 USD (~0,32 USD/h, ohne Wortzeit-Laeufe). Quelle: work/kosten.jsonl. Hoerspiel-Zusatz noch nicht berechnet.
+- 31.10. Preishinweis (Christian): Gemini verdoppelt Preise ab 01.01.2027. Szenario DE Gemini ab 2027: 0,36 USD je Lauf (ca. 1,73 USD/h, ca. 0,18 USD/1000 W). Chatterbox/GPU nicht betroffen. Quelle Verdopplung: Christian; im Projekt (RECHT/Stage-Notiz) fuer 3.8 Flash Text ebenfalls 'ab 2027 doppelt' erwaehnt, TTS-Preis dort nicht bestaetigt.
+- 31.10. Stimmen-Gate eingebaut: book.json "stimme" (Archiv-Name, je Sprache moeglich). pipeline/gate.py (stimme, gemini_voice, ref_clip, stimmen_pruefung); run.py stoppt vor 500/502 ohne Stimme (nur Werke mit "tts"-Eintrag, Altwerke unveraendert); s500 nimmt Gemini-Stimme/Design-ID aus dem Gate statt Fallback Charon; s502 erzeugt ref.wav (max. 15 s) automatisch aus der gewaehlten Stimme. MAGI: stimme.en = w_jung_hoch_ruhig, DE offen (Gate stoppt). Sicherung archive/2026-10-31_63/code_vor_stimmengate/. Offen: Cockpit-Sprecherauswahl; DE-Charon-Fassung vor Neulauf archivieren.
+- 31.10. Referenztext fuer Stimmen-Hoerproben vorbereitet: tools/referenztext_nordwind.py + start_referenztext.bat (Aesop 'North Wind and the Sun' EN aus Archiv, DE ueber Stufe 310, + Frage/Ausruf). Ausgabe stimmen_archiv/_texte/. Nicht gelaufen.
+- 31.10. Referenztext Nordwind EN/DE erzeugt (stimmen_archiv/_texte/, 156/151 Woerter, ca. 60 s gelesen). DE-Fassung geprueft: sauber.
+- 31.10. Archiv-Regel Stimmen: je Stimme muster_<lg>.wav (ca. 5 s) + klon_<lg>.wav (Nordwind-Text, ca. 60 s). pipeline/hoerprobe.py (erzeuge, fuer_neue_stimme, ref_schnitt an Sprechpause 12-20 s); voice_registry: neue Design-Stimmen bekommen klon_<lg> automatisch; gate.ref_clip nimmt klon_<lg> zuerst; s502 schneidet Referenz an Sprechpause. Nachzug Bestand: tools/hoerproben_archiv.py + start_hoerproben.bat [liste|los]: 69 Stimmen, 138 Proben, ca. 1,86 USD (2026). Nicht gelaufen. Sicherung archive/2026-10-31_63/code_vor_hoerprobe/.
+- 31.10. Klon-Hoerproben Bestand erzeugt: 138/138 ok (69 Stimmen x de/en), 52,6-69,9 s je Probe, 137,4 min gesamt, ca. 1,85 USD. Log cockpit/logs/hoerproben_los.log.
+- 31.10. MAGI DE Stimme = Despina (book.json stimme.de). Charon-Fassung (150 WAVs) nach archive/2026-10-31_63/magi_de_charon/audio. Neulauf: start_magi_de.bat (ca. 0,18 USD).

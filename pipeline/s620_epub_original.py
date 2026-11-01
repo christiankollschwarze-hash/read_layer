@@ -851,12 +851,12 @@ def build_epub(meta: dict, chapters, out_path: str) -> str:
             with open(os.path.join(os.path.dirname(out_path), f"cover_final_{meta['lang']}.jpg"), "wb") as f:
                 f.write(raster)
         except Exception as e:
-            print(f"[stage30] HINWEIS: cover_final nicht geschrieben ({e})")
+            print(f"[620] HINWEIS: cover_final nicht geschrieben ({e})")
     else:
         cover_file, cover_media, cover_id = "cover.svg", "image/svg+xml", "cover-image"
         files["epub/images/cover.svg"] = _compose_cover_svg(
             meta["title"], meta["author"], meta.get("cover"), meta["lang"]).encode("utf-8")
-        print("[stage30] HINWEIS: Pillow nicht verfuegbar -> SVG-Cover statt Raster. "
+        print("[620] HINWEIS: Pillow nicht verfuegbar -> SVG-Cover statt Raster. "
               "App-Reader zeigen dann KEIN Regal-Thumbnail. Beheben: pip install pillow.")
     files["epub/css/core.css"]  = _CORE_CSS.encode("utf-8")
     files["epub/css/local.css"] = _LOCAL_CSS.encode("utf-8")
@@ -1010,7 +1010,7 @@ def run(book_id: str):
                                               _BCP47.get(meta["lang"], meta["lang"]),
                                               meta.get("modernized", False))
         except Exception as e:
-            print(f"[stage11] HINWEIS: Klappentext uebersprungen ({type(e).__name__}).")
+            print(f"[620] HINWEIS: Klappentext uebersprungen ({type(e).__name__}).")
 
     # Sprach-Ebene (FASSUNG): books/<buch>/fassungen/<lang>/output/<slug>.epub
     out_dir = os.path.join(config.book_dir(book_id), "fassungen", meta["lang"], "output")
@@ -1020,12 +1020,12 @@ def run(book_id: str):
 
     n_titled = sum(1 for t, _ in chapters if t)
     n_paras = sum(len(p) for _, p in chapters)
-    print(f"[stage11] EPUB -> {out_path}")
-    print(f"[stage11] Kapitel: {len(chapters)} (mit Titel: {n_titled}), "
+    print(f"[620] EPUB -> {out_path}")
+    print(f"[620] Kapitel: {len(chapters)} (mit Titel: {n_titled}), "
           f"Absaetze: {n_paras}, Klappentext: {'ja' if meta.get('blurb_html') else 'nein'}, "
           f"Sprache: {meta['lang']}")
     if n_titled == 0:
-        print("[stage11] HINWEIS: keine Kapitel-Titel erkannt -> Heuristik pruefen "
+        print("[620] HINWEIS: keine Kapitel-Titel erkannt -> Heuristik pruefen "
               "(oder ###CHAPTER###-Marker setzen).")
     return out_path
 

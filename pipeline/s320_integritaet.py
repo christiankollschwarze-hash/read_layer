@@ -100,24 +100,24 @@ def check(data: dict) -> dict:
 
 def print_report(report: dict) -> bool:
     """Gibt den Report aus. Returnt True wenn sauber, False bei Fehlern."""
-    print(f"[stage54] Tags gesamt: {report['total_tags']} "
+    print(f"[320] Tags gesamt: {report['total_tags']} "
           f"| uebersetzbar: {report['translatable_tags']}")
 
     clean = True
 
     if report["bad_tag_id"]:
         clean = False
-        print(f"[stage54] FEHLER — ungueltige Tag-IDs: {report['bad_tag_id']}")
+        print(f"[320] FEHLER — ungueltige Tag-IDs: {report['bad_tag_id']}")
 
     if report["sequence_gaps"]:
         clean = False
-        print(f"[stage54] FEHLER — Sequenz-Luecken:")
+        print(f"[320] FEHLER — Sequenz-Luecken:")
         for cid, exp, found in report["sequence_gaps"]:
             print(f"    {cid}: erwartet {exp}, gefunden {found}")
 
     if report["missing_language"]:
         clean = False
-        print(f"[stage54] FEHLER — fehlende Sprachen "
+        print(f"[320] FEHLER — fehlende Sprachen "
               f"({len(report['missing_language'])}):")
         for tag_id, lang in report["missing_language"][:10]:
             print(f"    {tag_id} fehlt: {lang}")
@@ -126,20 +126,20 @@ def print_report(report: dict) -> bool:
 
     if report["empty_translation"]:
         clean = False
-        print(f"[stage54] FEHLER — leere Uebersetzungen "
+        print(f"[320] FEHLER — leere Uebersetzungen "
               f"({len(report['empty_translation'])}):")
         for tag_id, lang in report["empty_translation"][:10]:
             print(f"    {tag_id} leer: {lang}")
 
     if clean:
-        print(f"[stage54] OK — Struktur vollstaendig und konsistent.")
+        print(f"[320] OK — Struktur vollstaendig und konsistent.")
 
     return clean
 
 
 def run(book_id: str) -> dict:
     in_path = config.work_path(book_id, "310_uebersetzung")
-    print(f"[stage54] Lese: {in_path}")
+    print(f"[320] Lese: {in_path}")
     with open(in_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
@@ -159,7 +159,7 @@ def run(book_id: str) -> dict:
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
-    print(f"[stage54] Geschrieben: {out_path}")
+    print(f"[320] Geschrieben: {out_path}")
     return data
 
 

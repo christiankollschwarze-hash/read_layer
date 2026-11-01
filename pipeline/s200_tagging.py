@@ -26,6 +26,7 @@ import re
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import config
 from pipeline import api_layer
+from tools import satzweise
 
 
 # ============================================================
@@ -155,6 +156,9 @@ VERSE RULE (songs, poems, hums):
   and keep its line breaks as \\n. Never split a stanza, never merge it with prose.
 
 QUALITY:
+  ONE SENTENCE PER TAG. ".", "!" and "?" end a sentence. Only exception: direct speech may keep
+  its speech tag ("Help!" cried Alice.) or a short announcing clause (Then Pooh said: "Hello.").
+  A paragraph with five sentences becomes five tags.
   Never merge two sentences into one tag.
   Never split one sentence across two tags.
   Preserve original spelling and punctuation exactly.
@@ -247,7 +251,7 @@ def _tag_robust(chapter_num: int, title: str, text: str, tiefe: int = 0) -> dict
     if tiefe >= 4 or len(absaetze) < 2:
         raise ValueError(f"Tagger-Antwort nicht parsebar ({str(fehler)[:120]})")
     mitte = len(absaetze) // 2
-    print(f"    [stage50] Kapitel {chapter_num}: JSON fehlerhaft -> in 2 Teile geteilt (Ebene {tiefe + 1})")
+    print(f"    [200] Kapitel {chapter_num}: JSON fehlerhaft -> in 2 Teile geteilt (Ebene {tiefe + 1})")
     inhalt = {}
     for teil in ("\n\n".join(absaetze[:mitte]), "\n\n".join(absaetze[mitte:])):
         r = _tag_robust(chapter_num, title, teil, tiefe + 1)
@@ -256,11 +260,38 @@ def _tag_robust(chapter_num: int, title: str, text: str, tiefe: int = 0) -> dict
     return {"content": inhalt}
 
 
+def _satzweise(content: dict) -> dict:
+    """CK 01.11.2026: Ein Tag = ein Satz. Das LLM fasst gelegentlich ganze Absaetze zusammen
+    (Befund Winnie-the-Pooh c007_00133_dl, 5 Saetze). Hier deterministisch nachtrennen nach der
+    Regel in tools/satzweise.py (.!? beenden; Ausnahme Redebegleitsatz / ankuendigender Satz)."""
+    src = config.SOURCE_LANGUAGE
+    out = {}
+    for tid, e in content.items():
+        typ = e.get("type", "s")
+        text = e.get(src) or ""
+        teile = satzweise.teile_text(text, src) if typ in satzweise.TEILBARE_TYPEN else [text]
+        if len(teile) <= 1:
+            out[tid] = e
+            continue
+        for k, t in enumerate(teile):
+            neu = dict(e)
+            neu[src] = t
+            if typ in ("s", "dl"):
+                rede = t[:1] in satzweise.OEFFNER and t[-1:] in satzweise.SCHLIESSER
+                neu["type"] = "dl" if rede else "s"
+            out[tid if k == 0 else f"{tid}__{k + 1}"] = neu
+    return out
+
+
 def tag_chapter(chapter_num: int, title: str, text: str) -> dict:
     if config.RUN_MODE == "mock":
         result = _mock_tag_chapter(chapter_num, title, text)
     else:
         result = _tag_robust(chapter_num, title, text)
+    vorher = len(result.get("content", {}))
+    result["content"] = _satzweise(result.get("content", {}))
+    if len(result["content"]) != vorher:
+        print(f"    [satzweise] {len(result['content']) - vorher} Tags nachgetrennt")
     # IDs ZENTRAL neu vergeben (global, Typ-Suffix) -- unabhaengig davon, welche
     # IDs das Modell geliefert hat. Reihenfolge des Modells bleibt erhalten.
     # Der Kapitel-Header wird hier deterministisch aus 'title' gesetzt (SSoT).
@@ -284,14 +315,14 @@ def _source_path(book_id: str) -> str:
 
 def run(book_id: str) -> dict:
     in_path = _source_path(book_id)
-    print(f"[stage50] Lese: {in_path}")
+    print(f"[200] Lese: {in_path}")
     with open(in_path, "r", encoding="utf-8") as f:
         marked = f.read()
 
     parsed = parse_marked_file(marked)
-    print(f"[stage50] Titel:   {parsed['title']}")
-    print(f"[stage50] Autor:   {parsed['author']}")
-    print(f"[stage50] Kapitel: {len(parsed['chapters'])}")
+    print(f"[200] Titel:   {parsed['title']}")
+    print(f"[200] Autor:   {parsed['author']}")
+    print(f"[200] Kapitel: {len(parsed['chapters'])}")
 
     if not parsed["chapters"]:
         raise ValueError("Keine Kapitel gefunden — ###CHAPTER###-Marker pruefen.")
@@ -323,8 +354,8 @@ def run(book_id: str) -> dict:
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(final, f, ensure_ascii=False, indent=2)
 
-    print(f"[stage50] Geschrieben: {out_path}")
-    print(f"[stage50] Kapitel: {len(chapters_meta)} | Tags gesamt: {len(all_content)}")
+    print(f"[200] Geschrieben: {out_path}")
+    print(f"[200] Kapitel: {len(chapters_meta)} | Tags gesamt: {len(all_content)}")
     return final
 
 

@@ -68,6 +68,11 @@ def auswahl(werk, lg):
         for t, e in d.items():
             if e.get("type") == "h" and (e.get(lg) or "").strip():
                 add(t, "ueberschrift")
+    if "--alle" in sys.argv:              # AP 63: ganzes Werk (Chatterbox-Vollvertonung)
+        d = json.load(open(config.work_path(werk, "400_regie"), encoding="utf-8"))["content"]
+        for t, e in d.items():
+            if e.get("type") in tts_paket.TYPEN and (e.get(lg) or "").strip():
+                add(t, "alle")
     if "--lexikon" in sys.argv:
         ers = tts_paket.lexikon(config.book_dir(werk), lg, erzwingen=True)
         d = json.load(open(config.work_path(werk, "400_regie"), encoding="utf-8"))["content"]

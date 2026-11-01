@@ -37,6 +37,7 @@ from config import config  # noqa: E402
 from regal import regal_von  # noqa: E402
 from pipeline import s710_cloud_export as s60  # noqa: E402
 import export_app  # noqa: E402
+import satzweise  # noqa: E402
 
 LANGS = ["en", "de"]
 
@@ -177,6 +178,12 @@ def main(slug: str, demo: Path, mit_audio: bool, hoerspiel: bool = False):
             json.dumps(m, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
         manifeste[lang] = m
         print(f"  manifest_{lang}.json: {len(m['saetze'])} Knoten, {m['audio_count']} mit Audio")
+
+    # Satzweise Knoten (CK 01.11.2026): Mehrsatz-Knoten per Clip-Fenster teilen, doppelte Woerter in den
+    # Ankern korrigieren (tools/satzweise.py). Laeuft auf den gerade geschriebenen Dateien im Demo-Ordner.
+    sw = satzweise.teile_ordner(ziel)
+    print(f"  satzweise: {sw.get('geteilt', 0)} Knoten -> {sw.get('teile', 0)} Saetze, "
+          f"{sw.get('anker_repariert', 0)} Anker korrigiert, uebersprungen {sw.get('uebersprungen', {})}")
 
     # Katalog
     en = manifeste.get("en") or next(iter(manifeste.values()))

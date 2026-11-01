@@ -212,7 +212,7 @@ def run(book_id, _nur_erzeugen=False):
     if not author:
         print("[600_klappentext] HINWEIS: kein author.json gefunden -> Autor-Block bleibt neutral.")
     elif not author.get("verified"):
-        print("[600_klappentext] HINWEIS: Autor nicht verifiziert (Stage 08b) -> Autor-Block bleibt knapp.")
+        print("[600_klappentext] HINWEIS: Autor nicht verifiziert (Stage 110) -> Autor-Block bleibt knapp.")
     if meta.get("sicherheit") == "pruefen":
         print("[600_klappentext] HINWEIS: sicherheit='pruefen' -> heikler Titel, manuell pruefen.")
     return result

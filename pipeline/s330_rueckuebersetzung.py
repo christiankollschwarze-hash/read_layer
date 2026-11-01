@@ -182,7 +182,7 @@ Pairs (as JSON, id -> {{original, back}}):
 
 def run(book_id: str, chapter: str = None) -> dict:
     in_path = config.work_path(book_id, "320_integritaet")
-    print(f"[stage55] Lese: {in_path}{' | NUR Kapitel '+chapter if chapter else ''}")
+    print(f"[330] Lese: {in_path}{' | NUR Kapitel '+chapter if chapter else ''}")
     with open(in_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
@@ -196,7 +196,7 @@ def run(book_id: str, chapter: str = None) -> dict:
 
     threshold = config.VALIDATION_THRESHOLD
     chapters = _collect_translatable(data, chapter)
-    print(f"[stage55] Schwelle: {threshold} | Kapitel: {len(chapters)} "
+    print(f"[330] Schwelle: {threshold} | Kapitel: {len(chapters)} "
           f"| Batch: {getattr(config,'BACKTRANS_BATCH_SIZE',25)}")
 
     flagged = []
@@ -235,14 +235,14 @@ def run(book_id: str, chapter: str = None) -> dict:
         print(f"    {chapter_id}: geprueft")
 
     avg = round(sum(all_scores) / len(all_scores), 1) if all_scores else 0
-    print(f"[stage55] Durchschnitts-Score: {avg} | bewertet: {len(all_scores)} "
+    print(f"[330] Durchschnitts-Score: {avg} | bewertet: {len(all_scores)} "
           f"| unter Schwelle: {len(flagged)} | nicht bewertbar: {len(not_scored)}")
     if flagged:
-        print(f"[stage55] Zur Nacharbeit markiert (erste 10):")
+        print(f"[330] Zur Nacharbeit markiert (erste 10):")
         for tag_id, lang, sc in flagged[:10]:
             print(f"    {tag_id} [{lang}] = {sc}")
     if not_scored:
-        print(f"[stage55] Hinweis: {len(not_scored)} Tag/Sprache nicht bewertbar "
+        print(f"[330] Hinweis: {len(not_scored)} Tag/Sprache nicht bewertbar "
               f"(JSON/Antwort unvollstaendig) — Uebersetzung bleibt gueltig.")
 
     data["meta"]["quality_report"] = {
@@ -257,7 +257,7 @@ def run(book_id: str, chapter: str = None) -> dict:
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
-    print(f"[stage55] Geschrieben: {out_path}")
+    print(f"[330] Geschrieben: {out_path}")
     return data
 
 

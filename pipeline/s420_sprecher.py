@@ -180,7 +180,7 @@ def run(book_id: str, kapitel=None, neu: bool = False, lang: str = None) -> dict
                 s_name = cast.get(norm(e["sprecher"]), ERZ)
                 erg[tid] = {lg: [{"t": e.get(lg, ""), "s": s_name}] for lg in (src, tgt) if e.get(lg)}
                 stat[s_name] = stat.get(s_name, 0) + 1
-        print("[stage57b] Drama-Modus: Sprecher aus dem Text | Saetze je Stimme: "
+        print("[420] Drama-Modus: Sprecher aus dem Text | Saetze je Stimme: "
               + ", ".join(f"{n} {z}" for n, z in sorted(stat.items(), key=lambda x: -x[1])))
         with open(p, "w", encoding="utf-8") as f:
             json.dump(erg, f, ensure_ascii=False, indent=1)
@@ -189,12 +189,12 @@ def run(book_id: str, kapitel=None, neu: bool = False, lang: str = None) -> dict
         eintraege = [(tid, e) for tid, e in data["content"].items()
                      if tid.startswith(k) and e.get("type") in TYPEN]
         if not neu and any(tid in erg for tid, _ in eintraege):
-            print(f"[stage57b] {k}: schon zugeordnet (--neu fuer neu)")
+            print(f"[420] {k}: schon zugeordnet (--neu fuer neu)")
             continue
         alle = len(eintraege)
         if os.environ.get("READLAYER_57B_ALLE") != "1":
             eintraege = _auswahl(eintraege, tgt, [(t, e) for t, e in data["content"].items() if t.startswith(k)], src)
-        print(f"[stage57b] {k}: {len(eintraege)}/{alle} Saetze (mit Rede-Spur) -> {config.MODELS[task]} ...")
+        print(f"[420] {k}: {len(eintraege)}/{alle} Saetze (mit Rede-Spur) -> {config.MODELS[task]} ...")
         antwort = {}
         # 12.10.2026: grosse Kapitel liefern teils kaputtes JSON -> in Teilen (je 60 Saetze) wiederholen
         teile = [eintraege[i:i + 40] for i in range(0, len(eintraege), 40)]  # 40 Saetze: passt in DEEPSEEK_MAX_OUT
@@ -241,7 +241,7 @@ def run(book_id: str, kapitel=None, neu: bool = False, lang: str = None) -> dict
         with open(p, "w", encoding="utf-8") as f:
             json.dump(erg, f, ensure_ascii=False, indent=1)
     _pruefliste(book_id, data, erg, tgt, src)
-    print(f"[stage57b] Geschrieben: {p}")
+    print(f"[420] Geschrieben: {p}")
     return erg
 
 
@@ -261,7 +261,7 @@ def _pruefliste(book_id, data, erg, tgt, src="en"):
     pf = os.path.join(config.work_dir(book_id), "sprecher_pruefen.txt")
     with open(pf, "w", encoding="utf-8") as f:
         f.write(f"Unsichere Sprecherzuordnungen: {len(zeilen)}\n\n" + "\n\n".join(zeilen) + "\n")
-    print(f"[stage57b] Sichtpruefung: {len(zeilen)} unsichere Saetze -> {pf}")
+    print(f"[420] Sichtpruefung: {len(zeilen)} unsichere Saetze -> {pf}")
 
 
 if __name__ == "__main__":

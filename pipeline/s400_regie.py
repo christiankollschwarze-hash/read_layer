@@ -293,7 +293,7 @@ def _qualitaets_stopp(data):
 
 def run(book_id: str) -> dict:
     in_path = config.work_path(book_id, "330_rueckuebersetzung")
-    print(f"[stage56] Lese: {in_path}")
+    print(f"[400] Lese: {in_path}")
     with open(in_path, "r", encoding="utf-8") as f:
         data = json.load(f)
     _qualitaets_stopp(data)   # QF-6
@@ -311,13 +311,13 @@ def run(book_id: str) -> dict:
     lang_name = LANG_NAME.get(author_lang, author_lang)
     skip_set = _load_pron_skip(book_id)
 
-    print(f"[stage56] Regler (book.json): betonung={reglers['betonung']} "
+    print(f"[400] Regler (book.json): betonung={reglers['betonung']} "
           f"emotion={reglers['emotion']} tempo={reglers['tempo']} "
           f"(1-3 niedrig / 4-7 mittel / 8-10 hoch)")
     for t, d in base_directions.items():
         print(f"  [{t}] {d}")
     if untranslated:
-        print(f"[stage56] Aussprache: {len(untranslated)} Begriff(e), Befehlsform "
+        print(f"[400] Aussprache: {len(untranslated)} Begriff(e), Befehlsform "
               f"in {author_lang} ({lang_name}); Sperrliste: {len(skip_set)} Begriff(e)")
 
     production = data.setdefault("production", {})
@@ -348,18 +348,18 @@ def run(book_id: str) -> dict:
             direction_layer[tag_id][lang] = regie + pron
         dir_count += 1
 
-    print(f"[stage56] Regie-Eintraege: {dir_count} "
+    print(f"[400] Regie-Eintraege: {dir_count} "
           f"({len(direction_layer)} Tags x {len(langs)} Sprachen)")
-    print(f"[stage56] Aussprache-Hinweis tatsaechlich gesetzt: {pron_hits} "
+    print(f"[400] Aussprache-Hinweis tatsaechlich gesetzt: {pron_hits} "
           f"Schnipsel-Sprachen (nur wo Begriff vorkommt + nicht gesperrt)")
-    print(f"[stage56] Pausen gesetzt: {pause_count} "
+    print(f"[400] Pausen gesetzt: {pause_count} "
           f"({len(pause_layer)} Tags x {len(langs)} Sprachen)")
 
     out_path = config.work_path(book_id, "400_regie")
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
-    print(f"[stage56] Geschrieben: {out_path} (Checkpoint '400_regie')")
+    print(f"[400] Geschrieben: {out_path} (Checkpoint '400_regie')")
     return data
 
 

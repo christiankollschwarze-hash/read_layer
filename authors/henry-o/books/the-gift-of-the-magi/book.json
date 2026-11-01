@@ -35,5 +35,14 @@
     }
   ],
   "librivox_geprueft": "keine",
-  "librivox_geprueft_am": "2026-10-10T19:23:44"
+  "librivox_geprueft_am": "2026-10-10T19:23:44",
+  "hoerspiel": "offen",
+  "tts": {
+    "de": "gemini",
+    "en": "chatterbox"
+  },
+  "stimme": {
+    "en": "w_jung_hoch_ruhig",
+    "de": "Despina"
+  }
 }

@@ -43,7 +43,7 @@ def main(book_id, alle=False):
     c = json.load(open(os.path.join(wd, "casting.json"), encoding="utf-8"))
     sp = os.path.join(wd, "sprecher.json")
     if not os.path.exists(sp):
-        print("[probe] Erst Stage 57b (Sprecher-Zuordnung) laufen lassen.")
+        print("[probe] Erst Stage 420 (Sprecher-Zuordnung) laufen lassen.")
         return 2
     spr = json.load(open(sp, encoding="utf-8"))
     reg = vr.laden()

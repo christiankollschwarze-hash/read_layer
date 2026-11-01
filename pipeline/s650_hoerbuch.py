@@ -124,7 +124,7 @@ def run(book_id: str) -> dict:
     # Das Mock-anfaellige manifest.json wird NICHT mehr gebraucht; die WAVs
     # werden direkt im audio/-Ordner nach <tag_id>_<lang>.wav gesucht.
     in_path = config.work_path(book_id, "400_regie")
-    print(f"[stage08] Lese aus: {in_path}")
+    print(f"[650] Lese aus: {in_path}")
     with open(in_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
@@ -158,12 +158,12 @@ def run(book_id: str) -> dict:
         print(f"    {chapter_id}: Text {'+ Audio' if not is_mock else '(nur Text, Mock)'} "
               f"in {len(langs)} Sprachen")
 
-    print(f"[stage08] Text-Geschichten: {text_count}")
+    print(f"[650] Text-Geschichten: {text_count}")
     if is_mock:
-        print(f"[stage08] (Mock-Modus: kein echtes Audio zusammengefuegt)")
+        print(f"[650] (Mock-Modus: kein echtes Audio zusammengefuegt)")
     else:
-        print(f"[stage08] Audio-Geschichten: {audio_count}")
-    print(f"[stage08] Ausgabe: {stories_dir}")
+        print(f"[650] Audio-Geschichten: {audio_count}")
+    print(f"[650] Ausgabe: {stories_dir}")
     return data
 
 

@@ -107,13 +107,13 @@ def pretranslate_chapter(chapter_text: str, target_lang: str, profile: dict) -> 
 
 def run(book_id: str) -> dict:
     in_path = config.work_path(book_id, "210_profil")
-    print(f"[stage52] Lese: {in_path}")
+    print(f"[300] Lese: {in_path}")
     with open(in_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
     profile = data["meta"].get("profile", {})
     chapter_texts = _collect_chapter_texts(data)
-    print(f"[stage52] Kapitel: {len(chapter_texts)} | Zielsprachen: {config.TARGET_LANGUAGES}")
+    print(f"[300] Kapitel: {len(chapter_texts)} | Zielsprachen: {config.TARGET_LANGUAGES}")
 
     # Struktur: meta.pretranslation[chapter_id][lang] = "text"
     pretranslation = {}
@@ -130,7 +130,7 @@ def run(book_id: str) -> dict:
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
-    print(f"[stage52] Geschrieben: {out_path}")
+    print(f"[300] Geschrieben: {out_path}")
     return data
 
 

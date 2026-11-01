@@ -172,7 +172,11 @@ EPUB_LINE = [
 
 def _hybrid_done(book_id, lang=None):
     # AP 62: Stufe 510 gilt als fertig, wenn ein Protokoll existiert ODER das Werk nicht in HYBRID_WERKE steht
-    if book_id not in getattr(config, "HYBRID_WERKE", []):
+    from pipeline.gate import hoerspiel_gate
+    g = hoerspiel_gate(book_id)
+    if g is not None and g != "ja":
+        return True
+    if g is None and book_id not in getattr(config, "HYBRID_WERKE", []):
         return True
     return os.path.exists(os.path.join(config.work_dir(book_id), f"hybrid_{lang}.json"))
 
@@ -212,8 +216,15 @@ def _target_languages(only_lang=None):
 def _stage58_module(book_id, lang):
     """Weiche pro Fassung: Thorsten (DE lokal) oder Cloud-TTS.
     18.10.2026: LibriVox-Audio-Gleis (schnitt_lib) archiviert."""
-    if lang == "de" and getattr(config, "TTS_ENGINE_DE", "gemini") == "thorsten":
+    from pipeline.gate import tts_engine, stimmen_pruefung
+    fehler = stimmen_pruefung(book_id, lang)
+    if fehler:
+        raise RuntimeError(f"[Stimmen-Gate] {fehler}")
+    engine = tts_engine(book_id, lang)
+    if engine == "thorsten":
         return "pipeline.s501_vertonung_thorsten"
+    if engine == "chatterbox":
+        return "pipeline.s502_vertonung_chatterbox"
     return "pipeline.s500_vertonung_gemini"
 
 
@@ -238,9 +249,9 @@ def _run_one(stage, book_id, force, only_lang=None):
             if stage["key"] == "500":
                 module = _stage58_module(book_id, lang)   # Gleis pro Fassung stellen
                 if module.endswith("s501_vertonung_thorsten"):
-                    print(f"  -> Stage 58 [{lang}] (Thorsten lokal)")
+                    print(f"  -> Stage 501 [{lang}] (Thorsten lokal)")
                 else:
-                    print(f"  -> Stage 58 [{lang}] (Cloud-TTS)")
+                    print(f"  -> Stage 500 [{lang}] (Cloud-TTS)")
             else:
                 print(f"  -> Stage {stage['key']} [{lang}]")
             _ctx(book_id, stage["key"], lang)
@@ -309,7 +320,7 @@ def run_pipeline(book_id, line="epub", start_from=None, stop_to=None,
         if key == "500":
             tor = _casting_tor_offen(book_id)
             if tor:
-                print(f"\n[STOPP] Stage 58: Casting-Tor ist '{tor}'. Erst Hoerprobe und "
+                print(f"\n[STOPP] Stage 500: Casting-Tor ist '{tor}'. Erst Hoerprobe und "
                       f"'py -3.11 -m pipeline.s410_casting {book_id} --freigeben', "
                       f"dann weiter mit --from 500.")
                 return False

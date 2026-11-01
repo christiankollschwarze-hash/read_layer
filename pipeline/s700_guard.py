@@ -81,13 +81,13 @@ def check(book_id, langs=None, chapter=None):
         and (chapter is None or tid.startswith(chapter))
     }
     if not items:
-        print(f"[stage60] Keine textuellen Saetze gefunden (Kapitel-Filter: {chapter}).")
+        print(f"[700] Keine textuellen Saetze gefunden (Kapitel-Filter: {chapter}).")
         return False
 
     if langs is None:
         langs = _detect_langs(content)
-    print(f"[stage60] Buch: {book_id} | Quelle: {stage} | Sprachen: {langs}")
-    print(f"[stage60] Textuelle Saetze: {len(items)}"
+    print(f"[700] Buch: {book_id} | Quelle: {stage} | Sprachen: {langs}")
+    print(f"[700] Textuelle Saetze: {len(items)}"
           + (f" | Kapitel {chapter}" if chapter else ""))
 
     # Pro Sprache: Menge der IDs mit nicht-leerem Text
@@ -133,11 +133,11 @@ def check(book_id, langs=None, chapter=None):
     # --- Urteil ---
     print()
     if not gaps and not breaks:
-        print(f"[stage60] ✓ GRUENES LICHT — alle {len(langs)} Sprachen deckungsgleich "
+        print(f"[700] ✓ GRUENES LICHT — alle {len(langs)} Sprachen deckungsgleich "
               f"ueber {len(all_ids)} Saetze. Export erlaubt.")
         return True
 
-    print("[stage60] ✗ STOPP — Alignment NICHT sauber. Export blockieren.\n")
+    print("[700] ✗ STOPP — Alignment NICHT sauber. Export blockieren.\n")
 
     # Typ 1: LUECKEN (harmlos, mit Behebungsvorschlag)
     if gaps:
