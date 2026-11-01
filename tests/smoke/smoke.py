@@ -77,6 +77,15 @@ def setup(werk):
     tmp = p + ".tmp"
     json.dump(b, open(tmp, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
     os.replace(tmp, p)
+    # 095 Produktwahl: User-Mandant -> Mensch (Kostenangebot); Smoke nimmt die Bestellung an
+    from pipeline import s095_produktwahl, status
+    with contextlib.redirect_stdout(io.StringIO()):
+        e = s095_produktwahl.run(werk, wer="CK")
+    if e == "mensch":
+        status.entscheiden(werk, "095", "frei", wer="CK", grund="Smoke: Bestellung angenommen")
+    elif e != "auto":
+        print(f"[smoke] FEHLER: Gate 095 {e}")
+        return 1
     print(f"[smoke] setup {werk}: quelle=user_epub, rechte=eigene (versichert), besetzung_modus=ensemble, DE-Titel, Produkte en/de Text+Hoerbuch Basic")
     return 0
 

@@ -246,6 +246,19 @@ TTS_LORA = {"de": "mix_v1"}
 MODAL_L4_USD_H = 0.80   # Modal L4 inkl. CPU/RAM-Anteil, $/h (Messung 16.10.) -> kosten.jsonl (Smoke #7, 24.10.2026)
 MODAL_T4_USD_H = 0.59   # Modal T4 (Pruefaligner 345, bisher PREIS_T4_S 0.000164 $/s)
 # Stueckpreise USD je Aufruf (usage_log.log_stueck). None = Preis unbekannt, nur Anzahl gezaehlt.
+# Kostenangebot 095 (Selbstkosten-Schaetzung, USD je 100.000 Zeichen Werktext). Mediane aus kosten.jsonl
+# (01.11.2026, ~35 Werke) bzw. ERKENNTNIS_chatterbox_optimiert / KALKULATION_tts_basis. Gemini-TTS ab 2027 x2.
+ANGEBOT_USD_100K = {
+    "grund": 0.18,              # 200 Tagger + 210 Profil + 600 Klappentext + 610 Cover
+    "modernisierung": 0.07,     # 120 (nur fassung modernisiert)
+    "uebersetzung": 1.55,       # je Zielsprache: 300 + 310 + 330
+    "anker": 0.11,              # je TAELLA-Zielsprache: 340
+    "hoerbuch_basic": 0.50,     # je Audiosprache: Chatterbox Modal L4 Batch 8 (~0,24 $ / 50.000 Zeichen)
+    "hoerbuch_premium": 1.50,   # je Audiosprache: Gemini-TTS (Stand 2026)
+    "hoerspiel_zuschlag": 0.80, # je Hoerspiel-Sprache: Figuren-Takes 510 + 420
+    "wortzeiten": 0.05,         # je TAELLA-Audiosprache: 520/530
+}
+ANGEBOT_GEMINI_FAKTOR_AB = ("2027-01-01", 2.0)
 STUECKPREISE = {
     "gemini-voice-design": None,   # Voice Design (Stimme anlegen); Muster-TTS laeuft ueber gemini-3.8-flash-tts
 }

@@ -181,8 +181,9 @@ class Bestellung:
             self.produkte = [produkt_norm(p) for p in roh["produkte"]]
         else:
             self.abgeleitet.append("produkte")
+            w = [_lg(z) for z in ((roh.get("wunsch") or {}).get("zielsprachen") or []) if _lg(z) != q]
             self.produkte = [produkt_norm({"sprache": lg, "inhalt": "text", "kanaele": ["taella"]})
-                             for lg in [q] + ziel_default(q)]
+                             for lg in [q] + (w or ziel_default(q))]
 
         fa = (roh.get("fassung") or "").strip().lower() or None
         if not fa:

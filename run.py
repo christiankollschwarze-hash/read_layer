@@ -13,7 +13,7 @@ Eine Kette fuer jedes Werk, Reihenfolge laut Gate-Katalog (pipeline.status.STAGE
             (Stopp nur per Admin-Override: --override <stage> --wer CK --rolle admin --grund "...").
 
 Uebergang bis zum Umbau der Stages (Phase 2, je Stage):
-- Stages ohne Modul (095 115 190 195 530 540 650) und manuelle Vorbedingungen (100/110 tools/
+- Stages ohne Modul (115 190 195 530 540 650) und manuelle Vorbedingungen (100/110 tools/
   s100_anlegen.py + s110_wikidata, 150 ePub-Import) laufen nicht in der Kette; ihre Vorgaenger
   treten an ihre Stelle (kette.wirksame_vorgaenger).
 - Altstages schreiben noch kein eigenes Gate. run.py bewertet sie mit ihrer bisherigen Ausgabepruefung
@@ -45,7 +45,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from config import config
 
 # Stages, die ihr Gate selbst ueber gate.py/status.py schreiben (waechst mit jedem Stage-Umbau).
-UMGEBAUT = {"080", "090"}
+UMGEBAUT = {"080", "090", "095"}
 
 
 def _neu(modul, **kw):
@@ -57,7 +57,8 @@ def _neu(modul, **kw):
 
 
 # Umgebaute Stages mit eigenem Gate (080 laeuft als Querschicht vorab)
-NEU = {"090": _neu("pipeline.s090_eingang")}
+NEU = {"090": _neu("pipeline.s090_eingang"),
+       "095": _neu("pipeline.s095_produktwahl")}
 
 
 # ---- Altpruefung (Ausgabe vorhanden) ------------------------------------
@@ -325,6 +326,8 @@ def run_pipeline(book_id, start_from=None, stop_to=None, only=None, force=False,
     print(f"READ LAYER — Kette  {book_id}  (Modus {config.RUN_MODE})")
     if fehler:
         print("[STOPP] Bestellung (095) ungueltig: " + "; ".join(fehler))
+        status.ergebnis(book_id, "095", "stopp", gruende=fehler, ruecksprung="095", wer="run.py")
+        print(f"[STOPP] Bestellung korrigieren: python -m pipeline.s095_produktwahl {book_id} --produkt ...")
         return gate.EXIT["stopp"]
     print(f"  Quelle {b.quellsprache} -> Ziele {b.zielsprachen}  Audio {b.audiosprachen()}"
           f"{'  (--lang ' + only_lang + ')' if only_lang else ''}")
@@ -366,6 +369,10 @@ def run_pipeline(book_id, start_from=None, stop_to=None, only=None, force=False,
         if s not in IN_KETTE:
             print(f"[--] Stage {s}: {'manuelle Vorbedingung' if s in MANUELL else 'noch nicht gebaut'} – uebergangen")
             continue
+        if s == "095" and status.ist_frei(book_id, s):
+            from pipeline import s095_produktwahl
+            if s095_produktwahl.veraltet(book_id):
+                status.zuruecksetzen(book_id, s, wer=wer, grund="Bestellung seit Freigabe geaendert")
         if not force and status.ist_frei(book_id, s):
             print(f"[skip] Stage {s} — frei")
             continue
@@ -392,6 +399,8 @@ def run_pipeline(book_id, start_from=None, stop_to=None, only=None, force=False,
             print(f"[FEHLER] Nach Fix mit --from {s} fortsetzen.")
             return 1
         print(f"--- Stage {s}: {z} ({time.time()-t0:.1f}s) ---")
+        if s == "095":
+            b, laeuft, _ = kette.bedarf_setzen(book_id, wer=wer)    # neue Bestellung -> Stage-Liste
         if z == "mensch":
             st = (status.laden(book_id)["stages"].get(s) or {}).get("gate") or {}
             print(f"\n[MENSCH] Stage {s}: " + "; ".join(st.get("gruende") or ["Entscheidung offen"]))
