@@ -144,7 +144,7 @@ def _load_voice(book_id: str, override: str = None, lang: str = None) -> str:
     if override:
         return override
     try:  # AP 63: Stimmen-Gate (book.json "stimme") hat Vorrang
-        from pipeline.gate import stimme, gemini_voice
+        from pipeline.legacy_tor import stimme, gemini_voice
         g = gemini_voice(stimme(book_id, lang)) if lang else None
         if g:
             return g

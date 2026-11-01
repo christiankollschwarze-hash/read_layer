@@ -172,7 +172,7 @@ EPUB_LINE = [
 
 def _hybrid_done(book_id, lang=None):
     # AP 62: Stufe 510 gilt als fertig, wenn ein Protokoll existiert ODER das Werk nicht in HYBRID_WERKE steht
-    from pipeline.gate import hoerspiel_gate
+    from pipeline.legacy_tor import hoerspiel_gate
     g = hoerspiel_gate(book_id)
     if g is not None and g != "ja":
         return True
@@ -216,7 +216,7 @@ def _target_languages(only_lang=None):
 def _stage58_module(book_id, lang):
     """Weiche pro Fassung: Thorsten (DE lokal) oder Cloud-TTS.
     18.10.2026: LibriVox-Audio-Gleis (schnitt_lib) archiviert."""
-    from pipeline.gate import tts_engine, stimmen_pruefung
+    from pipeline.legacy_tor import tts_engine, stimmen_pruefung
     fehler = stimmen_pruefung(book_id, lang)
     if fehler:
         raise RuntimeError(f"[Stimmen-Gate] {fehler}")

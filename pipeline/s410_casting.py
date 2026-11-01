@@ -108,7 +108,7 @@ def casting_pfad(book_id):
 def aktiv(book_id) -> bool:
     """Casting nur fuer Werke mit Ensemble-Modus (book.json besetzung_modus)
     oder global per config.CASTING_AKTIV."""
-    from pipeline.gate import hoerspiel_gate
+    from pipeline.legacy_tor import hoerspiel_gate
     g = hoerspiel_gate(book_id)
     if g is not None:
         return g == "ja"

@@ -10,7 +10,7 @@ import subprocess
 import sys
 
 from config import config
-from pipeline.gate import tts_engine
+from pipeline.legacy_tor import tts_engine
 
 
 def _soll(book_id, lang):
@@ -26,7 +26,7 @@ def _ist(book_id, lang):
 
 def _referenz(book_id, lang):
     """AP 63: gewaehlte Stimme -> gpu_tts/<werk>_<lg>/ref.wav (max. 15 s) + jobs.json["ref"]."""
-    from pipeline.gate import stimme, ref_clip
+    from pipeline.legacy_tor import stimme, ref_clip
     name = stimme(book_id, lang)
     q = ref_clip(name, lang)
     if not q:

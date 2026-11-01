@@ -47,7 +47,7 @@ def fehlend(ordner, sprachen=SPRACHEN):
 
 
 def erzeuge(name, ordner, lg):
-    from pipeline.gate import gemini_voice
+    from pipeline.legacy_tor import gemini_voice
     vid = gemini_voice(name)
     if not vid:
         raise RuntimeError(f"{name}: keine Gemini-Stimme/Design-ID")

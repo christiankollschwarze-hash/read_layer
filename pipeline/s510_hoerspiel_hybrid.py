@@ -297,7 +297,7 @@ def _lauf(book, lg, chapter=None, liste=False):
 
 
 def run(book_id, chapter=None, lang=None, force=False, liste=False, **_):
-    from pipeline.gate import hoerspiel_gate
+    from pipeline.legacy_tor import hoerspiel_gate
     g = hoerspiel_gate(book_id)
     erlaubt = (g == "ja") if g is not None else (book_id in getattr(config, "HYBRID_WERKE", []))
     if not force and not erlaubt:
