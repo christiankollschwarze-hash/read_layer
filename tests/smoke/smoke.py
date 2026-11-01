@@ -65,13 +65,16 @@ def setup(werk):
     b["rechte"] = "eigene"
     b["besetzung_modus"] = "ensemble"
     b["smoke_test"] = True
+    # Bestellung (095): Text TAELLA+EPUB und Hoerbuch Basic TAELLA in en/de
+    b["produkte"] = [{"sprache": lg, "inhalt": "text", "kanaele": ["taella", "epub"]} for lg in ("en", "de")] + \
+                    [{"sprache": lg, "inhalt": "hoerbuch", "stufe": "basic", "kanaele": ["taella"]} for lg in ("en", "de")]
     fs = [f for f in b.get("fassungen", []) if f.get("sprache") != "de"]
     fs.append({"sprache": "de", "titel": "Die Spiegelschwestern", "titel_quelle": "smoke_test", "titel_pruefen": False})
     b["fassungen"] = fs
     tmp = p + ".tmp"
     json.dump(b, open(tmp, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
     os.replace(tmp, p)
-    print(f"[smoke] setup {werk}: rechte=eigene, besetzung_modus=ensemble, DE-Titel gesetzt")
+    print(f"[smoke] setup {werk}: rechte=eigene, besetzung_modus=ensemble, DE-Titel, Produkte en/de Text+Hoerbuch Basic")
     return 0
 
 
@@ -81,9 +84,12 @@ def linie(werk, args):
         return args[args.index(n) + 1] if n in args else None
     if "--live" in args:
         _cfg().RUN_MODE = "live"
-    ok = run.run_pipeline(werk, line=opt("--line") or "epub", start_from=opt("--from"), stop_to=opt("--to"),
+    rc = run.run_pipeline(werk, start_from=opt("--from"), stop_to=opt("--to"),
                           only=opt("--only"), force="--force" in args, only_lang=opt("--lang"))
-    return 0 if ok else 1
+    if rc == 3 and "--mensch-ok" in args:    # erwartetes Mensch-Gate (z. B. 410 Casting vor Hoerprobe)
+        print("[smoke] Mensch-Gate erwartet -> ok")
+        return 0
+    return rc
 
 
 def _tor(werk):
@@ -104,11 +110,11 @@ def tor_test(werk):
     import run
     puffer = io.StringIO()
     with contextlib.redirect_stdout(puffer):
-        ok = run.run_pipeline(werk, line="audio", start_from="500", only="500")
+        rc = run.run_pipeline(werk, start_from="500", only="500")
     aus = puffer.getvalue()
     print(aus)
     nachher = len(_wavs(werk, "de")) + len(_wavs(werk, "en"))
-    gestoppt = (not ok) and "[STOPP]" in aus and nachher == vorher
+    gestoppt = rc != 0 and "[STOPP]" in aus and nachher == vorher
     print(f"[smoke] QF-4 Casting-Tor '{tor}': 500 {'GESTOPPT (ok)' if gestoppt else 'NICHT gestoppt (FEHLER)'}")
     return 0 if gestoppt else 1
 

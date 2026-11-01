@@ -1,383 +1,402 @@
 """
-READ LAYER — Orchestrator
-=========================
-Fuehrt eine Produktlinie fuer einen Titel aus, Stage fuer Stage.
-Nomenklatur seit 18.10.2026: pipeline/sNNN_<aufgabe>.py, Checkpoint work/NNN_<aufgabe>.json.
-Hunderter = Phase (1 Eingang, 2 Text, 3 Uebersetzung, 4 Regie & Besetzung, 5 Audio,
-6 Ausgabeformate, 7 Auslieferung). Uebersicht: docs/Pipeline_Strang_Matrix.xlsx
+READ LAYER — Orchestrator (Phase 2, Fundament 6, 01.11.2026)
+============================================================
+Eine Kette fuer jedes Werk, Reihenfolge laut Gate-Katalog (pipeline.status.STAGES):
+  080 090 095 100 110 150 115 120 190 195 200 210 300 310 320 330 340 400 410 420
+  500 510 530 520 540 600 610 615 620 630 640 650 700 710
+- Welche Stages laufen bzw. entfallen, kommt aus der Bestellung in book.json (095, pipeline.kette.bedarf
+  -> status.bedarf_setzen). Linien (--line epub/audio) gibt es nicht mehr.
+- Jede Stage startet nur bei freiem Vorgaenger-Gate (gate.vorgaenger_frei, Katalog-Eingaenge aus
+  pipeline.kette.VORGAENGER). Gate-Zustaende stehen in work/status.json.
+- Exit-Code wie gate.beenden: 0 alles frei, 2 Stopp, 3 Mensch, 1 Fehler (Ausnahme in einer Stage).
+  Freigabe: python -m pipeline.status <werk> --entscheiden <stage> frei --wer CK --grund "..."
+            (Stopp nur per Admin-Override: --override <stage> --wer CK --rolle admin --grund "...").
 
-VORBEDINGUNG (manuell, NICHT Teil dieses Laufs):
-  1. tools/s100_anlegen.py --gutenberg <id>  ODER  <eingabe.json>  -> Autor + Buch + raw.txt
-     (User-ePub: python -m pipeline.s150_epub_import ...)
-  2. python -m pipeline.s110_wikidata --author <slug> --propose
-     python -m pipeline.s110_wikidata --author <slug> --confirm <Q-ID>
-
-Linien:
-  epub : 120 Modernisierung -> 600 Klappentext -> 610 Cover -> 615 Cover final -> 620 ePub Original -> 630 ePub Zielsprache -> 640 Teaser
-  audio: 120 -> 200 Tagging -> 210 Profil -> 300 Vorübersetzung -> 310 Uebersetzung -> 320 Integritaet
-         -> 330 Rueckuebersetzung -> 400 Regie -> 410 Casting -> 500 Vertonung -> 710 Cloud-Export
-  ausserhalb: 340 Wort-Alignment, 420 Sprecher, 520 Wortzeiten, 560 Sprachpruefung (start_s560.bat), 700 Guard (Cockpit, Bats, Modal)
+Uebergang bis zum Umbau der Stages (Phase 2, je Stage):
+- Stages ohne Modul (080 090 095 115 190 195 530 540 650) und manuelle Vorbedingungen (100/110 tools/
+  s100_anlegen.py + s110_wikidata, 150 ePub-Import) laufen nicht in der Kette; ihre Vorgaenger
+  treten an ihre Stelle (kette.wirksame_vorgaenger).
+- Altstages schreiben noch kein eigenes Gate. run.py bewertet sie mit ihrer bisherigen Ausgabepruefung
+  (Altpruefung): Ausgabe vorhanden -> auto, 410 Casting-Tor nicht freigegeben -> mensch, Ausgabe fehlt
+  nach Lauf -> stopp. Laeuft eine Altstage ausserhalb von run.py (Bat, Cockpit), gleicht run.py ihren
+  Zustand vor der Vorgaengerpruefung ab. Umgebaute Stages (UMGEBAUT) schreiben ihr Gate selbst.
 
 Aufruf:
-  python run.py <book_id>                     # EPUB-Linie (Default)
-  python run.py <book_id> --line audio        # Audio-Linie
-  python run.py <book_id> --from 620          # ab Stage 620
-  python run.py <book_id> --to 400            # BIS EINSCHLIESSLICH Stage 400, dann Stopp
-  python run.py <book_id> --from 120 --to 400 # Bereich (Textkette OHNE Vertonung)
-  python run.py <book_id> --only 630          # nur eine Stage
-  python run.py <book_id> --lang de           # NUR diese Zielsprache (statt aller)
-  python run.py <book_id> --force             # Checkpoints ignorieren, alles neu
-  python run.py <book_id> --live              # RUN_MODE=live fuer diesen Lauf
-
-TIPP (Audio-Linie ohne TTS vorbereiten):
-  python run.py <book_id> --line audio --to 400 --live
-  -> laeuft 120..400 (Text-/Datenkette, erzeugt work/400_regie.json), STOPPT VOR 500 (Vertonung).
-
-SPRACHBEWUSSTSEIN:
-  500, 630 und 710 sind PER-LANG: sie laufen pro Zielsprache aus config.TARGET_LANGUAGES
-  (oder --lang). Ihr Checkpoint prueft die sprachspezifische Ausgabe, daher gilt Deutsch
-  nie als fertig, nur weil Englisch fertig ist. Text-/Datenstages sind sprachUNabhaengig.
-
-Checkpoint: ist die Ausgabe einer Stage (fuer die jeweilige Sprache) schon da,
-wird sie uebersprungen (ausser --force).
+  python run.py <werk>                    ganze Kette laut Bestellung
+  python run.py <werk> --from 600         ab Stage 600
+  python run.py <werk> --to 400           bis einschliesslich 400
+  python run.py <werk> --only 630         nur eine Stage
+  python run.py <werk> --lang de          sprachweise Stages (500 510 520 630 710) nur fuer de
+  python run.py <werk> --force            frei/Ausgabe vorhanden ignorieren, neu ausfuehren
+  python run.py <werk> --live             RUN_MODE=live fuer diesen Lauf
+  python run.py <werk> --plan             nur zeigen: Stage, laeuft/entfaellt, Zustand, Vorgaenger
 """
-
-import sys
+import argparse
+import json
 import os
+import sys
 import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from config import config
 
+# Stages, die ihr Gate selbst ueber gate.py/status.py schreiben (waechst mit jedem Stage-Umbau).
+UMGEBAUT = set()
 
-# ---- Checkpoint-Proben --------------------------------------------------
-# Sprachunabhaengige Stages: lang wird ignoriert.
+
+# ---- Altpruefung (Ausgabe vorhanden) ------------------------------------
 def _modernized(book_id, lang=None):
-    # Fertig erst, wenn raw_modernized.txt geschrieben ist (entsteht am ENDE von Stage 11).
-    # Nur Kapitel-Checkpoints = abgebrochener Lauf -> Stage 11 setzt fort (10.10.2026).
     d = os.path.join(config.work_dir(book_id), "modernized")
     mod = os.path.join(config.book_dir(book_id), "raw_modernized.txt")
     return (os.path.exists(mod) and os.path.isdir(d)
             and any(f.startswith("chapter-") for f in os.listdir(d)))
 
+
 def _work_json(suffix):
     return lambda book_id, lang=None: os.path.exists(config.work_path(book_id, suffix))
 
+
 def _cover_png(book_id, lang=None):
-    # QF-2 (18.10.2026): Stage 21 speichert bei JPEG-Antwort cover.jpg -- beide gelten.
     img = os.path.join(config.book_dir(book_id), "images")
     return any(os.path.exists(os.path.join(img, n)) for n in ("cover.png", "cover.jpg"))
-    
-def _cover_final(book_id, lang=None):
-    # 615 (18.10.2026): beide fertigen Cover vorhanden und juenger als die Illustration
+
+
+def _cover_final(book_id, lang=None, b=None):
     img = os.path.join(config.book_dir(book_id), "images")
     ill = [os.path.join(img, n) for n in ("cover.png", "cover.jpg") if os.path.exists(os.path.join(img, n))]
     if not ill:
         return False
     t = os.path.getmtime(ill[0])
-    for L in ("en", "de"):
+    for L in (b.sprachen if b else ("en", "de")):
         p = os.path.join(config.book_dir(book_id), "fassungen", L, "output", f"cover_final_{L}.jpg")
         if not os.path.exists(p) or os.path.getmtime(p) < t:
             return False
     return True
 
-# Sprachbewusste Stages: pruefen die Ausgabe FUER DIESE Sprache.
-def _epub(lang_fixed):
-    def check(book_id, lang=None):
-        L = lang_fixed or lang or config.SOURCE_LANGUAGE   # 22.10.: Quelle je Werk
-        p = os.path.join(config.book_dir(book_id), "fassungen", L, "output", f"{book_id}.epub")
-        return os.path.exists(p)
-    return check
+
+def _epub(book_id, lang=None, b=None):
+    L = lang or (b.quellsprache if b else config.SOURCE_LANGUAGE)
+    return os.path.exists(os.path.join(config.book_dir(book_id), "fassungen", L, "output", f"{book_id}.epub"))
+
 
 def _audio_done(book_id, lang=None):
-    """Audio gilt fuer EINE Sprache als fertig, wenn fassungen/<lang>/audio existiert
-    UND mindestens so viele WAVs enthaelt wie es Audio-Tags in 400_regie gibt.
-    So kann Deutsch nie 'fertig' sein, nur weil Englisch vertont wurde, und ein
-    unvollstaendiger (abgebrochener) Lauf wird beim Neustart fortgesetzt."""
+    """Audio einer Sprache fertig: mindestens so viele WAVs wie Audio-Saetze in 400_regie."""
     if not lang:
         return False
     audio_dir = os.path.join(config.book_dir(book_id), "fassungen", lang, "audio")
     if not os.path.isdir(audio_dir):
         return False
     n_wav = len([f for f in os.listdir(audio_dir) if f.endswith(".wav")])
-    # Soll-Zahl aus 400_regie (Audio-Tags, ohne NO_AUDIO_TYPES und ohne leere Felder)
     try:
-        import json
         data = json.load(open(config.work_path(book_id, "400_regie"), encoding="utf-8"))
-        soll = 0
-        for _tid, entry in data["content"].items():
-            if entry.get("type") in config.NO_AUDIO_TYPES:
-                continue
-            if str(entry.get(lang, "")).strip():
-                soll += 1
-        if soll == 0:
-            return False
-        return n_wav >= soll
+        soll = sum(1 for e in data["content"].values()
+                   if e.get("type") not in config.NO_AUDIO_TYPES and str(e.get(lang, "")).strip())
+        return soll > 0 and n_wav >= soll
     except Exception:
-        # 400_regie nicht lesbar -> konservativ: nur als fertig werten, wenn ueberhaupt WAVs da
         return n_wav > 0
 
-def _casting_done(book_id, lang=None):
-    """Stage 57 (Casting): fertig, wenn work/casting.json existiert -- oder das Werk
-    gar kein Casting braucht (book.json besetzung_modus fehlt und CASTING_AKTIV aus)."""
-    try:
-        from pipeline import s410_casting
-        if not s410_casting.aktiv(book_id):
-            return True
-        return os.path.exists(s410_casting.casting_pfad(book_id))
-    except Exception:
-        return True
 
-def _casting_tor_offen(book_id):
-    """QF-4 (18.10.2026): Liefert den Tor-Status, wenn Casting aktiv und NICHT freigegeben
-    ist (sonst None). Stage 58 startet nur bei freigegebenem Tor."""
-    try:
-        from pipeline import s410_casting
-        if not s410_casting.aktiv(book_id):
-            return None
-        import json
-        pfad = s410_casting.casting_pfad(book_id)
-        tor = json.load(open(pfad, encoding="utf-8")).get("tor") if os.path.exists(pfad) else "fehlt"
-    except Exception:
+def _casting_done(book_id, lang=None):
+    from pipeline import s410_casting
+    if not s410_casting.aktiv(book_id):
+        return True
+    return os.path.exists(s410_casting.casting_pfad(book_id))
+
+
+def _casting_tor(book_id):
+    """None = frei (Casting inaktiv oder freigegeben), sonst Tor-Zustand."""
+    from pipeline import s410_casting
+    if not s410_casting.aktiv(book_id):
         return None
+    pfad = s410_casting.casting_pfad(book_id)
+    tor = json.load(open(pfad, encoding="utf-8")).get("tor") if os.path.exists(pfad) else "fehlt"
     return None if tor == "freigegeben" else str(tor)
 
-def _assembler_done(book_id, lang=None):
-    """Assembler-Ausgabe pro Sprache: fassungen/<lang>/output/<book>.m4b o.ae.
-    Fallback: work/stage08.json (sprachuebergreifend) -- aber per-lang bevorzugt."""
-    if lang:
-        out = os.path.join(config.book_dir(book_id), "fassungen", lang, "output")
-        if os.path.isdir(out) and any(f.endswith((".m4b", ".mp3", ".wav")) for f in os.listdir(out)):
-            return True
-    return False
 
-def _cloud_export_done(book_id, lang=None):
-    """Stage 60 gilt als fertig, wenn der lokale Checkpoint 710_cloud_export_<lang>.json existiert."""
-    if not lang:
-        return False
-    return os.path.exists(config.work_path(book_id, f"710_cloud_export_{lang}"))
+def _sprecher_done(book_id, lang=None):
+    from pipeline import s420_sprecher
+    return os.path.exists(s420_sprecher._pfad(book_id))
 
-# ---- Stage-Definitionen -------------------------------------------------
-# per_lang=True  -> ueber Zielsprachen iterieren, run(book_id, lang=lang)
-# per_lang=False -> einmal run(book_id)
-EPUB_LINE = [
-    {"key": "120", "module": "pipeline.s120_modernisierung",       "done": _modernized,                  "per_lang": False},
-    {"key": "600", "module": "pipeline.s600_klappentext",           "done": _work_json("600_klappentext"),        "per_lang": False},
-    {"key": "610", "module": "pipeline.s610_cover",           "done": _cover_png,                    "per_lang": False},
-    {"key": "615", "module": "pipeline.s615_cover_final",     "done": _cover_final,                  "per_lang": False},
-    {"key": "620", "module": "pipeline.s620_epub_original",            "done": _epub(None), "per_lang": False},
-    {"key": "630", "module": "pipeline.s630_epub_zielsprache", "done": _epub(None),                   "per_lang": True},
-    {"key": "640", "module": "pipeline.s640_teaser",          "done": _work_json("640_teaser"),         "per_lang": False},
-]
 
 def _hybrid_done(book_id, lang=None):
-    # AP 62: Stufe 510 gilt als fertig, wenn ein Protokoll existiert ODER das Werk nicht in HYBRID_WERKE steht
-    from pipeline.legacy_tor import hoerspiel_gate
-    g = hoerspiel_gate(book_id)
-    if g is not None and g != "ja":
-        return True
-    if g is None and book_id not in getattr(config, "HYBRID_WERKE", []):
-        return True
     return os.path.exists(os.path.join(config.work_dir(book_id), f"hybrid_{lang}.json"))
 
 
-AUDIO_LINE = [
-    {"key": "120", "module": "pipeline.s120_modernisierung",        "done": _modernized,            "per_lang": False},
-    {"key": "200", "module": "pipeline.s200_tagging",           "done": _work_json("200_tagging"),  "per_lang": False},
-    {"key": "210", "module": "pipeline.s210_profil",         "done": _work_json("210_profil"),  "per_lang": False},
-    {"key": "300", "module": "pipeline.s300_voruebersetzung",    "done": _work_json("300_voruebersetzung"),  "per_lang": False},
-    {"key": "310", "module": "pipeline.s310_uebersetzung",       "done": _work_json("310_uebersetzung"),  "per_lang": False},
-    {"key": "320", "module": "pipeline.s320_integritaet",        "done": _work_json("320_integritaet"), "per_lang": False},
-    {"key": "330", "module": "pipeline.s330_rueckuebersetzung",  "done": _work_json("330_rueckuebersetzung"), "per_lang": False},
-    {"key": "400", "module": "pipeline.s400_regie",        "done": _work_json("400_regie"),  "per_lang": False},
-    {"key": "410", "module": "pipeline.s410_casting",          "done": _casting_done,          "per_lang": False},
-    {"key": "500", "module": "pipeline.s500_vertonung_gemini",        "done": _audio_done,            "per_lang": True},
-    {"key": "510", "module": "pipeline.s510_hoerspiel_hybrid",   "done": _hybrid_done,           "per_lang": True},
-    # QF-5 (18.10.2026): Stage 59 defekt (Signatur/Pfade), bis Neudefinition (S-3) aus der Linie.
-    # {"key": "650", "module": "pipeline.s650_hoerbuch",        "done": _assembler_done,        "per_lang": True},
-    {"key": "710", "module": "pipeline.s710_cloud_export",     "done": _cloud_export_done,     "per_lang": True},
-]
-
-LINES = {"epub": EPUB_LINE, "audio": AUDIO_LINE}
+def _wortzeiten_done(book_id, lang=None):
+    return os.path.exists(config.work_path(book_id, f"520_wortzeiten_{lang}"))
 
 
-def _import_stage(module_path):
+def _cloud_export_done(book_id, lang=None):
+    return bool(lang) and os.path.exists(config.work_path(book_id, f"710_cloud_export_{lang}"))
+
+
+# ---- Altstage-Aufrufe ---------------------------------------------------
+def _mod(name):
     import importlib
-    return importlib.import_module(module_path)
+    return importlib.import_module(name)
 
 
-def _target_languages(only_lang=None):
-    """Welche Zielsprachen dieser Lauf bedient. --lang schraenkt auf eine ein."""
-    if only_lang:
-        return [only_lang]
-    return list(config.TARGET_LANGUAGES)
-
-
-def _stage58_module(book_id, lang):
-    """Weiche pro Fassung: Thorsten (DE lokal) oder Cloud-TTS.
-    18.10.2026: LibriVox-Audio-Gleis (schnitt_lib) archiviert."""
+def _engine_modul(book_id, lang):
+    """Weiche je Fassung (Altweg legacy_tor; Umstellung auf Stufe aus 095 beim Umbau 500)."""
     from pipeline.legacy_tor import tts_engine, stimmen_pruefung
     fehler = stimmen_pruefung(book_id, lang)
     if fehler:
         raise RuntimeError(f"[Stimmen-Gate] {fehler}")
-    engine = tts_engine(book_id, lang)
-    if engine == "thorsten":
-        return "pipeline.s501_vertonung_thorsten"
-    if engine == "chatterbox":
-        return "pipeline.s502_vertonung_chatterbox"
-    return "pipeline.s500_vertonung_gemini"
+    return {"thorsten": "pipeline.s501_vertonung_thorsten",
+            "chatterbox": "pipeline.s502_vertonung_chatterbox"}.get(tts_engine(book_id, lang),
+                                                                     "pipeline.s500_vertonung_gemini")
 
 
-def _ctx(book_id, key, lang=None):
-    """Token-/Kostenzaehler: Werk + Stage fuer alle API-Aufrufe dieser Stage."""
-    try:
-        from pipeline import usage_log
-        usage_log.set_context(book_id, key, **({"sprache": lang} if lang else {}))
-    except Exception:
-        pass
-
-
-def _run_one(stage, book_id, force, only_lang=None):
-    """Fuehrt eine Stage aus. per_lang -> pro Zielsprache, mit sprachbewusstem Skip.
-    Stage 58: Weiche PRO FASSUNG (Engine je Sprache)."""
-    if stage["per_lang"]:
-        for lang in _target_languages(only_lang):
-            if not force and stage["done"](book_id, lang):
-                print(f"[skip] Stage {stage['key']} [{lang}] — Ausgabe vorhanden")
-                continue
-            module = stage["module"]
-            if stage["key"] == "500":
-                module = _stage58_module(book_id, lang)   # Gleis pro Fassung stellen
-                if module.endswith("s501_vertonung_thorsten"):
-                    print(f"  -> Stage 501 [{lang}] (Thorsten lokal)")
-                else:
-                    print(f"  -> Stage 500 [{lang}] (Cloud-TTS)")
-            else:
-                print(f"  -> Stage {stage['key']} [{lang}]")
-            _ctx(book_id, stage["key"], lang)
-            _import_stage(module).run(book_id, lang=lang)
-    else:
-        _ctx(book_id, stage["key"])
-        if stage["key"] == "610" and force:   # QF-2: --force erreicht Stage 21
-            _import_stage(stage["module"]).run(book_id, force=True)
-        else:
-            _import_stage(stage["module"]).run(book_id)
+def _alt_700(book_id, b, **_):
+    if not _mod("pipeline.s700_guard").check(book_id, langs=b.sprachen):
+        raise RuntimeError("Guard: ID-Deckung verletzt")
     return True
 
 
-def run_pipeline(book_id, line="epub", start_from=None, stop_to=None,
-                 only=None, force=False, only_lang=None):
-    stages = LINES[line]
-    config.werk_sprachen(book_id)   # Sprachweiche je Werk (22.10.2026)
+# key -> (aufruf(book_id, lang, b, force), fertig(book_id, lang) | None)
+ALT = {
+    "120": (lambda w, lg, b, f: _mod("pipeline.s120_modernisierung").run(w), _modernized),
+    "200": (lambda w, lg, b, f: _mod("pipeline.s200_tagging").run(w), _work_json("200_tagging")),
+    "210": (lambda w, lg, b, f: _mod("pipeline.s210_profil").run(w), _work_json("210_profil")),
+    "300": (lambda w, lg, b, f: _mod("pipeline.s300_voruebersetzung").run(w), _work_json("300_voruebersetzung")),
+    "310": (lambda w, lg, b, f: _mod("pipeline.s310_uebersetzung").run(w), _work_json("310_uebersetzung")),
+    "320": (lambda w, lg, b, f: _mod("pipeline.s320_integritaet").run(w), _work_json("320_integritaet")),
+    "330": (lambda w, lg, b, f: _mod("pipeline.s330_rueckuebersetzung").run(w), _work_json("330_rueckuebersetzung")),
+    "340": (lambda w, lg, b, f: _mod("pipeline.s340_wortalignment").run(w), _work_json("340_wortalignment")),
+    "400": (lambda w, lg, b, f: _mod("pipeline.s400_regie").run(w), _work_json("400_regie")),
+    "410": (lambda w, lg, b, f: _mod("pipeline.s410_casting").run(w), _casting_done),
+    "420": (lambda w, lg, b, f: _mod("pipeline.s420_sprecher").run(w), _sprecher_done),
+    "500": (lambda w, lg, b, f: _mod(_engine_modul(w, lg)).run(w, lang=lg), _audio_done),
+    "510": (lambda w, lg, b, f: _mod("pipeline.s510_hoerspiel_hybrid").run(w, lang=lg, force=f), _hybrid_done),
+    "520": (lambda w, lg, b, f: _mod("pipeline.s520_wortzeiten").run(w, lang=lg, force=f), _wortzeiten_done),
+    "600": (lambda w, lg, b, f: _mod("pipeline.s600_klappentext").run(w), _work_json("600_klappentext")),
+    "610": (lambda w, lg, b, f: _mod("pipeline.s610_cover").run(w, force=f), _cover_png),
+    "615": (lambda w, lg, b, f: _mod("pipeline.s615_cover_final").run(w, langs=tuple(b.sprachen)),
+            lambda w, lg=None, b=None: _cover_final(w, lg, b)),
+    "620": (lambda w, lg, b, f: _mod("pipeline.s620_epub_original").run(w),
+            lambda w, lg=None, b=None: _epub(w, None, b)),
+    "630": (lambda w, lg, b, f: _mod("pipeline.s630_epub_zielsprache").run(w, lang=lg),
+            lambda w, lg=None, b=None: _epub(w, lg, b)),
+    "640": (lambda w, lg, b, f: _mod("pipeline.s640_teaser").run(w), _work_json("640_teaser")),
+    "700": (lambda w, lg, b, f: _alt_700(w, b), None),
+    "710": (lambda w, lg, b, f: _mod("pipeline.s710_cloud_export").run(w, lg, force=f), _cloud_export_done),
+}
+MANUELL = {"100", "110", "150"}          # Vorbedingung ausserhalb der Kette
+IN_KETTE = set(ALT) | UMGEBAUT
+
+
+def _fertig(stage, book_id, lang, b):
+    fn = ALT[stage][1]
+    if fn is None:
+        return False
+    try:
+        return bool(fn(book_id, lang, b)) if stage in ("615", "620", "630") else bool(fn(book_id, lang))
+    except Exception:
+        return False
+
+
+# ---- Status der Altstages -----------------------------------------------
+def _alt_bewerten(book_id, stage, b, scope=None, wer="run.py"):
+    """Altpruefung -> status.json. Rueckgabe Zustand (frei/mensch) oder None (Ausgabe fehlt)."""
+    from pipeline import mock, status
+    if not _fertig(stage, book_id, scope, b):
+        return None
+    met = {"modus": mock.modus(), "altpruefung": True}
+    if stage == "410":
+        tor = _casting_tor(book_id)
+        if tor:
+            return status.ergebnis(book_id, stage, "mensch", metriken=met, ruecksprung="410", wer=wer,
+                                   gruende=[f"Casting-Tor {tor} – Hoerprobe, dann "
+                                            f"python -m pipeline.s410_casting {book_id} --freigeben"])
+    return status.ergebnis(book_id, stage, "auto", metriken=met, scope=scope, wer=wer,
+                           hinweise=["Altpruefung: Ausgabe vorhanden (Stage noch ohne eigenes Gate)"])
+
+
+def _alt_abgleichen(book_id, stages, b):
+    """Altstages, die ausserhalb von run.py gelaufen sind (Bat/Cockpit/CLI), in status.json nachziehen."""
+    from pipeline import kette, status
+    d = status.laden(book_id)
+    for s in stages:
+        if s not in ALT or s in UMGEBAUT:
+            continue
+        st = d["stages"].get(s) or {}
+        z = st.get("zustand", "offen")
+        if z in ("frei", "entfaellt"):
+            continue
+        if z == "mensch" and not (s == "410" and (st.get("metriken") or {}).get("altpruefung")):
+            continue                                   # echte Mensch-Entscheidung bleibt offen
+        langs = kette.sprachen(s, b)
+        if langs is None:
+            _alt_bewerten(book_id, s, b)
+        else:
+            for lg in langs:
+                if status.zustand(book_id, s, scope=lg) not in status.FREI:
+                    _alt_bewerten(book_id, s, b, scope=lg)
+
+
+# ---- Kette --------------------------------------------------------------
+def _stage_ausfuehren(book_id, stage, b, force, only_lang):
+    """Eine Stage. Rueckgabe Zustand nach dem Lauf: frei | mensch | stopp."""
+    from pipeline import kette, mock, status, usage_log
+    if stage in UMGEBAUT:
+        raise NotImplementedError("Umgebaute Stages bringen ihren Kettenaufruf selbst mit")
+    aufruf = ALT[stage][0]
+    langs = kette.sprachen(stage, b)
+    met = {"modus": mock.modus(), "altpruefung": True}
+    if langs is None:
+        if force or not _fertig(stage, book_id, None, b):
+            usage_log.set_context(book_id, stage)
+            aufruf(book_id, None, b, force)
+        z = _alt_bewerten(book_id, stage, b)
+        if z is None and ALT[stage][1] is None:          # 700: Pruefung ohne Datei
+            z = status.ergebnis(book_id, stage, "auto", metriken=met, wer="run.py")
+        if z is None:
+            z = status.ergebnis(book_id, stage, "stopp", metriken=met, ruecksprung=stage, wer="run.py",
+                                gruende=["Altpruefung: Ausgabe fehlt nach Lauf"])
+        return z
+    for lg in langs:
+        if only_lang and lg != only_lang:
+            if not _fertig(stage, book_id, lg, b) and status.zustand(book_id, stage, scope=lg) != "offen":
+                status.zuruecksetzen(book_id, stage, wer="run.py", grund="Sprache nicht in --lang, Ausgabe fehlt",
+                                     scope=lg)
+            elif _fertig(stage, book_id, lg, b):
+                _alt_bewerten(book_id, stage, b, scope=lg)
+            continue
+        if force or not _fertig(stage, book_id, lg, b):
+            print(f"  -> Stage {stage} [{lg}]")
+            usage_log.set_context(book_id, stage, sprache=lg)
+            aufruf(book_id, lg, b, force)
+        else:
+            print(f"[skip] Stage {stage} [{lg}] — Ausgabe vorhanden")
+        if _alt_bewerten(book_id, stage, b, scope=lg) is None:
+            status.ergebnis(book_id, stage, "stopp", metriken=met, ruecksprung=stage, scope=lg, wer="run.py",
+                            gruende=[f"Altpruefung: Ausgabe {lg} fehlt nach Lauf"])
+    if not langs:
+        return status.ergebnis(book_id, stage, "auto", metriken=met, wer="run.py",
+                               hinweise=["keine Sprache laut Bestellung"])
+    return status.zustand(book_id, stage)
+
+
+def plan(book_id):
+    from pipeline import kette, status
+    b, laeuft, fehler = kette.bedarf_setzen(book_id)
+    if fehler:
+        print("[STOPP] Bestellung ungueltig: " + "; ".join(fehler))
+        return 2
+    d = status.laden(book_id)
+    print(f"Werk {book_id}  Quelle {b.quellsprache}  Ziele {b.zielsprachen}  Audio {b.audiosprachen()}")
+    for s in status.STAGES:
+        art = ("laeuft" if s in laeuft else "entfaellt")
+        weg = "Kette" if s in IN_KETTE else ("manuell" if s in MANUELL else "nicht gebaut")
+        v = kette.wirksame_vorgaenger(s, laeuft, IN_KETTE) if s in laeuft else []
+        langs = kette.sprachen(s, b) if s in laeuft else None
+        print(f"  {s}  {art:<9} {weg:<12} {status.zustand(book_id, s, d=d):<9}"
+              f"{' ' + ','.join(langs) if langs else ''}{'  <- ' + ' '.join(v) if v else ''}")
+    return 0
+
+
+def run_pipeline(book_id, start_from=None, stop_to=None, only=None, force=False, only_lang=None, line=None):
+    """Kette ausfuehren. Rueckgabe Exit-Code (0 frei, 2 Stopp, 3 Mensch, 1 Fehler)."""
+    from pipeline import gate, kette, status
+    config.werk_sprachen(book_id)          # Altschnittstelle config-Globals fuer Altstages
+    b, laeuft, fehler = kette.bedarf_setzen(book_id)
     print("=" * 60)
-    print(f"READ LAYER — Pipeline ({line}-Linie)")
-    print(f"  Titel: {book_id}")
-    print(f"  Modus: {config.RUN_MODE}")
-    tgt = _target_languages(only_lang)
-    print(f"  Sprachen: {config.SOURCE_LANGUAGE} -> {tgt}"
-          f"{'  (--lang: nur '+only_lang+')' if only_lang else ''}")
-    if start_from or stop_to:
-        print(f"  Bereich: {'ab '+start_from if start_from else 'Anfang'} "
-              f"{'bis '+stop_to if stop_to else 'Ende'}")
+    print(f"READ LAYER — Kette  {book_id}  (Modus {config.RUN_MODE})")
+    if fehler:
+        print("[STOPP] Bestellung (095) ungueltig: " + "; ".join(fehler))
+        return gate.EXIT["stopp"]
+    print(f"  Quelle {b.quellsprache} -> Ziele {b.zielsprachen}  Audio {b.audiosprachen()}"
+          f"{'  (--lang ' + only_lang + ')' if only_lang else ''}")
+    if b.abgeleitet:
+        print(f"  Bestellung abgeleitet (book.json ohne {', '.join(b.abgeleitet)})")
+    if line:
+        print(f"  Hinweis: --line {line} ist abgeschafft; Stages kommen aus der Bestellung (095).")
     print("=" * 60)
 
-    order = [s["key"] for s in stages]
-    if stop_to is not None and stop_to not in order:
-        print(f"[FEHLER] --to {stop_to}: Stage gibt es in der {line}-Linie nicht "
-              f"(erlaubt: {', '.join(order)}).")
-        return False
-    if start_from is not None and start_from not in order:
-        print(f"[FEHLER] --from {start_from}: Stage gibt es in der {line}-Linie nicht "
-              f"(erlaubt: {', '.join(order)}).")
-        return False
-
-    started = False if start_from else True
+    for n, s in (("--from", start_from), ("--to", stop_to), ("--only", only)):
+        if s is not None and status._norm(s) not in status.STAGES:
+            print(f"[FEHLER] {n} {s}: unbekannte Stage")
+            return 1
+    start_from, stop_to, only = [status._norm(x) if x else None for x in (start_from, stop_to, only)]
+    idx = status.STAGES.index
     t_start = time.time()
+    ergebnis = "auto"
 
-    for stage in stages:
-        key = stage["key"]
-        if only is not None and key != only:
+    for s in status.STAGES:
+        if only and s != only:
             continue
-        if not started:
-            if key == start_from:
-                started = True
-            else:
-                print(f"[skip] Stage {key} (vor --from {start_from})")
-                continue
-
-        # Sprachunabhaengige Stages: hier (einmal) auf Checkpoint pruefen.
-        # Sprachbewusste Stages (per_lang): NICHT hier ueberspringen -- der Skip
-        # passiert PRO SPRACHE in _run_one, sonst wuerde eine fehlende Sprache
-        # mit einer fertigen verwechselt.
-        if (not force and only is None and not stage["per_lang"]
-                and stage["done"](book_id)):
-            print(f"[skip] Stage {key} — Ausgabe vorhanden")
-            if stop_to is not None and key == stop_to:
-                print(f"\n[stop] Stage {stop_to} erreicht (--to) — Halt.")
-                break
+        if start_from and idx(s) < idx(start_from):
+            continue
+        if stop_to and idx(s) > idx(stop_to):
+            break
+        if s not in laeuft:
+            print(f"[entfaellt] Stage {s}")
+            continue
+        if s not in IN_KETTE:
+            print(f"[--] Stage {s}: {'manuelle Vorbedingung' if s in MANUELL else 'noch nicht gebaut'} – uebergangen")
+            continue
+        if not force and status.ist_frei(book_id, s):
+            print(f"[skip] Stage {s} — frei")
             continue
 
-        if key == "500":
-            tor = _casting_tor_offen(book_id)
-            if tor:
-                print(f"\n[STOPP] Stage 500: Casting-Tor ist '{tor}'. Erst Hoerprobe und "
-                      f"'py -3.11 -m pipeline.s410_casting {book_id} --freigeben', "
-                      f"dann weiter mit --from 500.")
-                return False
+        vorg = kette.wirksame_vorgaenger(s, laeuft, IN_KETTE)
+        _alt_abgleichen(book_id, vorg, b)
+        try:
+            gate.vorgaenger_frei(book_id, s, vorg, wer="run.py")
+        except gate.GateHalt as e:
+            print(f"\n[STOPP] Stage {s}: " + "; ".join(e.gruende))
+            print(f"[STOPP] Status: python -m pipeline.status {book_id}")
+            return e.exit_code
 
-        print(f"\n--- Stage {key} ({stage['module'].split('.')[-1]}) ---")
+        print(f"\n--- Stage {s} ---")
         t0 = time.time()
         try:
-            _run_one(stage, book_id, force, only_lang=only_lang)
+            z = _stage_ausfuehren(book_id, s, b, force, only_lang)
+        except gate.GateHalt as e:
+            print(f"\n[{e.ergebnis.upper()}] Stage {s}: " + "; ".join(e.gruende))
+            return e.exit_code
         except Exception as e:
-            print(f"\n[FEHLER] Stage {key} abgebrochen: {e}")
-            print(f"[FEHLER] Nach Fix mit --from {key} fortsetzen.")
-            return False
-        print(f"--- Stage {key} fertig ({time.time()-t0:.1f}s) ---")
-
-        if stop_to is not None and key == stop_to:
-            print(f"\n[stop] Stage {stop_to} erreicht (--to) — Halt.")
+            status.ergebnis(book_id, s, "stopp", gruende=[f"Fehler: {e}"], ruecksprung=s, wer="run.py")
+            print(f"\n[FEHLER] Stage {s} abgebrochen: {e}")
+            print(f"[FEHLER] Nach Fix mit --from {s} fortsetzen.")
+            return 1
+        print(f"--- Stage {s}: {z} ({time.time()-t0:.1f}s) ---")
+        if z == "mensch":
+            st = (status.laden(book_id)["stages"].get(s) or {}).get("gate") or {}
+            print(f"\n[MENSCH] Stage {s}: " + "; ".join(st.get("gruende") or ["Entscheidung offen"]))
+            print(f"[MENSCH] python -m pipeline.status {book_id} --entscheiden {s} frei --wer CK --grund \"...\"")
+            ergebnis = "mensch"
+            break
+        if z == "stopp":
+            st = (status.laden(book_id)["stages"].get(s) or {}).get("gate") or {}
+            print(f"\n[STOPP] Stage {s}: " + "; ".join(st.get("gruende") or []))
+            ergebnis = "stopp"
             break
 
     print("\n" + "=" * 60)
-    print(f"Pipeline abgeschlossen in {time.time()-t_start:.1f}s")
+    print(f"Kette beendet: {ergebnis} ({time.time()-t_start:.1f}s)")
     print("=" * 60)
-    return True
+    return gate.EXIT[ergebnis]
 
 
-def main():
-    args = sys.argv[1:]
-    if not args or args[0].startswith("--"):
-        print("Aufruf: python run.py <book_id> [--line epub|audio] [--from XX] "
-              "[--to XX] [--only XX] [--lang de] [--force] [--live]")
-        sys.exit(1)
-
-    book_id = args[0]
-    line = "epub"
-    start_from = stop_to = only = only_lang = None
-    force = False
-
-    if "--live" in args:
+def main(argv=None):
+    ap = argparse.ArgumentParser(description="READ LAYER – Kette laut Bestellung (095) und Gate-Katalog")
+    ap.add_argument("book_id")
+    ap.add_argument("--from", dest="start_from")
+    ap.add_argument("--to", dest="stop_to")
+    ap.add_argument("--only")
+    ap.add_argument("--lang")
+    ap.add_argument("--force", action="store_true")
+    ap.add_argument("--live", action="store_true")
+    ap.add_argument("--plan", action="store_true")
+    ap.add_argument("--line", help=argparse.SUPPRESS)        # abgeschafft, nur Hinweis
+    a = ap.parse_args(argv)
+    if a.live:
         config.RUN_MODE = "live"
-    if "--force" in args:
-        force = True
-    if "--line" in args:
-        line = args[args.index("--line") + 1]
-    if "--from" in args:
-        start_from = args[args.index("--from") + 1]
-    if "--to" in args:
-        stop_to = args[args.index("--to") + 1]
-    if "--only" in args:
-        only = args[args.index("--only") + 1]
-    if "--lang" in args:
-        only_lang = args[args.index("--lang") + 1]
-
-    if line not in LINES:
-        print(f"Unbekannte Linie '{line}'. Erlaubt: {', '.join(LINES)}")
-        sys.exit(1)
-
-    run_pipeline(book_id, line=line, start_from=start_from, stop_to=stop_to,
-                 only=only, force=force, only_lang=only_lang)
+    if a.plan:
+        sys.exit(plan(a.book_id))
+    sys.exit(run_pipeline(a.book_id, start_from=a.start_from, stop_to=a.stop_to, only=a.only,
+                          force=a.force, only_lang=a.lang, line=a.line))
 
 
 if __name__ == "__main__":
