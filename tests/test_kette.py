@@ -99,9 +99,14 @@ class Kette(unittest.TestCase):
         for k in list(run.ALT):
             run.ALT[k] = stage(k)
         self.stage = stage
+        self._neu = dict(run.NEU)
+        # 150 ePub-Import als Attrappe (eigenes Gate, Test in test_s150)
+        run.NEU["150"] = lambda w, b, f, wer: (self.gelaufen.append("150"),
+                                               S.ergebnis(w, "150", "auto", wer="test"))
 
     def tearDown(self):
         self.run.ALT.clear(); self.run.ALT.update(self._alt)
+        self.run.NEU.clear(); self.run.NEU.update(self._neu)
         config.work_dir, config.book_dir, config.werk_sprachen = self._wd, self._bd, self._ws
         self.tmp.cleanup()
 
@@ -113,7 +118,7 @@ class Kette(unittest.TestCase):
     def test_ganze_kette_text_epub(self):
         rc, out = self.lauf()
         self.assertEqual(rc, 0, out)
-        self.assertEqual(self.gelaufen, ["120", "600", "610", "615", "620", "700", "710"])
+        self.assertEqual(self.gelaufen, ["150", "120", "600", "610", "615", "620", "700", "710"])
         d = S.laden("u-test")
         self.assertEqual(d["stages"]["310"]["zustand"], "entfaellt")
         self.assertEqual(d["stages"]["620"]["zustand"], "frei")

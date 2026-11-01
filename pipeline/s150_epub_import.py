@@ -1,10 +1,25 @@
-"""STAGE 150 — ePub-Import
-Funktion:     Bringt ein DRM-freies User-ePub ins Pipeline-Format (TAELLA-Upload).
-Wirkungsweise: Prueft ZIP/DRM/Sprache, klassifiziert Seiten, parst Kapitel, uebernimmt Cover, Klappentext, Bilder, Fussnoten.
-Komponenten:  pipeline/s150_epub_import.py
-Zulieferer:   User-ePub (users/<uid>/works/<id>/)
-Abnehmer:     s200 Tagging (raw_modernized.txt, Kapitel-Checkpoints), s710 Cloud-Export (privater Bereich)
-(Nomenklatur seit 18.10.2026, Uebersicht: docs/Pipeline_Strang_Matrix.xlsx)
+"""STAGE 150 — ePub-Import (user_epub / verlag_epub; GATE_KATALOG.md, Phase 2 01.11.2026)
+Funktion:     Bringt ein DRM-freies ePub ins Pipeline-Format: chapter-N.json, raw_modernized.txt, anhang.json,
+              Cover, ingest_bericht.json, book.json (quelle, quellsprache, Mandant, Klappentext vorhanden ja/nein
+              -> Modus 600). Quell-ePub wird nach <werk>/quelle/ gesichert (Grundlage fuer Neueinlesen).
+Gate:         DRM-frei Pflicht; Kapitel >= 1; >= 5.000 Zeichen; Inhaltsanteil (Kapiteltext / Spine-Text) >= 80 %;
+              Warnungen = 0; Sprache im OPF; Sprache in Sprachliste. auto bei allem gruen; Inhaltsanteil,
+              Warnungen, Sprache fehlt / nicht in Sprachliste -> Mensch; Mandant verlag -> immer Mensch
+              (Kapitelliste); DRM/kein Inhalt/zu kurz -> Stopp. Datei defekt -> Ruecksprung 090.
+Regler:       --titel, --autor, --sprache, --behalten/--entfernen DATEI (Seitenliste, bleibt in book.json
+              epub_import), --bilder/--fussnoten ja|nein, --cover epub|neu, --epub DATEI, --force (neu einlesen,
+              leert den Kapitelordner).
+Befunde 150:  Index erst nach erfolgreichem Einlesen (kein verwaister Eintrag); OPF ohne Sprache -> Mensch statt
+              still en; per Dateiname entfernte Seite mit viel Text -> Warnung (Mensch); quelle/quellsprache/
+              Mandant/Besitzer gesetzt (Rechte per 090 --versichern); Neueinlesen leert chapter-N.json und behaelt
+              fremde book.json-Felder; Klappentext vorhanden -> book.json klappentext_vorhanden.
+              Offen fuer 600/620: Klappentext uebernehmen/uebersetzen, Bilder/Fussnoten ins EPUB.
+Kosten:       0 $ (kein LLM).
+
+Aufruf:
+  python -m pipeline.s150_epub_import <datei.epub> --user anna [--mandant verlag:x] [--titel ...]   Neuanlage
+  python -m pipeline.s150_epub_import <werk> [--behalten about.xhtml] [--sprache de] [--force]       Gate/Regler
+Exit: 0 auto, 2 Stopp, 3 Mensch.
 
 --- Bisherige Beschreibung ---
 
@@ -427,56 +442,66 @@ def kapitel_titel(headings, fallback):
 
 
 # ---------------------------------------------------------------- Hauptlauf
-def run(epub_path, user, titel=None, force=False):
-    user_name = user.strip()
-    uid = re.sub(r"[^a-z0-9]", "", config.slugify(user_name)) or "user"
-    bericht = {"datei": os.path.basename(epub_path), "zeit": datetime.now().isoformat(timespec="seconds"),
-               "user": user_name, "entfernt": [], "inhalt": [], "notizseiten": [], "warnungen": []}
+STAGE = "150"
+MIN_ZEICHEN = 5000
+MIN_INHALTSANTEIL = 0.80
+VERDACHT_ZEICHEN = 3000          # per Dateiname entfernte Seite mit so viel Fliesstext -> Warnung
+OPT_STANDARD = {"bilder": True, "fussnoten": True, "cover": "epub", "seiten": {}}
 
-    # 05a
+
+def _dump(pfad, obj):
+    from pipeline.manifest import json_atomar
+    json_atomar(pfad, obj, indent=2)
+
+
+def _schreib_text(pfad, text):
+    tmp = f"{pfad}.{os.getpid()}.tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        f.write(text)
+    os.replace(tmp, pfad)
+
+
+def importieren(epub_path, bdir, book_id, user_name, titel=None, autor=None, sprache=None, opt=None):
+    """Kern 150: ePub -> chapter-N.json, raw(_modernized).txt, anhang.json, Cover, ingest_bericht.json.
+    Schreibt nichts, wenn kein Inhalt gefunden wird (EpubFehler). Rueckgabe (bericht, felder fuer book.json)."""
+    opt = dict(OPT_STANDARD, **(opt or {}))
+    zwang = opt.get("seiten") or {}
+    bericht = {"datei": os.path.basename(epub_path), "zeit": datetime.now().isoformat(timespec="seconds"),
+               "user": user_name, "entfernt": [], "inhalt": [], "notizseiten": [], "warnungen": [],
+               "optionen": opt}
     z, opf_path = oeffnen(epub_path)
     opf = opf_lesen(z, opf_path)
-    sha = hashlib.sha256(open(epub_path, "rb").read()).hexdigest()
-    sprache = (opf["sprache"] or "en").split("-")[0].lower()
+    with open(epub_path, "rb") as f:
+        sha = hashlib.sha256(f.read()).hexdigest()
+    opf_sprache = (opf["sprache"] or "").split("-")[0].lower() or None
+    sprache = (sprache or opf_sprache or "en").lower()
     titel = titel or opf["titel"] or os.path.splitext(os.path.basename(epub_path))[0]
-    autor = opf["autor"] or "Unbekannt"
-    book_id = f"u-{uid}-{config.slugify(titel)}"
+    autor = autor or opf["autor"] or "Unbekannt"
     label = f"TÆLLA-User: {user_name}"
     bericht.update(titel=titel, titel_kandidaten=opf["titel_alle"], autor=autor, sprache=sprache,
-                   book_id=book_id, sha256=sha)
+                   opf_sprache=opf_sprache, book_id=book_id, sha256=sha)
 
-    bdir = os.path.join(config.USERS_DIR, uid, "works", book_id)
-    if os.path.exists(os.path.join(bdir, "book.json")) and not force:
-        print(f"[05] {book_id} existiert schon -> --force zum Neuaufbau"); return book_id
-    # --force: Dateien werden ueberschrieben (kein Loeschen des Ordners)
-    os.makedirs(os.path.join(bdir, "work", "modernized"), exist_ok=True)
-
-    # Index (vor book_dir-Aufrufen anderer Stages)
-    idx = config._load_index()
-    idx.setdefault("books", {})[book_id] = f"user:{uid}"
-    config._save_index(idx)
-
-    # 05b Cover
-    src, wie = cover_finden(z, opf)
-    cov = cover_ablegen(z, src, bdir, titel, autor, label)
-    cov["gefunden_ueber"] = wie
-    bericht["cover"] = cov
-    cover_bild = src
-
-    # 05c Klappentext
-    kt = opf["lange_beschreibung"] or opf["beschreibung"]
-    klappentext = {sprache: kt} if kt else {}
-    bericht["klappentext"] = "vorhanden" if kt else "keiner im ePub"
-
-    # 05d Seiten klassifizieren
-    seiten = []
+    # 05d Seiten klassifizieren (+ Zeichen je Spine-Seite fuer den Inhaltsanteil)
+    seiten, spine_zeichen = [], 0
     for idref in opf["spine"]:
         it = opf["items"].get(idref)
         if not it or not it.get("media-type", "").startswith("application/xhtml"):
             continue
         art, grund, s = seite_klassifizieren(z, it)
+        body = s[s.find("<body"):] if "<body" in s else s
+        n_txt = len(_strip_tags(re.sub(r"<(script|style)[^>]*>.*?</\1>", " ", body, flags=re.S)))
+        z_ = zwang.get(it["href"]) or zwang.get(posixpath.basename(it["href"]))
+        if z_ != "entfernen":
+            spine_zeichen += n_txt              # per Regler entfernte Seiten zaehlen nicht zum Spine
+        if z_ == "behalten" and art != "inhalt":
+            art, grund = "inhalt", f"Regler: behalten (vorher {grund})"
+        elif z_ == "entfernen" and art != "weg":
+            art, grund = "weg", f"Regler: entfernt (vorher {grund})"
+        elif art == "weg" and grund.startswith("Dateiname") and n_txt >= VERDACHT_ZEICHEN:
+            bericht["warnungen"].append(f"Seite {it['href']} per Dateiname entfernt, hat aber {n_txt} Zeichen "
+                                        f"Text – pruefen (Regler --behalten {it['href']})")
         seiten.append((it, art, grund, s))
-        rec = {"datei": it["href"], "grund": grund}
+        rec = {"datei": it["href"], "grund": grund, "zeichen": n_txt}
         {"inhalt": bericht["inhalt"], "notizen": bericht["notizseiten"], "weg": bericht["entfernt"]}[art].append(rec)
 
     # 05f Fussnoten sammeln (Ziele aller noteref-/Anker-Links)
@@ -492,111 +517,347 @@ def run(epub_path, user, titel=None, force=False):
     notizen = {}
     for idx_s, (it, art, grund, s) in enumerate(seiten):
         ns = Notizsammler(ziel_ids); ns.feed(s); notizen.update(ns.notizen)
-        if art == "weg" and ns.notizen:          # reine Anmerkungsseite, z.B. EPUB2 ohne epub:type
+        if art == "weg" and ns.notizen and zwang.get(it["href"]) != "entfernen":
             seiten[idx_s] = (it, "notizen", "Anmerkungsseite (Link-Ziele)", s)
             bericht["entfernt"] = [e for e in bericht["entfernt"] if e["datei"] != it["href"]]
             bericht["notizseiten"].append({"datei": it["href"], "grund": "Anmerkungsseite (Link-Ziele)"})
 
-    # Kapitel parsen
-    kapitel, bilder, fussnoten = [], [], []
+    # Cover bestimmen (Ablage erst nach erfolgreichem Parsen)
+    src, wie = (None, None) if opt.get("cover") == "neu" else cover_finden(z, opf)
+
+    # Kapitel parsen (Bilder erst sammeln, schreiben nach Erfolg)
+    kapitel, bilder, fussnoten, bild_daten = [], [], [], []
     fn_nr = {}
-    img_dir = os.path.join(bdir, "images", "anhang")
     for it, art, _, s in seiten:
         if art != "inhalt":
             continue
         p = Kapitelparser(set(notizen.keys())); p.feed(s); p._flush()
         k_nr = len(kapitel) + 1
-        paras = [x for x in p.paras]
-        # Bilder (05e)
-        for ev in p.events:
-            pfad = posixpath.normpath(posixpath.join(posixpath.dirname(it["path"]), ev["src"]))
-            if pfad == cover_bild:
-                continue
-            try:
-                daten = z.read(pfad)
-            except KeyError:
-                bericht["warnungen"].append(f"Bild fehlt: {pfad}"); continue
-            n = len(bilder) + 1
-            os.makedirs(img_dir, exist_ok=True)
-            ext = os.path.splitext(pfad)[1].lower()
-            open(os.path.join(img_dir, f"bild-{n}{ext}"), "wb").write(daten)
-            bilder.append({"nr": n, "datei": f"images/anhang/bild-{n}{ext}", "kapitel": k_nr,
-                           "nach_absatz": ev["nach_absatz"], "anker_text": ev["anker_text"],
-                           "alt": ev["alt"], "bildunterschrift": ev.get("bildunterschrift", "")})
-        # Fussnoten-Anker (05f)
-        for ai, para in enumerate(paras):
-            for r in para["refs"]:
-                if r["id"] not in notizen:
-                    bericht["warnungen"].append(f"Fussnote ohne Text: {r['id']}"); continue
-                if r["id"] not in fn_nr:
-                    fn_nr[r["id"]] = len(fn_nr) + 1
-                    fussnoten.append({"nr": fn_nr[r["id"]], "text": notizen[r["id"]], "kapitel": k_nr,
-                                      "absatz": ai, "anker_text": para["text"][max(0, r["pos"] - 80):r["pos"]]})
-        titel_k = kapitel_titel(p.headings, f"Kapitel {k_nr}")
+        paras = list(p.paras)
         texte = [x["text"] for x in paras]
         if not [t for t in texte if t != HR]:
             bericht["warnungen"].append(f"leer nach Bereinigung: {it['href']}"); continue
-        kapitel.append({"title": titel_k, "paragraphs": texte, "quelle": it["href"]})
+        if opt.get("bilder"):
+            for ev in p.events:
+                pfad = posixpath.normpath(posixpath.join(posixpath.dirname(it["path"]), ev["src"]))
+                if pfad == src:
+                    continue
+                try:
+                    daten = z.read(pfad)
+                except KeyError:
+                    bericht["warnungen"].append(f"Bild fehlt: {pfad}"); continue
+                n = len(bilder) + 1
+                ext = os.path.splitext(pfad)[1].lower()
+                bild_daten.append((f"bild-{n}{ext}", daten))
+                bilder.append({"nr": n, "datei": f"images/anhang/bild-{n}{ext}", "kapitel": k_nr,
+                               "nach_absatz": ev["nach_absatz"], "anker_text": ev["anker_text"],
+                               "alt": ev["alt"], "bildunterschrift": ev.get("bildunterschrift", "")})
+        if opt.get("fussnoten"):
+            for ai, para in enumerate(paras):
+                for r in para["refs"]:
+                    if r["id"] not in notizen:
+                        bericht["warnungen"].append(f"Fussnote ohne Text: {r['id']}"); continue
+                    if r["id"] not in fn_nr:
+                        fn_nr[r["id"]] = len(fn_nr) + 1
+                        fussnoten.append({"nr": fn_nr[r["id"]], "text": notizen[r["id"]], "kapitel": k_nr,
+                                          "absatz": ai, "anker_text": para["text"][max(0, r["pos"] - 80):r["pos"]]})
+        kapitel.append({"title": kapitel_titel(p.headings, f"Kapitel {k_nr}"), "paragraphs": texte,
+                        "quelle": it["href"]})
 
     if not kapitel:
         raise EpubFehler("Kein Inhalt gefunden.")
 
-    # Ausgabe
+    # ---- Ausgabe (erst jetzt wird geschrieben)
+    mod_dir = os.path.join(bdir, "work", "modernized")
+    os.makedirs(mod_dir, exist_ok=True)
+    alt = [f for f in os.listdir(mod_dir) if re.match(r"chapter-\d+(\.original)?\.json$", f)]
+    for f in alt:                                   # Befund: --force liess alte chapter-N.json liegen
+        os.remove(os.path.join(mod_dir, f))
+    bericht["kapitel_geleert"] = len(alt)
+    img_dir = os.path.join(bdir, "images", "anhang")
+    if os.path.isdir(img_dir):
+        for f in os.listdir(img_dir):
+            if f.startswith("bild-"):
+                os.remove(os.path.join(img_dir, f))
+    if bild_daten:
+        os.makedirs(img_dir, exist_ok=True)
+        for name, daten in bild_daten:
+            with open(os.path.join(img_dir, name), "wb") as f:
+                f.write(daten)
+    cov = cover_ablegen(z, src, bdir, titel, autor, label)
+    cov["gefunden_ueber"] = wie
+    bericht["cover"] = cov
+    kt = opf["lange_beschreibung"] or opf["beschreibung"]
+    klappentext = {sprache: kt} if kt else {}
+    bericht["klappentext"] = "vorhanden" if kt else "keiner im ePub"
+
     M = config.MARKERS
     zeilen = [f'{M["title"]} {titel}', f'{M["author"]} {autor}', ""]
     for i, k in enumerate(kapitel, 1):
-        json.dump({"title": k["title"], "paragraphs": k["paragraphs"]},
-                  open(os.path.join(bdir, "work", "modernized", f"chapter-{i}.json"), "w", encoding="utf-8"),
-                  ensure_ascii=False, indent=2)
+        _dump(os.path.join(mod_dir, f"chapter-{i}.json"), {"title": k["title"], "paragraphs": k["paragraphs"]})
         zeilen += [f'{M["chapter"]} {k["title"]}', ""]
         for t in k["paragraphs"]:
             if t != HR:
                 zeilen += [t, ""]
     text = "\n".join(zeilen).strip() + "\n"
-    open(os.path.join(bdir, "raw_modernized.txt"), "w", encoding="utf-8").write(text)
-    open(os.path.join(bdir, "raw.txt"), "w", encoding="utf-8").write(text)
-
-    json.dump({"bilder": bilder, "fussnoten": fussnoten,
-               "regeln": {"bilder": "Anhang 'Bilder' am Werkende, Link am vorangehenden Satz",
-                          "fussnoten": "Anhang 'Anmerkungen' am Werkende, Link am Satz; uebersetzen ja, vertonen nein"}},
-              open(os.path.join(bdir, "work", "anhang.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+    _schreib_text(os.path.join(bdir, "raw_modernized.txt"), text)
+    _schreib_text(os.path.join(bdir, "raw.txt"), text)
+    _dump(os.path.join(bdir, "work", "anhang.json"), {
+        "bilder": bilder, "fussnoten": fussnoten,
+        "regeln": {"bilder": "Anhang 'Bilder' am Werkende, Link am vorangehenden Satz",
+                   "fussnoten": "Anhang 'Anmerkungen' am Werkende, Link am Satz; uebersetzen ja, vertonen nein"}})
 
     zeichen = sum(len(t) for k in kapitel for t in k["paragraphs"] if t != HR)
-    book = {
-        "book_slug": book_id, "author_slug": "", "autor_name": autor,
-        "herkunft": "privat_upload", "owner_uid": uid, "owner_name": user_name,
-        "label": label, "publisher": label,
-        "titel_original": titel, "originalsprache": sprache,
+    umfang = {"kapitel": len(kapitel), "zeichen": zeichen, "einheiten_50k": -(-zeichen // 50000),
+              "bilder": len(bilder), "fussnoten": len(fussnoten), "spine_zeichen": spine_zeichen,
+              "inhaltsanteil": round(zeichen / spine_zeichen, 3) if spine_zeichen else None}
+    bericht.update(kapitel=[{"nr": i, "titel": k["title"], "absaetze": len(k["paragraphs"]), "quelle": k["quelle"]}
+                            for i, k in enumerate(kapitel, 1)], umfang=umfang)
+    _dump(os.path.join(bdir, "work", "ingest_bericht.json"), bericht)
+    felder = {
+        "book_slug": book_id, "autor_name": autor, "label": label, "publisher": label,
+        "titel_original": titel, "originalsprache": sprache, "quellsprache": sprache,
         "quelle_epub": {"datei": os.path.basename(epub_path), "sha256": sha},
         "cover": cov.get("datei"), "klappentext": klappentext,
-        "umfang": {"kapitel": len(kapitel), "zeichen": zeichen,
-                   "einheiten_50k": -(-zeichen // 50000), "bilder": len(bilder), "fussnoten": len(fussnoten)},
-        "fassungen": [{"sprache": sprache, "titel": titel, "titel_quelle": "epub", "titel_pruefen": False}],
-        "angelegt": bericht["zeit"],
+        "klappentext_vorhanden": bool(kt), "umfang": umfang, "epub_import": opt,
     }
-    json.dump(book, open(os.path.join(bdir, "book.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=2)
-    bericht.update(kapitel=[{"nr": i, "titel": k["title"], "absaetze": len(k["paragraphs"]), "quelle": k["quelle"]}
-                            for i, k in enumerate(kapitel, 1)],
-                   umfang=book["umfang"])
-    json.dump(bericht, open(os.path.join(bdir, "work", "ingest_bericht.json"), "w", encoding="utf-8"),
-              ensure_ascii=False, indent=2)
-
-    print(f"[05] {book_id}: {len(kapitel)} Kapitel, {zeichen:,} Zeichen "
-          f"({book['umfang']['einheiten_50k']} Einheiten), {len(bilder)} Bilder, {len(fussnoten)} Fussnoten")
-    print(f"     Cover: {cov.get('gefunden_ueber') or 'neu erzeugt'} | Klappentext: {bericht['klappentext']}")
-    print(f"     entfernt: {', '.join(e['datei'] for e in bericht['entfernt']) or '-'}")
+    print(f"[150] {book_id}: {len(kapitel)} Kapitel, {zeichen:,} Zeichen, Inhaltsanteil "
+          f"{umfang['inhaltsanteil']}, {len(bilder)} Bilder, {len(fussnoten)} Fussnoten")
+    print(f"      Cover: {cov.get('gefunden_ueber') or 'neu erzeugt'} | Klappentext: {bericht['klappentext']}")
+    print(f"      entfernt: {', '.join(e['datei'] for e in bericht['entfernt']) or '-'}")
     for w in bericht["warnungen"]:
-        print(f"     WARNUNG: {w}")
-    return book_id
+        print(f"      WARNUNG: {w}")
+    return bericht, felder
+
+
+def _book_mischen(bdir, felder, neu_basis=None):
+    """Import-Felder in book.json uebernehmen; alle anderen Felder (Rechte, Mandant, Produkte, Titel je
+    Sprache, Casting-Verweise ...) bleiben erhalten (Befund: Neueinlesen ueberschrieb book.json)."""
+    p = os.path.join(bdir, "book.json")
+    if os.path.exists(p):
+        with open(p, encoding="utf-8") as f:
+            b = json.load(f)
+    else:
+        b = dict(neu_basis or {})
+    b.update(felder)
+    fass = [x for x in b.get("fassungen", []) if isinstance(x, dict)]
+    eintrag = next((x for x in fass if x.get("sprache") == felder["quellsprache"]), None)
+    if eintrag is None:
+        fass.append({"sprache": felder["quellsprache"], "titel": felder["titel_original"],
+                     "titel_quelle": "epub", "titel_pruefen": False})
+    elif eintrag.get("titel_quelle") in (None, "epub"):
+        eintrag.update(titel=felder["titel_original"], titel_quelle="epub")
+    b["fassungen"] = fass
+    _dump(p, b)
+    return b
+
+
+def epub_finden(ordner, roh):
+    d = (roh.get("quelle_epub") or {}).get("datei")
+    if d:
+        for p in (os.path.join(ordner, "quelle", d), os.path.join(ordner, d)):
+            if os.path.exists(p):
+                return p
+    return None
+
+
+def pruefen(g, ordner, roh, b):
+    """Gate 150 aus ingest_bericht.json + Ausgabedateien."""
+    bp = os.path.join(ordner, "work", "ingest_bericht.json")
+    try:
+        with open(bp, encoding="utf-8") as f:
+            ber = json.load(f)
+    except (OSError, ValueError):
+        g.pflicht("bericht", False, ruecksprung="150", text="ingest_bericht.json fehlt – ePub neu einlesen (--force)")
+        return
+    um = ber.get("umfang") or roh.get("umfang") or {}
+    mod = os.path.join(ordner, "work", "modernized")
+    n_dat = len([f for f in os.listdir(mod) if re.match(r"chapter-\d+\.json$", f)]) if os.path.isdir(mod) else 0
+    n = um.get("kapitel") or 0
+    g.pflicht("drm_frei", True, text="ePub lesbar, DRM-frei (eingelesen)")
+    g.min("kapitel", n, 1, bei_fehler="stopp", ruecksprung="150")
+    g.pflicht("kapitel_dateien", n_dat == n and os.path.exists(os.path.join(ordner, "raw_modernized.txt")),
+              wert=n_dat, ruecksprung="150",
+              text=f"chapter-N.json {n_dat} = Kapitel {n}, raw_modernized.txt " +
+                   ("da" if os.path.exists(os.path.join(ordner, "raw_modernized.txt")) else "fehlt"))
+    g.min("zeichen", um.get("zeichen") or 0, MIN_ZEICHEN, bei_fehler="stopp", ruecksprung="150")
+    anteil = um.get("inhaltsanteil")
+    if anteil is None:
+        g.hinweis("inhaltsanteil", False, text="Inhaltsanteil unbekannt (Altbericht) – --force misst ihn")
+    else:
+        g.min("inhaltsanteil", anteil, MIN_INHALTSANTEIL, bei_fehler="mensch", ruecksprung="150")
+    w = ber.get("warnungen") or []
+    g.pruefe("warnungen", not w, len(w), "= 0", "mensch", "150",
+             f"Warnungen im Bericht: {len(w)}" + (f" ({'; '.join(w[:5])})" if w else ""))
+    opf = ber.get("opf_sprache", ber.get("sprache"))
+    ueberschrieben = (roh.get("epub_import") or {}).get("sprache_regler")
+    g.pflicht("sprache_opf", bool(opf) or bool(ueberschrieben), wert=opf, bei_fehler="mensch", ruecksprung="150",
+              text="Sprache im OPF " + (repr(opf) if opf else "fehlt (en angenommen) – Regler --sprache"))
+    q = b.quellsprache
+    g.pflicht("sprache", q in bestellung_sprachliste(), wert=q, bei_fehler="mensch", ruecksprung="150",
+              text=f"Quellsprache {q!r} " + ("in Sprachliste" if q in bestellung_sprachliste()
+                                              else "nicht in Sprachliste – Anfrage, Stopp bis freigeschaltet"))
+    g.metrik("klappentext_vorhanden", bool(roh.get("klappentext_vorhanden", bool(roh.get("klappentext")))))
+    g.metrik("bilder", um.get("bilder"))
+    g.metrik("fussnoten", um.get("fussnoten"))
+    g.metrik("entfernt", [e["datei"] for e in ber.get("entfernt", [])])
+    g.metrik("mandant", b.mandant)
+    return ber
+
+
+def bestellung_sprachliste():
+    from pipeline import bestellung
+    return bestellung.sprachliste()
+
+
+def _gate(werk, slug, ordner, wer):
+    from pipeline import bestellung, gate
+    b = bestellung.lesen(werk)
+    g = gate.Gate(slug, STAGE, ruecksprung="150", wer=wer)
+    ber = pruefen(g, ordner, b.roh, b)
+    verlag = b.mandant_art == "verlag"
+    liste = "; ".join(f"{k['nr']} {k['titel']}" for k in (ber or {}).get("kapitel", [])[:40])
+    e = g.entscheide(mensch_immer=verlag, mensch_grund=f"Mandant verlag: Kapitelliste pruefen – {liste}")
+    print(g.bericht())
+    return e
+
+
+def run(werk, wer=None, force=False, titel=None, autor=None, sprache=None, behalten=None, entfernen=None,
+        bilder=None, fussnoten=None, cover=None, epub=None):
+    """Gate 150 fuer ein vorhandenes ePub-Werk (Kette). Regler/--force -> neu einlesen aus der Quelldatei
+    (Werkordner/quelle/<datei>), sonst Pruefung der vorhandenen Ausgabe. Rueckgabe auto | mensch | stopp."""
+    from pipeline import bestellung, gate, s080_mandant
+    wer = s080_mandant.nutzer(wer)
+    ordner = bestellung.werkordner(werk)
+    slug = os.path.basename(os.path.normpath(ordner))
+    roh = bestellung.lesen(werk).roh
+    regler = any(x not in (None, [], ()) for x in (titel, autor, sprache, behalten, entfernen, bilder, fussnoten,
+                                                   cover, epub))
+    if regler or force:
+        s080_mandant.darf(werk, "bestellen", wer)
+        opt = dict(OPT_STANDARD, **(roh.get("epub_import") or {}))
+        opt["seiten"] = dict(opt.get("seiten") or {})
+        for d in behalten or []:
+            opt["seiten"][d] = "behalten"
+        for d in entfernen or []:
+            opt["seiten"][d] = "entfernen"
+        if bilder is not None:
+            opt["bilder"] = bool(bilder)
+        if fussnoten is not None:
+            opt["fussnoten"] = bool(fussnoten)
+        if cover:
+            opt["cover"] = cover
+        if sprache:
+            opt["sprache_regler"] = sprache
+        pfad = epub or epub_finden(ordner, roh)
+        g = gate.Gate(slug, STAGE, ruecksprung="150", wer=wer)
+        if not pfad:
+            g.pflicht("epub_datei", False, ruecksprung="150",
+                      text=f"Quell-ePub {(roh.get('quelle_epub') or {}).get('datei')!r} nicht im Werkordner/quelle – "
+                           f"Regler --epub DATEI")
+            e = g.entscheide(); print(g.bericht()); return e
+        try:
+            _, felder = importieren(pfad, ordner, slug, roh.get("owner_name") or roh.get("besitzer") or "user",
+                                    titel=titel or (roh.get("epub_import") or {}).get("titel_regler"),
+                                    autor=autor or (roh.get("epub_import") or {}).get("autor_regler"),
+                                    sprache=sprache or opt.get("sprache_regler"), opt=opt)
+        except EpubFehler as ex:
+            g.pflicht("epub", False, wert=str(ex), ruecksprung="090",
+                      text=f"ePub abgelehnt: {ex} (Datei defekt/DRM -> 090)")
+            e = g.entscheide(); print(g.bericht()); return e
+        if titel:
+            felder["epub_import"]["titel_regler"] = titel
+        if autor:
+            felder["epub_import"]["autor_regler"] = autor
+        _quelle_sichern(pfad, ordner)
+        _book_mischen(ordner, felder)
+    return _gate(werk, slug, ordner, wer)
+
+
+def _quelle_sichern(pfad, ordner):
+    """Quell-ePub nach <werk>/quelle/ kopieren (Grundlage fuer Neueinlesen per Regler)."""
+    ziel = os.path.join(ordner, "quelle", os.path.basename(pfad))
+    if os.path.abspath(pfad) != os.path.abspath(ziel):
+        os.makedirs(os.path.dirname(ziel), exist_ok=True)
+        shutil.copy2(pfad, ziel)
+
+
+def neu_anlegen(epub_path, user, titel=None, autor=None, sprache=None, force=False, mandant=None, wer=None,
+                opt=None):
+    """Neuanlage aus einer ePub-Datei (TAELLA-Upload) + Gate 150. Index erst nach erfolgreichem Einlesen.
+    Rueckgabe (book_id, ergebnis)."""
+    from pipeline import s080_mandant
+    user_name = user.strip()
+    uid = re.sub(r"[^a-z0-9]", "", config.slugify(user_name)) or "user"
+    z, opf_path = oeffnen(epub_path)            # DRM/defekt -> EpubFehler vor jeder Ablage
+    opf = opf_lesen(z, opf_path)
+    t = titel or opf["titel"] or os.path.splitext(os.path.basename(epub_path))[0]
+    book_id = f"u-{uid}-{config.slugify(t)}"
+    bdir = os.path.join(config.USERS_DIR, uid, "works", book_id)
+    if os.path.exists(os.path.join(bdir, "book.json")) and not force:
+        print(f"[150] {book_id} existiert schon -> python -m pipeline.s150_epub_import {book_id} --force")
+        return book_id, None
+    o = dict(OPT_STANDARD, **(opt or {}))
+    if sprache:
+        o["sprache_regler"] = sprache
+    if titel:
+        o["titel_regler"] = titel
+    if autor:
+        o["autor_regler"] = autor
+    _, felder = importieren(epub_path, bdir, book_id, user_name, titel, autor, sprache, o)
+    mandant = mandant or f"user:{uid}"
+    quelle = "verlag_epub" if mandant.startswith("verlag:") else "user_epub"
+    basis = {"author_slug": "", "herkunft": "privat_upload", "owner_uid": uid, "owner_name": user_name,
+             "quelle": quelle, "mandant": mandant, "besitzer": uid, "fassungen": [],
+             "angelegt": datetime.now().isoformat(timespec="seconds")}
+    _quelle_sichern(epub_path, bdir)
+    _book_mischen(bdir, felder, basis)
+    idx = config._load_index()                  # Befund: Index erst nach erfolgreichem Einlesen
+    idx.setdefault("books", {})[book_id] = f"user:{uid}"
+    config._save_index(idx)
+    e = _gate(book_id, book_id, bdir, s080_mandant.nutzer(wer))
+    print(f"\nWeiter: python -m pipeline.s090_eingang {book_id} --versichern eigene ; python run.py {book_id}")
+    return book_id, e
+
+
+def main(argv=None):
+    import argparse
+    from pipeline import gate
+    ap = argparse.ArgumentParser(description="Stage 150 ePub-Import")
+    ap.add_argument("ziel", help="ePub-Datei (Neuanlage) oder Book-ID/Werkordner (Gate/Neueinlesen)")
+    ap.add_argument("--user", help="Neuanlage: Nutzername")
+    ap.add_argument("--mandant", help="Neuanlage: user:<uid> | verlag:<id>")
+    ap.add_argument("--wer")
+    ap.add_argument("--titel")
+    ap.add_argument("--autor")
+    ap.add_argument("--sprache", help="Sprache ueberschreiben (statt OPF)")
+    ap.add_argument("--behalten", action="append", default=[], metavar="DATEI", help="Seite erzwingen: behalten")
+    ap.add_argument("--entfernen", action="append", default=[], metavar="DATEI", help="Seite erzwingen: entfernen")
+    ap.add_argument("--bilder", choices=("ja", "nein"))
+    ap.add_argument("--fussnoten", choices=("ja", "nein"))
+    ap.add_argument("--cover", choices=("epub", "neu"), help="Cover uebernehmen oder neu (TAELLA-Standard)")
+    ap.add_argument("--epub", help="Quell-ePub fuer Neueinlesen (sonst <werk>/quelle/<datei>)")
+    ap.add_argument("--force", action="store_true", help="Neu einlesen (leert den Kapitelordner)")
+    a = ap.parse_args(argv)
+    jn = lambda v: None if v is None else v == "ja"
+    try:
+        if a.ziel.lower().endswith(".epub") and os.path.isfile(a.ziel):
+            opt = {"seiten": {**{d: "behalten" for d in a.behalten}, **{d: "entfernen" for d in a.entfernen}}}
+            if a.bilder:
+                opt["bilder"] = jn(a.bilder)
+            if a.fussnoten:
+                opt["fussnoten"] = jn(a.fussnoten)
+            if a.cover:
+                opt["cover"] = a.cover
+            _, e = neu_anlegen(a.ziel, a.user or "user", a.titel, a.autor, a.sprache, a.force, a.mandant, a.wer, opt)
+            return 0 if e is None else gate.EXIT[e]
+        e = run(a.ziel, a.wer, a.force, a.titel, a.autor, a.sprache, a.behalten, a.entfernen,
+                jn(a.bilder), jn(a.fussnoten), a.cover, a.epub)
+        return gate.EXIT[e]
+    except EpubFehler as e:
+        print(f"[150] ABGELEHNT: {e}")
+        return 2
 
 
 if __name__ == "__main__":
-    args = [a for a in sys.argv[1:]]
-    if not args or args[0].startswith("--"):
-        print(__doc__); sys.exit(1)
-    def opt(name):
-        return args[args.index(name) + 1] if name in args else None
-    try:
-        run(args[0], opt("--user") or "user", titel=opt("--titel"), force="--force" in args)
-    except EpubFehler as e:
-        print(f"[05] ABGELEHNT: {e}"); sys.exit(2)
+    sys.exit(main())
