@@ -43,21 +43,37 @@ OUTPUT_DIR = AUTHORS_DIR
 # ---- Index-Map (zentrale Aufloesung) ------------------------------------
 import json as _json
 
+class IndexDefekt(RuntimeError):
+    """daten/index.json vorhanden, aber nicht lesbar (Befund 100: frueher still leer -> Index-Verlust)."""
+
+
 def _load_index() -> dict:
     """index.json laden. Struktur:
        {"books": {"<book_slug>": "<autor_slug>"},
-        "authors": {"<autor_slug>": "<Q-ID>"}}"""
+        "authors": {"<autor_slug>": "<Q-ID>"}}
+    Defekte Datei -> IndexDefekt (nie still leer, sonst ueberschreibt der naechste Speichervorgang
+    den ganzen Index)."""
     if os.path.exists(INDEX_PATH):
         try:
-            return _json.load(open(INDEX_PATH, encoding="utf-8"))
-        except Exception:
-            pass
+            with open(INDEX_PATH, encoding="utf-8") as f:
+                d = _json.load(f)
+        except Exception as e:
+            raise IndexDefekt(f"{INDEX_PATH} nicht lesbar ({type(e).__name__}: {e})") from e
+        if not isinstance(d, dict) or not isinstance(d.get("books"), dict) \
+                or not isinstance(d.get("authors"), dict):
+            raise IndexDefekt(f"{INDEX_PATH}: Struktur books/authors fehlt")
+        return d
     return {"books": {}, "authors": {}}
 
 def _save_index(idx: dict) -> None:
+    """Atomar (tmp + os.replace): ein Abbruch hinterlaesst nie einen halben Index."""
     os.makedirs(os.path.dirname(INDEX_PATH), exist_ok=True)
-    _json.dump(idx, open(INDEX_PATH, "w", encoding="utf-8"),
-               ensure_ascii=False, indent=2)
+    tmp = f"{INDEX_PATH}.{os.getpid()}.tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        _json.dump(idx, f, ensure_ascii=False, indent=2)
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(tmp, INDEX_PATH)
 
 def author_of(book_id: str) -> str:
     """Liefert den autor_slug zu einem book_slug (aus dem Index)."""
