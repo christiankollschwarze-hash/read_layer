@@ -255,6 +255,10 @@ TTS_ENGINE_DE = "thorsten"
 # Chatterbox-LoRA je Sprache (CK 18.10.2026): mix_v1 = Standard fuer Deutsch (Single Speaker + Erzaehler).
 # book.json "tts_lora" uebersteuert je Werk ("aus" = ohne Adapter).
 TTS_LORA = {"de": "mix_v1"}
+# Registrierte LoRA-Adapter (Phase 2, Stage 410/500): Freigabe durch Admin nach Bewertungsschritt 6.
+# 410 haelt Name + Version je Stimme in casting.json; 500 Basic nutzt nur freigegebene Adapter dieser Version.
+LORA_ADAPTER = {"mix_v1": {"version": "1", "freigegeben": True, "datei": "gpu_lora/adapter/mix_v1.safetensors"},
+                "ramona_v1": {"version": "1", "freigegeben": False, "datei": "gpu_lora/adapter/ramona_v1.safetensors"}}
 
 # Preise fuer den Kostenzaehler (pipeline/usage_log.py), USD je 1 Mio. Token.
 # DeepSeek: Spitzenpreise (Nebenzeit rechnet usage_log automatisch zum halben Preis), Stand 10.10.2026.

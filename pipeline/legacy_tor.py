@@ -46,6 +46,13 @@ def _bj(book_id):
 
 
 def stimme(book_id, lang):
+    try:  # Phase 2: freigegebenes Casting (work/casting.json, Stage 410) hat Vorrang
+        from pipeline import s410_casting
+        n = s410_casting.stimme(book_id, lang)
+        if n:
+            return n
+    except Exception:
+        pass
     s = _bj(book_id).get("stimme")
     if isinstance(s, dict):
         s = s.get(lang)

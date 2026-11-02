@@ -44,7 +44,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from config import config
 
 # Stages, die ihr Gate selbst ueber gate.py/status.py schreiben (waechst mit jedem Stage-Umbau).
-UMGEBAUT = {"080", "090", "095", "100", "110", "115", "120", "150", "190", "195", "200", "210", "300", "310", "320", "330", "340", "400"}
+UMGEBAUT = {"080", "090", "095", "100", "110", "115", "120", "150", "190", "195", "200", "210", "300", "310", "320", "330", "340", "400", "410"}
 
 
 def _neu(modul, **kw):
@@ -72,6 +72,7 @@ NEU = {"090": _neu("pipeline.s090_eingang"),
        "330": _neu("pipeline.s330_rueckuebersetzung"),
        "340": _neu("pipeline.s340_wortalignment"),
        "400": _neu("pipeline.s400_regie"),
+       "410": _neu("pipeline.s410_casting"),
        "150": _neu("pipeline.s150_epub_import")}        # --force der Kette laedt raw.txt nicht neu (nur Stage-CLI)
 
 
@@ -186,7 +187,6 @@ def _alt_700(book_id, b, **_):
 
 # key -> (aufruf(book_id, lang, b, force), fertig(book_id, lang) | None)
 ALT = {
-    "410": (lambda w, lg, b, f: _mod("pipeline.s410_casting").run(w), _casting_done),
     "420": (lambda w, lg, b, f: _mod("pipeline.s420_sprecher").run(w), _sprecher_done),
     "500": (lambda w, lg, b, f: _mod(_engine_modul(w, lg)).run(w, lang=lg), _audio_done),
     "510": (lambda w, lg, b, f: _mod("pipeline.s510_hoerspiel_hybrid").run(w, lang=lg, force=f), _hybrid_done),
