@@ -255,25 +255,30 @@ def _fm_norm(s: str) -> str:
     return re.sub(r"[^\w]", "", (s or "").lower())
 
 def strip_leading_front_matter(paragraphs, title: str = "", author: str = ""):
-    """Liefert die Absatzliste OHNE fuehrenden Titelblock. Strippt nur, wenn ein
-    Titel- oder 'by Autor'-Duplikat den Block bestaetigt; hoert am ersten echten
-    (>= _FM_MIN_PROSE Zeichen) Prosa-Absatz auf; tut nichts, wenn keiner kommt."""
+    """Liefert die Absatzliste OHNE fuehrenden Titelblock. Entfernt nur fuehrende Absaetze, die
+    selbst Titelblock sind (Titel-/Autor-Duplikat, 'by Autor', HR, leer, ohne Kleinbuchstaben),
+    und nur, wenn ein Titel- oder 'by Autor'-Duplikat den Block bestaetigt. Der erste andere Absatz
+    bleibt immer stehen – auch kurze Erzaehlsaetze (Fix 02.11.2026, Yellow Wallpaper: vorher wurde
+    bis zum ersten Absatz >= _FM_MIN_PROSE Zeichen gestrichen)."""
     hr = "\u2014\u2014HR\u2014\u2014"
     paras = list(paragraphs)
-    prose_start = None
-    for i, p in enumerate(paras[:_FM_SCAN_LIMIT]):
-        if p and p != hr and len(p) >= _FM_MIN_PROSE and re.search(r"[a-z\u00e0-\u00ff]", p):
-            prose_start = i
-            break
-    if not prose_start:                 # 0 oder None -> nichts strippen
-        return paras
-    head = paras[:prose_start]
-    tnorm = _fm_norm(title)
-    confirmed = any(
-        (tnorm and _fm_norm(p) == tnorm) or re.match(r"(?i)^\s*by\s+\w", p or "")
-        for p in head
-    )
-    return paras[prose_start:] if confirmed else paras
+    tnorm, anorm = _fm_norm(title), _fm_norm(author)
+    ende, confirmed = 0, False
+    for p in paras[:_FM_SCAN_LIMIT]:
+        n = _fm_norm(p or "")
+        titel = bool(tnorm and n and (n == tnorm or (len(n) >= 5 and tnorm.startswith(n))))
+        byline = (bool(re.match(r"(?i)^\s*by(\s+\w|\s*$)", p or "")) and len(p) < 120)
+        autor = bool(anorm and n == anorm)
+        vermerk = bool(p) and len(p) < 300 and bool(re.search(
+            r"(?i)\b(translated by|reprinted by|copyright|all rights reserved|illustrated by)\b", p))
+        if titel or byline:
+            confirmed = True
+        if titel or byline or autor or vermerk or not p or p == hr \
+                or not re.search(r"[a-z\u00e0-\u00ff]", p):
+            ende += 1
+            continue
+        break
+    return paras[ende:] if confirmed and ende < len(paras) else paras
 
 def strip_trailing_end_marker(paragraphs):
     """Entfernt einen blanken Schluss-Marker ('THE END', 'FINIS') am Werkende.
