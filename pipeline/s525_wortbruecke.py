@@ -8,7 +8,7 @@ Wirkungsweise: Gemeinsame Wahrheit ist die ZEICHENPOSITION im Satztext, nie ein 
                   mehrere Lautwoerter je Token = ein Fenster). Diese Funktion nutzt s520 fuer BEIDE Sprachen.
                3) tokenzeiten(): Token ohne Zeit (Zahl, nicht darstellbares Zeichen) werden zwischen
                   zeitlich bekannten Nachbarn interpoliert (tq="interp"); reine Satzzeichen-Token bleiben leer.
-               4) ziel_spans(): de_span aus s340; fehlt er (gap_fallback/unresolved), wird das Fragment
+               4) ziel_spans() (liegt in s340): de_span aus s340; fehlt er (gap_fallback/unresolved), wird das Fragment
                   im Zielsatz neu verortet, Teile ("tauchte ... ein") einzeln -> mehrere Spans (sq="repariert").
                5) zeit_fuer_span(): Span -> Ziel-Tokens; Teil eines Tokens (Kompositum, "Santa-Clara-Tal")
                   bekommt den Zeitanteil nach Buchstabenposition, mehrere Tokens die Vereinigung.
@@ -123,84 +123,12 @@ def tokenzeiten(text, eintraege, reparatur=True):
 
 
 # ---------------------------------------------------------------------------
-# 4) Ziel-Spans je Anker (inkl. Reparatur fehlender Spans)
+# 4) Ziel-Spans je Anker (seit Phase 2 in s340, Befund 345 (3); hier nur Weiterleitung)
 # ---------------------------------------------------------------------------
-_RAND = re.compile(r"^[^\wÄÖÜäöüß]+|[^\wÄÖÜäöüß]+$")
-
-
-def _grenze(text, a, b):
-    vor = a == 0 or not text[a - 1].isalpha()
-    nach = b == len(text) or not text[b].isalpha()
-    return vor and nach
-
-
-def _finde(text, frag, von, bis):
-    """Alle wortgrenzen-sauberen Treffer (auch case-insensitive); bevorzugt im Fenster [von, bis]."""
-    if not frag:
-        return None
-    kand = []
-    for hay, nd in ((text, frag), (text.lower(), frag.lower())):
-        s = 0
-        while True:
-            x = hay.find(nd, s)
-            if x < 0:
-                break
-            if _grenze(text, x, x + len(nd)):
-                kand.append((x, x + len(nd)))
-            s = x + 1
-        if kand:
-            break
-    if not kand:
-        return None
-    im = [c for c in kand if c[0] >= von and c[1] <= bis]
-    if im:
-        return im[0]
-    return min(kand, key=lambda c: abs(c[0] - von))
-
-
-def _spans_aus(w, key):
-    sp = w.get(key)
-    if not sp:
-        return []
-    if isinstance(sp[0], int):
-        return [list(sp)]
-    return [list(x) for x in sp]
-
-
-def ziel_spans(align, ziel_text, reparatur=True):
-    """-> je Anker (spans, quelle) ; quelle '340' | 'repariert' | None."""
-    _, k_tgt, k_tgt_span = config.align_keys()
-    roh = [_spans_aus(w, k_tgt_span) for w in align]
-    out = []
-    for n, w in enumerate(align):
-        if roh[n]:
-            out.append((roh[n], "340"))
-            continue
-        frag = w.get(k_tgt)
-        # Schutz: s340-Lueckenfuellung ist nur glaubwuerdig, wenn sie kurz ist (<= 2 Woerter, kein Satzende)
-        if frag and w.get("source") == "gap_fallback" and (len(frag.split()) > 2 or re.search(r"[.!?;:]\s", frag)):
-            frag = None
-        if not (reparatur and frag):
-            out.append(([], None))
-            continue
-        von = next((roh[p][-1][1] for p in range(n - 1, -1, -1) if roh[p]), 0)
-        bis = next((roh[p][0][0] for p in range(n + 1, len(roh)) if roh[p]), len(ziel_text))
-        teile = [t for t in (_RAND.sub("", x) for x in re.split(r"\s*(?:\.\.\.|…|\s)\s*", frag)) if t]
-        ganz = _finde(ziel_text, _RAND.sub("", frag), von, max(bis, von))
-        spans = []
-        if ganz:
-            spans = [list(ganz)]
-        else:
-            cur = von
-            for t in teile:
-                s = _finde(ziel_text, t, cur, len(ziel_text))
-                if s:
-                    spans.append(list(s))
-                    cur = s[1]
-        if spans:
-            roh[n] = spans
-        out.append((spans, "repariert" if spans else None))
-    return out
+def ziel_spans(align, ziel_text, reparatur=True, lg=None):
+    """-> je Anker (spans, quelle) ; quelle '340' | 'repariert' | None. Logik: s340.ziel_spans."""
+    from pipeline.s340_wortalignment import ziel_spans as _zs
+    return _zs(align, ziel_text, reparatur=reparatur, lg=lg)
 
 
 # ---------------------------------------------------------------------------

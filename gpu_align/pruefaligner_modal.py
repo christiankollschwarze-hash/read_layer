@@ -1,6 +1,7 @@
-"""STAGE 345 Zulieferer — Pruefaligner awesome-align-with-co auf Modal-T4 (Hugging Face nur dort erreichbar).
-Aufruf:  py -3.11 -m modal run gpu_align/pruefaligner_modal.py --werk <werk>
-Ausgabe: work/345_pruefaligner.json  [{"id","w":[[i,[[a,b],..]],..]}]  (i = s340-Index, Spans im Zielsatz)
+"""STAGE 340 Pruefaligner (Teil von 340, frueher 345) — awesome-align-with-co auf Modal-T4 (Hugging Face nur dort).
+Normalfall: s340 ruft lauf() selbst auf (pipeline.s340_wortalignment._pruefaligner_modal, Ergebnis im Checkpoint).
+Einzelaufruf (Diagnose): py -3.11 -m modal run gpu_align/pruefaligner_modal.py --werk <werk> [--lang de]
+Ausgabe Einzelaufruf: work/345_pruefaligner.json  [{"id","w":[[i,[[a,b],..]],..]}]  (i = s340-Index, Spans im Zielsatz)
 Kosten:  ~0,006 $/Buch (Call of the Wild: 39 s T4, AP 54a 26.10.2026). Logik identisch mit align_vergleich_modal.py.
 (AP 54b, 26.10.2026)
 """
@@ -65,20 +66,20 @@ def lauf(paare):
 
 
 @app.local_entrypoint()
-def main(werk: str):
+def main(werk: str, lang: str = ""):
     import sys
     sys.path.insert(0, ".")
     from config import config
-    src, tgt = config.werk_sprachen(werk)[0], config.TARGET_LANGUAGES[0]   # AP 55: Richtung aus book.json
+    src, tgt = config.werk_sprachen(werk)[0], (lang or config.TARGET_LANGUAGES[0])
     wp = Path(config.work_path(werk, "340_wortalignment"))
     d = json.loads(wp.read_text(encoding="utf-8"))
     paare = [{"id": k, "q": v[src], "z": v[tgt]} for k, v in d["content"].items()
-             if v.get("align") and v.get(src) and v.get(tgt)]
+             if (v.get(f"align_{tgt}") or v.get("align")) and v.get(src) and v.get(tgt)]
     print(f"{werk}: {len(paare)} Saetze -> Modal T4", flush=True)
     out, sek = lauf.remote(paare)
     ziel = Path(config.work_path(werk, "345_pruefaligner"))
     ziel.write_text(json.dumps(out, ensure_ascii=False), encoding="utf-8")
     from pipeline import usage_log   # Fundament 5: Stage 340 (345 Teil von 340), Modal-Sekunden
-    usd = usage_log.log_gpu(werk, "340", sek, gpu="T4", extra={"teil": "345_pruefaligner", "aligner": "awesome_co"})
+    usd = usage_log.log_gpu(werk, "340", sek, gpu="T4", extra={"teil": "pruefaligner", "sprache": tgt, "aligner": "awesome_co"})
     usd = usd if usd is not None else round(sek * PREIS_T4_S, 4)
     print(f"Geschrieben: {ziel} ({len(out)} Saetze, {sek} s, ~{usd} $)")
