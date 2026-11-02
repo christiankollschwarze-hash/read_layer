@@ -223,6 +223,7 @@ MODELS = {
     "profiler":      "deepseek-v4-pro",        # Stage 51: Buch-Profil (12.10.2026, vorher gemini-2.5-pro)
     "pretranslator": "deepseek-v4-pro",        # Stage 02: Kontext-Vooruebersetzung
     "translator":    "deepseek-v4-pro",        # Stage 03: Satzgenaue Uebersetzung
+    "backtranslator": "deepseek-v4-flash",     # Stage 330: Rueckuebersetzung (02.11.2026, vorher translator = pro; CK)
     "validator":     "deepseek-v4-flash",      # Stage 55: Pruefung (12.10.2026, vorher gemini-2.5-flash = Kostenfalle durch Denk-Token)
     "ssml":          "deepseek-v4-flash",      # Stage 56: Audio-Regie (12.10.2026, vorher gemini-2.5-flash)
     "tts":           "gemini-3.8-flash-tts",   # Stage 40/58: Sprachsynthese (08.10.2026, vorher gemini-2.5-pro-tts)
