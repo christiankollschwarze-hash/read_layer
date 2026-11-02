@@ -1,57 +1,126 @@
-"""STAGE 502 - Vertonung Chatterbox (AP 63).
-Engine je Werk/Sprache: book.json "tts": {"<lg>": "chatterbox"}.
-Die Pipeline erzeugt nur das Paket (kostenlos, tools/cb_neu.py <werk> <lg> liste --alle).
-Der Modal-Lauf und das Einspielen passieren per .bat (start_cb_neu.bat <werk> <lg> los --alle),
-damit kein GPU-Lauf unbemerkt aus der Pipeline startet."""
+"""STAGE 502 — Chatterbox-Engine der Stage 500 (Stufe Basic), kein eigenes Gate (Katalogzeile 500).
+Funktion:     Baut aus den offenen Saetzen von Stage 500 ein Paket gpu_tts/<werk>_<lg>_500/ (jobs.json + ref.wav),
+              startet den Modal-Lauf (gpu_tts/tts_modal_opt.py::main, Batch, Satzpruefung per FA im Lauf, bis 2x neu,
+              Nachklang gekappt) und holt die WAVs ab. Tempo (atempo) wird beim Einsetzen einmal angewandt; die
+              Rohfassung bleibt in fassungen/<lg>/audio_chatterbox_roh/.
+Aufrufer:     pipeline/s500_vertonung_gemini.py (Stage 500) – nur nach Kostenfreigabe. Kein Start per Bat mehr
+              (start_cb_neu.bat / tools/cb_neu.py bleiben fuer Altwerke ausserhalb der Kette).
+Stimme:       Referenz-Audio und LoRA-Adapter (Name + Version) aus casting.json (Freigabe 410).
+Kosten:       Modal-GPU-Sekunden -> usage_log Stage 500 (in tts_modal_opt.main, mit Sprache).
+"""
 import glob
 import json
 import os
+import shutil
 import subprocess
 import sys
+import time
 
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import config
-from pipeline.legacy_tor import tts_engine
+
+TEMPO_STD = 0.91          # Grundmodell (tools/tts_paket.TEMPO_STANDARD)
+MS_STD = 0.051            # s je Zeichen roh (gpu_tts/cb_pruefung.MS_JE_ZEICHEN)
+BATCH_STD = 8
+EIN_CONTAINER_BIS = 200   # bis so viele Saetze: ein GPU-Container (Modell nur einmal laden)
 
 
-def _soll(book_id, lang):
-    d = json.load(open(config.work_path(book_id, "400_regie"), encoding="utf-8"))["content"]
-    return sum(1 for e in d.values()
-               if e.get("type") not in ("p", "tt", "skip") and str(e.get(lang, "")).strip())
+def lora_werte(name):
+    """(ms_je_zeichen, tempo) fuer einen Adapter; ohne Adapter Grundmodell."""
+    if not name:
+        return MS_STD, TEMPO_STD
+    try:
+        from tools.tts_paket import LORA
+        a = LORA.get(name) or {}
+        return float(a.get("ms_je_zeichen", MS_STD)), float(a.get("tempo", TEMPO_STD))
+    except Exception:
+        return MS_STD, TEMPO_STD
 
 
-def _ist(book_id, lang):
-    a = os.path.join(config.book_dir(book_id), "fassungen", lang, "audio")
-    return len(glob.glob(os.path.join(a, "*.wav"))) if os.path.isdir(a) else 0
+def paket_name(werk, lg):
+    return f"{werk}_{lg}_500"
 
 
-def _referenz(book_id, lang):
-    """AP 63: gewaehlte Stimme -> gpu_tts/<werk>_<lg>/ref.wav (max. 15 s) + jobs.json["ref"]."""
-    from pipeline.legacy_tor import stimme, ref_clip
-    name = stimme(book_id, lang)
-    q = ref_clip(name, lang)
-    if not q:
+def paket_dir(werk, lg):
+    return os.path.join(config.BASE_DIR, "gpu_tts", paket_name(werk, lg))
+
+
+def paket_bauen(werk, lg, jobs, stimme, referenz, adapter, ex=0.5, cfg=0.5, tag=None):
+    """jobs [(tid, text)] -> Paketordner. referenz relativ zu BASE_DIR (casting.json) oder None (Standardstimme)."""
+    d = paket_dir(werk, lg)
+    shutil.rmtree(d, ignore_errors=True)
+    os.makedirs(d)
+    ref = "chatterbox-standard"
+    if referenz:
+        q = referenz if os.path.isabs(referenz) else os.path.join(config.BASE_DIR, referenz)
+        if not os.path.exists(q):
+            raise FileNotFoundError(f"Referenz-Audio {referenz} fehlt")
+        from pipeline.hoerprobe import ref_schnitt
+        ref_schnitt(q, os.path.join(d, "ref.wav"))
+        ref = stimme or "werkstimme"
+    ein = len(jobs) <= EIN_CONTAINER_BIS
+    tag = tag or time.strftime("%Y%m%d%H%M%S")
+    daten = {"werk": werk, "lang": lg, "ref": ref, "ziel": f"work/_500/{lg}/{tag}", "tag": tag,
+             "jobs": [{"id": t, "kap": "neu" if ein else t[:4], "text": x, "ex": ex, "cfg": cfg} for t, x in jobs]}
+    if adapter:
+        ms, tempo = lora_werte(adapter)
+        daten.update(lora=adapter, ms_je_zeichen=ms, tempo=str(tempo))
+    with open(os.path.join(d, "jobs.json"), "w", encoding="utf-8") as f:
+        json.dump(daten, f, ensure_ascii=False, indent=1)
+    return d, daten
+
+
+def modal_lauf(werk, lg, batch=BATCH_STD, fp16=False, tag=None):
+    """Startet Modal (Batch mit Satzpruefung) und laedt ab. -> Messung (dict) inkl. befund {tid: grund}."""
+    name = paket_name(werk, lg)
+    cmd = [sys.executable, "-m", "modal", "run", "gpu_tts/tts_modal_opt.py::main", "--paket", name,
+           "--batch", str(int(batch)), "--zusatz", tag or "z"]
+    if fp16:
+        cmd.append("--fp16")
+    print(f"[502] Modal: {' '.join(cmd[3:])}", flush=True)
+    r = subprocess.run(cmd, cwd=config.BASE_DIR)
+    if r.returncode != 0:
+        raise RuntimeError(f"Modal-Lauf {name} Exit {r.returncode}")
+    m = sorted(glob.glob(os.path.join(paket_dir(werk, lg), f"messung_*{tag or 'z'}.json")), key=os.path.getmtime)
+    if not m:
+        return {}
+    with open(m[-1], encoding="utf-8") as f:
+        return json.load(f)
+
+
+def atempo(q, z, faktor):
+    if abs(float(faktor) - 1.0) < 1e-6:
+        shutil.copy2(q, z)
         return
-    d = os.path.join(config.BASE_DIR, "gpu_tts", f"{book_id}_{lang}")
-    os.makedirs(d, exist_ok=True)
-    from pipeline.hoerprobe import ref_schnitt
-    sek = ref_schnitt(q, os.path.join(d, "ref.wav"))
-    jp = os.path.join(d, "jobs.json")
-    j = json.load(open(jp, encoding="utf-8")) if os.path.exists(jp) else {"jobs": []}
-    j["ref"] = name
-    json.dump(j, open(jp, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-    print(f"[502] Referenz: {name} ({os.path.basename(q)}, {sek:.1f} s, Schnitt an Sprechpause)", flush=True)
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", q, "-af", f"atempo={faktor}",
+                    "-ar", "24000", "-ac", "1", "-c:a", "pcm_s16le", z], check=True)
 
 
-def run(book_id, chapter=None, lang=None, force=False, **_):
-    if tts_engine(book_id, lang) != "chatterbox":
-        return
-    soll = _soll(book_id, lang)
-    if not force and soll and _ist(book_id, lang) >= soll:
-        print(f"[502] {book_id} [{lang}] fertig: {_ist(book_id, lang)}/{soll}", flush=True)
-        return
-    _referenz(book_id, lang)
-    print(f"[502] {book_id} [{lang}]: Paket wird erzeugt (kostenlos)", flush=True)
-    subprocess.run([sys.executable, os.path.join(config.BASE_DIR, "tools", "cb_neu.py"),
-                    book_id, lang, "liste", "--alle"], cwd=config.BASE_DIR, check=True)
-    raise RuntimeError(f"[502] Paket {book_id}_{lang}_neu bereit. Vertonung per "
-                       f"start_cb_neu.bat {book_id} {lang} los --alle (Modal, Freigabe noetig).")
+def einsetzen(werk, lg, daten, tempo, audio_dir):
+    """Abgeholte Roh-WAVs -> audio_chatterbox_roh/ (Rohfassung) und audio/ (mit Tempo). -> {tid: pfad}."""
+    quelle = os.path.join(config.book_dir(werk), daten["ziel"])
+    roh = os.path.join(config.book_dir(werk), "fassungen", lg, "audio_chatterbox_roh")
+    os.makedirs(roh, exist_ok=True)
+    os.makedirs(audio_dir, exist_ok=True)
+    out = {}
+    for j in daten["jobs"]:
+        q = os.path.join(quelle, f"{j['id']}.wav")
+        if not os.path.exists(q) or os.path.getsize(q) == 0:
+            continue
+        shutil.copy2(q, os.path.join(roh, f"{j['id']}.wav"))
+        z = os.path.join(audio_dir, f"{j['id']}.wav")
+        atempo(q, z + ".tmp.wav", tempo)
+        os.replace(z + ".tmp.wav", z)
+        out[j["id"]] = z
+    shutil.rmtree(quelle, ignore_errors=True)
+    return out
+
+
+def befund(messung):
+    """{tid: grund} der nach den Modal-Wiederholungen noch auffaelligen Saetze."""
+    out = {}
+    for k in messung.get("kapitel_details") or []:
+        out.update(k.get("befund") or {})
+        for t in k.get("pruefung_rest") or []:
+            out.setdefault(t, "auffaellig")
+    return out

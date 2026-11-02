@@ -241,6 +241,7 @@ def kapitel(paket: str, kap: str, parallel: int = 1, fp16: bool = False, variant
                 b["grund"] = None
                 stat["pruefung_gekappt"] += 1
         stat["pruefung_rest"] = sorted({jid for (jid, n), b in befund.items() if b["grund"]})
+        stat["befund"] = {jid: b["grund"] for (jid, n), b in befund.items() if b["grund"]}   # Stage 500 (02.11.2026)
         for j in offen:
             teile_j = audio.get(j["id"], {})
             n_soll = len(teile(j["text"]))

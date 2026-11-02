@@ -44,7 +44,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from config import config
 
 # Stages, die ihr Gate selbst ueber gate.py/status.py schreiben (waechst mit jedem Stage-Umbau).
-UMGEBAUT = {"080", "090", "095", "100", "110", "115", "120", "150", "190", "195", "200", "210", "300", "310", "320", "330", "340", "400", "410", "420"}
+UMGEBAUT = {"080", "090", "095", "100", "110", "115", "120", "150", "190", "195", "200", "210", "300", "310", "320", "330", "340", "400", "410", "420", "500"}
 
 
 def _neu(modul, **kw):
@@ -74,6 +74,7 @@ NEU = {"090": _neu("pipeline.s090_eingang"),
        "400": _neu("pipeline.s400_regie"),
        "410": _neu("pipeline.s410_casting"),
        "420": _neu("pipeline.s420_sprecher"),
+       "500": _neu("pipeline.s500_vertonung_gemini"),
        "150": _neu("pipeline.s150_epub_import")}        # --force der Kette laedt raw.txt nicht neu (nur Stage-CLI)
 
 
@@ -112,23 +113,6 @@ def _epub(book_id, lang=None, b=None):
     return os.path.exists(os.path.join(config.book_dir(book_id), "fassungen", L, "output", f"{book_id}.epub"))
 
 
-def _audio_done(book_id, lang=None):
-    """Audio einer Sprache fertig: mindestens so viele WAVs wie Audio-Saetze in 400_regie."""
-    if not lang:
-        return False
-    audio_dir = os.path.join(config.book_dir(book_id), "fassungen", lang, "audio")
-    if not os.path.isdir(audio_dir):
-        return False
-    n_wav = len([f for f in os.listdir(audio_dir) if f.endswith(".wav")])
-    try:
-        data = json.load(open(config.work_path(book_id, "400_regie"), encoding="utf-8"))
-        soll = sum(1 for e in data["content"].values()
-                   if e.get("type") not in config.NO_AUDIO_TYPES and str(e.get(lang, "")).strip())
-        return soll > 0 and n_wav >= soll
-    except Exception:
-        return n_wav > 0
-
-
 def _casting_done(book_id, lang=None):
     from pipeline import s410_casting
     if not s410_casting.aktiv(book_id):
@@ -164,17 +148,6 @@ def _mod(name):
     return importlib.import_module(name)
 
 
-def _engine_modul(book_id, lang):
-    """Weiche je Fassung (Altweg legacy_tor; Umstellung auf Stufe aus 095 beim Umbau 500)."""
-    from pipeline.legacy_tor import tts_engine, stimmen_pruefung
-    fehler = stimmen_pruefung(book_id, lang)
-    if fehler:
-        raise RuntimeError(f"[Stimmen-Gate] {fehler}")
-    return {"thorsten": "pipeline.s501_vertonung_thorsten",
-            "chatterbox": "pipeline.s502_vertonung_chatterbox"}.get(tts_engine(book_id, lang),
-                                                                     "pipeline.s500_vertonung_gemini")
-
-
 def _alt_700(book_id, b, **_):
     if not _mod("pipeline.s700_guard").check(book_id, langs=b.sprachen):
         raise RuntimeError("Guard: ID-Deckung verletzt")
@@ -183,7 +156,6 @@ def _alt_700(book_id, b, **_):
 
 # key -> (aufruf(book_id, lang, b, force), fertig(book_id, lang) | None)
 ALT = {
-    "500": (lambda w, lg, b, f: _mod(_engine_modul(w, lg)).run(w, lang=lg), _audio_done),
     "510": (lambda w, lg, b, f: _mod("pipeline.s510_hoerspiel_hybrid").run(w, lang=lg, force=f), _hybrid_done),
     "520": (lambda w, lg, b, f: _mod("pipeline.s520_wortzeiten").run(w, lang=lg, force=f), _wortzeiten_done),
     "600": (lambda w, lg, b, f: _mod("pipeline.s600_klappentext").run(w), _work_json("600_klappentext")),
