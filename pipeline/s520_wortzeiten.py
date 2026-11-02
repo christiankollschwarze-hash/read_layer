@@ -1,7 +1,7 @@
 """STAGE 520 — Wortzeiten
 Funktion:     Wort-Zeitstempel fuer Karaoke-Highlighting.
 Wirkungsweise: Forced Alignment (torchaudio MMS_FA) je Satz-WAV, Bindung an die Wortanker aus s340.
-Komponenten:  pipeline/s520_wortzeiten.py, pipeline/s525_wortbruecke.py (Lautwoerter + Bindung); auf Modal: gpu_fa/fa_modal.py, gpu_tts/fertig_modal.py
+Komponenten:  pipeline/s520_wortzeiten.py, pipeline/s525_wortbruecke.py (Lautwoerter + Bindung); auf Modal: gpu_fa/fa_modal.py
 Zulieferer:   s500 Vertonung (WAVs), s340 Wort-Alignment (work/340_wortalignment.json)
 Abnehmer:     s525 Wortbruecke, s710 Cloud-Export, TAELLA-App (work/520_wortzeiten_<lang>.json)
 (Nomenklatur seit 18.10.2026, Uebersicht: docs/Pipeline_Strang_Matrix.xlsx)

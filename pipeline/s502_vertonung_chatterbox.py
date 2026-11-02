@@ -1,8 +1,8 @@
 """STAGE 502 — Chatterbox-Engine der Stage 500 (Stufe Basic), kein eigenes Gate (Katalogzeile 500).
 Funktion:     Baut aus den offenen Saetzen von Stage 500 ein Paket gpu_tts/<werk>_<lg>_500/ (jobs.json + ref.wav),
               startet den Modal-Lauf (gpu_tts/tts_modal_opt.py::main, Batch, Satzpruefung per FA im Lauf, bis 2x neu,
-              Nachklang gekappt) und holt die WAVs ab. Tempo (atempo) wird beim Einsetzen einmal angewandt; die
-              Rohfassung bleibt in fassungen/<lg>/audio_chatterbox_roh/.
+              Nachklang gekappt) und holt die WAVs ab (Rohfassung fassungen/<lg>/audio/; Tempo wendet Stage 530
+              einmal an, Adapter-Tempo aus lora_werte).
 Aufrufer:     pipeline/s500_vertonung_gemini.py (Stage 500) – nur nach Kostenfreigabe. Kein Start per Bat mehr
               (start_cb_neu.bat / tools/cb_neu.py bleiben fuer Altwerke ausserhalb der Kette).
 Stimme:       Referenz-Audio und LoRA-Adapter (Name + Version) aus casting.json (Freigabe 410).
@@ -96,20 +96,17 @@ def atempo(q, z, faktor):
                     "-ar", "24000", "-ac", "1", "-c:a", "pcm_s16le", z], check=True)
 
 
-def einsetzen(werk, lg, daten, tempo, audio_dir):
-    """Abgeholte Roh-WAVs -> audio_chatterbox_roh/ (Rohfassung) und audio/ (mit Tempo). -> {tid: pfad}."""
+def einsetzen(werk, lg, daten, audio_dir):
+    """Abgeholte Roh-WAVs -> audio/ (Rohfassung, ohne Tempo). -> {tid: pfad}."""
     quelle = os.path.join(config.book_dir(werk), daten["ziel"])
-    roh = os.path.join(config.book_dir(werk), "fassungen", lg, "audio_chatterbox_roh")
-    os.makedirs(roh, exist_ok=True)
     os.makedirs(audio_dir, exist_ok=True)
     out = {}
     for j in daten["jobs"]:
         q = os.path.join(quelle, f"{j['id']}.wav")
         if not os.path.exists(q) or os.path.getsize(q) == 0:
             continue
-        shutil.copy2(q, os.path.join(roh, f"{j['id']}.wav"))
         z = os.path.join(audio_dir, f"{j['id']}.wav")
-        atempo(q, z + ".tmp.wav", tempo)
+        shutil.copy2(q, z + ".tmp.wav")
         os.replace(z + ".tmp.wav", z)
         out[j["id"]] = z
     shutil.rmtree(quelle, ignore_errors=True)

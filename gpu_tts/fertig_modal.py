@@ -1,4 +1,5 @@
-"""READ LAYER — Werk auf Modal FERTIGSTELLEN, ohne Hin- und Herladen einzelner Saetze (17.10.2026).
+"""ALTWEG (nur alter Smoke-Ablauf start_smoke_test.bat, bis zum Smoke-Umbau): Endfassung macht jetzt Stage 530
+(pipeline/s530_audio_pruefung.py). READ LAYER — Werk auf Modal FERTIGSTELLEN, ohne Hin- und Herladen einzelner Saetze (17.10.2026).
 
 Die Satz-WAVs liegen nach tts_modal_opt.py (--no-herunterladen) schon im Volume (out/<paket>_<variante>).
 Je Sprache ein GPU-Container:

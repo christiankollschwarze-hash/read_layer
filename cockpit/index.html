@@ -305,7 +305,7 @@ async function hsEnt(slug,lg,figuren,aktion){
 let SP_N=80;
 async function sprache(){
   const items=await api("/api/sprache?n="+SP_N), m=document.getElementById("main");
-  if(!items.length){m.innerHTML=`<div class="empty">Noch keine Sprachprüfung.<br>Start: <code>start_sprachpruefung.bat &lt;werk&gt; &lt;lg&gt;</code></div>`;return}
+  if(!items.length){m.innerHTML=`<div class="empty">Noch keine Sprachprüfung.<br>Sprachprüfung jetzt in Stage 530: <code>py -3.11 -m pipeline.s530_audio_pruefung &lt;werk&gt;</code> (work/530_hoerliste.json)</div>`;return}
   m.innerHTML=items.map(spWerk).join("")+`<p><button class="b" onclick="SP_N+=80;sprache()">mehr Sätze zeigen</button></p>`;
 }
 function spWerk(w){

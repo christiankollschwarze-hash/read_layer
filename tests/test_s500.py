@@ -311,20 +311,20 @@ class T500(unittest.TestCase):
         for t in AUDIO:
             wav(self.a(f"{t}.wav"), 1.0)
         self.werk(produkte=BASIC, rl=rl)
-        g = self.lauf(regler={"tempo": {"*": 1.0}}, trocken=True)                 # kein Beleg
+        g = self.lauf(trocken=True)                 # kein Beleg
         self.assertTrue(any("nicht uebernommen" in h and "unbekannt" in h for h in g.ergebnis["hinweise"]))
         j = os.path.join(config.BASE_DIR, "gpu_tts", "w_de")
         os.makedirs(j)
         self.schreib(os.path.join(j, "jobs.json"), {"ref": "herr_a", "lora": "ramona_v1", "jobs": []})
-        g = self.lauf(regler={"tempo": {"*": 1.0}}, trocken=True)                 # anderer Adapter
+        g = self.lauf(trocken=True)                 # anderer Adapter
         self.assertTrue(any("ramona_v1" in h for h in g.ergebnis["hinweise"]))
         self.schreib(os.path.join(j, "jobs.json"), {"ref": "herr_a", "lora": "mix_v1", "jobs": []})
         self.schreib(os.path.join(self.wd, "500_vertonung.json"),
                      {"production": {"audio_manifest": {"de": {}}, "audio_voice_used": "Charon"}})
-        g = self.lauf(regler={"tempo": {"*": 1.0}}, trocken=True)                 # Belege uneindeutig
+        g = self.lauf(trocken=True)                 # Belege uneindeutig
         self.assertTrue(any("nicht uebernommen" in h for h in g.ergebnis["hinweise"]))
         os.remove(os.path.join(self.wd, "500_vertonung.json"))
-        g = self.lauf(regler={"tempo": {"*": 1.0}})
+        g = self.lauf()
         self.assertEqual(g.ergebnis["ergebnis"], "auto", g.bericht())
         self.assertEqual(self.modal, [])
 
@@ -345,24 +345,24 @@ class T500(unittest.TestCase):
     # ---------------------------------------------------------- Chatterbox
     def test_chatterbox_modal(self):
         self.werk(produkte=BASIC, rl=rollen("basic", {"name": "mix_v1", "version": "1"}))
-        g = self.lauf(regler={"tempo": {"*": 1.0}})
+        g = self.lauf()
         self.assertEqual(g.ergebnis["ergebnis"], "auto", g.bericht())
         self.assertEqual(len(self.modal), 1)
         d = self.modal[0]
         self.assertEqual((d["lora"], d["ref"]), ("mix_v1", "herr_a"))
         self.assertEqual(len(d["jobs"]), len(AUDIO))
         self.assertTrue(os.path.exists(os.path.join(CB.paket_dir("w", "de"), "ref.wav")))
-        self.assertTrue(os.path.exists(os.path.join(self.d, "fassungen", "de", "audio_chatterbox_roh",
-                                                    "c001_00002_s.wav")))
+        self.assertTrue(os.path.exists(os.path.join(self.d, "fassungen", "de", "audio", "c001_00002_s.wav")))
+        self.assertFalse(os.path.exists(os.path.join(self.d, "fassungen", "de", "audio_chatterbox_roh")))
         e = self.lesen("500_vertonung.json")["eintraege"]["de/c001_00002_s"]
         self.assertEqual((e["engine"], e["adapter"]["version"]), ("chatterbox", "1"))
-        self.lauf(regler={"tempo": {"*": 1.0}})
+        self.lauf()
         self.assertEqual(len(self.modal), 1)                              # nichts offen -> kein GPU-Lauf
 
     def test_chatterbox_rest_auffaellig_neuer_lauf(self):
         self.werk(produkte=BASIC, rl=rollen("basic", {"name": "mix_v1", "version": "1"}))
         self.grund_cb = {"c002_00002_s": "zu_kurz"}
-        g = self.lauf(regler={"tempo": {"*": 1.0}})
+        g = self.lauf()
         self.assertEqual(len(self.modal), 3)                              # 1 + 2 Wiederholungen nur fuer den Satz
         self.assertEqual([j["id"] for j in self.modal[1]["jobs"]], ["c002_00002_s"])
         self.assertEqual(g.ergebnis["ergebnis"], "mensch", g.bericht())

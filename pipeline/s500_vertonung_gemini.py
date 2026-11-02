@@ -3,7 +3,7 @@ Funktion:     Satz-WAVs je bestellter Audiosprache (Hoerbuch/Hoerspiel-Erzaehler
               Basic -> Chatterbox auf Modal (pipeline/s502_vertonung_chatterbox.py), Premium/Drama -> Gemini-TTS
               (hier: Bloecke mit FA-Schnitt am Energietal, Sentinel, Solo-Fallback). Ansage-Knoten aus 400 mit.
 Wirkungsweise: Manifest work/500_vertonung.json je Sprache/Satz mit Eingangs-Hash (Sprechtext inkl. Aussprache-
-              Lexikon, Engine, Stimme, Modell, Adapter-Version, Stil, Tempo): nur neue/geaenderte Saetze werden
+              Lexikon, Engine, Stimme, Modell, Adapter-Version, Stil): nur neue/geaenderte Saetze werden
               vertont (Altfassung/geaenderte Stimme -> automatisch neu). Vor jedem kostenpflichtigen Lauf
               Kostenschaetzung: Somnio im Budget (Regler --budget, Standard 0 $) -> auto, sonst Mensch
               (--kosten-freigeben USD). Satzpruefung je Satz
@@ -14,7 +14,7 @@ Wirkungsweise: Manifest work/500_vertonung.json je Sprache/Satz mit Eingangs-Has
 Eingang:      work/400_regie.json (production.sprechtext/direction/pause_after_ms, ansagen; Gate 400 frei),
               work/casting.json Schema 2 freigegeben (rollen[lg][stufe].erzaehler: gemini_id bzw. referenz; adapter;
               Gate 410 frei), book.json (Bestellung, vertonung_regler), work/aussprache_<lg>.json (Lexikon, frei).
-Ausgabe:      fassungen/<lg>/audio/<tag>.wav (Chatterbox-Rohfassung: audio_chatterbox_roh/), work/500_vertonung.json
+Ausgabe:      fassungen/<lg>/audio/<tag>.wav (Rohfassung, Tempo/Raender/Lautheit erst in 530), work/500_vertonung.json
               (Manifest Schema 1, Schluessel <lg>/<tag>), work/500_pruefung.json (Hoerliste), work/500_kosten.json
               (Freigaben). Altdatei 500_vertonung.json (production-Format) -> 500_vertonung_v1.json.
 Gate:         Kosten (Somnio im Budget -> auto, sonst Mensch); Gate 400/410 frei, Casting freigegeben, eine Engine je
@@ -24,7 +24,7 @@ Gate:         Kosten (Somnio im Budget -> auto, sonst Mensch); Gate 400/410 frei
               Altfassung ohne Sprechtext -> Hinweis. Probe N -> immer Mensch. Mensch-Freigabe gilt bei gleichem
               ausgabe_hash.
 Kosten:       usage_log Stage 500 mit Sprache (Gemini-TTS je Aufruf in tts_client, Modal-GPU in tts_modal_opt).
-Regler:       book.json vertonung_regler: --engine LG=gemini|chatterbox, --tempo [LG=]F, --ex, --cfg, --block-min/
+Regler:       book.json vertonung_regler: --engine LG=gemini|chatterbox, --ex, --cfg, --block-min/
               --block-ideal/--block-max, --valley-ratio, --batch, --fp16 an|aus, --budget, --auffaellig-max,
               --dauer-min/--dauer-max, --versuche; dazu --satz ID (neu), --kapitel c001,c002, --lang, --neu,
               --probe N, --kosten-freigeben USD, --trocken.
@@ -52,7 +52,7 @@ STAGE = "500"
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ENGINE = s410.ENGINE
 LANG_CODE = {"en": "en-US", "de": "de-DE", "fr": "fr-FR", "es": "es-ES", "it": "it-IT"}
-REGLER_STD = {"engine": {}, "tempo": {}, "ex": 0.5, "cfg": 0.5, "block_min": None, "block_ideal": None,
+REGLER_STD = {"engine": {}, "ex": 0.5, "cfg": 0.5, "block_min": None, "block_ideal": None,
               "block_max": None, "valley_ratio": 0.45, "batch": cb.BATCH_STD, "fp16": False,
               "budget": getattr(config, "BUDGET_500_USD", 0.0), "auffaellig_max": 0.01,
               "dauer_min": 0.6, "dauer_max": 1.6, "versuche": 2}
@@ -201,15 +201,6 @@ def adapter_pruefen(a):
     return None
 
 
-def _tempo(rg, lg, engine, adapter):
-    t = (rg.get("tempo") or {}).get(lg)
-    if t is None:
-        t = (rg.get("tempo") or {}).get("*")
-    if t is None:
-        t = cb.lora_werte((adapter or {}).get("name"))[1] if engine == "chatterbox" else 1.0
-    return float(t)
-
-
 def altbeleg(werk, lg, roh, alt500):
     """Womit wurde der Altbestand einer Sprache vertont? -> [(engine, stimme, adapter)] aus book.json tts/stimme,
     gpu_tts/<werk>_<lg>/jobs.json (Chatterbox) und Alt-500_vertonung.json (Gemini, audio_voice_used)."""
@@ -237,12 +228,12 @@ def uebernahme_ok(belege, engine, info):
     return e == engine and s_ in (info["stimme"], info["gemini_id"]) and (a or None) == (ad or None)
 
 
-def eingang_hash(u, tts_text, engine, info, rg, tempo):
+def eingang_hash(u, tts_text, engine, info, rg):
     return manifest.hash_obj({"t": tts_text, "e": engine, "s": info["stimme"],
                               "id": info["gemini_id"] if engine == "gemini" else info["referenz"],
                               "m": info.get("modell"), "a": (info.get("adapter") or {}) if engine == "chatterbox" else None,
                               "d": u["style"] if engine == "gemini" else None,
-                              "x": [rg["ex"], rg["cfg"]] if engine == "chatterbox" else None, "tempo": tempo})
+                              "x": [rg["ex"], rg["cfg"]] if engine == "chatterbox" else None})
 
 
 # ============================================================ Kosten
@@ -526,7 +517,6 @@ def _regler_gueltig(rg):
     try:
         bl = [int(rg[k]) for k in ("block_min", "block_ideal", "block_max") if rg[k] is not None]
         return (all(v in ("gemini", "chatterbox") for v in rg["engine"].values())
-                and all(0.5 <= float(v) <= 2.0 for v in rg["tempo"].values())
                 and 0 <= float(rg["ex"]) <= 1 and 0 <= float(rg["cfg"]) <= 1
                 and all(2 <= v <= 40 for v in bl) and bl == sorted(bl)
                 and 0 < float(rg["valley_ratio"]) < 1 and 1 <= int(rg["batch"]) <= 32
@@ -598,9 +588,8 @@ def run(werk, wer=None, regler=None, saetze=None, kapitel=None, nur_lang=None, n
                 continue
         units, alt = einheiten(data, lg)
         lex, n_lex = _lexikon(werk, lg)
-        tempo = _tempo(rg, lg, engine, info["adapter"])
         tts = {u["id"]: lex(u["text"]) for u in units}
-        soll = {u["id"]: eingang_hash(u, tts[u["id"]], engine, info, rg, tempo) for u in units}
+        soll = {u["id"]: eingang_hash(u, tts[u["id"]], engine, info, rg) for u in units}
         adir = audio_dir(werk, lg)
         # Erstlauf: vorhandene WAVs uebernehmen (Stimme alt = casting, kein Mock)
         uebern, nicht_uebern = 0, None
@@ -635,7 +624,7 @@ def run(werk, wer=None, regler=None, saetze=None, kapitel=None, nur_lang=None, n
             offen = offen[:int(probe)]
         zeichen = sum(len(tts[t]) for t in offen)
         plan[lg] = dict(engine=engine, stufe=stufe, info=info, units=units, tts=tts, soll=soll, adir=adir,
-                        offen=offen, tempo=tempo, zeichen=zeichen, usd=kosten(engine, zeichen), alt=alt,
+                        offen=offen, zeichen=zeichen, usd=kosten(engine, zeichen), alt=alt,
                         uebern=uebern, nicht_uebern=nicht_uebern, n_lex=n_lex)
     usd = round(sum(p["usd"] for p in plan.values()), 4)
     n_offen = sum(len(p["offen"]) for p in plan.values())
@@ -693,7 +682,7 @@ def run(werk, wer=None, regler=None, saetze=None, kapitel=None, nur_lang=None, n
                     n_bl = gemini_vertonen(werk, lg, units, set(p["offen"]), info["gemini_id"], rg, adir, tts,
                                            neu_ids, fb)
                 else:
-                    neu_ids.update(_cb_runde(werk, lg, p["offen"], tts, info, rg, p["tempo"], adir, befund))
+                    neu_ids.update(_cb_runde(werk, lg, p["offen"], tts, info, rg, adir, befund))
             except Exception as e:
                 ausfall = f"{lg}: {type(e).__name__}: {str(e)[:160]}"
                 print(f"[500] Abbruch {ausfall}")
@@ -717,7 +706,7 @@ def run(werk, wer=None, regler=None, saetze=None, kapitel=None, nur_lang=None, n
                     if engine == "gemini":
                         gemini_reparieren(lg, schlecht, units, info["gemini_id"], adir, tts, pruefer_g, befund)
                     else:
-                        _cb_runde(werk, lg, schlecht, tts, info, rg, p["tempo"], adir, befund, ersetzen_wenn_besser=True)
+                        _cb_runde(werk, lg, schlecht, tts, info, rg, adir, befund, ersetzen_wenn_besser=True)
                 except Exception as e:
                     print(f"[500] Wiederholung {lg} abgebrochen: {type(e).__name__}")
                     break
@@ -743,7 +732,7 @@ def run(werk, wer=None, regler=None, saetze=None, kapitel=None, nur_lang=None, n
         je_sprache[lg] = {"engine": engine, "stufe": p["stufe"], "stimme": info["stimme"],
                           "gemini_id": info["gemini_id"] if engine == "gemini" else None,
                           "referenz": info["referenz"] if engine == "chatterbox" else None,
-                          "adapter": info["adapter"] if engine == "chatterbox" else None, "tempo": p["tempo"],
+                          "adapter": info["adapter"] if engine == "chatterbox" else None,
                           "einheiten": len(units), "vertont": len(neu_ids), "uebernommen": p["uebern"],
                           "fallback_bloecke": len(fb), "bloecke": n_bl, "lexikon": p["n_lex"]}
     if ausfall:
@@ -783,7 +772,7 @@ def _median(units, tts, m, lg, neu):
     return statistics.median(q) if len(q) >= 20 else None
 
 
-def _cb_runde(werk, lg, ids, tts, info, rg, tempo, adir, befund, ersetzen_wenn_besser=False):
+def _cb_runde(werk, lg, ids, tts, info, rg, adir, befund, ersetzen_wenn_besser=False):
     """Ein Modal-Lauf fuer ids -> {tid: {pfad}}; befund aus der Modal-Satzpruefung."""
     tag = time.strftime("%Y%m%d%H%M%S")
     _, daten = cb.paket_bauen(werk, lg, [(t, tts[t]) for t in ids], info["stimme"], info["referenz"],
@@ -800,7 +789,7 @@ def _cb_runde(werk, lg, ids, tts, info, rg, tempo, adir, befund, ersetzen_wenn_b
     bef = cb.befund(mess)
     if ersetzen_wenn_besser:
         tmp_dir = os.path.join(config.work_dir(werk), "_500", lg, tag + "_ein")
-        neu = cb.einsetzen(werk, lg, daten, tempo, tmp_dir)
+        neu = cb.einsetzen(werk, lg, daten, tmp_dir)
         for t, p in neu.items():
             alt = (befund.get(t) or {}).get("grund")
             g_neu = bef.get(t) or _grund_lokal(wav_info(p), tts[t], None, rg)
@@ -810,7 +799,7 @@ def _cb_runde(werk, lg, ids, tts, info, rg, tempo, adir, befund, ersetzen_wenn_b
         import shutil
         shutil.rmtree(tmp_dir, ignore_errors=True)
         return {t: {"pfad": os.path.join(adir, f"{t}.wav")} for t in ids}
-    neu = cb.einsetzen(werk, lg, daten, tempo, adir)
+    neu = cb.einsetzen(werk, lg, daten, adir)
     for t in neu:
         befund[t] = {"grund": bef.get(t)}
     return {t: {"pfad": p} for t, p in neu.items()}
@@ -878,7 +867,6 @@ def main(argv=None):
     ap.add_argument("werk")
     ap.add_argument("--wer")
     ap.add_argument("--engine", action="append", metavar="LG=gemini|chatterbox|auto")
-    ap.add_argument("--tempo", action="append", metavar="[LG=]F")
     for k in ("ex", "cfg", "valley-ratio", "budget", "auffaellig-max", "dauer-min", "dauer-max"):
         ap.add_argument(f"--{k}", type=float)
     for k in ("block-min", "block-ideal", "block-max", "batch", "versuche", "probe"):
@@ -901,7 +889,7 @@ def main(argv=None):
             k, v = x.split("=", 1) if "=" in x else ("*", x)
             out[k] = v if v == "auto" or not zahl else float(v)
         return out
-    regler = {"engine": paare(a.engine), "tempo": paare(a.tempo, True), "ex": a.ex, "cfg": a.cfg,
+    regler = {"engine": paare(a.engine), "ex": a.ex, "cfg": a.cfg,
               "block_min": a.block_min, "block_ideal": a.block_ideal, "block_max": a.block_max,
               "valley_ratio": a.valley_ratio, "batch": a.batch, "fp16": {"an": True, "aus": False}.get(a.fp16),
               "budget": a.budget, "auffaellig_max": a.auffaellig_max, "dauer_min": a.dauer_min,
