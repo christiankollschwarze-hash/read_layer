@@ -44,7 +44,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from config import config
 
 # Stages, die ihr Gate selbst ueber gate.py/status.py schreiben (waechst mit jedem Stage-Umbau).
-UMGEBAUT = {"080", "090", "095", "100", "110", "115", "120", "150"}
+UMGEBAUT = {"080", "090", "095", "100", "110", "115", "120", "150", "190"}
 
 
 def _neu(modul, **kw):
@@ -62,6 +62,7 @@ NEU = {"090": _neu("pipeline.s090_eingang"),
        "110": _neu("pipeline.s110_wikidata"),
        "115": _neu("pipeline.s115_fassung"),
        "120": _neu("pipeline.s120_modernisierung"),
+       "190": _neu("pipeline.s190_vertrag"),
        "150": _neu("pipeline.s150_epub_import")}        # --force der Kette laedt raw.txt nicht neu (nur Stage-CLI)
 
 

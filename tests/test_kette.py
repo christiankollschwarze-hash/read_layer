@@ -106,6 +106,9 @@ class Kette(unittest.TestCase):
         # 120 Modernisierung als Attrappe (eigenes Gate, Test in test_s120)
         run.NEU["120"] = lambda w, b, f, wer: (self.gelaufen.append("120"),
                                                S.ergebnis(w, "120", "auto", wer="test"))
+        # 190 Eingangsvertrag als Attrappe (eigenes Gate, Test in test_s190)
+        run.NEU["190"] = lambda w, b, f, wer: (self.gelaufen.append("190"),
+                                               S.ergebnis(w, "190", "auto", wer="test"))
 
     def tearDown(self):
         self.run.ALT.clear(); self.run.ALT.update(self._alt)
@@ -121,7 +124,7 @@ class Kette(unittest.TestCase):
     def test_ganze_kette_text_epub(self):
         rc, out = self.lauf()
         self.assertEqual(rc, 0, out)
-        self.assertEqual(self.gelaufen, ["150", "120", "600", "610", "615", "620", "700", "710"])
+        self.assertEqual(self.gelaufen, ["150", "120", "190", "600", "610", "615", "620", "700", "710"])
         d = S.laden("u-test")
         self.assertEqual(d["stages"]["310"]["zustand"], "entfaellt")
         self.assertEqual(d["stages"]["620"]["zustand"], "frei")
