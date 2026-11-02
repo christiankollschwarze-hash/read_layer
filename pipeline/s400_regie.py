@@ -266,37 +266,12 @@ def _direction_for_type(typ: str, base_directions: dict) -> str:
 # HAUPTPROZESS
 # ============================================================
 
-def _qualitaets_stopp(data):
-    """QF-6 (18.10.2026): Stopp, wenn Stage 55 zu viele Saetze unter der Schwelle meldet."""
-    qr = data.get("meta", {}).get("quality_report", {})
-    n_flag = len(qr.get("flagged", []))
-    n_bew = qr.get("scored_count", 0) or 0
-    if not n_bew or os.environ.get("READLAYER_WEITER") == "1":
-        return
-    anteil = n_flag / n_bew
-    grenze = getattr(config, "FLAG_MAX_ANTEIL", 0.03)
-    # 24.10.2026: kleine Werke (< FLAG_ANTEIL_AB_SAETZEN) -> absolute Grenze statt Anteil
-    if n_bew < getattr(config, "FLAG_ANTEIL_AB_SAETZEN", 300):
-        max_klein = getattr(config, "FLAG_MAX_KLEIN", 10)
-        if n_flag >= max_klein:
-            raise RuntimeError(
-                f"Stage 55: {n_flag} von {n_bew} Saetzen unter Score {qr.get('threshold')} "
-                f"(kleines Werk: >= {max_klein} geflaggt). Liste in 330_rueckuebersetzung.json -> "
-                f"meta.quality_report.flagged pruefen/nacharbeiten oder bewusst weiter mit READLAYER_WEITER=1.")
-        return
-    if anteil > grenze:
-        raise RuntimeError(
-            f"Stage 55: {n_flag} von {n_bew} Saetzen unter Score {qr.get('threshold')} "
-            f"({anteil:.1%} > {grenze:.0%}). Liste in 330_rueckuebersetzung.json -> meta.quality_report.flagged "
-            f"pruefen/nacharbeiten oder bewusst weiter mit READLAYER_WEITER=1.")
-
-
 def run(book_id: str) -> dict:
     in_path = config.work_path(book_id, "330_rueckuebersetzung")
     print(f"[400] Lese: {in_path}")
     with open(in_path, "r", encoding="utf-8") as f:
         data = json.load(f)
-    _qualitaets_stopp(data)   # QF-6
+    # 02.11.2026: Mengen-Stopp (QF-6) entfaellt hier – Halt in Gate 330 selbst.
 
     profile = data["meta"].get("profile", {})
     untranslated = profile.get("untranslated", {})

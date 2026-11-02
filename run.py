@@ -44,7 +44,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from config import config
 
 # Stages, die ihr Gate selbst ueber gate.py/status.py schreiben (waechst mit jedem Stage-Umbau).
-UMGEBAUT = {"080", "090", "095", "100", "110", "115", "120", "150", "190", "195", "200", "210", "300", "310", "320"}
+UMGEBAUT = {"080", "090", "095", "100", "110", "115", "120", "150", "190", "195", "200", "210", "300", "310", "320", "330"}
 
 
 def _neu(modul, **kw):
@@ -69,6 +69,7 @@ NEU = {"090": _neu("pipeline.s090_eingang"),
        "300": _neu("pipeline.s300_voruebersetzung"),
        "310": _neu("pipeline.s310_uebersetzung"),
        "320": _neu("pipeline.s320_integritaet"),
+       "330": _neu("pipeline.s330_rueckuebersetzung"),
        "150": _neu("pipeline.s150_epub_import")}        # --force der Kette laedt raw.txt nicht neu (nur Stage-CLI)
 
 
@@ -183,7 +184,6 @@ def _alt_700(book_id, b, **_):
 
 # key -> (aufruf(book_id, lang, b, force), fertig(book_id, lang) | None)
 ALT = {
-    "330": (lambda w, lg, b, f: _mod("pipeline.s330_rueckuebersetzung").run(w), _work_json("330_rueckuebersetzung")),
     "340": (lambda w, lg, b, f: _mod("pipeline.s340_wortalignment").run(w), _work_json("340_wortalignment")),
     "400": (lambda w, lg, b, f: _mod("pipeline.s400_regie").run(w), _work_json("400_regie")),
     "410": (lambda w, lg, b, f: _mod("pipeline.s410_casting").run(w), _casting_done),
