@@ -124,6 +124,8 @@ def bedarf(b, roh=None):
         s.add("620")
     if any("epub" in p["kanaele"] and p["sprache"] in ziel for p in P):
         s.add("630")
+    if roh.get("geteilt_in"):            # 195: Werk in Teile zerlegt -> weiter nur in den Teilen
+        s = {x for x in s if x <= "195"}
     return s
 
 
