@@ -1,7 +1,7 @@
 """READ LAYER - Sprechweise je Figur/Kapitel (22.10.2026, AP4 Spiegelschwestern).
 
 Zwei Figuren mit EINER Grundstimme (Zwillinge) unterscheiden sich nur ueber die Sprechweise. Umsetzung nach dem Vertonen
-mit Praat "Change gender" (tools/overlay_korrektur.korrigieren): tonhoehe_ht (F0-Median) + formant_faktor; Dauer bleibt,
+mit Praat "Change gender" (pipeline/s510_hoerspiel_hybrid.korrigieren): tonhoehe_ht (F0-Median) + formant_faktor; Dauer bleibt,
 Wortzeiten (520) bleiben gueltig. Grenzen wie Abstandsregel: Formant 0,94-1,10, Tonhoehe +-2 HT.
 
 casting.json plan.sprechweise:
@@ -59,7 +59,7 @@ def main(werk, lg="de", nur_liste=False):
         return
     if not nur_liste:
         import soundfile as sf
-        from overlay_korrektur import korrigieren
+        from pipeline.s510_hoerspiel_hybrid import korrigieren
     anteil = kapitel_anteile(wd)
     audio = os.path.join(wd, "fassungen", lg, "audio")
     vor = os.path.join(wd, "fassungen", lg, "audio_vor_sprechweise")

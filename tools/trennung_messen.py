@@ -368,7 +368,7 @@ def korrektur_varianten(book, lg):
     """Fuer jede Figur mit korrektur[lg] in casting.json: beide Stufen in ihrer Richtung (knapp, Grenze), ohne Tonhoehe
     -> Segmente kx__s1__<job>, kx__s2__<job> + spur_s1.wav, spur_s2.wav. Richtung = Vorzeichen des Formantfaktors."""
     sys.path.insert(0, os.path.join(HIER, "tools"))
-    from overlay_korrektur import korrigieren
+    from pipeline.s510_hoerspiel_hybrid import korrigieren
     figuren = {f: (-1 if float(k.get("formant_faktor", 1.0)) < 1 else +1) for f, k in korrekturen(book, lg).items()}
     if not figuren:
         print("[korrektur] keine Figur mit korrektur[%s] in casting.json" % lg)

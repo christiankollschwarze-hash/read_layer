@@ -44,7 +44,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from config import config
 
 # Stages, die ihr Gate selbst ueber gate.py/status.py schreiben (waechst mit jedem Stage-Umbau).
-UMGEBAUT = {"080", "090", "095", "100", "110", "115", "120", "150", "190", "195", "200", "210", "300", "310", "320", "330", "340", "400", "410", "420", "500"}
+UMGEBAUT = {"080", "090", "095", "100", "110", "115", "120", "150", "190", "195", "200", "210", "300", "310", "320", "330", "340", "400", "410", "420", "500", "510"}
 
 
 def _neu(modul, **kw):
@@ -75,6 +75,7 @@ NEU = {"090": _neu("pipeline.s090_eingang"),
        "410": _neu("pipeline.s410_casting"),
        "420": _neu("pipeline.s420_sprecher"),
        "500": _neu("pipeline.s500_vertonung_gemini"),
+       "510": _neu("pipeline.s510_hoerspiel_hybrid"),
        "150": _neu("pipeline.s150_epub_import")}        # --force der Kette laedt raw.txt nicht neu (nur Stage-CLI)
 
 
@@ -130,10 +131,6 @@ def _casting_tor(book_id):
     return None if tor == "freigegeben" else str(tor)
 
 
-def _hybrid_done(book_id, lang=None):
-    return os.path.exists(os.path.join(config.work_dir(book_id), f"hybrid_{lang}.json"))
-
-
 def _wortzeiten_done(book_id, lang=None):
     return os.path.exists(config.work_path(book_id, f"520_wortzeiten_{lang}"))
 
@@ -156,7 +153,6 @@ def _alt_700(book_id, b, **_):
 
 # key -> (aufruf(book_id, lang, b, force), fertig(book_id, lang) | None)
 ALT = {
-    "510": (lambda w, lg, b, f: _mod("pipeline.s510_hoerspiel_hybrid").run(w, lang=lg, force=f), _hybrid_done),
     "520": (lambda w, lg, b, f: _mod("pipeline.s520_wortzeiten").run(w, lang=lg, force=f), _wortzeiten_done),
     "600": (lambda w, lg, b, f: _mod("pipeline.s600_klappentext").run(w), _work_json("600_klappentext")),
     "610": (lambda w, lg, b, f: _mod("pipeline.s610_cover").run(w, force=f), _cover_png),

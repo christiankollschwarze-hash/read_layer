@@ -1,6 +1,6 @@
 """READ LAYER — AP 62 Punkt 4: Schnitt-Zeitpunkte (MMS_FA) fuer die Hoerspiel-Stufe 510 auf Modal-GPU.
 Gleicher Aligner wie lokal (pipeline/s520_wortzeiten.py, _Aligner), nur READLAYER_FA_DEVICE=cuda.
-Wird aus pipeline/s510_hoerspiel_hybrid.py ueber `with app.run():` aufgerufen. Rueckfall: CPU (lokal).
+Wird aus pipeline/s510_hoerspiel_hybrid.py (zeiten_modal) ueber `with app.run():` aufgerufen (je WAV eine Wortliste). Rueckfall: CPU (lokal).
 GPU-Liste wie fa_modal.py: ["L4", "A10G", "T4"].
 """
 from pathlib import Path
@@ -25,14 +25,10 @@ image = (
 
 @app.function(image=image, gpu=["L4", "A10G", "T4"], volumes={"/vol": vol}, timeout=3 * 3600)
 def zeiten(chunk: list) -> dict:
-    """chunk: [{key, erz, alt, woerter}] (Pfade relativ zum Volume). Gibt {key: (zeit_erz, zeit_alt)}."""
+    """chunk: [{key, wav, woerter}] (wav relativ zum Volume). Gibt {key: [(t0, t1)|None je Wort]}."""
     import sys
     sys.path.insert(0, "/rl")
     vol.reload()
     from pipeline.s520_wortzeiten import _Aligner
     AL = _Aligner()
-    out = {}
-    for j in chunk:
-        out[j["key"]] = (AL.ausrichten("/vol" + j["erz"], j["woerter"]),
-                         AL.ausrichten("/vol" + j["alt"], j["woerter"]))
-    return out
+    return {j["key"]: AL.ausrichten("/vol" + j["wav"], j["woerter"]) for j in chunk}

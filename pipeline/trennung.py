@@ -13,7 +13,7 @@ Befunde, die diese Regel begruenden
     105 Gleich- / 5355 Verschieden-Paaren. D >= D_ziel (25 % Reserve) = sicher.
   * Chatterbox VC uebernimmt ~65 % der F0- und ~70 % der VTL-Differenz; Tonhoehe allein aendert die
     Sprecheridentitaet kaum (ECAPA unveraendert). Wirksam ist der Formantfaktor NACH dem VC
-    (tools/overlay_korrektur.py), Tonhoehe nur als Zugabe.
+    (pipeline/s510_hoerspiel_hybrid.korrigieren), Tonhoehe nur als Zugabe.
 
 Status je Figur: ok (D >= D_ziel) | knapp (D_schwelle..D_ziel) | zu_nah (< D_schwelle)
 """
