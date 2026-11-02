@@ -1,168 +1,167 @@
-"""STAGE 320 — Integritaet
-Funktion:     Mechanische Strukturpruefung der Uebersetzung.
-Wirkungsweise: Prueft fehlende/leere Sprachen, Tag-ID-Form und Sequenz; Bericht in meta.integrity_report. s330 stoppt bei Fehlern.
-Komponenten:  pipeline/s320_integritaet.py
-Zulieferer:   s310 Uebersetzung (work/310_uebersetzung.json)
-Abnehmer:     s330 Rueckuebersetzung (work/320_integritaet.json)
-(Nomenklatur seit 18.10.2026, Uebersicht: docs/Pipeline_Strang_Matrix.xlsx)
-
---- Bisherige Beschreibung ---
-
-READ LAYER — Stage 54 (Integrity Check)
-=======================================
-Input:  authors/<autor>/books/<book>/work/310_uebersetzung.json
-Output: authors/<autor>/books/<book>/work/320_integritaet.json   (unveraendert durchgereicht)
-        + Report auf stdout
-
-Rein MECHANISCH, keine API, keine Kosten. Laeuft IMMER.
-Trennt strukturelle Fehler von Qualitaetsfragen (die kommen in 04b).
-
-Prueft:
-  1. Vollstaendigkeit  - hat jeder uebersetzbare Tag alle Zielsprachen?
-  2. Leere Felder      - ist eine Uebersetzung leer, obwohl Quelle Text hat?
-  3. Sequenz-Lueckenlosigkeit - sind die Sequenznummern pro Kapitel lueckenlos?
-  4. Tag-ID-Form       - entspricht jede ID dem Schema c<NNN>_<prefix><NNNNN>?
+"""STAGE 320 — Integritaet (Umbau Phase 2, GATE_KATALOG.md Zeile 320, 02.11.2026)
+Funktion:      Mechanischer Strukturvertrag vor 330 ff. Keine API, keine Kosten.
+Wirkungsweise: Gleicht 310 gegen 200 ab (ID-Menge, Quelltext je Knoten), prueft ID-Form,
+               lueckenlose Sequenz je Kapitel, jede bestellte Zielsprache vorhanden und nicht leer,
+               keine unbestellte Sprache, Gates 300/310 frei. Alles gruen -> auto, sonst Stopp in 320
+               selbst (Ruecksprung 310 bei Uebersetzungsluecken, 200 bei Struktur/Quelltext).
+               Keine Regler; Abweichung nur per Admin-Override (pipeline.status --override).
+               READLAYER_WEITER ist abgeschafft.
+Komponenten:   pipeline/s320_integritaet.py
+Zulieferer:    s310 Uebersetzung (work/310_uebersetzung.json), s200 Tagging (work/200_tagging.json, Referenz),
+               book.json (bestellte Zielsprachen)
+Abnehmer:      s330 Rueckuebersetzung (work/320_integritaet.json = Durchreichung + meta.integrity_report)
+Aufruf:        python -m pipeline.s320_integritaet <werk> [--trocken]
 """
 
-import sys
-import os
+import argparse
 import json
+import os
 import re
+import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import config
+from pipeline import bestellung, gate, manifest, status
+
+STAGE = "320"
+SPRACH_SCHLUESSEL = re.compile(r"^[a-z]{2}(-[a-z]{2})?$")
 
 
-def _is_translatable(entry: dict) -> bool:
-    return entry.get("type") not in config.NO_AUDIO_TYPES
-
-
-def _tag_pattern():
+def id_muster():
     cd, sd = config.CHAPTER_DIGITS, config.SEQUENCE_DIGITS
-    # NEUES Schema: c<NNN>_<NNNNN>_<typ>  (Kapitel _ globale Sequenz _ Typ-Suffix)
-    # Typ = 1-4 Kleinbuchstaben am Ende.
     return re.compile(rf"^c\d{{{cd}}}_\d{{{sd}}}_[a-z]{{1,4}}$")
 
 
-def check(data: dict) -> dict:
-    """Fuehrt alle Pruefungen aus und gibt einen Report zurueck."""
-    src = config.SOURCE_LANGUAGE
-    targets = config.TARGET_LANGUAGES
-    pattern = _tag_pattern()
-
-    report = {
-        "missing_language":   [],  # (tag_id, lang)
-        "empty_translation":  [],  # (tag_id, lang)
-        "bad_tag_id":         [],  # tag_id
-        "sequence_gaps":      [],  # (chapter_id, expected, found)
-        "total_tags":         0,
-        "translatable_tags":  0,
-    }
-
-    # Pro Kapitel die Sequenznummern sammeln (fuer Lueckenpruefung)
-    seq_by_chapter = {}
-
-    for tag_id, entry in data["content"].items():
-        report["total_tags"] += 1
-
-        # 4. Tag-ID-Form
-        if not pattern.match(tag_id):
-            report["bad_tag_id"].append(tag_id)
-
-        # Sequenznummer: im neuen Schema c<kap>_<NNNNN>_<typ> steht sie in der
-        # MITTE. Global pro Kapitel durchnummeriert -> wieder lueckenlos pruefbar.
-        chapter_id = tag_id.split("_")[0]
-        parts = tag_id.split("_")
-        seq = int(parts[1]) if len(parts) >= 3 and parts[1].isdigit() else None
-        if seq is not None:
-            seq_by_chapter.setdefault(chapter_id, []).append(seq)
-
-        # Vollstaendigkeit / leere Felder nur fuer uebersetzbare Tags
-        if _is_translatable(entry):
-            report["translatable_tags"] += 1
-            for lang in targets:
-                if lang not in entry:
-                    report["missing_language"].append((tag_id, lang))
-                elif not str(entry[lang]).strip():
-                    report["empty_translation"].append((tag_id, lang))
-
-    # 3. Sequenz-Lueckenlosigkeit pro Kapitel
-    for chapter_id, seqs in seq_by_chapter.items():
-        seqs_sorted = sorted(seqs)
-        expected = list(range(1, len(seqs_sorted) + 1))
-        if seqs_sorted != expected:
-            report["sequence_gaps"].append(
-                (chapter_id, f"1..{len(seqs_sorted)}", seqs_sorted)
-            )
-
-    return report
+def _kurz(liste, n=6):
+    return f"{liste[:n]}" + (f" (+{len(liste) - n})" if len(liste) > n else "")
 
 
-def print_report(report: dict) -> bool:
-    """Gibt den Report aus. Returnt True wenn sauber, False bei Fehlern."""
-    print(f"[320] Tags gesamt: {report['total_tags']} "
-          f"| uebersetzbar: {report['translatable_tags']}")
+def pruefen(data, ref, src, ziele):
+    """-> Bericht (dict mit Listen). data = 310, ref = 200."""
+    c = data.get("content") or {}
+    r = ref.get("content") or {}
+    muster = id_muster()
+    rep = {"ids_fehlen": sorted(set(r) - set(c)), "ids_zusaetzlich": sorted(set(c) - set(r)),
+           "quelltext_geaendert": [], "id_form": [], "sequenz_luecken": [],
+           "fehlt": {lg: [] for lg in ziele}, "leer": {lg: [] for lg in ziele}, "unbestellt": {}}
+    seq = {}
+    erlaubt = set(ziele) | {src}
+    for tid, e in c.items():
+        if not muster.match(tid):
+            rep["id_form"].append(tid)
+        teile = tid.split("_")
+        if len(teile) >= 3 and teile[1].isdigit():
+            seq.setdefault(teile[0], []).append(int(teile[1]))
+        if not isinstance(e, dict):
+            rep["id_form"].append(tid)
+            continue
+        q = e.get(src) or ""
+        re_ = r.get(tid)
+        if isinstance(re_, dict) and ((re_.get(src) or "") != q or re_.get("type") != e.get("type")):
+            rep["quelltext_geaendert"].append(tid)
+        for k in e:
+            if SPRACH_SCHLUESSEL.match(k) and k not in erlaubt:
+                rep["unbestellt"].setdefault(k, []).append(tid)
+        if e.get("type") in config.NO_AUDIO_TYPES or not q.strip():
+            continue
+        for lg in ziele:
+            if lg not in e:
+                rep["fehlt"][lg].append(tid)
+            elif not str(e[lg]).strip():
+                rep["leer"][lg].append(tid)
+    for cid, s in sorted(seq.items()):
+        s = sorted(s)
+        if s != list(range(1, len(s) + 1)):
+            soll = set(range(1, max(s) + 1))
+            rep["sequenz_luecken"].append({"kapitel": cid, "fehlend": sorted(soll - set(s))[:20],
+                                           "doppelt": sorted({x for x in s if s.count(x) > 1})[:20]})
+    return rep
 
-    clean = True
 
-    if report["bad_tag_id"]:
-        clean = False
-        print(f"[320] FEHLER — ungueltige Tag-IDs: {report['bad_tag_id']}")
-
-    if report["sequence_gaps"]:
-        clean = False
-        print(f"[320] FEHLER — Sequenz-Luecken:")
-        for cid, exp, found in report["sequence_gaps"]:
-            print(f"    {cid}: erwartet {exp}, gefunden {found}")
-
-    if report["missing_language"]:
-        clean = False
-        print(f"[320] FEHLER — fehlende Sprachen "
-              f"({len(report['missing_language'])}):")
-        for tag_id, lang in report["missing_language"][:10]:
-            print(f"    {tag_id} fehlt: {lang}")
-        if len(report["missing_language"]) > 10:
-            print(f"    ... und {len(report['missing_language'])-10} weitere")
-
-    if report["empty_translation"]:
-        clean = False
-        print(f"[320] FEHLER — leere Uebersetzungen "
-              f"({len(report['empty_translation'])}):")
-        for tag_id, lang in report["empty_translation"][:10]:
-            print(f"    {tag_id} leer: {lang}")
-
-    if clean:
-        print(f"[320] OK — Struktur vollstaendig und konsistent.")
-
-    return clean
+def sauber(rep):
+    return not (rep["ids_fehlen"] or rep["ids_zusaetzlich"] or rep["quelltext_geaendert"] or rep["id_form"]
+                or rep["sequenz_luecken"] or rep["unbestellt"]
+                or any(rep["fehlt"].values()) or any(rep["leer"].values()))
 
 
-def run(book_id: str) -> dict:
-    in_path = config.work_path(book_id, "310_uebersetzung")
-    print(f"[320] Lese: {in_path}")
-    with open(in_path, "r", encoding="utf-8") as f:
+def run(werk, wer=None, trocken=False):
+    wer = wer or "pipeline"
+    g = gate.Gate(werk, STAGE, ruecksprung="310", wer=wer)
+    b = bestellung.lesen(werk)
+    src = b.quellsprache or config.SOURCE_LANGUAGE
+    ziele = [z for z in (b.zielsprachen or []) if z != src]
+    g.metrik("zielsprachen", ziele)
+
+    ip, rp = config.work_path(werk, "310_uebersetzung"), config.work_path(werk, "200_tagging")
+    ok_i = g.pflicht("uebersetzung", os.path.exists(ip), ruecksprung="310", text="310_uebersetzung.json vorhanden")
+    ok_r = g.pflicht("referenz", os.path.exists(rp), ruecksprung="200", text="200_tagging.json vorhanden")
+    g.pflicht("zielsprachen", bool(ziele), ruecksprung="310", text="Bestellung nennt mindestens eine Zielsprache")
+    if not (ok_i and ok_r):
+        g.entscheide(schreiben=not trocken)
+        return g
+    with open(ip, encoding="utf-8") as f:
         data = json.load(f)
+    with open(rp, encoding="utf-8") as f:
+        ref = json.load(f)
 
-    report = check(data)
-    clean = print_report(report)
+    rep = pruefen(data, ref, src, ziele)
+    g.metrik("knoten", len(data.get("content") or {}))
+    g.metrik("knoten_200", len(ref.get("content") or {}))
 
-    # Report in die Datei schreiben (Transparenz/Audit)
-    data["meta"]["integrity_report"] = {
-        "clean": clean,
-        "missing_language":  report["missing_language"],
-        "empty_translation": report["empty_translation"],
-        "bad_tag_id":        report["bad_tag_id"],
-        "sequence_gaps":     report["sequence_gaps"],
-    }
+    # Struktur gegen 200 -> Ruecksprung 200
+    g.pflicht("id_menge", not (rep["ids_fehlen"] or rep["ids_zusaetzlich"]),
+              wert=len(rep["ids_fehlen"]) + len(rep["ids_zusaetzlich"]), ruecksprung="200",
+              text="ID-Menge = 200" + (f": fehlen {_kurz(rep['ids_fehlen'])}" if rep["ids_fehlen"] else "")
+              + (f"; zusaetzlich {_kurz(rep['ids_zusaetzlich'])}" if rep["ids_zusaetzlich"] else ""))
+    g.pflicht("quelltext", not rep["quelltext_geaendert"], wert=len(rep["quelltext_geaendert"]), ruecksprung="200",
+              text="Quelltext je Knoten = 200" + (f": geaendert {_kurz(rep['quelltext_geaendert'])}"
+                                                    if rep["quelltext_geaendert"] else ""))
+    g.pflicht("id_form", not rep["id_form"], wert=len(rep["id_form"]), ruecksprung="200",
+              text="ID-Form gueltig" + (f": {_kurz(rep['id_form'])}" if rep["id_form"] else ""))
+    g.pflicht("sequenz", not rep["sequenz_luecken"], wert=len(rep["sequenz_luecken"]), ruecksprung="200",
+              text="Sequenz lueckenlos je Kapitel" + (f": {rep['sequenz_luecken'][:3]}" if rep["sequenz_luecken"] else ""))
+    # Sprachen -> Ruecksprung 310
+    for lg in ziele:
+        f_, l_ = rep["fehlt"][lg], rep["leer"][lg]
+        g.pflicht(f"sprache_{lg}", not (f_ or l_), wert=len(f_) + len(l_), ruecksprung="310",
+                  text=f"{lg}: vorhanden und nicht leer" + (f"; fehlt {len(f_)} {_kurz(f_)}" if f_ else "")
+                  + (f"; leer {len(l_)} {_kurz(l_)}" if l_ else ""))
+    g.pflicht("unbestellt", not rep["unbestellt"], wert=sorted(rep["unbestellt"]) or None, ruecksprung="310",
+              text="keine unbestellte Sprache" + (f": { {k: len(v) for k, v in rep['unbestellt'].items()} }"
+                                                    if rep["unbestellt"] else ""))
+    # Vorgaenger-Gates
+    d = status.laden(werk)
+    for v in ("300", "310"):
+        z = status.zustand(werk, v, d=d)
+        if trocken:
+            g.hinweis(f"gate_{v}", z in status.FREI, text=f"Gate {v}: {z}")
+        else:
+            g.pflicht(f"gate_{v}", z in status.FREI, wert=z, ruecksprung=v, text=f"Gate {v} frei ({z})")
 
-    out_path = config.work_path(book_id, "320_integritaet")
-    with open(out_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+    meta = data.setdefault("meta", {})
+    meta["integrity_report"] = dict(rep, clean=sauber(rep), zielsprachen=ziele, geprueft=manifest.jetzt())
+    meta["target_languages"] = ziele
+    if not trocken:
+        manifest.json_atomar(config.work_path(werk, "320_integritaet"), data, indent=2)
+    g.entscheide(schreiben=not trocken)
+    g.bericht_daten = rep
+    return g
 
-    print(f"[320] Geschrieben: {out_path}")
-    return data
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(description="Stage 320 Integritaet")
+    ap.add_argument("werk")
+    ap.add_argument("--wer")
+    ap.add_argument("--trocken", action="store_true", help="nur pruefen, nichts schreiben")
+    a = ap.parse_args(argv)
+    try:
+        g = run(a.werk, a.wer, a.trocken)
+    except gate.GateHalt as e:
+        print(e)
+        return e.exit_code
+    print(g.bericht())
+    return gate.EXIT[g.ergebnis["ergebnis"]]
 
 
 if __name__ == "__main__":
-    book = sys.argv[1] if len(sys.argv) > 1 else "aesop_three_fables"
-    run(book)
+    sys.exit(main())

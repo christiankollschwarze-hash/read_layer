@@ -186,13 +186,12 @@ def run(book_id: str, chapter: str = None) -> dict:
     with open(in_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    # QF-6 (18.10.2026): Stopp, wenn Stage 54 Struktur-Fehler gemeldet hat.
+    # 02.11.2026: Halt liegt in Gate 320 selbst; READLAYER_WEITER abgeschafft (Abweichung nur per Admin-Override 320).
     ir = data.get("meta", {}).get("integrity_report", {})
-    if ir and not ir.get("clean", True) and os.environ.get("READLAYER_WEITER") != "1":
-        raise RuntimeError(
-            f"Stage 54 meldet Fehler (fehlend: {len(ir.get('missing_language', []))}, "
-            f"leer: {len(ir.get('empty_translation', []))}, Luecken: {len(ir.get('sequence_gaps', []))}). "
-            f"Erst Uebersetzung nachziehen (--from 53) oder bewusst weiter mit READLAYER_WEITER=1.")
+    from pipeline import status
+    if ir and not ir.get("clean", True) and not status.ist_frei(book_id, "320"):
+        raise RuntimeError("Gate 320 nicht frei (integrity_report nicht sauber). Status: python -m pipeline.status "
+                           + book_id)
 
     threshold = config.VALIDATION_THRESHOLD
     chapters = _collect_translatable(data, chapter)
