@@ -171,6 +171,8 @@ def _live_response(task: str, prompt: str, **kwargs) -> str:
         js = resp.json()
         from pipeline import usage_log
         usage_log.log(model, "deepseek", js.get("usage"), {"task": task})
+        if isinstance(kwargs.get("info"), dict):      # Abbruchgrund fuer Gates (300: finish_reason length)
+            kwargs["info"]["finish_reason"] = js["choices"][0].get("finish_reason")
         content = js["choices"][0]["message"]["content"]
         return (content or "").strip()
 
