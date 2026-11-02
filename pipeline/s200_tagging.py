@@ -1,23 +1,28 @@
-"""STAGE 200 — Tagging
-Funktion:     Zerlegt den Text in Kapitel und Satz-Tags (s, dl, p, qt ...).
-Wirkungsweise: Je Kapitel ein DeepSeek-Aufruf, bei Fehlern rekursive Halbierung; Tag-IDs deterministisch neu vergeben.
-Komponenten:  pipeline/s200_tagging.py, api_layer
-Zulieferer:   s120 Modernisierung bzw. s150 ePub-Import (raw_modernized.txt)
-Abnehmer:     s210 Profil (work/200_tagging.json) und mittelbar alle Folgestufen
-(Nomenklatur seit 18.10.2026, Uebersicht: docs/Pipeline_Strang_Matrix.xlsx)
-
---- Bisherige Beschreibung ---
-
-READ LAYER — Stage 00: Tagger
-=============================
-Input:  data/raw/<book_id>_marked.txt   (manuell mit ###MARKER### versehen)
-Output: data/work/<book_id>_stage00.json
-
-Aufgabe: Marked-Text parsen, jedes Kapitel in Tags segmentieren.
-Nichts ist auf einen bestimmten Titel hartcodiert — alles kommt aus
-book_id und der Eingabedatei.
+"""STAGE 200 — Tagger (Umbau Phase 2, GATE_KATALOG.md Zeile 200, 02.11.2026)
+Funktion:     Zerlegt raw_modernized.txt je Kapitel in Knoten (s, dl, p, qt, vs, h ...), ein Knoten = ein Satz.
+Wirkungsweise: Je Kapitel ein DeepSeek-Aufruf (bei kaputtem JSON rekursive Halbierung); Rohergebnis als Checkpoint
+              work/ckpt/200/c<N>__<lg>.json (Eingang = Kapiteltitel + Text). Danach deterministisch und kostenlos:
+              satzweise nachtrennen (tools/satzweise.py, Abkuerzungen je Sprache + je Werk), Header aus der Marke,
+              IDs neu, gespeicherte Korrekturen (work/200_korrekturen.json) anwenden.
+Eingang:      raw_modernized.txt (###TITLE/AUTHOR/CHAPTER###), Gate 190 (Kapitelzahl), book.json (quellsprache, abkuerzungen).
+Ausgabe:      work/200_tagging.json (Format unveraendert fuer 210 ff.), work/200_pruefung.json (Gegenueberstellung,
+              Mehrsatz-Liste, ueberlange Knoten), Gate in status.json.
+Gate:         Kapitelzahl = 190 (Stopp, -> 120); Kapitel ohne Text (Stopp, -> 120); leere Knoten / unbekannte Typen (Stopp);
+              Treue je Kapitel >= 99,5 % Wortuebereinstimmung -> sonst 1x automatisch neu taggen, dann Mensch;
+              Mehrsatz-Knoten = 0 (sonst Mensch, manuelle Knoten ausgenommen); Knoten > 400 Zeichen nur Hinweis;
+              Mock im Live-Lauf Stopp. Mensch-Freigabe bleibt bei unveraenderter Ausgabe (ausgabe_hash) gueltig.
+Kosten:       DeepSeek (config.MODELS tagger) nur fuer Kapitel ohne aktuellen Checkpoint; Korrekturen/Abkuerzungen 0 $.
+Regler:       --modell, --kapitel N|alle (neu taggen), --teilen ID@STELLE, --zusammen ID, --typ ID=TYP,
+              --abk WORT / --abk-weg WORT (je Werk; je Sprache: config/abk_<lg>.txt), --lang N (Grenze ueberlang),
+              --uebernehmen (vorhandene 200_tagging.json als Rohergebnis, ohne LLM), --trocken (Probe, schreibt nichts).
+Aufruf:
+  python -m pipeline.s200_tagging <werk> [Regler] [--wer CK]
+Exit: 0 auto, 2 Stopp, 3 Mensch, 1 Fehler.
 """
 
+import argparse
+import copy
+import difflib
 import sys
 import os
 import json
@@ -25,7 +30,7 @@ import re
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import config
-from pipeline import api_layer
+from pipeline import api_layer, bestellung, gate, manifest, mock, s190_vertrag, status
 from tools import satzweise
 
 
@@ -260,7 +265,7 @@ def _tag_robust(chapter_num: int, title: str, text: str, tiefe: int = 0) -> dict
     return {"content": inhalt}
 
 
-def _satzweise(content: dict) -> dict:
+def _satzweise(content: dict, abk=None) -> dict:
     """CK 01.11.2026: Ein Tag = ein Satz. Das LLM fasst gelegentlich ganze Absaetze zusammen
     (Befund Winnie-the-Pooh c007_00133_dl, 5 Saetze). Hier deterministisch nachtrennen nach der
     Regel in tools/satzweise.py (.!? beenden; Ausnahme Redebegleitsatz / ankuendigender Satz)."""
@@ -269,7 +274,7 @@ def _satzweise(content: dict) -> dict:
     for tid, e in content.items():
         typ = e.get("type", "s")
         text = e.get(src) or ""
-        teile = satzweise.teile_text(text, src) if typ in satzweise.TEILBARE_TYPEN else [text]
+        teile = satzweise.teile_text(text, src, abk) if typ in satzweise.TEILBARE_TYPEN else [text]
         if len(teile) <= 1:
             out[tid] = e
             continue
@@ -300,65 +305,348 @@ def tag_chapter(chapter_num: int, title: str, text: str) -> dict:
 
 
 # ============================================================
-# HAUPTPROZESS
+# PHASE 2 (02.11.2026): Gate, Checkpoints je Kapitel, Regler
 # ============================================================
 
-def _source_path(book_id: str) -> str:
-    """Kanonische Quelle bevorzugen: raw_modernized.txt (von Stage 11 erzeugt,
-    bereits mit ###TITLE###/###AUTHOR###/###CHAPTER###-Marken). Faellt auf das
-    klassische raw.txt zurueck, falls noch nicht modernisiert wurde."""
-    mod = os.path.join(config.book_dir(book_id), "raw_modernized.txt")
-    if os.path.exists(mod):
-        return mod
-    return config.raw_path(book_id, "marked.txt")
+STAGE = "200"
+TREUE_MIN = 0.995
+LANG_MAX = 400
+OHNE_TEXT = {"p", "skip"}
+_W = re.compile(r"[\w’']+", re.UNICODE)
 
 
-def run(book_id: str) -> dict:
-    in_path = _source_path(book_id)
-    print(f"[200] Lese: {in_path}")
-    with open(in_path, "r", encoding="utf-8") as f:
-        marked = f.read()
+def _hash(o):
+    return manifest.hash_obj(o)
 
-    parsed = parse_marked_file(marked)
-    print(f"[200] Titel:   {parsed['title']}")
-    print(f"[200] Autor:   {parsed['author']}")
-    print(f"[200] Kapitel: {len(parsed['chapters'])}")
 
-    if not parsed["chapters"]:
-        raise ValueError("Keine Kapitel gefunden — ###CHAPTER###-Marker pruefen.")
+def abk_liste(werk, b, lg):
+    """Zusaetzliche Abkuerzungen: config/abk_<lg>.txt (je Ausgangssprache) + book.json abkuerzungen (je Werk)."""
+    out = set()
+    p = os.path.join(os.path.dirname(os.path.abspath(config.__file__)), f"abk_{lg}.txt")
+    if os.path.exists(p):
+        with open(p, encoding="utf-8") as f:
+            out |= {z.strip().lower().rstrip(".") for z in f if z.strip() and not z.startswith("#")}
+    out |= {str(a).strip().lower().rstrip(".") for a in (b.roh.get("abkuerzungen") or []) if str(a).strip()}
+    return sorted(out)
 
-    all_content = {}
-    chapters_meta = {}
-    for i, ch in enumerate(parsed["chapters"], 1):
-        print(f"  Kapitel {i}/{len(parsed['chapters'])}: {ch['title']}")
-        result = tag_chapter(i, ch["title"], ch["text"])
-        content = result.get("content", {})
-        all_content.update(content)
-        chapters_meta[f"c{i:0{config.CHAPTER_DIGITS}d}"] = ch["title"]
-        print(f"    -> {len(content)} Tags")
+
+def _woerter(s):
+    out = (w.lower().replace("’", "'").strip("'") for w in _W.findall((s or "").replace(config.VERS_MARKE, " ")))
+    return [w for w in out if w]
+
+
+def treue(kaptext, knoten, src):
+    """Wortuebereinstimmung Kapiteltext <-> zusammengesetzte Knotentexte (ohne h) -> (quote, beispiele)."""
+    a = _woerter(kaptext)
+    bb = _woerter(" ".join(e.get(src) or "" for e in knoten.values() if e.get("type") != "h"))
+    if not a and not bb:
+        return 1.0, []
+    sm = difflib.SequenceMatcher(None, a, bb, autojunk=False)
+    m = sum(x.size for x in sm.get_matching_blocks())
+    bsp = []
+    for op, i1, i2, j1, j2 in sm.get_opcodes():
+        if op != "equal" and len(bsp) < 5:
+            bsp.append({"op": op, "text": " ".join(a[max(0, i1 - 3):i2 + 3]),
+                        "knoten": " ".join(bb[max(0, j1 - 3):j2 + 3])})
+    return m / max(len(a), len(bb)), bsp
+
+
+def nachbearbeiten(n, titel, roh, src, abk):
+    """LLM-Rohergebnis -> satzweise nachtrennen, Header setzen, IDs vergeben (deterministisch, kostenlos)."""
+    content = _satzweise(copy.deepcopy(roh), abk)
+    return _renumber_chapter(n, titel, content)
+
+
+def _tag_llm(n, titel, text, modell):
+    alt = config.MODELS.get("tagger")
+    if modell:
+        config.MODELS["tagger"] = modell
+    try:
+        res = _mock_tag_chapter(n, titel, text) if config.RUN_MODE == "mock" else _tag_robust(n, titel, text)
+    finally:
+        config.MODELS["tagger"] = alt
+    return res.get("content", {})
+
+
+# ------------------------------------------------------------ Korrekturen (Regler)
+def _korr_pfad(werk):
+    return os.path.join(config.work_dir(werk), "200_korrekturen.json")
+
+
+def korrekturen_lesen(werk):
+    p = _korr_pfad(werk)
+    if not os.path.exists(p):
+        return []
+    with open(p, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def korrektur_anwenden(n, titel, knoten, k, src):
+    """Eine Korrektur auf ein Kapitel (Knoten in Reihenfolge). -> neue Knoten; ValueError bei Fehler.
+    Manuell entstandene Knoten tragen _m (zaehlen nicht als Mehrsatz)."""
+    ids = list(knoten)
+    if k["id"] not in knoten:
+        raise ValueError(f"Knoten {k['id']} nicht gefunden")
+    i = ids.index(k["id"])
+    e = dict(knoten[k["id"]])
+    liste = [dict(knoten[x]) for x in ids]
+    if k["op"] == "typ":
+        if k["arg"] not in config.TAG_TYPES:
+            raise ValueError(f"Typ {k['arg']!r} unbekannt")
+        liste[i]["type"] = k["arg"]
+    elif k["op"] == "teilen":
+        t = e.get(src) or ""
+        pos = t.find(k["arg"])
+        if pos <= 0:
+            raise ValueError(f"Stelle {k['arg']!r} nicht im Knoten (oder am Anfang)")
+        a, b = dict(e, **{src: t[:pos].strip(), "_m": 1}), dict(e, **{src: t[pos:].strip(), "_m": 1})
+        liste[i:i + 1] = [a, b]
+    elif k["op"] == "zusammen":
+        j = next((x for x in range(i + 1, len(liste)) if liste[x].get("type") not in OHNE_TEXT), None)
+        if j is None or e.get("type") in OHNE_TEXT | {"h"}:
+            raise ValueError(f"{k['id']}: kein Folgeknoten zum Zusammenfuehren")
+        liste[i] = dict(e, **{src: f"{e.get(src, '').strip()} {liste[j].get(src, '').strip()}", "_m": 1})
+        del liste[j]
+    else:
+        raise ValueError(f"Operation {k['op']!r} unbekannt")
+    body = {f"x{z:06d}": v for z, v in enumerate(liste) if v.get("type") != "h"}
+    return _renumber_chapter(n, titel, body)
+
+
+# ------------------------------------------------------------ Bestand uebernehmen
+def bestand_roh(werk, src):
+    """Vorhandene 200_tagging.json -> {kapitel_n: content ohne h} (fuer --uebernehmen, ohne LLM)."""
+    p = config.work_path(werk, "200_tagging")
+    if not os.path.exists(p):
+        return {}
+    with open(p, encoding="utf-8") as f:
+        d = json.load(f)
+    out = {}
+    for tid, e in (d.get("content") or {}).items():
+        m = re.match(r"c(\d+)_", tid)
+        if not m or e.get("type") == "h":
+            continue
+        out.setdefault(int(m.group(1)), {})[tid] = {k: v for k, v in e.items() if k in ("type", src)}
+    return out
+
+
+# ------------------------------------------------------------ Lauf
+def _kap_190(werk, d, n_marken):
+    m = ((d["stages"].get("190") or {}).get("metriken") or {}).get("kapitel")
+    if m is not None:
+        return m, "Gate 190"
+    cps, _ = s190_vertrag.checkpoints(werk)
+    return (len(cps) if cps else n_marken), "chapter-N.json"
+
+
+def run(werk, wer=None, modell=None, kapitel=None, abk=None, abk_weg=None, lang_max=LANG_MAX,
+        teilen=None, zusammen=None, typ=None, uebernehmen=False, trocken=False):
+    """kapitel: Liste von Nummern (neu taggen) oder ['alle']. teilen: ['ID@STELLE'], zusammen: ['ID'],
+    typ: ['ID=TYP']. trocken: nichts schreiben, kein LLM (Probe am Bestand)."""
+    wer = wer or "pipeline"
+    g = gate.Gate(werk, STAGE, ruecksprung="200", wer=wer)
+    d = status.laden(werk)
+    b = bestellung.lesen(werk)
+    src = b.quellsprache or config.SOURCE_LANGUAGE
+    g.metrik("sprache", src)
+
+    if b.roh.get("geteilt_in"):
+        g.pflicht("nicht_geteilt", False, ruecksprung="195",
+                  text=f"Werk ist geteilt in {b.roh['geteilt_in']} -> Teile taggen")
+        g.entscheide(schreiben=not trocken)
+        return g
+
+    # Abkuerzungen je Werk pflegen
+    if (abk or abk_weg) and not trocken:
+        alt = [a for a in (b.roh.get("abkuerzungen") or [])]
+        neu = sorted((set(alt) | {a.lower().rstrip(".") for a in abk or []}) - {a.lower().rstrip(".") for a in abk_weg or []})
+        bestellung.feld_setzen(werk, abkuerzungen=neu)
+        b = bestellung.lesen(werk)
+    abkl = abk_liste(werk, b, src)
+    g.metrik("abkuerzungen", len(abkl))
+
+    rp = os.path.join(config.book_dir(werk), "raw_modernized.txt")
+    if not g.pflicht("raw_modernized", os.path.exists(rp), ruecksprung="120", text="raw_modernized.txt vorhanden"):
+        g.entscheide(schreiben=not trocken)
+        return g
+    with open(rp, encoding="utf-8") as f:
+        text = f.read()
+    titel, autor, kap = s190_vertrag.marken_lesen(text)
+    kap = [(t, k.strip()) for t, k in kap]
+    g.metrik("quelle_hash", manifest.hash_obj(text))
+    n190, n190_q = _kap_190(werk, d, len(kap))
+    g.pflicht("kapitelzahl", len(kap) == n190 and len(kap) > 0, wert=f"{len(kap)}/{n190}", ruecksprung="120",
+              text=f"Kapitel raw_modernized {len(kap)} = {n190_q} {n190}")
+    leer_kap = [i for i, (_t, k) in enumerate(kap, 1) if not k]
+    g.pflicht("kapitel_text", not leer_kap, wert=leer_kap[:20], ruecksprung="120",
+              text="Kapitel ohne Text: " + (str(leer_kap[:20]) if leer_kap else "keine"))
+    if g.fehler():
+        g.entscheide(schreiben=not trocken)
+        return g
+
+    ck = manifest.Checkpoint(werk, STAGE)
+    alle_neu = kapitel and "alle" in [str(x) for x in kapitel]
+    neu = set(range(1, len(kap) + 1)) if alle_neu else {int(x) for x in kapitel or []}
+    bestand = bestand_roh(werk, src) if uebernehmen else {}
+    korr = korrekturen_lesen(werk)
+    neue_korr = [dict(op="teilen", id=x.split("@", 1)[0], arg=x.split("@", 1)[1]) for x in teilen or []] + \
+                [dict(op="zusammen", id=x, arg=None) for x in zusammen or []] + \
+                [dict(op="typ", id=x.split("=", 1)[0], arg=x.split("=", 1)[1]) for x in typ or []]
+    modell_eff = modell or config.MODELS.get("tagger")
+    g.metrik("modell", modell_eff)
+
+    alle, chapters_meta, pruef = {}, {}, {"kapitel": [], "mehrsatz": [], "ueberlang": [], "korrekturen_verworfen": []}
+    n_llm = n_wdh = n_ck = n_bestand = 0
+    fehlt = []
+    treue_aus, korr_gueltig = [], []
+    for n, (ktitel, ktext) in enumerate(kap, 1):
+        key = f"c{n:0{config.CHAPTER_DIGITS}d}"
+        h = _hash([ktitel, ktext])
+        daten = None if n in neu else ck.lesen(key, src, h)
+        herkunft = "checkpoint"
+        if daten is None and n not in neu and n in bestand:
+            daten, herkunft = {"content": bestand[n], "versuche": 1, "modell": "bestand"}, "bestand"
+            n_bestand += 1
+        if daten is None:
+            if trocken:
+                fehlt.append(n)
+                continue
+            daten, herkunft = {"content": _tag_llm(n, ktitel, ktext, modell), "versuche": 1, "modell": modell_eff}, "neu"
+            n_llm += 1
+        knoten = nachbearbeiten(n, ktitel, daten["content"], src, abkl)
+        q, bsp = treue(ktext, knoten, src)
+        # Treue verfehlt -> einmal automatisch neu taggen (je Kapitelfassung), danach Mensch
+        if q < TREUE_MIN and daten.get("versuche", 1) < 2 and not trocken:
+            roh2 = _tag_llm(n, ktitel, ktext, modell)
+            kn2 = nachbearbeiten(n, ktitel, roh2, src, abkl)
+            q2, bsp2 = treue(ktext, kn2, src)
+            n_llm += 1
+            n_wdh += 1
+            if q2 >= q:
+                daten, knoten, q, bsp = {"content": roh2, "modell": modell_eff}, kn2, q2, bsp2
+            daten["versuche"] = 2
+            herkunft = "wiederholt"
+        if herkunft != "checkpoint" and not trocken:
+            ck.schreiben(key, src, h, daten, herkunft=herkunft)
+        elif herkunft == "checkpoint":
+            n_ck += 1
+        # Korrekturen (gespeicherte + neue) dieses Kapitels in Reihenfolge
+        for k in korr + [dict(x, kapitel=key, eingang=h, neu=1) for x in neue_korr if x["id"].startswith(key + "_")]:
+            if k.get("kapitel") != key:
+                continue
+            if k.get("eingang") != h:
+                pruef["korrekturen_verworfen"].append(k)
+                continue
+            try:
+                knoten = korrektur_anwenden(n, ktitel, knoten, k, src)
+                korr_gueltig.append({x: v for x, v in k.items() if x != "neu"})
+            except ValueError as e:
+                if k.get("neu"):
+                    raise
+                pruef["korrekturen_verworfen"].append(dict(k, fehler=str(e)))
+        if neue_korr:
+            q, bsp = treue(ktext, knoten, src)
+        pruef["kapitel"].append({"kapitel": n, "titel": ktitel, "treue": round(q, 5), "herkunft": herkunft,
+                                 "knoten": len(knoten), "abweichungen": bsp if q < TREUE_MIN else []})
+        if q < TREUE_MIN:
+            treue_aus.append(f"{n} ({q:.2%})")
+        for tid, e in knoten.items():
+            t = e.get(src) or ""
+            if e.get("type") in satzweise.TEILBARE_TYPEN and not e.get("_m") \
+                    and len(satzweise.teile_text(t, src, abkl)) > 1:
+                pruef["mehrsatz"].append({"id": tid, "text": t})
+            if len(t) > lang_max:
+                pruef["ueberlang"].append({"id": tid, "zeichen": len(t)})
+            e.pop("_m", None)
+        alle.update(knoten)
+        chapters_meta[key] = ktitel
+
+    unbekannt = [t for t, e in alle.items() if e.get("type") not in config.TAG_TYPES]
+    leer = [t for t, e in alle.items() if e.get("type") not in OHNE_TEXT | {"h"} and not (e.get(src) or "").strip()]
+    n_mock = sum(1 for e in alle.values() if mock.ist_text(e.get(src) or ""))
+
+    g.metrik("knoten", len(alle))
+    g.metrik("llm_aufrufe", n_llm)
+    g.metrik("aus_checkpoint", n_ck)
+    g.metrik("aus_bestand", n_bestand)
+    g.metrik("treue_min", min((k["treue"] for k in pruef["kapitel"]), default=None))
+    if trocken and fehlt:
+        g.pflicht("tagging_vorhanden", False, wert=fehlt[:20], text=f"kein Tagging fuer Kapitel {fehlt[:20]} (Probe ohne LLM)")
+    g.pflicht("unbekannte_typen", not unbekannt, wert=len(unbekannt),
+              text=f"unbekannte Typen {len(unbekannt)}" + (f": {unbekannt[:5]}" if unbekannt else ""))
+    g.pflicht("leere_knoten", not leer, wert=len(leer),
+              text=f"leere Knoten {len(leer)}" + (f": {leer[:5]}" if leer else ""))
+    g.pruefe("treue", not treue_aus, wert=len(treue_aus), schwelle=f">= {TREUE_MIN:.1%}", bei_fehler="mensch",
+             text=f"Treue >= {TREUE_MIN:.1%} je Kapitel" + (f"; verfehlt: {', '.join(treue_aus[:10])} "
+                  f"(Gegenueberstellung work/200_pruefung.json; Ausgangstextfehler -> 120)" if treue_aus else ""))
+    g.pruefe("mehrsatz", not pruef["mehrsatz"], wert=len(pruef["mehrsatz"]), schwelle="= 0", bei_fehler="mensch",
+             text=f"Mehrsatz-Knoten {len(pruef['mehrsatz'])}" +
+                  (f" (Liste work/200_pruefung.json; --teilen / --abk)" if pruef["mehrsatz"] else ""))
+    g.hinweis("ueberlang", not pruef["ueberlang"], wert=len(pruef["ueberlang"]),
+              text=f"Knoten > {lang_max} Zeichen: {len(pruef['ueberlang'])}")
+    if korr or neue_korr:
+        g.metrik("korrekturen", len(korr_gueltig))
+        g.hinweis("korrekturen_verworfen", not pruef["korrekturen_verworfen"], wert=len(pruef["korrekturen_verworfen"]),
+                  text=f"Korrekturen verworfen (Kapitel geaendert/nicht anwendbar): {len(pruef['korrekturen_verworfen'])}")
+    g.mock(n_mock, ruecksprung="120")
 
     final = {
-        "book_id": book_id,
-        "meta": {
-            "title": parsed["title"],
-            "author": parsed["author"],
-            "source_language": config.SOURCE_LANGUAGE,
-            "target_languages": config.TARGET_LANGUAGES,
-            "chapters": chapters_meta,
-        },
-        "content": all_content,
+        "book_id": werk,
+        "meta": {"title": titel, "author": autor, "source_language": src,
+                 "target_languages": b.zielsprachen or config.TARGET_LANGUAGES, "chapters": chapters_meta,
+                 "tagging": {"modell": modell_eff, "quelle_hash": g.metriken["quelle_hash"]}},
+        "content": alle,
     }
+    aus_hash = _hash(alle)
+    g.metrik("ausgabe_hash", aus_hash)
+    # Mensch-Freigabe bleibt gueltig, solange die Ausgabe unveraendert ist
+    st = d["stages"].get(STAGE) or {}
+    if st.get("zustand") == "frei" and (st.get("gate") or {}).get("ergebnis") == "mensch" \
+            and (st.get("metriken") or {}).get("ausgabe_hash") == aus_hash:
+        for p in g.pruefungen:
+            if not p["ok"] and p["bei_fehler"] == "mensch":
+                p["bei_fehler"] = "hinweis"
+                p["text"] += " [Mensch-Freigabe gilt, Ausgabe unveraendert]"
 
-    out_path = config.work_path(book_id, "200_tagging")
-    os.makedirs(os.path.dirname(out_path), exist_ok=True)
-    with open(out_path, "w", encoding="utf-8") as f:
-        json.dump(final, f, ensure_ascii=False, indent=2)
+    if not trocken:
+        os.makedirs(config.work_dir(werk), exist_ok=True)
+        manifest.json_atomar(config.work_path(werk, "200_tagging"), final, indent=2)
+        manifest.json_atomar(os.path.join(config.work_dir(werk), "200_pruefung.json"), pruef, indent=1)
+        if neue_korr or korr:
+            manifest.json_atomar(_korr_pfad(werk), korr_gueltig, indent=1)
+        ck.aufraeumen([(f"c{n:0{config.CHAPTER_DIGITS}d}", src) for n in range(1, len(kap) + 1)])
+    g.entscheide(schreiben=not trocken)
+    g.pruef = pruef
+    return g
 
-    print(f"[200] Geschrieben: {out_path}")
-    print(f"[200] Kapitel: {len(chapters_meta)} | Tags gesamt: {len(all_content)}")
-    return final
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(description="Stage 200 Tagger")
+    ap.add_argument("werk")
+    ap.add_argument("--wer")
+    ap.add_argument("--modell", help="Tagger-Modell (Standard config.MODELS tagger)")
+    ap.add_argument("--kapitel", action="append", help="Kapitel N neu taggen (mehrfach) oder 'alle'")
+    ap.add_argument("--teilen", action="append", metavar="ID@STELLE", help="Knoten vor STELLE teilen")
+    ap.add_argument("--zusammen", action="append", metavar="ID", help="Knoten mit dem folgenden zusammenfuehren")
+    ap.add_argument("--typ", action="append", metavar="ID=TYP", help="Typ eines Knotens aendern")
+    ap.add_argument("--abk", action="append", help="Abkuerzung je Werk hinzufuegen (ohne Punkt)")
+    ap.add_argument("--abk-weg", action="append", help="Abkuerzung je Werk entfernen")
+    ap.add_argument("--lang", type=int, default=LANG_MAX, help="Grenze ueberlange Knoten (Hinweis)")
+    ap.add_argument("--uebernehmen", action="store_true", help="vorhandene 200_tagging.json als Rohergebnis nutzen (ohne LLM)")
+    ap.add_argument("--trocken", action="store_true", help="nichts schreiben, kein LLM (Probe)")
+    a = ap.parse_args(argv)
+    try:
+        g = run(a.werk, a.wer, a.modell, a.kapitel, a.abk, a.abk_weg, a.lang, a.teilen, a.zusammen, a.typ,
+                a.uebernehmen, a.trocken)
+    except gate.GateHalt as e:
+        print(e)
+        return e.exit_code
+    except ValueError as e:
+        print(f"[200] Fehler: {e}")
+        return 1
+    print(g.bericht())
+    return gate.EXIT[g.ergebnis["ergebnis"]]
 
 
 if __name__ == "__main__":
-    book = sys.argv[1] if len(sys.argv) > 1 else "aesop_three_fables"
-    run(book)
+    sys.exit(main())

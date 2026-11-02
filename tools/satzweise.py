@@ -61,8 +61,10 @@ def _hat_rede(s):
     return any(c in s for c in "\"“”„«»")
 
 
-def satzgrenzen(text, lang="en"):
-    """Startpositionen (Zeichenindex > 0) der Saetze 2..n in text, nach der CK-Regel."""
+def satzgrenzen(text, lang="en", abk=None):
+    """Startpositionen (Zeichenindex > 0) der Saetze 2..n in text, nach der CK-Regel.
+    abk: zusaetzliche Abkuerzungen (je Werk / je Ausgangssprache, Stage 200), klein, ohne Punkt."""
+    abk_alle = ABK | set(abk or ())
     if not text:
         return []
     roh = []
@@ -86,7 +88,7 @@ def satzgrenzen(text, lang="en"):
             vor = re.search(r"(\S+)$", text[:m.start()])
             w = (vor.group(1) if vor else "").lstrip(OEFFNER)
             wl = w.lower()
-            if wl in ABK or re.fullmatch(r"[^\W\d_]", w) or w.isdigit() or re.fullmatch(r"[ivxlcdm]+", wl) and len(wl) <= 4 and w.isupper():
+            if wl in abk_alle or re.fullmatch(r"[^\W\d_]", w) or w.isdigit() or re.fullmatch(r"[ivxlcdm]+", wl) and len(wl) <= 4 and w.isupper():
                 continue                                # Abkuerzung, Initiale, Ordinalzahl, roem. Zahl
             if re.fullmatch(r"(?:[^\W\d_]\.)+[^\W\d_]", w):
                 continue                                # z.B, d.h, e.g (Punkt im Wort)
@@ -109,9 +111,9 @@ def satzgrenzen(text, lang="en"):
     return behalten
 
 
-def teile_text(text, lang="en"):
+def teile_text(text, lang="en", abk=None):
     """Liste der Saetze (fuer Stage 200)."""
-    gr = satzgrenzen(text, lang)
+    gr = satzgrenzen(text, lang, abk)
     starts = [0] + gr + [len(text)]
     return [text[a:b].strip() for a, b in zip(starts, starts[1:]) if text[a:b].strip()]
 
