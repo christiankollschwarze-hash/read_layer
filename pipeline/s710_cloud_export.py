@@ -349,6 +349,16 @@ def run(book_slug: str, lang: str, force: bool = False, dry: bool = False,
         manifest_only: bool = False):
     print(f"[710] {book_slug} / {lang} — Cloud-Export startet"
           + (" (NUR Manifest)" if manifest_only else ""))
+    # Phase 2: Auslieferung nur bei freiem Gate 700 (Auslieferungs-Vertrag), nur lieferbare Produkte
+    from pipeline import bestellung, s700_guard, status as _st
+    z700 = _st.zustand(book_slug, "700")
+    if z700 not in _st.FREI or not os.path.exists(s700_guard.pfad(book_slug)):
+        raise RuntimeError(f"Gate 700 nicht frei ({z700}) – zuerst python -m pipeline.s700_guard {book_slug}")
+    _bestellt = [sc for sc, p, k in s700_guard.scopes(bestellung.lesen(book_slug)) if p["sprache"] == lang
+                 and k == "taella"]
+    if _bestellt and not s700_guard.lieferbar(book_slug, lg=lang, kanal="taella"):
+        raise RuntimeError(f"Gate 700: kein lieferbares TAELLA-Produkt in {lang} ({', '.join(_bestellt)} "
+                           f"zurueckgehalten bzw. nicht frei)")
 
     global _PREFIX
     author_slug = config.author_of(book_slug)

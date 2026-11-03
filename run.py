@@ -44,7 +44,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from config import config
 
 # Stages, die ihr Gate selbst ueber gate.py/status.py schreiben (waechst mit jedem Stage-Umbau).
-UMGEBAUT = {"080", "090", "095", "100", "110", "115", "120", "150", "190", "195", "200", "210", "300", "310", "320", "330", "340", "400", "410", "420", "500", "510", "530", "520", "540", "600", "610", "615", "620", "630", "640", "650"}
+UMGEBAUT = {"080", "090", "095", "100", "110", "115", "120", "150", "190", "195", "200", "210", "300", "310", "320", "330", "340", "400", "410", "420", "500", "510", "530", "520", "540", "600", "610", "615", "620", "630", "640", "650", "700"}
 
 
 def _neu(modul, **kw):
@@ -86,6 +86,7 @@ NEU = {"090": _neu("pipeline.s090_eingang"),
        "630": _neu("pipeline.s630_epub_zielsprache"),
        "640": _neu("pipeline.s640_teaser"),
        "650": _neu("pipeline.s650_hoerbuch"),
+       "700": _neu("pipeline.s700_guard"),
        "150": _neu("pipeline.s150_epub_import")}        # --force der Kette laedt raw.txt nicht neu (nur Stage-CLI)
 
 
@@ -128,17 +129,11 @@ def _mod(name):
     return importlib.import_module(name)
 
 
-def _alt_700(book_id, b, **_):
-    if not _mod("pipeline.s700_guard").check(book_id, langs=b.sprachen):
-        raise RuntimeError("Guard: ID-Deckung verletzt")
-    return True
-
-
 # key -> (aufruf(book_id, lang, b, force), fertig(book_id, lang) | None)
 ALT = {
-    "700": (lambda w, lg, b, f: _alt_700(w, b), None),
     "710": (lambda w, lg, b, f: _mod("pipeline.s710_cloud_export").run(w, lg, force=f), _cloud_export_done),
 }
+IMMER = {"700"}             # Vertrag vor jeder Auslieferung: laeuft auch bei freiem Gate
 MANUELL = set()             # Vorbedingungen ausserhalb der Kette (seit 150 keine mehr)
 IN_KETTE = set(ALT) | UMGEBAUT
 
@@ -210,7 +205,7 @@ def _stage_ausfuehren(book_id, stage, b, force, only_lang, wer=None):
             usage_log.set_context(book_id, stage)
             aufruf(book_id, None, b, force)
         z = _alt_bewerten(book_id, stage, b)
-        if z is None and ALT[stage][1] is None:          # 700: Pruefung ohne Datei
+        if z is None and ALT[stage][1] is None:          # Altpruefung ohne Datei
             z = status.ergebnis(book_id, stage, "auto", metriken=met, wer="run.py")
         if z is None:
             z = status.ergebnis(book_id, stage, "stopp", metriken=met, ruecksprung=stage, wer="run.py",
@@ -314,11 +309,12 @@ def run_pipeline(book_id, start_from=None, stop_to=None, only=None, force=False,
             from pipeline import s095_produktwahl
             if s095_produktwahl.veraltet(book_id):
                 status.zuruecksetzen(book_id, s, wer=wer, grund="Bestellung seit Freigabe geaendert")
-        if not force and status.ist_frei(book_id, s):
+        if not force and s not in IMMER and status.ist_frei(book_id, s):
             print(f"[skip] Stage {s} — frei")
             continue
 
-        vorg = kette.wirksame_vorgaenger(s, laeuft, IN_KETTE)
+        # 700 prueft die Gates je Produkt selbst (Zurueckhalten einzelner Produkte statt Kettenstopp)
+        vorg = [] if s == "700" else kette.wirksame_vorgaenger(s, laeuft, IN_KETTE)
         _alt_abgleichen(book_id, vorg, b)
         try:
             gate.vorgaenger_frei(book_id, s, vorg, wer=wer)

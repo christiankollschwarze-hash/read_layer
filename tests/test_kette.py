@@ -152,6 +152,8 @@ class Kette(unittest.TestCase):
         for st in ("620", "630"):
             run.NEU[st] = lambda w, b, f, wer, st=st: (self.gelaufen.append(st),
                                                        S.ergebnis(w, st, "auto", wer="test"))
+        run.NEU["700"] = lambda w, b, f, wer: (self.gelaufen.append("700"),
+                                               S.ergebnis(w, "700", "auto", wer="test"))
 
     def tearDown(self):
         self.run.ALT.clear(); self.run.ALT.update(self._alt)
