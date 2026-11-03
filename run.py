@@ -13,7 +13,7 @@ Eine Kette fuer jedes Werk, Reihenfolge laut Gate-Katalog (pipeline.status.STAGE
             (Stopp nur per Admin-Override: --override <stage> --wer CK --rolle admin --grund "...").
 
 Uebergang bis zum Umbau der Stages (Phase 2, je Stage):
-- Stages ohne Modul (650) laufen nicht in der Kette; ihre Vorgaenger
+- Stages ohne Modul laufen nicht in der Kette (seit 650 keine mehr); ihre Vorgaenger
   treten an ihre Stelle (kette.wirksame_vorgaenger).
 - Altstages schreiben noch kein eigenes Gate. run.py bewertet sie mit ihrer bisherigen Ausgabepruefung
   (Altpruefung): Ausgabe vorhanden -> auto, 410 Casting-Tor nicht freigegeben -> mensch, Ausgabe fehlt
@@ -44,7 +44,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from config import config
 
 # Stages, die ihr Gate selbst ueber gate.py/status.py schreiben (waechst mit jedem Stage-Umbau).
-UMGEBAUT = {"080", "090", "095", "100", "110", "115", "120", "150", "190", "195", "200", "210", "300", "310", "320", "330", "340", "400", "410", "420", "500", "510", "530", "520", "540", "600", "610", "615", "620", "630", "640"}
+UMGEBAUT = {"080", "090", "095", "100", "110", "115", "120", "150", "190", "195", "200", "210", "300", "310", "320", "330", "340", "400", "410", "420", "500", "510", "530", "520", "540", "600", "610", "615", "620", "630", "640", "650"}
 
 
 def _neu(modul, **kw):
@@ -85,6 +85,7 @@ NEU = {"090": _neu("pipeline.s090_eingang"),
        "620": _neu("pipeline.s620_epub_original"),
        "630": _neu("pipeline.s630_epub_zielsprache"),
        "640": _neu("pipeline.s640_teaser"),
+       "650": _neu("pipeline.s650_hoerbuch"),
        "150": _neu("pipeline.s150_epub_import")}        # --force der Kette laedt raw.txt nicht neu (nur Stage-CLI)
 
 
