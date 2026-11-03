@@ -44,7 +44,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from config import config
 
 # Stages, die ihr Gate selbst ueber gate.py/status.py schreiben (waechst mit jedem Stage-Umbau).
-UMGEBAUT = {"080", "090", "095", "100", "110", "115", "120", "150", "190", "195", "200", "210", "300", "310", "320", "330", "340", "400", "410", "420", "500", "510", "530", "520", "540", "600", "610"}
+UMGEBAUT = {"080", "090", "095", "100", "110", "115", "120", "150", "190", "195", "200", "210", "300", "310", "320", "330", "340", "400", "410", "420", "500", "510", "530", "520", "540", "600", "610", "615"}
 
 
 def _neu(modul, **kw):
@@ -81,6 +81,7 @@ NEU = {"090": _neu("pipeline.s090_eingang"),
        "540": _neu("pipeline.s540_trennung"),
        "600": _neu("pipeline.s600_klappentext"),
        "610": _neu("pipeline.s610_cover"),
+       "615": _neu("pipeline.s615_cover_final"),
        "150": _neu("pipeline.s150_epub_import")}        # --force der Kette laedt raw.txt nicht neu (nur Stage-CLI)
 
 
@@ -94,19 +95,6 @@ def _modernized(book_id, lang=None):
 
 def _work_json(suffix):
     return lambda book_id, lang=None: os.path.exists(config.work_path(book_id, suffix))
-
-
-def _cover_final(book_id, lang=None, b=None):
-    img = os.path.join(config.book_dir(book_id), "images")
-    ill = [os.path.join(img, n) for n in ("cover.png", "cover.jpg") if os.path.exists(os.path.join(img, n))]
-    if not ill:
-        return False
-    t = os.path.getmtime(ill[0])
-    for L in (b.sprachen if b else ("en", "de")):
-        p = os.path.join(config.book_dir(book_id), "fassungen", L, "output", f"cover_final_{L}.jpg")
-        if not os.path.exists(p) or os.path.getmtime(p) < t:
-            return False
-    return True
 
 
 def _epub(book_id, lang=None, b=None):
@@ -149,8 +137,6 @@ def _alt_700(book_id, b, **_):
 
 # key -> (aufruf(book_id, lang, b, force), fertig(book_id, lang) | None)
 ALT = {
-    "615": (lambda w, lg, b, f: _mod("pipeline.s615_cover_final").run(w, langs=tuple(b.sprachen)),
-            lambda w, lg=None, b=None: _cover_final(w, lg, b)),
     "620": (lambda w, lg, b, f: _mod("pipeline.s620_epub_original").run(w),
             lambda w, lg=None, b=None: _epub(w, None, b)),
     "630": (lambda w, lg, b, f: _mod("pipeline.s630_epub_zielsprache").run(w, lang=lg),
@@ -168,7 +154,7 @@ def _fertig(stage, book_id, lang, b):
     if fn is None:
         return False
     try:
-        return bool(fn(book_id, lang, b)) if stage in ("615", "620", "630") else bool(fn(book_id, lang))
+        return bool(fn(book_id, lang, b)) if stage in ("620", "630") else bool(fn(book_id, lang))
     except Exception:
         return False
 

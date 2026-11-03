@@ -246,15 +246,14 @@ def _kt_status(bdir):
 
 
 def _cover_final_ok(bdir):
-    """Beide Fassungen (EN/DE) haben ein fertiges Cover, juenger als die Illustration."""
-    c = _cover(bdir)
-    if not c:
+    """Cover final (615): Manifest work/615_cover_final.json, Gate 615 frei (Befund 615 (1)/(13))."""
+    try:
+        from pipeline import status as _st
+        werk = os.path.basename(os.path.normpath(bdir))
+        man = json.load(open(os.path.join(bdir, "work", "615_cover_final.json"), encoding="utf-8"))
+        return bool(man.get("varianten")) and _st.zustand(werk, "615") in _st.FREI
+    except Exception:
         return False
-    for lang in ("en", "de"):
-        p = os.path.join(bdir, "fassungen", lang, "output", f"cover_final_{lang}.jpg")
-        if not os.path.exists(p) or os.path.getmtime(p) < os.path.getmtime(c):
-            return False
-    return True
 
 
 def scan():
