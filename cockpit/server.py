@@ -555,7 +555,7 @@ def _cmd(step, r):
         return [PY, "run.py", s, "--line", "audio", "--to", "400", "--live"]
     if step == "klappentext_cover":
         if r.get("cover_neu"):        # Cover-Tor abgelehnt -> neue Illustration
-            return [PY, "-m", "pipeline.s610_cover", s, "--force"]
+            return [PY, "-m", "pipeline.s610_cover", s, "--neu"]
         kt = r.get("kt_pruefung")
         if kt and not kt.get("ok"):   # Klappentext da, aber Pruefung nicht bestanden -> nur reparieren
             return [PY, "-m", "pipeline.s600_klappentext", s]

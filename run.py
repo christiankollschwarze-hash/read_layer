@@ -44,7 +44,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from config import config
 
 # Stages, die ihr Gate selbst ueber gate.py/status.py schreiben (waechst mit jedem Stage-Umbau).
-UMGEBAUT = {"080", "090", "095", "100", "110", "115", "120", "150", "190", "195", "200", "210", "300", "310", "320", "330", "340", "400", "410", "420", "500", "510", "530", "520", "540", "600"}
+UMGEBAUT = {"080", "090", "095", "100", "110", "115", "120", "150", "190", "195", "200", "210", "300", "310", "320", "330", "340", "400", "410", "420", "500", "510", "530", "520", "540", "600", "610"}
 
 
 def _neu(modul, **kw):
@@ -80,6 +80,7 @@ NEU = {"090": _neu("pipeline.s090_eingang"),
        "520": _neu("pipeline.s520_wortzeiten"),
        "540": _neu("pipeline.s540_trennung"),
        "600": _neu("pipeline.s600_klappentext"),
+       "610": _neu("pipeline.s610_cover"),
        "150": _neu("pipeline.s150_epub_import")}        # --force der Kette laedt raw.txt nicht neu (nur Stage-CLI)
 
 
@@ -93,11 +94,6 @@ def _modernized(book_id, lang=None):
 
 def _work_json(suffix):
     return lambda book_id, lang=None: os.path.exists(config.work_path(book_id, suffix))
-
-
-def _cover_png(book_id, lang=None):
-    img = os.path.join(config.book_dir(book_id), "images")
-    return any(os.path.exists(os.path.join(img, n)) for n in ("cover.png", "cover.jpg"))
 
 
 def _cover_final(book_id, lang=None, b=None):
@@ -153,7 +149,6 @@ def _alt_700(book_id, b, **_):
 
 # key -> (aufruf(book_id, lang, b, force), fertig(book_id, lang) | None)
 ALT = {
-    "610": (lambda w, lg, b, f: _mod("pipeline.s610_cover").run(w, force=f), _cover_png),
     "615": (lambda w, lg, b, f: _mod("pipeline.s615_cover_final").run(w, langs=tuple(b.sprachen)),
             lambda w, lg=None, b=None: _cover_final(w, lg, b)),
     "620": (lambda w, lg, b, f: _mod("pipeline.s620_epub_original").run(w),

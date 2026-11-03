@@ -172,6 +172,15 @@ def bedarf_setzen(book_id, laeuft, wer="095"):
         _protokoll(d, wer=wer, aktion="bedarf", stages=sorted(laeuft))
 
 
+def entfaellt(book_id, stage, grund, wer="pipeline"):
+    """Stage stellt selbst fest, dass sie nicht gebraucht wird (z. B. 610 bei Cover aus 150)."""
+    stage = _norm(stage)
+    with aendern(book_id) as d:
+        st = _st(d, stage)
+        st.update(zustand="entfaellt", hinweise=[grund], wer=wer, wann=jetzt())
+        _protokoll(d, wer=wer, aktion="entfaellt", stage=stage, grund=grund)
+
+
 def start(book_id, stage, wer="pipeline", scope=None):
     stage = _norm(stage)
     with aendern(book_id) as d:

@@ -143,6 +143,10 @@ class Kette(unittest.TestCase):
                                                S.ergebnis(w, "540", "auto", wer="test"))
         run.NEU["600"] = lambda w, b, f, wer: (self.gelaufen.append("600"),
                                                S.ergebnis(w, "600", "auto", wer="test"))
+        self.e610 = "auto"
+        run.NEU["610"] = lambda w, b, f, wer: (self.gelaufen.append("610"),
+                                               S.ergebnis(w, "610", self.e610, wer="test",
+                                                          ruecksprung=None if self.e610 == "auto" else "610"))
 
     def tearDown(self):
         self.run.ALT.clear(); self.run.ALT.update(self._alt)
@@ -168,7 +172,7 @@ class Kette(unittest.TestCase):
         self.assertEqual(len(S.laden("u-test")["protokoll"]), n)
 
     def test_stopp_vorgaenger(self):
-        self.run.ALT["610"] = self.stage("610", ok=False)
+        self.e610 = "stopp"
         rc, out = self.lauf()
         self.assertEqual(rc, 2, out)
         self.assertEqual(S.zustand("u-test", "610"), "stopp")
