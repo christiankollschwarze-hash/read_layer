@@ -21,7 +21,7 @@ Gate:         je Sprache x Variante (status teile "<lg>:<variante>"): Titel vorh
               Sichtfreigabe einmal je Werk (--freigeben); danach Folgevarianten und Aenderungen auto bei gruen;
               Reihenteile >= 2 auto bei gruen. Mensch-Freigabe einer Variante gilt bei gleichem ausgabe_hash.
 Kosten:       0 $ (Pillow, CPU).
-Abnehmer:     s620/s630 (ePub), s650 (Hoerbuch extern), Cockpit, tools/export_app.py, tools/export_demo.py.
+Abnehmer:     s620/s630 (ePub), s650 (Hoerbuch extern), Cockpit, tools/export_demo.py (= 710 Ziel Lokal).
 
 Aufruf:  py -3.11 -m pipeline.s615_cover_final <werk> [--titel LG=TEXT] [--umbruch LG=A|B] [--schrift PT]
          [--position oben|unten] [--transparenz 0..1] [--sprecher an|aus] [--vermerke an|aus] [--neu]

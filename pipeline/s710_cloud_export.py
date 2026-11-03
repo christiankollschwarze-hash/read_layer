@@ -7,7 +7,7 @@ Wirkungsweise: Ein Gate je Scope "<lg>:taella", nur Sprachen mit lieferbarem 700
                Endfassung 530), audio_hoerspiel/<lg>/<tid>.mp3 (Hoerspiel), wordtimes_<lg>[_hoerspiel].json (520),
                cover_<lg>.jpg (615 text bzw. audio), teaser/<lg>/ (640); je Werk blurb.json (600) und Katalogeintrag.
                Anker je Zielsprache align_<lg> aus 340 mit Wortzeiten aus 520/525 (je_ziel); "align" = erste
-               Zielsprache (Altschnittstelle App bis AP 710c). Pausen 400, Sprechergeschlecht 410/210, Rollen 420.
+               Zielsprache (Altfeld; App liest align_<lg>). Pausen 400, Sprechergeschlecht 410/210, Rollen 420.
                Manifest work/710_export.json je Ziel x Scope: Datei -> {quelle_hash, md5, groesse}; nur Geaendertes wird
                hochgeladen, Verwaistes geloescht; MP3-Zwischenstand work/_710/<lg>/<spur>/ (Hash Endfassung + Bitrate).
 Gate:          je Scope: Gate 700 frei + Scope lieferbar, Text/Audio/Wortzeit-Abdeckung laut Bestellung 100 %, Manifest
@@ -55,7 +55,7 @@ from pipeline import bestellung, gate, manifest, status
 
 STAGE = "710"
 VERSION = 1
-APP_SCHEMA = 2                      # Manifest-Schema, das die App kennt (loader.js prueft ab AP 710c)
+APP_SCHEMA = 2                      # Manifest-Schema, das die App kennt (taella-app src/lib/loader.js APP_SCHEMA)
 AUDIO = ("hoerbuch", "hoerspiel")
 KANAELE = ("taella", "epub", "extern")
 NO_AUDIO_TYPES = set(getattr(config, "NO_AUDIO_TYPES", ["p"]))
@@ -1135,51 +1135,6 @@ def main(argv=None):
     for g in gates:
         print(g.bericht())
     return gate.EXIT[gate.gesamt([g.ergebnis["ergebnis"] for g in gates] or ["auto"])]
-
-
-# ============================================================ Altschnittstelle (tools/export_demo.py bis AP 710c)
-def _load_content_source(book_slug):
-    p340, p400 = config.work_path(book_slug, "340_wortalignment"), config.work_path(book_slug, "400_regie")
-    for p, al in ((p340, True), (p400, False)):
-        d = _json(p)
-        if d:
-            return d, al
-    raise FileNotFoundError(f"Weder {p340} noch {p400} gefunden")
-
-
-def _build_manifest(book_slug, lang, werk_id, stage06, audio_uris):
-    """Altformat fuer tools/export_demo.py (entfaellt mit AP 710c)."""
-    b = bestellung.lesen(book_slug)
-    D = Daten(book_slug, b)
-    D.text = stage06
-    content, kap = D.content, D.meta.get("chapters") or {}
-    ziele = [z for z in b.zielsprachen]
-    saetze = []
-    for tid, e in content.items():
-        if not isinstance(e, dict):
-            continue
-        typ, text = e.get("type", "s"), e.get(lang, "")
-        if not text and typ not in NO_AUDIO_TYPES:
-            continue
-        kk = tid.split("_")[0] if "_" in tid else ""
-        n = {"tag_id": tid, "typ": typ, "kapitel": kap.get(kk, kk), "text": text, "audio_path": audio_uris.get(tid, ""),
-             "pause_after_ms": D.pause(tid, lang)}
-        for f in ("sprecher", "rolle"):
-            if e.get(f):
-                n[f] = e[f]
-        if lang == b.quellsprache and ziele:
-            z = ziele[0]
-            al = e.get(f"align_{z}") or e.get("align")
-            if al:
-                n["align"] = _slim(al, ((D.d525.get("je_ziel") or {}).get(z) or {}).get("tags", {}).get(tid)
-                                   or (D.d525.get("tags") or {}).get(tid), b.quellsprache, z)
-        saetze.append(n)
-    hits = sum(1 for s in saetze if s["audio_path"])
-    return {"werk_id": werk_id, "originalsprache": b.quellsprache, "book_slug": book_slug, "sprache": lang,
-            "titel": D.meta.get("title", book_slug), "autor": D.meta.get("author", ""),
-            "audio_vollstaendig": hits > 0 and hits >= sum(1 for s in saetze if s["typ"] not in NO_AUDIO_TYPES),
-            "audio_count": hits, "erstellt": manifest.jetzt(), "modus": D.meta.get("modus", ""),
-            "sprecher_geschlecht": D.geschlecht(), "saetze": saetze}
 
 
 if __name__ == "__main__":
