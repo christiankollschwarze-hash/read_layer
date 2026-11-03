@@ -228,6 +228,32 @@ class Kette(unittest.TestCase):
         self.assertIn("--entscheiden 710 frei --scope en:epub", out)
         self.assertNotIn("--scope de:taella", out)
 
+    def test_bestellung_geaendert_teil_offen(self):
+        """Aufraeumpaket 4: freie Stage mit fehlendem Soll-Teil laeuft erneut (statt [skip] frei)."""
+        soll = ["en:text"]
+        alt = dict(self.run.SOLL_SCOPES)
+        self.run.SOLL_SCOPES["615"] = lambda b: list(soll)
+        self.run.NEU["615"] = lambda w, b, f, wer: (self.gelaufen.append("615"),
+                                                    [S.ergebnis(w, "615", "auto", scope=sc, wer="test") for sc in soll])
+        try:
+            self.assertEqual(self.lauf()[0], 0)
+            self.gelaufen.clear()
+            self.lauf()
+            self.assertNotIn("615", self.gelaufen)               # alles da -> skip
+            soll.append("en:audio")                              # Bestellung um Audio-Variante erweitert
+            rc, out = self.lauf()
+            self.assertIn("615", self.gelaufen)
+            self.assertIn("Teile laut Bestellung offen: en:audio", out)
+            self.assertEqual(S.zustand("u-test", "615", scope="en:audio"), "frei")
+        finally:
+            self.run.SOLL_SCOPES.clear(); self.run.SOLL_SCOPES.update(alt)
+
+    def test_soll_scopes_aus_bestellung(self):
+        b = B(HOERSPIEL)
+        self.assertEqual(self.run._soll_615(b), ["en:text", "de:text", "de:audio"])
+        self.assertEqual(self.run._soll_700(b), ["en:text:taella", "de:text:taella",
+                                                 "de:hoerbuch-premium:taella", "de:hoerspiel-premium:taella"])
+
     def test_bestellung_ungueltig(self):
         json.dump({"quellsprache": "xx", "produkte": []}, open(os.path.join(self.tmp.name, "book.json"), "w"))
         rc, out = self.lauf()

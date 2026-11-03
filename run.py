@@ -141,6 +141,37 @@ NEU = {"090": _neu("pipeline.s090_eingang"),
        "150": _neu("pipeline.s150_epub_import")}        # --force der Kette laedt raw.txt nicht neu (nur Stage-CLI)
 
 
+# ---- Soll-Teile laut Bestellung (Aufraeumpaket 4) ----------------------------
+# Stages mit Teil-Gates je Variante/Produkt: Fehlt bei freiem Stage-Gate ein laut Bestellung
+# gebrauchter Teil (Bestellung nach Freigabe geaendert), laeuft die Stage erneut statt "[skip] frei".
+def _soll_615(b):
+    from pipeline import s615_cover_final as m
+    return [f"{lg}:{v}" for lg, v in m.varianten(b)]
+
+
+def _soll_700(b):
+    from pipeline import s700_guard as m
+    return [sc for sc, _, _ in m.scopes(b)]
+
+
+SOLL_SCOPES = {"615": _soll_615, "700": _soll_700}
+
+
+def fehlende_teile(book_id, s, b, d=None):
+    """Laut Bestellung gebrauchte Teile der Stage, die nicht frei/entfaellt sind (fehlen oder offen)."""
+    from pipeline import status
+    fn = SOLL_SCOPES.get(s)
+    if fn is None:
+        return []
+    try:
+        soll = fn(b)
+    except Exception as e:                              # Bestellung unlesbar -> Stage entscheidet selbst
+        print(f"  Hinweis: Soll-Teile {s} nicht bestimmbar ({e})")
+        return []
+    teile = ((d or status.laden(book_id))["stages"].get(s) or {}).get("teile") or {}
+    return [sc for sc in soll if (teile.get(sc) or {}).get("zustand") not in status.FREI]
+
+
 # ---- Altpruefung (Ausgabe vorhanden) ------------------------------------
 def _modernized(book_id, lang=None):
     d = os.path.join(config.work_dir(book_id), "modernized")
@@ -292,8 +323,10 @@ def plan(book_id):
         weg = "Kette" if s in IN_KETTE else ("manuell" if s in MANUELL else "nicht gebaut")
         v = kette.wirksame_vorgaenger(s, laeuft, IN_KETTE) if s in laeuft else []
         langs = kette.sprachen(s, b) if s in laeuft else None
+        fehlt = fehlende_teile(book_id, s, b, d=d) if s in laeuft and status.ist_frei(book_id, s, d=d) else []
         print(f"  {s}  {art:<9} {weg:<12} {status.zustand(book_id, s, d=d):<9}"
-              f"{' ' + ','.join(langs) if langs else ''}{'  <- ' + ' '.join(v) if v else ''}")
+              f"{' ' + ','.join(langs) if langs else ''}{'  <- ' + ' '.join(v) if v else ''}"
+              f"{'  [neu: Teile offen ' + ','.join(fehlt) + ']' if fehlt else ''}")
     return 0
 
 
@@ -355,8 +388,11 @@ def run_pipeline(book_id, start_from=None, stop_to=None, only=None, force=False,
             if s095_produktwahl.veraltet(book_id):
                 status.zuruecksetzen(book_id, s, wer=wer, grund="Bestellung seit Freigabe geaendert")
         if not force and s not in IMMER and status.ist_frei(book_id, s):
-            print(f"[skip] Stage {s} — frei")
-            continue
+            fehlt = fehlende_teile(book_id, s, b)
+            if not fehlt:
+                print(f"[skip] Stage {s} — frei")
+                continue
+            print(f"[neu] Stage {s} — frei, aber Teile laut Bestellung offen: {', '.join(fehlt)}")
 
         # 700 prueft die Gates je Produkt selbst (Zurueckhalten einzelner Produkte statt Kettenstopp)
         vorg = [] if s == "700" else kette.wirksame_vorgaenger(s, laeuft, IN_KETTE)
