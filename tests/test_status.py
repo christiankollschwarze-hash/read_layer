@@ -101,6 +101,20 @@ class T(unittest.TestCase):
         finally:
             S.jetzt = orig
 
+    def test_altbestand_ohne_signatur(self):
+        """Aufraeumpaket 7: status.json ohne 'signatur' -> gleiches Ergebnis beim Neulauf aendert 'stand' nicht."""
+        S.bedarf_setzen(self.w, ["150", "615"])
+        S.ergebnis(self.w, "150", "auto", metriken={"kapitel": 2})
+        S.ergebnis(self.w, "615", "auto", scope="de:text", metriken={"breite": 1600})
+        with S.aendern(self.w) as d:
+            for z in (d["stages"]["150"], d["stages"]["615"]["teile"]["de:text"]):
+                z.pop("signatur"); z.pop("stand"); z["gate"]["wann"] = "2026-11-03T13:28:49+00:00"
+        S.start(self.w, "150")                 # Lauf-Start loescht das Gate, Signatur wird vorher gesichert
+        S.ergebnis(self.w, "150", "auto", metriken={"kapitel": 2})
+        S.ergebnis(self.w, "615", "auto", scope="de:text", metriken={"breite": 1600})
+        self.assertEqual(S.stand(self.w, "150").isoformat(), "2026-11-03T13:28:49+00:00")
+        self.assertEqual(S.stand(self.w, "615").isoformat(), "2026-11-03T13:28:49+00:00")
+
 
 if __name__ == "__main__":
     unittest.main()

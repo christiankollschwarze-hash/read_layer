@@ -190,6 +190,7 @@ def start(book_id, stage, wer="pipeline", scope=None):
         z = _ziel(d, stage, scope)
         z.update(zustand="laeuft", wer=wer, wann=jetzt())
         if scope is None:                  # neuer Lauf: Befunde/Hinweise des Vorlaufs gelten nicht mehr
+            _signatur_sichern(z)
             z.update(gate=None, hinweise=[])
         else:
             _st(d, stage)["zustand"] = "laeuft"
@@ -205,6 +206,7 @@ def ergebnis(book_id, stage, gate, metriken=None, gruende=None, ruecksprung=None
     zustand = {"auto": "frei", "mensch": "mensch", "stopp": "stopp"}[gate]
     with aendern(book_id) as d:
         z = _ziel(d, stage, scope)
+        _signatur_sichern(z)
         z.update(zustand=zustand, metriken=metriken or {}, hinweise=list(hinweise or []),
                  gate={"ergebnis": gate, "gruende": list(gruende or []),
                        "ruecksprung": ruecksprung, "wann": jetzt()},
@@ -248,6 +250,16 @@ def _zeiten(st, feld):
         if z:
             out.append(z)
     return out
+
+
+def _signatur_sichern(z):
+    """Altbestand ohne 'signatur': Signatur und Stand aus dem vorhandenen Gate nachtragen, bevor es
+    ueberschrieben/geloescht wird – sonst gaelte der erste Neulauf als Ergebnisaenderung (Kaskade)."""
+    g = z.get("gate")
+    if "signatur" in z or not g:
+        return
+    z["signatur"] = _signatur(g.get("ergebnis"), g.get("gruende"), z.get("hinweise"), z.get("metriken"))
+    z["stand"] = z.get("stand") or g.get("wann")
 
 
 def stand(book_id, stage, d=None):
@@ -330,6 +342,7 @@ def zuruecksetzen(book_id, stage, wer, grund, scope=None):
     with aendern(book_id) as d:
         z = _ziel(d, stage, scope)
         von = z["zustand"]
+        _signatur_sichern(z)
         z.update(zustand="offen", versuche=0, gate=None, wer=wer, wann=jetzt())
         if scope is not None:
             _gesamt_aus_teilen(_st(d, stage))
