@@ -172,6 +172,27 @@ def fehlende_teile(book_id, s, b, d=None):
     return [sc for sc in soll if (teile.get(sc) or {}).get("zustand") not in status.FREI]
 
 
+# ---- Frische-Kaskade (Aufraeumpaket 7) -----------------------------------
+# Hat sich das Ergebnis eines Vorgaengers nach dem letzten Lauf einer freien Stage geaendert
+# (status.stand > status.gelaufen), laeuft die Stage erneut statt "[skip] frei". Gleiches Ergebnis
+# beim Neulauf aendert 'stand' nicht -> die Kaskade endet dort. 080 (Querschicht) zaehlt nicht.
+def veraltet(book_id, s, laeuft, d=None):
+    """[(vorgaenger, stand)] mit juengerem Ergebnis als der letzte Lauf von s."""
+    from pipeline import kette, status
+    d = d or status.laden(book_id)
+    eigen = status.gelaufen(book_id, s, d=d)
+    if eigen is None:
+        return []
+    out = []
+    for v in kette.wirksame_vorgaenger(s, laeuft, IN_KETTE):
+        if v == "080" or status.zustand(book_id, v, d=d) == "entfaellt":
+            continue
+        t = status.stand(book_id, v, d=d)
+        if t and t > eigen:
+            out.append((v, t))
+    return out
+
+
 # ---- Altpruefung (Ausgabe vorhanden) ------------------------------------
 def _modernized(book_id, lang=None):
     d = os.path.join(config.work_dir(book_id), "modernized")
@@ -323,10 +344,13 @@ def plan(book_id):
         weg = "Kette" if s in IN_KETTE else ("manuell" if s in MANUELL else "nicht gebaut")
         v = kette.wirksame_vorgaenger(s, laeuft, IN_KETTE) if s in laeuft else []
         langs = kette.sprachen(s, b) if s in laeuft else None
-        fehlt = fehlende_teile(book_id, s, b, d=d) if s in laeuft and status.ist_frei(book_id, s, d=d) else []
+        frei = s in laeuft and status.ist_frei(book_id, s, d=d)
+        fehlt = fehlende_teile(book_id, s, b, d=d) if frei else []
+        alt = [v for v, _ in veraltet(book_id, s, laeuft, d=d)] if frei else []
         print(f"  {s}  {art:<9} {weg:<12} {status.zustand(book_id, s, d=d):<9}"
               f"{' ' + ','.join(langs) if langs else ''}{'  <- ' + ' '.join(v) if v else ''}"
-              f"{'  [neu: Teile offen ' + ','.join(fehlt) + ']' if fehlt else ''}")
+              f"{'  [neu: Teile offen ' + ','.join(fehlt) + ']' if fehlt else ''}"
+              f"{'  [neu: veraltet nach ' + ','.join(alt) + ']' if alt else ''}")
     return 0
 
 
@@ -389,10 +413,15 @@ def run_pipeline(book_id, start_from=None, stop_to=None, only=None, force=False,
                 status.zuruecksetzen(book_id, s, wer=wer, grund="Bestellung seit Freigabe geaendert")
         if not force and s not in IMMER and status.ist_frei(book_id, s):
             fehlt = fehlende_teile(book_id, s, b)
-            if not fehlt:
+            alt = veraltet(book_id, s, laeuft)
+            if not fehlt and not alt:
                 print(f"[skip] Stage {s} — frei")
                 continue
-            print(f"[neu] Stage {s} — frei, aber Teile laut Bestellung offen: {', '.join(fehlt)}")
+            if fehlt:
+                print(f"[neu] Stage {s} — frei, aber Teile laut Bestellung offen: {', '.join(fehlt)}")
+            if alt:
+                print(f"[neu] Stage {s} — veraltet: juengeres Ergebnis von "
+                      + ", ".join(f"{v} ({t.isoformat(timespec='seconds')})" for v, t in alt))
 
         # 700 prueft die Gates je Produkt selbst (Zurueckhalten einzelner Produkte statt Kettenstopp)
         vorg = [] if s == "700" else kette.wirksame_vorgaenger(s, laeuft, IN_KETTE)

@@ -209,9 +209,59 @@ def ergebnis(book_id, stage, gate, metriken=None, gruende=None, ruecksprung=None
                  gate={"ergebnis": gate, "gruende": list(gruende or []),
                        "ruecksprung": ruecksprung, "wann": jetzt()},
                  wer=wer, wann=jetzt())
+        sig = _signatur(gate, gruende, hinweise, metriken)
+        if z.get("signatur") != sig:       # Ergebnis geaendert -> Folgestages sind veraltet (Frische)
+            z.update(signatur=sig, stand=jetzt())
         if scope is not None:
             _gesamt_aus_teilen(_st(d, stage))
     return zustand
+
+
+# Metriken, die sich bei jedem Lauf aendern, zaehlen nicht als Ergebnisaenderung.
+FLUECHTIG = ("dauer", "sek", "wann", "zeitpunkt", "laufzeit")
+
+
+def _signatur(gate, gruende, hinweise, metriken):
+    import hashlib
+    m = metriken or {}
+    if isinstance(m, dict):
+        m = {k: v for k, v in m.items() if not any(f in str(k).lower() for f in FLUECHTIG)}
+    roh = json.dumps([gate, list(gruende or []), list(hinweise or []), m], sort_keys=True,
+                     ensure_ascii=False, default=str)
+    return hashlib.sha1(roh.encode("utf-8")).hexdigest()[:16]
+
+
+def _zeit(t):
+    try:
+        return datetime.fromisoformat(t) if t else None
+    except (TypeError, ValueError):
+        return None
+
+
+def _zeiten(st, feld):
+    """Zeitpunkte von Stage + Teilen: feld 'stand' (letzte Ergebnisaenderung, Rueckfall Gate-Zeit)
+    oder 'lauf' (letztes Gate-Ergebnis)."""
+    out = []
+    for t in [st] + list((st.get("teile") or {}).values()):
+        g = (t.get("gate") or {}).get("wann")
+        z = _zeit(t.get("stand") or g) if feld == "stand" else _zeit(g)
+        if z:
+            out.append(z)
+    return out
+
+
+def stand(book_id, stage, d=None):
+    """Zeit der letzten Ergebnisaenderung (Stage oder ein Teil) – Bezug fuer Nachfolger. None = nie."""
+    st = (d or laden(book_id))["stages"].get(_norm(stage)) or {}
+    z = _zeiten(st, "stand")
+    return max(z) if z else None
+
+
+def gelaufen(book_id, stage, d=None):
+    """Zeit des letzten Gate-Ergebnisses (Stage oder ein Teil). None = nie."""
+    st = (d or laden(book_id))["stages"].get(_norm(stage)) or {}
+    z = _zeiten(st, "lauf")
+    return max(z) if z else None
 
 
 def _gesamt_aus_teilen(st):

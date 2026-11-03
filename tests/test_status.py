@@ -83,6 +83,24 @@ class T(unittest.TestCase):
         self.assertNotIn("faster_whisper", z["640"])
         self.assertIn("de:text:taella: Klappentext fehlt -> 600", z["700"])
 
+    def test_stand_nur_bei_ergebnisaenderung(self):
+        """Aufraeumpaket 7: 'stand' wechselt nur bei geaendertem Ergebnis (fluechtige Metriken zaehlen nicht)."""
+        S.bedarf_setzen(self.w, ["410"])
+        orig = S.jetzt
+        try:
+            S.jetzt = lambda: "2026-11-03T10:00:00+01:00"
+            S.ergebnis(self.w, "410", "auto", metriken={"figuren": 3, "dauer_s": 1.0})
+            S.jetzt = lambda: "2026-11-03T12:00:00+00:00"
+            S.ergebnis(self.w, "410", "auto", metriken={"figuren": 3, "dauer_s": 9.0})
+            self.assertEqual(S.stand(self.w, "410").isoformat(), "2026-11-03T10:00:00+01:00")
+            self.assertEqual(S.gelaufen(self.w, "410").isoformat(), "2026-11-03T12:00:00+00:00")
+            S.zuruecksetzen(self.w, "410", wer="t", grund="neu")
+            S.ergebnis(self.w, "410", "auto", metriken={"figuren": 4})
+            self.assertEqual(S.stand(self.w, "410").isoformat(), "2026-11-03T12:00:00+00:00")
+            self.assertIsNone(S.stand(self.w, "500"))
+        finally:
+            S.jetzt = orig
+
 
 if __name__ == "__main__":
     unittest.main()

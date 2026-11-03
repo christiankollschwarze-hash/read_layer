@@ -147,8 +147,8 @@ class Kette(unittest.TestCase):
         run.NEU["610"] = lambda w, b, f, wer: (self.gelaufen.append("610"),
                                                S.ergebnis(w, "610", self.e610, wer="test",
                                                           ruecksprung=None if self.e610 == "auto" else "610"))
-        run.NEU["615"] = lambda w, b, f, wer: (self.gelaufen.append("615"),
-                                               S.ergebnis(w, "615", "auto", wer="test"))
+        run.NEU["615"] = lambda w, b, f, wer: (self.gelaufen.append("615"),         # Soll-Teil laut Bestellung
+                                               S.ergebnis(w, "615", "auto", scope="en:text", wer="test"))
         for st in ("620", "630"):
             run.NEU[st] = lambda w, b, f, wer, st=st: (self.gelaufen.append(st),
                                                        S.ergebnis(w, st, "auto", wer="test"))
@@ -253,6 +253,32 @@ class Kette(unittest.TestCase):
         self.assertEqual(self.run._soll_615(b), ["en:text", "de:text", "de:audio"])
         self.assertEqual(self.run._soll_700(b), ["en:text:taella", "de:text:taella",
                                                  "de:hoerbuch-premium:taella", "de:hoerspiel-premium:taella"])
+
+    def _alt_machen(self, stage, wann="2026-01-01T00:00:00+00:00"):
+        with S.aendern("u-test") as d:
+            for t in [d["stages"][stage]] + list(d["stages"][stage]["teile"].values()):
+                if t.get("gate"):
+                    t["gate"]["wann"] = wann
+                t["stand"] = wann
+
+    def test_frische_kaskade(self):
+        """Aufraeumpaket 7: juengeres Vorgaenger-Ergebnis -> freie Folgestage laeuft neu; gleiches
+        Ergebnis beim Neulauf beendet die Kaskade."""
+        self.assertEqual(self.lauf()[0], 0)
+        self._alt_machen("610")
+        self._alt_machen("615")
+        self._alt_machen("620")
+        S.ergebnis("u-test", "610", "auto", metriken={"breite": 1200}, wer="test")   # 610 neu, Ergebnis anders
+        self.gelaufen.clear()
+        rc, out = self.lauf()
+        self.assertEqual(rc, 0, out)
+        self.assertIn("615", self.gelaufen)
+        self.assertIn("[neu] Stage 615 — veraltet: juengeres Ergebnis von 610", out)
+        self.assertNotIn("620", self.gelaufen)          # 615 gleiches Ergebnis -> stand alt -> 620 aktuell
+        self.assertNotIn("610", self.gelaufen)
+        self.gelaufen.clear()
+        self.lauf()
+        self.assertNotIn("615", self.gelaufen)          # jetzt aktuell
 
     def test_bestellung_ungueltig(self):
         json.dump({"quellsprache": "xx", "produkte": []}, open(os.path.join(self.tmp.name, "book.json"), "w"))
