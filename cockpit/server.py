@@ -977,10 +977,14 @@ class H(BaseHTTPRequestHandler):
                     return self._send(200, f.read(), MIME[".html"])
             if u.path == "/api/werke":
                 return self._send(200, WERK.werke())
+            if u.path == "/api/ampel":
+                return self._send(200, WERK.ampel_alle())
             if u.path == "/api/nutzer":
                 return self._send(200, WERK.nutzer_liste())
             if u.path.startswith("/api/werk/"):
                 teil = [urllib.parse.unquote(x) for x in u.path[len("/api/werk/"):].split("/")]
+                if len(teil) == 2 and teil[1] == "ampel":
+                    return self._send(200, WERK.ampel(teil[0]))
                 if len(teil) == 2 and teil[1] == "lauf":
                     return self._send(200, json.dumps(WERK.LAEUFE.state(teil[0]), ensure_ascii=False))
                 if len(teil) == 1 and teil[0]:

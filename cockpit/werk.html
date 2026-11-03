@@ -29,6 +29,15 @@ pre{background:#111;color:#ddd;padding:8px;max-height:420px;overflow:auto;font-s
 .klein{font-size:12px;color:#666}
 .regler label{display:block;margin:3px 0}.regler textarea{width:100%;height:46px}
 .err{color:var(--r)}
+.ampel{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:6px;font-weight:600;margin-bottom:12px;color:#fff}
+.ampel .dot{width:16px;height:16px;border-radius:50%;background:#fff;flex:none}
+.a-produktion{background:var(--b)}.a-produktion .dot{animation:puls 1s infinite}
+.a-still{background:#6d4c41}.a-stopp{background:var(--r)}.a-mensch{background:var(--a)}
+.a-bereit{background:#546e7a}.a-fertig{background:var(--g)}
+@keyframes puls{0%,100%{opacity:1}50%{opacity:.2}}
+.z.laeuft{animation:puls 1s infinite}
+#global{display:flex;gap:6px;align-items:center}
+#global .g{padding:1px 8px;border-radius:9px;font-size:12px;cursor:pointer}
 </style></head><body>
 <header>
  <b>Einzeltitel</b>
@@ -38,10 +47,12 @@ pre{background:#111;color:#ddd;padding:8px;max-height:420px;overflow:auto;font-s
  Nutzer <select id="wer" onchange="laden()"></select>
  <label><input type="checkbox" id="weg"> entfallene zeigen</label>
  <span id="info" class="klein" style="color:#cfd8dc"></span>
- <a href="/" style="margin-left:auto">altes Cockpit</a>
+ <span id="global" style="margin-left:auto"></span>
+ <a href="/">altes Cockpit</a>
 </header>
 <main>
  <section>
+  <div class="ampel a-bereit" id="ampel"><span class="dot"></span><span id="ampeltext">–</span></div>
   <div class="box" id="kopf"></div>
   <div class="box"><h2>Stages</h2><div id="stages"></div></div>
  </section>
@@ -69,7 +80,7 @@ async function laden(){
   const id=$("werk").value.trim();if(!id)return;location.hash=encodeURIComponent(id);
   const d=await api(`/api/werk/${encodeURIComponent(id)}?wer=${encodeURIComponent($("wer").value)}`);
   if(d.fehler){$("kopf").innerHTML=`<span class="err">${esc(d.fehler)}</span>`;$("stages").innerHTML="";return;}
-  W=d;zeichnen();laufZeigen(d.lauf);
+  W=d;zeichnen();laufZeigen(d.lauf);letzteFarbe=d.ampel.farbe;ampelZeigen(d.ampel);
 }
 function zeichnen(){
   const d=W;if(!d)return;const b=d.bestellung||{};
@@ -170,5 +181,27 @@ function laufZeigen(l){
   if(l.laeuft)poll=setTimeout(async()=>{laufZeigen(await api(`/api/werk/${encodeURIComponent(W.book_id)}/lauf`));},1500);
   else if(sahLaufen){sahLaufen=false;laden();}
 }
-start();
+let letzteFarbe=null;
+function ampelZeigen(a){
+  if(!a)return;$("ampel").className="ampel a-"+a.farbe;
+  let t=a.text;if(a.still_s!=null&&a.farbe!="fertig")t+=` · letzte Aktivität vor ${a.still_s<120?a.still_s+" s":Math.round(a.still_s/60)+" min"}`;
+  $("ampeltext").textContent=t;
+  document.title=({produktion:"▶ ",still:"? ",stopp:"■ ",mensch:"! "}[a.farbe]||"")+(W?W.book_id:"Einzeltitel");
+  if(letzteFarbe&&letzteFarbe!=a.farbe&&W)laden();            // Zustandswechsel -> Ansicht neu laden
+  letzteFarbe=a.farbe;
+}
+async function ampelPoll(){
+  try{
+    if(W)ampelZeigen(await api(`/api/werk/${encodeURIComponent(W.book_id)}/ampel`));
+    const g=await api("/api/ampel"),fb={produktion:"var(--b)",still:"#6d4c41",stopp:"var(--r)",mensch:"var(--a)"},
+      nm={produktion:"in Produktion",still:"unklar",stopp:"Stopp",mensch:"Entscheidung"};
+    $("global").innerHTML=Object.entries(g.anzahl).filter(([f,n])=>n).map(([f,n])=>
+      `<span class="g" style="background:${fb[f]}" title="${esc(g.werke.filter(w=>w.farbe==f).map(w=>w.book_id+": "+w.text).join("\n"))}"
+        onclick="springe('${f}')">${n} ${nm[f]}</span>`).join("")||`<span class="g" style="background:var(--g)">nichts läuft</span>`;
+    window._g=g;
+  }catch(e){}
+  setTimeout(ampelPoll,4000);
+}
+function springe(f){const w=(window._g.werke||[]).find(x=>x.farbe==f);if(w){$("werk").value=w.book_id;letzteFarbe=null;laden();}}
+start();ampelPoll();
 </script></body></html>

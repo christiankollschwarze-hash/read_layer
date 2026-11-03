@@ -141,6 +141,28 @@ class T(unittest.TestCase):
         finally:
             A.LOGDIR = A_LOG
 
+    def test_ampel(self):
+        self._stand()
+        self.assertEqual(A.ampel(self.w)["farbe"], "mensch")                     # 310 wartet
+        S.ergebnis(self.w, "300", "stopp", gruende=["x"])
+        self.assertEqual(A.ampel(self.w)["farbe"], "stopp")
+        S.start(self.w, "320")                                                      # Lauf ausserhalb Cockpit
+        a = A.ampel(self.w)
+        self.assertEqual((a["farbe"], a["laufend"][0]["stage"]), ("produktion", "320"))
+        alt = time.time() - 3600                                                    # 1 h keine Aktivitaet
+        for p in [self.tmp.name] + [os.path.join(self.tmp.name, f) for f in os.listdir(self.tmp.name)]:
+            os.utime(p, (alt, alt))
+        self.assertEqual(A.ampel(self.w)["farbe"], "still")
+        A.LAEUFE.jobs[self.w] = {"exit": None, "art": "run.py fortsetzen", "cmd": "", "log": os.path.join(self.tmp.name, "x.log"), "start": "", "ende": None}
+        try:
+            self.assertEqual(A.ampel(self.w)["farbe"], "produktion")               # Cockpit-Lauf gilt immer
+        finally:
+            A.LAEUFE.jobs.pop(self.w)
+        S.ergebnis(self.w, "320", "auto")
+        S.ergebnis(self.w, "300", "auto")
+        S.entscheiden(self.w, "310", "frei", "CK", "ok", scope="c002/de")
+        self.assertEqual(A.werk(self.w)["ampel"]["farbe"], "bereit")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -74,6 +74,7 @@ pre.log{background:#1f1d1a;color:#e8e2d6;padding:10px;border-radius:8px;max-heig
 <header><div class="top">
  <h1>READ LAYER · Cockpit</h1>
  <a href="/werk" style="margin-left:12px">→ Einzeltitel (neu)</a>
+ <a href="/werk" id="prodampel" style="margin-left:12px;padding:2px 10px;border-radius:9px;color:#fff;background:#2e7d32;text-decoration:none">…</a>
  <nav id="nav"></nav>
  <div class="runinfo" id="runinfo"></div>
 </div></header>
@@ -360,5 +361,11 @@ async function runinfo(){
   setTimeout(runinfo,5000);
 }
 render(); runinfo();
+
+// Produktions-Ampel (Phase 3): alle Werke, alle 4 s
+(function prodAmpel(){fetch("/api/ampel").then(r=>r.json()).then(g=>{const a=g.anzahl,e=document.getElementById("prodampel");
+ const t=[a.produktion&&a.produktion+" in Produktion",a.still&&a.still+" unklar",a.stopp&&a.stopp+" Stopp",a.mensch&&a.mensch+" Entscheidung"].filter(Boolean);
+ e.textContent=t.join(" · ")||"nichts läuft";e.style.background=a.produktion?"#1565c0":a.still?"#6d4c41":a.stopp?"#c62828":a.mensch?"#b26a00":"#2e7d32";
+ e.title=g.werke.map(w=>w.book_id+": "+w.text).join("\n");}).catch(()=>{}).finally(()=>setTimeout(prodAmpel,4000));})();
 </script>
 </body></html>

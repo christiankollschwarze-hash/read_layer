@@ -207,6 +207,7 @@ def werk(book_id, wer=None):
             "bestellung": b.als_dict() if b is not None else None, "bestellung_fehler": bfehler,
             "kosten_gesamt": kosten.get("gesamt"), "stages": stages, "naechster": naechster,
             "protokoll": list(reversed(d.get("protokoll") or []))[:80],
+            "ampel": _ampel_aus(d, os.path.dirname(status.pfad(book_id)), LAEUFE.state(book_id, zeilen=0)),
             "run_mode": config.RUN_MODE, "wer": wer, "rolle": s080_mandant.rolle(wer), "rechte": rechte, "lauf": LAEUFE.state(book_id)}
 
 
@@ -321,11 +322,13 @@ class Laeufe:
         j = self.jobs.get(book_id)
         if not j:
             return None
-        try:
-            with open(j["log"], encoding="utf-8", errors="replace") as f:
-                tail = f.read().splitlines()[-zeilen:]
-        except OSError:
-            tail = []
+        tail = []
+        if zeilen:
+            try:
+                with open(j["log"], encoding="utf-8", errors="replace") as f:
+                    tail = f.read().splitlines()[-zeilen:]
+            except OSError:
+                pass
         rc = j["exit"]
         return {"art": j["art"], "cmd": j["cmd"], "start": j["start"], "ende": j["ende"], "laeuft": rc is None,
                 "exit": rc, "deutung": None if rc is None else EXIT_DEUTUNG.get(rc, "fehler"),
@@ -359,3 +362,99 @@ def regler(book_id, stage, werte, wer, nur_vorschau=False):
         return {"ok": True, "lauf": LAEUFE.start(book_id, argv, f"Regler {stage}")}
     except (ValueError, PermissionError, RuntimeError) as e:
         return {"ok": False, "fehler": str(e)}
+
+
+# ------------------------------------------------------------------ Produktions-Ampel
+# Quellen: Cockpit-Unterprozess (sicher), Stage-Zustand 'laeuft' in status.json (auch CLI/Bat-Laeufe),
+# letzte Aktivitaet = juengste Aenderung im Werk-work-Ordner (status.json, kosten.jsonl, Ordner + Unterordner;
+# atomares Schreiben aendert die Ordnerzeit). 'laeuft' ohne Aktivitaet > STILL_MIN -> evtl. abgebrochen.
+STILL_MIN = 15
+AMPEL_FARBEN = ("produktion", "still", "stopp", "mensch", "bereit", "fertig")
+
+
+def _aktivitaet(work):
+    """Sekunden seit der letzten Aenderung im work-Ordner (eine Ebene tief), None = kein Ordner."""
+    if not os.path.isdir(work):
+        return None
+    t = os.path.getmtime(work)
+    with os.scandir(work) as it:
+        for e in it:
+            try:
+                if e.is_dir() or e.name in ("status.json", "kosten.jsonl"):
+                    t = max(t, e.stat().st_mtime)
+            except OSError:
+                pass
+    import time as _t
+    return max(0, int(_t.time() - t))
+
+
+def _ampel_aus(d, work, job, naechster=None):
+    """Ampel eines Werks aus Status-Dict, work-Ordner und Cockpit-Job."""
+    laufend, mensch, stopp, offen = [], [], [], []
+    for s in status.STAGES:
+        st = d["stages"].get(s) or {}
+        z = st.get("zustand")
+        teile_l = [sc for sc, t in (st.get("teile") or {}).items() if t.get("zustand") == "laeuft"]
+        if z == "laeuft" or teile_l:
+            laufend.append({"stage": s, "seit": st.get("wann"), "teile": teile_l})
+        elif z == "mensch":
+            mensch.append(s)
+        elif z == "stopp":
+            stopp.append(s)
+        elif z == "offen":
+            offen.append(s)
+    still = _aktivitaet(work)
+    job_laeuft = bool(job and job.get("laeuft"))
+    out = {"laufend": laufend, "mensch": mensch, "stopp": stopp, "still_s": still, "cockpit_lauf": job_laeuft,
+           "cockpit_art": job.get("art") if job else None}
+    if job_laeuft or (laufend and still is not None and still < STILL_MIN * 60):
+        st = ", ".join(x["stage"] for x in laufend) or "Start"
+        out.update(farbe="produktion", text=f"In Produktion: Stage {st}" + (f" ({job['art']})" if job_laeuft else
+                                                                                  " (Lauf ausserhalb Cockpit)"))
+    elif laufend:
+        out.update(farbe="still", text=f"Stage {', '.join(x['stage'] for x in laufend)} steht auf 'laeuft', "
+                                       f"keine Aktivitaet seit {still // 60} min – evtl. abgebrochen")
+    elif stopp:
+        out.update(farbe="stopp", text=f"Stopp: {', '.join(stopp)} – Handlungsbedarf")
+    elif mensch:
+        out.update(farbe="mensch", text=f"Entscheidung offen: {', '.join(mensch)} – Handlungsbedarf")
+    elif offen:                                   # nur status.json (gleiches Ergebnis fuer Poll und Ansicht)
+        out.update(farbe="bereit", text=f"Bereit, nichts laeuft – offen ab Stage {offen[0]}")
+    else:
+        out.update(farbe="fertig", text="Fertig – nichts laeuft, nichts offen")
+    return out
+
+
+def ampel(book_id):
+    d = status.laden(book_id)
+    return _ampel_aus(d, os.path.dirname(status.pfad(book_id)), LAEUFE.state(book_id, zeilen=0))
+
+
+def _status_dateien():
+    muster = (os.path.join(BASE, "authors", "*", "books", "*", "work", "status.json"),
+              os.path.join(BASE, "users", "*", "works", "*", "work", "status.json"))
+    for m in muster:
+        for p in glob.glob(m):
+            yield os.path.basename(os.path.dirname(os.path.dirname(p))), p
+
+
+def ampel_alle():
+    """Alle Werke mit status.json: wo wird produziert, wo wartet etwas? (ohne Index, ohne Anlegen)."""
+    import json as _j
+    werke = []
+    for bid, p in _status_dateien():
+        try:
+            with open(p, encoding="utf-8") as f:
+                d = _j.load(f)
+        except (OSError, ValueError):
+            continue
+        a = _ampel_aus(d, os.path.dirname(p), LAEUFE.state(bid, zeilen=0))
+        if a["farbe"] in ("produktion", "still", "stopp", "mensch"):
+            werke.append({"book_id": bid, "farbe": a["farbe"], "text": a["text"]})
+    for bid in LAEUFE.jobs:                      # Cockpit-Lauf fuer Werk ohne status.json
+        if LAEUFE.jobs[bid]["exit"] is None and bid not in [w["book_id"] for w in werke]:
+            werke.append({"book_id": bid, "farbe": "produktion", "text": f"In Produktion ({LAEUFE.jobs[bid]['art']})"})
+    rang = {f: i for i, f in enumerate(AMPEL_FARBEN)}
+    werke.sort(key=lambda w: (rang[w["farbe"]], w["book_id"]))
+    n = {f: sum(1 for w in werke if w["farbe"] == f) for f in AMPEL_FARBEN[:4]}
+    return {"werke": werke, "anzahl": n}
