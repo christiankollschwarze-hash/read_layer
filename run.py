@@ -154,7 +154,16 @@ def _soll_700(b):
     return [sc for sc, _, _ in m.scopes(b)]
 
 
-SOLL_SCOPES = {"615": _soll_615, "700": _soll_700}
+def _soll_710(b):
+    """Scopes wie s710.run: <lg>:taella je TAELLA-Sprache, <lg>:epub / <lg>:extern je bestelltem Kanal."""
+    from pipeline import s710_cloud_export as m
+    out = [f"{lg}:taella" for lg in m.taella_sprachen(b)]
+    for lg in b.sprachen:
+        out += [f"{lg}:{k}" for k in ("epub", "extern") if b.hat(sprache=lg, kanal=k)]
+    return out
+
+
+SOLL_SCOPES = {"615": _soll_615, "700": _soll_700, "710": _soll_710}
 
 
 def fehlende_teile(book_id, s, b, d=None):

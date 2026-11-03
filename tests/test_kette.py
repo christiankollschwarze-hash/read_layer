@@ -155,7 +155,7 @@ class Kette(unittest.TestCase):
         run.NEU["700"] = lambda w, b, f, wer: (self.gelaufen.append("700"),
                                                S.ergebnis(w, "700", "auto", wer="test"))
         run.NEU["710"] = lambda w, b, f, wer: (self.gelaufen.append("710"),          # Test in test_s710
-                                               S.ergebnis(w, "710", "auto", scope="en", wer="test"))
+                                               S.ergebnis(w, "710", "auto", scope="en:epub", wer="test"))
 
     def tearDown(self):
         self.run.ALT.clear(); self.run.ALT.update(self._alt)
@@ -175,7 +175,7 @@ class Kette(unittest.TestCase):
         d = S.laden("u-test")
         self.assertEqual(d["stages"]["310"]["zustand"], "entfaellt")
         self.assertEqual(d["stages"]["620"]["zustand"], "frei")
-        self.assertEqual(d["stages"]["710"]["teile"]["en"]["zustand"], "frei")
+        self.assertEqual(d["stages"]["710"]["teile"]["en:epub"]["zustand"], "frei")
         n = len(d["protokoll"])
         self.lauf()                                    # zweiter Lauf: alles frei, kein neuer Bedarf
         self.assertEqual(len(S.laden("u-test")["protokoll"]), n)
@@ -279,6 +279,27 @@ class Kette(unittest.TestCase):
         self.gelaufen.clear()
         self.lauf()
         self.assertNotIn("615", self.gelaufen)          # jetzt aktuell
+
+    def test_710_nach_juengerem_700(self):
+        """Aufraeumpaket 6: neue Produkte in 700 (Ergebnis geaendert) -> 710 laeuft neu, ohne --force;
+        700 mit gleichem Ergebnis -> 710 bleibt frei (kein Leerlauf-Upload)."""
+        self.assertEqual(self.lauf()[0], 0)
+        self.gelaufen.clear()
+        self.lauf()
+        self.assertEqual([x for x in self.gelaufen if x in ("700", "710")], ["700"])
+        self._alt_machen("710")
+        self.run.NEU["700"] = lambda w, b, f, wer: (self.gelaufen.append("700"),
+                                                    S.ergebnis(w, "700", "auto", wer="test",
+                                                               metriken={"produkte": 2}))
+        self.gelaufen.clear()
+        rc, out = self.lauf()
+        self.assertEqual(rc, 0, out)
+        self.assertEqual([x for x in self.gelaufen if x in ("700", "710")], ["700", "710"])
+        self.assertIn("[neu] Stage 710 — veraltet: juengeres Ergebnis von 700", out)
+
+    def test_soll_710(self):
+        b = B(TAELLA_DE + [{"sprache": "de", "inhalt": "text", "kanaele": ["epub"]}])
+        self.assertEqual(self.run._soll_710(b), ["en:taella", "de:taella", "de:epub"])
 
     def test_bestellung_ungueltig(self):
         json.dump({"quellsprache": "xx", "produkte": []}, open(os.path.join(self.tmp.name, "book.json"), "w"))
