@@ -282,6 +282,7 @@ ANGEBOT_USD_100K = {
 ANGEBOT_GEMINI_FAKTOR_AB = ("2027-01-01", 2.0)
 STUECKPREISE = {
     "gemini-voice-design": None,   # Voice Design (Stimme anlegen); Muster-TTS laeuft ueber gemini-3.8-flash-tts
+    "gcs_upload_gb": 0.0,          # Stage 710: Upload-Eingang kostenlos; Bytes werden fuer Speicher/Abfluss mitgeloggt
 }
 PREISE = {
     "deepseek-v4-pro":       {"in": 1.32, "cache": 0.044, "out": 3.96},
@@ -420,6 +421,10 @@ GEMINI_API_KEY   = os.environ.get("GEMINI_API_KEY", "").strip()
 OPENROUTER_API_KEY = (os.environ.get("OPENROUTER_API_KEY") or os.environ.get("open_router") or "").strip()   # Modelltests: MODELS-Eintrag "or/<anbieter>/<modell>"
 FAL_KEY          = (os.environ.get("FAL_KEY") or os.environ.get("FAL.AI_API_KEY") or "").strip()
 GCS_BUCKET       = os.environ.get("GCS_BUCKET", "readlayer-taella-content").strip()
+# Stage 710 Auslieferung (AP 710a, 03.11.2026): Standardziel gcs | lokal[:PFAD]; lokal = public/ der TAELLA-App
+AUSLIEFERUNG_ZIEL = os.environ.get("AUSLIEFERUNG_ZIEL", "gcs").strip() or "gcs"
+APP_PUBLIC = os.environ.get("APP_PUBLIC", os.path.join(os.path.dirname(BASE_DIR), "taella-app", "public"))
+AUSLIEFERUNG_BITRATE = {"taella": "128k", "epub": "64k", "extern": "192k"}   # MP3 je Kanal (Regler --bitrate)
 
 
 # ============================================================

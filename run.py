@@ -44,7 +44,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from config import config
 
 # Stages, die ihr Gate selbst ueber gate.py/status.py schreiben (waechst mit jedem Stage-Umbau).
-UMGEBAUT = {"080", "090", "095", "100", "110", "115", "120", "150", "190", "195", "200", "210", "300", "310", "320", "330", "340", "400", "410", "420", "500", "510", "530", "520", "540", "600", "610", "615", "620", "630", "640", "650", "700"}
+UMGEBAUT = {"080", "090", "095", "100", "110", "115", "120", "150", "190", "195", "200", "210", "300", "310", "320", "330", "340", "400", "410", "420", "500", "510", "530", "520", "540", "600", "610", "615", "620", "630", "640", "650", "700", "710"}
 
 
 def _neu(modul, **kw):
@@ -87,6 +87,7 @@ NEU = {"090": _neu("pipeline.s090_eingang"),
        "640": _neu("pipeline.s640_teaser"),
        "650": _neu("pipeline.s650_hoerbuch"),
        "700": _neu("pipeline.s700_guard"),
+       "710": _neu("pipeline.s710_cloud_export"),
        "150": _neu("pipeline.s150_epub_import")}        # --force der Kette laedt raw.txt nicht neu (nur Stage-CLI)
 
 
@@ -119,10 +120,6 @@ def _casting_tor(book_id):
     return None if tor == "freigegeben" else str(tor)
 
 
-def _cloud_export_done(book_id, lang=None):
-    return bool(lang) and os.path.exists(config.work_path(book_id, f"710_cloud_export_{lang}"))
-
-
 # ---- Altstage-Aufrufe ---------------------------------------------------
 def _mod(name):
     import importlib
@@ -130,9 +127,7 @@ def _mod(name):
 
 
 # key -> (aufruf(book_id, lang, b, force), fertig(book_id, lang) | None)
-ALT = {
-    "710": (lambda w, lg, b, f: _mod("pipeline.s710_cloud_export").run(w, lg, force=f), _cloud_export_done),
-}
+ALT = {}                    # seit 710 (AP 710a, 03.11.2026) alle Stages umgebaut
 IMMER = {"700"}             # Vertrag vor jeder Auslieferung: laeuft auch bei freiem Gate
 MANUELL = set()             # Vorbedingungen ausserhalb der Kette (seit 150 keine mehr)
 IN_KETTE = set(ALT) | UMGEBAUT
