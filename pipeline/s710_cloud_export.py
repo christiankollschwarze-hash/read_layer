@@ -1,7 +1,7 @@
 """STAGE 710 — Auslieferung TAELLA (Umbau Phase 2, AP 710a, 03.11.2026; GATE_KATALOG.md Zeile 710)
 Funktion:      Liefert die von Gate 700 freigegebenen TAELLA-Produkte eines Werks an ein Ziel aus: Cloud (GCS) oder
-               lokal (Ordner public/ der TAELLA-App) im selben Paketformat. Kanaele EPUB/Extern folgen mit AP 710b
-               (bis dahin Gate Mensch "noch nicht gebaut").
+               lokal (Ordner public/ der TAELLA-App) im selben Paketformat. Kanaele EPUB (Download) und Extern
+               (Plattform-Paket) seit AP 710b, Teil pipeline/s710_kanaele.py.
 Wirkungsweise: Ein Gate je Scope "<lg>:taella", nur Sprachen mit lieferbarem 700-Scope (s700_guard.lieferbar).
                Paket je Sprache: manifest_<lg>.json (Schema 2, Obermenge des Altformats), audio/<lg>/<tid>.mp3 (Hoerbuch,
                Endfassung 530), audio_hoerspiel/<lg>/<tid>.mp3 (Hoerspiel), wordtimes_<lg>[_hoerspiel].json (520),
@@ -15,17 +15,27 @@ Gate:          je Scope: Gate 700 frei + Scope lieferbar, Text/Audio/Wortzeit-Ab
                Katalog stimmt (privat nie im oeffentlichen Katalog) -> sonst Stopp. Erstes Freischalten im oeffentlichen
                Katalog -> Mensch (--freigeben, einmal je Werk; Update danach auto); Mandant verlag -> immer Mensch
                (Freigabe gilt bei gleichem ausgabe_hash). Katalog nur bei unveraenderter Generation (1x neu gelesen).
+               EPUB "<lg>:epub": ePub 620/630 (Hash = Manifest 620) im Ziel unter download/, Groesse/MD5 = lokal,
+               Katalogfeld downloads (sobald das Werk im Katalog steht, sonst Hinweis) -> auto.
+               Extern "<lg>:extern": Paket fassungen/<lg>/extern_paket/ vollstaendig (Kapitel 650 extern aktuell,
+               Gate 650/615 frei, Cover _quadrat, Metadaten Titel/Autor/Sprecher/Sprache), Gemini-Plattformregel
+               -> sonst Stopp; vollstaendig -> Mensch "Paket bereit" (Upload manuell durch CK, danach
+               --extern-hochgeladen LG; gilt bei gleichem ausgabe_hash -> auto).
 Ziel-Adapter:  GCS (Bucket config.GCS_BUCKET, ifGenerationMatch) | Lokal (Ordner config.APP_PUBLIC, Standard
                ../taella-app/public; demo/<slug>/ bzw. privat/<uid>/<slug>/). status.json nur beim Standardziel
                (config.AUSLIEFERUNG_ZIEL, Standard gcs); andere Ziele nur Manifest + Bericht.
 Eingang:       Gate 700 + work/700_guard.json, book.json (Bestellung, Mandant 080), work/330_rueckuebersetzung.json
                (ohne Uebersetzung work/200_tagging.json), 340_wortalignment.json, 400_regie.json, 530_pruefung_<lg>.json +
                audio_final/ bzw. hoerspiel_final/, 520_wortzeiten_<lg>[_hoerspiel].json, 525_wortbruecke.json,
-               600_klappentext.json, 615 Cover, fassungen/<lg>/blurb/ (640), casting.json, 420_sprecher.json.
-Ausgabe:       Ziel (s. oben), work/710_export.json, Gate je Scope in status.json, Regler work/710_entscheidungen.json.
+               600_klappentext.json, 615 Cover, fassungen/<lg>/blurb/ (640), casting.json, 420_sprecher.json;
+               EPUB: work/620_epub.json + fassungen/<lg>/output/<werk>_<lg>[_audio].epub; Extern: work/650_hoerbuch_<lg>
+               (Profil extern), cover_final_<lg>_quadrat.jpg, config.EXTERN_PLATTFORMEN / GEMINI_AUDIO_KANAELE.
+Ausgabe:       Ziel (s. oben), fassungen/<lg>/extern_paket/, work/710_export.json (ziele.<kennung>.scopes, extern.<lg>),
+               Gate je Scope in status.json, Regler work/710_entscheidungen.json.
 Regler:        --ziel gcs|lokal[:PFAD], --lang LG, --bitrate 96k (Kanal taella), --nur-manifest (Audio nicht neu
                umwandeln/hochladen), --freigeben (erstes Freischalten/Verlag), --zurueckziehen --grund TEXT (Werk aus
-               dem Katalog nehmen, Dateien bleiben), --dry (Probelauf ohne Upload/Status).
+               dem Katalog nehmen, Dateien bleiben), --kanal taella|epub|extern (nur diese Kanaele),
+               --extern-hochgeladen LG (Paket auf der Plattform, Protokoll), --dry (Probelauf ohne Upload/Status).
 Kosten:        0 $ LLM; GCS-Bytes je Lauf in kosten.jsonl unter Stage 710 (gcs_upload_gb).
 Aufruf:        py -3.11 -m pipeline.s710_cloud_export <werk> [Regler] [--wer CK]
 Exit:          0 auto, 2 Stopp, 3 Mensch, 1 Fehler.
@@ -47,7 +57,7 @@ STAGE = "710"
 VERSION = 1
 APP_SCHEMA = 2                      # Manifest-Schema, das die App kennt (loader.js prueft ab AP 710c)
 AUDIO = ("hoerbuch", "hoerspiel")
-GEBAUT = ("taella",)                # Kanaele dieser Stage; epub/extern folgen mit AP 710b
+KANAELE = ("taella", "epub", "extern")
 NO_AUDIO_TYPES = set(getattr(config, "NO_AUDIO_TYPES", ["p"]))
 ERZ_NAMEN = {"erzaehler", "erzähler", "narrator", "narration", "narrateur", "narratore", "narrador"}
 WERK = "_werk"                      # Scope werkweiter Dateien (blurb.json)
@@ -729,13 +739,50 @@ def katalog_hat(ziel, rel, werk_id):
     return next((w for w in (kat or {}).get("werke") or [] if w.get("werk_id") == werk_id), None)
 
 
+def katalog_downloads(ziel, rel, werk_id, downloads):
+    """Nur das Feld downloads eines vorhandenen Eintrags setzen (Generation wie katalog_setzen)."""
+    for versuch in (1, 2):
+        kat, gen = ziel.katalog_lesen(rel)
+        w = next((x for x in (kat or {}).get("werke") or [] if x.get("werk_id") == werk_id), None)
+        if not w:
+            return False
+        if w.get("downloads") == downloads:
+            return True
+        w["downloads"], w["aktualisiert"], kat["aktualisiert"] = downloads, manifest.jetzt(), manifest.jetzt()
+        try:
+            ziel.katalog_schreiben(rel, kat, gen)
+            return True
+        except KatalogKonflikt:
+            if versuch == 2:
+                raise
+
+
+def _bestellt(b, lg, k):
+    from pipeline import s700_guard
+    return [s700_guard.scope_name(p, k) for p in b.produkte_fuer(sprache=lg, kanal=k)]
+
+
 # ============================================================ Lauf
 def run(werk, wer=None, ziel=None, nur=None, bitrate=None, nur_manifest=False, freigeben=False,
-        zurueckziehen=False, grund=None, dry=False):
+        zurueckziehen=False, grund=None, dry=False, kanaele=None, extern_hochgeladen=None):
     """-> Liste der Gates (je Scope). ziel: Name ('gcs', 'lokal[:PFAD]') oder Ziel-Objekt."""
     from pipeline import s615_cover_final as s615
+    from pipeline import s710_kanaele as K
     wer = wer or "pipeline"
+    kanaele = set(kanaele or KANAELE)
+    unbekannt = kanaele - set(KANAELE)
+    if unbekannt:
+        raise ValueError(f"Kanal unbekannt: {', '.join(sorted(unbekannt))} ({' | '.join(KANAELE)})")
     b = bestellung.lesen(werk)
+    exp = _json(pfad(werk), {}) or {}
+    if extern_hochgeladen:
+        hg = dict(entscheidungen(werk).get("extern_hochgeladen") or {})
+        for lg in extern_hochgeladen:
+            h = ((exp.get("extern") or {}).get(lg) or {}).get("ausgabe_hash")
+            if not h:
+                raise ValueError(f"kein Extern-Paket {lg} gebaut (erst 710 laufen lassen)")
+            hg[lg] = {"wer": wer, "wann": manifest.jetzt(), "hash": h}
+        _entscheidung(werk, wer, "extern_hochgeladen", extern_hochgeladen=hg)
     Z = ziel if isinstance(ziel, Ziel) else ziel_aus(ziel)
     schreibt = not dry and Z.art == standardziel()
     if bitrate:
@@ -755,24 +802,48 @@ def run(werk, wer=None, ziel=None, nur=None, bitrate=None, nur_manifest=False, f
         pass
     werk_id = werk if uid else (f"{autor_slug}_{werk}" if autor_slug and not autor_slug.startswith("user:") else werk)
     prefix = Z.werk_prefix(werk_id, werk, uid)
-    st_alt = ((status.laden(werk)["stages"].get(STAGE) or {}).get("teile") or {})
     z700 = status.zustand(werk, "700")
     gates = []
 
-    # ---- Kanaele, die erst mit AP 710b kommen
+    def gate_700(g):
+        g.pflicht("gate_700", z700 in status.FREI, z700, ruecksprung="700", text=f"Gate 700 frei ({z700})")
+
+    # ---- EPUB / Extern: Gates und Plaene
+    ep_ggs, ep_plans, ep_dl, ex_ggs, ex_plans, ex_meta = {}, {}, {}, {}, {}, {}
     for lg in b.sprachen:
-        for k in b.kanaele(lg):
-            if k in GEBAUT or (nur and lg not in nur):
+        if nur and lg not in nur:
+            continue
+        for k in ("epub", "extern"):
+            if k not in kanaele or not b.hat(sprache=lg, kanal=k):
                 continue
             g = gate.Gate(werk, STAGE, scope=f"{lg}:{k}", ruecksprung="710", wer=wer)
-            g.pflicht("kanal_gebaut", False, bei_fehler="mensch",
-                      text=f"Kanal {k} wird mit AP 710b gebaut – noch keine Auslieferung")
-            g.entscheide(schreiben=schreibt)
-            gates.append(g)
+            gate_700(g)
+            prod = K.produkte_700(werk, lg, k) if z700 in status.FREI else []
+            if z700 in status.FREI:
+                bestellt = _bestellt(b, lg, k)
+                g.pflicht("lieferbar", bool(prod), ruecksprung="700",
+                          text=f"lieferbare 700-Scopes {lg}:{k}: {', '.join(sc for sc, _ in prod) or '–'}"
+                               f" (bestellt: {', '.join(bestellt)})")
+                fehlt = [sc for sc in bestellt if sc not in {s for s, _ in prod}]
+                if prod and fehlt:
+                    g.hinweis("zurueckgehalten", False, text=f"nicht lieferbar (700): {', '.join(fehlt)} – Rest wird geliefert")
+            if not g.fehler():
+                P = Plan()
+                if k == "epub":
+                    ep_dl[lg] = K.epub_plan(werk, lg, b.quellsprache, prod, P)
+                    ep_plans[lg] = P
+                else:
+                    ex_meta[lg] = K.extern_plan(werk, b, lg, prod, P)
+                    ex_plans[lg] = P
+                for name, text, rs in P.befunde:
+                    g.pflicht(name, False, ruecksprung=rs, text=text)
+                for mk, mv in P.metriken.items():
+                    g.metrik(mk, mv)
+            (ep_ggs if k == "epub" else ex_ggs)[lg] = g
 
     # ---- TAELLA: Scopes und Plaene
     D = Daten(werk, b)
-    alle = taella_sprachen(b)
+    alle = taella_sprachen(b) if "taella" in kanaele else []
     lieferbar = {lg: inhalte_lieferbar(werk, lg) for lg in alle}
     sprachen = [lg for lg in alle if lieferbar[lg]] if z700 in status.FREI else []
     titel, autor = {}, {}
@@ -789,7 +860,7 @@ def run(werk, wer=None, ziel=None, nur=None, bitrate=None, nur_manifest=False, f
         sc = f"{lg}:taella"
         g = gate.Gate(werk, STAGE, scope=sc, ruecksprung="710", wer=wer)
         ggs[lg] = g
-        g.pflicht("gate_700", z700 in status.FREI, z700, ruecksprung="700", text=f"Gate 700 frei ({z700})")
+        gate_700(g)
         if z700 in status.FREI:
             bestellt = [p["inhalt"] for p in b.produkte_fuer(sprache=lg, kanal="taella")]
             inh = lieferbar[lg]
@@ -812,54 +883,72 @@ def run(werk, wer=None, ziel=None, nur=None, bitrate=None, nur_manifest=False, f
     if pakete:
         werk_plan.json("blurb.json", blurb(D, [lg for lg in sprachen]))
 
-    # ---- Ausfuehren
-    exp = _json(pfad(werk), {}) or {}
+    # ---- Ausfuehren im Ziel (TAELLA + EPUB)
     ze = (exp.get("ziele") or {}).get(Z.kennung()) or {}
     alt_sc = ze.get("scopes") or {}
     ok_lg = [lg for lg in pakete if not ggs[lg].fehler()]
+    ok_ep = [lg for lg in ep_plans if not ep_ggs[lg].fehler()]
     eintraege, upload_fehler = {}, {}
+    inv = {}
     if dry:
         for lg in pakete:
             print(f"[710] DRY {lg}:taella -> {Z.kennung()}/{prefix}: {len(pakete[lg][0].dateien)} Dateien")
-    elif ok_lg:
+        for lg in ep_plans:
+            print(f"[710] DRY {lg}:epub -> {Z.kennung()}/{prefix}: {', '.join(ep_plans[lg].dateien) or '–'}")
+    elif ok_lg or ok_ep:
         try:
             inv = _zweimal(Z.inventar, prefix)
         except UploadFehler as e:
-            for lg in ok_lg:
-                ggs[lg].pflicht("upload", False, text=f"Ziel nicht erreichbar (1x neu): {e}")
-            ok_lg = []
-    if ok_lg and not dry:
-        for lg in ok_lg:
-            sc = f"{lg}:taella"
+            for g in [ggs[lg] for lg in ok_lg] + [ep_ggs[lg] for lg in ok_ep]:
+                g.pflicht("upload", False, text=f"Ziel nicht erreichbar (1x neu): {e}")
+            ok_lg, ok_ep = [], []
+    if (ok_lg or ok_ep) and not dry:
+        laeufe = [(f"{lg}:taella", pakete[lg][0].dateien, nur_manifest) for lg in ok_lg] + \
+                 [(f"{lg}:epub", ep_plans[lg].dateien, False) for lg in ok_ep]
+        for sc, dat, nm in laeufe:
             if schreibt:
                 status.start(werk, STAGE, wer=wer, scope=sc)
-            eintraege[sc], upload_fehler[sc] = ausfuehren(Z, prefix, pakete[lg][0].dateien,
-                                                          (alt_sc.get(sc) or {}).get("dateien") or {}, inv, nur_manifest)
-        eintraege[WERK], upload_fehler[WERK] = ausfuehren(Z, prefix, werk_plan.dateien,
-                                                          (alt_sc.get(WERK) or {}).get("dateien") or {}, inv)
+            eintraege[sc], upload_fehler[sc] = ausfuehren(Z, prefix, dat, (alt_sc.get(sc) or {}).get("dateien") or {},
+                                                          inv, nm)
+        if ok_lg:
+            eintraege[WERK], upload_fehler[WERK] = ausfuehren(Z, prefix, werk_plan.dateien,
+                                                              (alt_sc.get(WERK) or {}).get("dateien") or {}, inv)
         try:
             inv2 = _zweimal(Z.inventar, prefix)
         except UploadFehler:
             inv2 = {}
-        for lg in ok_lg:
-            sc = f"{lg}:taella"
-            g = ggs[lg]
-            fe = upload_fehler[sc] + upload_fehler[WERK]
+        for lg, k, g in [(lg, "taella", ggs[lg]) for lg in ok_lg] + [(lg, "epub", ep_ggs[lg]) for lg in ok_ep]:
+            sc = f"{lg}:{k}"
+            mit = {**eintraege[sc], **(eintraege.get(WERK, {}) if k == "taella" else {})}
+            fe = upload_fehler[sc] + (upload_fehler.get(WERK, []) if k == "taella" else [])
             g.pflicht("upload", not fe, len(fe), text="Upload ohne Fehler (1x neu)" + (f": {'; '.join(fe[:3])}" if fe else ""))
-            abw = pruefen_im_ziel({**eintraege[sc], **eintraege[WERK]}, prefix, inv2)
+            abw = pruefen_im_ziel(mit, prefix, inv2)
             g.pflicht("ziel_md5", not abw, len(abw),
-                      text=f"{len(eintraege[sc]) + len(eintraege[WERK])} Dateien im Ziel, Groesse/MD5 = lokal"
-                           + (f" – abweichend: {', '.join(abw[:3])}" if abw else ""))
+                      text=f"{len(mit)} Dateien im Ziel, Groesse/MD5 = lokal" + (f" – abweichend: {', '.join(abw[:3])}" if abw else ""))
             g.metrik("dateien", len(eintraege[sc]))
 
     # ---- Katalog + Entscheidung
     fg = ents.get("freigabe") or {}
     zurueck = ents.get("zurueckgezogen")
     kat_rel = Z.katalog_rel(uid)
-    ausgabe_hash = {lg: manifest.hash_obj({r: x["md5"] for r, x in {**eintraege.get(f"{lg}:taella", {}),
-                                                                         **eintraege.get(WERK, {})}.items()})
-                    for lg in ok_lg}
+    def ahash(sc, werkweit=True):
+        e = {**eintraege.get(sc, {}), **(eintraege.get(WERK, {}) if werkweit else {})}
+        return manifest.hash_obj({r: x["md5"] for r, x in e.items()})
+    ausgabe_hash = {lg: ahash(f"{lg}:taella") for lg in ok_lg}
+    ep_hash = {lg: ahash(f"{lg}:epub", False) for lg in ok_ep}
     gruen = [lg for lg in ok_lg if not ggs[lg].fehler()]
+    ep_gruen = [lg for lg in ok_ep if not ep_ggs[lg].fehler()]
+    # Downloads ueber alle Laeufe: fruehere EPUB-Scopes dieses Ziels + dieser Lauf
+    downloads = {}
+    for sc, x in alt_sc.items():
+        if sc.endswith(":epub") and x.get("downloads") and x.get("ergebnis") != "stopp":
+            downloads[sc.split(":")[0]] = x["downloads"]
+    for lg in ep_ggs:
+        downloads.pop(lg, None)
+    for lg in ep_gruen:
+        if ep_dl.get(lg):
+            downloads[lg] = ep_dl[lg]
+    downloads = {lg: downloads[lg] for lg in sorted(downloads)}
     if freigeben and not dry:
         fg = {"wer": wer, "wann": manifest.jetzt(), "hash": {f"{lg}:taella": ausgabe_hash[lg] for lg in gruen}}
         _entscheidung(werk, wer, "freigeben", freigabe=fg, zurueckgezogen=None)
@@ -876,18 +965,22 @@ def run(werk, wer=None, ziel=None, nur=None, bitrate=None, nur_manifest=False, f
     offen = {lg: mensch_offen(lg) for lg in gruen}
     sichtbar = [lg for lg in gruen if not offen[lg]]
     kat_fehler = None
-    if not dry and gruen:
+    if not dry and (gruen or ep_gruen):
         try:
-            if uid:
-                katalog_setzen(Z, kat_rel, werk_id, katalog_eintrag(D, werk_id, prefix, gruen, pakete, titel, autor))
-            elif zurueck:
+            if gruen and uid:
+                katalog_setzen(Z, kat_rel, werk_id, {**katalog_eintrag(D, werk_id, prefix, gruen, pakete, titel, autor),
+                                                     "downloads": downloads})
+            elif gruen and zurueck:
                 katalog_setzen(Z, kat_rel, werk_id, None)
-            elif sichtbar:
-                katalog_setzen(Z, kat_rel, werk_id, katalog_eintrag(D, werk_id, prefix, sichtbar, pakete, titel, autor))
+            elif gruen and sichtbar:
+                katalog_setzen(Z, kat_rel, werk_id, {**katalog_eintrag(D, werk_id, prefix, sichtbar, pakete, titel, autor),
+                                                     "downloads": downloads})
+            elif ep_gruen and not zurueck:
+                katalog_downloads(Z, kat_rel, werk_id, downloads)
         except (KatalogKonflikt, UploadFehler, OSError) as e:
             kat_fehler = f"{type(e).__name__}: {e}"
-    kat_ist = katalog_hat(Z, kat_rel, werk_id) if (not dry and gruen) else None
-    oeff_ist = katalog_hat(Z, Z.katalog_rel(None), werk_id) if (not dry and gruen and uid) else None
+    kat_ist = katalog_hat(Z, kat_rel, werk_id) if (not dry and (gruen or ep_gruen)) else None
+    oeff_ist = katalog_hat(Z, Z.katalog_rel(None), werk_id) if (not dry and (gruen or ep_gruen) and uid) else None
     for lg in ok_lg:
         sc, g = f"{lg}:taella", ggs[lg]
         if dry:
@@ -905,23 +998,98 @@ def run(werk, wer=None, ziel=None, nur=None, bitrate=None, nur_manifest=False, f
                       text=f"Katalog {kat_rel}: Eintrag mit Sprache {lg}")
         g.metrik("ausgabe_hash", ausgabe_hash.get(lg))
         g.metrik("ziel", Z.kennung())
+    for lg in ok_ep:
+        g = ep_ggs[lg]
+        if dry:
+            continue
+        if kat_fehler:
+            g.pflicht("katalog", False, text=f"Katalog nicht geschrieben (Generation/Upload): {kat_fehler}")
+        elif uid and oeff_ist:
+            g.pflicht("katalog", False, text="privates Werk im oeffentlichen Katalog")
+        elif kat_ist:
+            g.pflicht("katalog", (kat_ist.get("downloads") or {}).get(lg) == ep_dl.get(lg),
+                      text=f"Katalog {kat_rel}: downloads.{lg} = {', '.join(sorted(ep_dl.get(lg) or {}))}")
+        else:
+            g.hinweis("katalog", False, text="Werk (noch) nicht im Katalog – Download liegt im Ziel, Katalogfeld "
+                                             "folgt mit der TAELLA-Freischaltung")
+        g.metrik("ausgabe_hash", ep_hash.get(lg))
+        g.metrik("ziel", Z.kennung())
     for lg, g in ggs.items():
         immer = bool(offen.get(lg))
         g.entscheide(mensch_immer=immer, mensch_grund=offen.get(lg), schreiben=schreibt)
+        gates.append(g)
+    for lg, g in ep_ggs.items():
+        g.entscheide(schreiben=schreibt)
+        gates.append(g)
+
+    # ---- Extern: Paket bauen (immer lokal im Werkordner)
+    ex_neu = dict(exp.get("extern") or {})
+    hg = ents.get("extern_hochgeladen") or {}
+    for lg, g in ex_ggs.items():
+        P = ex_plans.get(lg)
+        pak_rel = f"fassungen/{lg}/{K.PAKET}"
+        if P is not None and not g.fehler():
+            if dry:
+                print(f"[710] DRY {lg}:extern -> {pak_rel}/: {len(P.dateien)} Dateien")
+            else:
+                PZ = Lokal(config.book_dir(werk))
+                alt = ((exp.get("extern") or {}).get(lg) or {}).get("dateien") or {}
+                try:
+                    inv_p = PZ.inventar(pak_rel)
+                    e_p, fe = ausfuehren(PZ, pak_rel, P.dateien, alt, inv_p)
+                    abw = pruefen_im_ziel(e_p, pak_rel, PZ.inventar(pak_rel))
+                except OSError as e:
+                    e_p, fe, abw = {}, [str(e)], []
+                g.pflicht("paket", not fe, len(fe), text=f"Paket {pak_rel}/ geschrieben" + (f": {'; '.join(fe[:3])}" if fe else ""))
+                g.pflicht("paket_md5", not abw, len(abw), text=f"{len(e_p)} Dateien im Paket, Groesse/MD5 = Quelle"
+                          + (f" – abweichend: {', '.join(abw[:3])}" if abw else ""))
+                h = manifest.hash_obj({r: x["md5"] for r, x in e_p.items()})
+                g.metrik("ausgabe_hash", h)
+                g.metrik("paket", pak_rel + "/")
+                ok = not g.fehler()
+                hoch = hg.get(lg) or {}
+                mensch = None
+                if ok and hoch.get("hash") == h:
+                    g.hinweis("hochgeladen", True, text=f"auf Plattform hochgeladen von {hoch.get('wer')} ({hoch.get('wann')})")
+                elif ok:
+                    pl = [v["name"] for v in (ex_meta[lg].get("plattformen") or {}).values() if v.get("zulaessig")]
+                    mensch = (f"Paket bereit: {pak_rel}/ ({len(e_p)} Dateien, {ex_meta[lg].get('dauer_s', 0) / 60:.0f} min)"
+                              f" – Upload manuell auf {', '.join(pl) or '–'}, danach python -m pipeline.s710_cloud_export "
+                              f"{werk} --extern-hochgeladen {lg}")
+                if not ex_meta[lg].get("isbn"):
+                    g.hinweis("isbn", False, text="ISBN leer (Plattform vergibt bzw. manuell in metadaten.json)")
+                ex_neu[lg] = {"paket": pak_rel, "dateien": e_p, "ausgabe_hash": h, "zeit": manifest.jetzt(),
+                              "hochgeladen": hoch if hoch.get("hash") == h else None}
+                g.entscheide(mensch_immer=bool(mensch), mensch_grund=mensch, schreiben=schreibt)
+                ex_neu[lg].update({"ergebnis": g.ergebnis["ergebnis"], "gruende": g.ergebnis["gruende"]})
+                gates.append(g)
+                continue
+        g.entscheide(schreiben=schreibt)
         gates.append(g)
 
     # ---- Ablage, Kosten, Altcheckpoint
     if not dry:
         sc_neu = dict(alt_sc)
         for sc, e in eintraege.items():
-            lg = sc.split(":")[0]
-            sc_neu[sc] = {"dateien": e, "zeit": manifest.jetzt(),
-                          **({"inhalte": sorted(lieferbar[lg]), "ausgabe_hash": ausgabe_hash.get(lg),
-                              "ergebnis": ggs[lg].ergebnis["ergebnis"], "gruende": ggs[lg].ergebnis["gruende"]}
-                             if sc != WERK else {})}
-        (exp.setdefault("ziele", {}))[Z.kennung()] = {
-            "art": Z.art, "prefix": prefix, "werk_id": werk_id, "katalog": kat_rel, "bitrate": br,
-            "sichtbar": bool(kat_ist), "zeit": manifest.jetzt(), "scopes": sc_neu}
+            lg, k = (sc.split(":") + [""])[:2]
+            if sc == WERK:
+                sc_neu[sc] = {"dateien": e, "zeit": manifest.jetzt()}
+            elif k == "epub":
+                g = ep_ggs[lg]
+                sc_neu[sc] = {"dateien": e, "zeit": manifest.jetzt(), "downloads": ep_dl.get(lg) or {},
+                              "ausgabe_hash": ep_hash.get(lg), "ergebnis": g.ergebnis["ergebnis"],
+                              "gruende": g.ergebnis["gruende"]}
+            else:
+                sc_neu[sc] = {"dateien": e, "zeit": manifest.jetzt(), "inhalte": sorted(lieferbar[lg]),
+                              "ausgabe_hash": ausgabe_hash.get(lg), "ergebnis": ggs[lg].ergebnis["ergebnis"],
+                              "gruende": ggs[lg].ergebnis["gruende"]}
+        if eintraege or Z.kennung() in (exp.get("ziele") or {}):
+            (exp.setdefault("ziele", {}))[Z.kennung()] = {
+                "art": Z.art, "prefix": prefix, "werk_id": werk_id, "katalog": kat_rel, "bitrate": br,
+                "sichtbar": bool(kat_ist) if (gruen or ep_gruen) else ze.get("sichtbar", False),
+                "zeit": manifest.jetzt(), "scopes": sc_neu}
+        if ex_neu:
+            exp["extern"] = ex_neu
         exp.update({"schema": 1, "stage": STAGE, "version": VERSION, "werk": werk, "mandant": b.mandant})
         manifest.json_atomar(pfad(werk), exp, indent=1)
         if Z.art == "gcs" and (Z.bytes or Z.geloescht):
@@ -936,26 +1104,31 @@ def run(werk, wer=None, ziel=None, nur=None, bitrate=None, nur_manifest=False, f
             if os.path.exists(a):
                 os.replace(a, config.work_path(werk, f"710_cloud_export_{lg}_alt"))
         print(f"[710] {Z.kennung()}/{prefix}: {Z.hochgeladen} hochgeladen ({Z.bytes / 1e6:.1f} MB), "
-              f"{Z.geloescht} geloescht, Katalog {'sichtbar' if kat_ist else 'nicht sichtbar'}")
+              f"{Z.geloescht} geloescht, Katalog {'sichtbar' if kat_ist else 'nicht sichtbar'}"
+              + (f"; Extern-Paket: {', '.join(sorted(ex_plans))}" if ex_plans else ""))
     return gates
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(description="Stage 710 Auslieferung (TAELLA)")
+    ap = argparse.ArgumentParser(description="Stage 710 Auslieferung (TAELLA, EPUB, Extern)")
     ap.add_argument("werk")
     ap.add_argument("--wer")
     ap.add_argument("--ziel", help="gcs | lokal[:PFAD] (Standard config.AUSLIEFERUNG_ZIEL)")
     ap.add_argument("--lang", action="append", help="nur diese Sprache(n)")
+    ap.add_argument("--kanal", action="append", choices=list(KANAELE), help="nur diese Kanaele")
     ap.add_argument("--bitrate", help="MP3-Bitrate Kanal taella, z. B. 96k (wird gemerkt)")
     ap.add_argument("--nur-manifest", action="store_true", help="Audio nicht neu umwandeln/hochladen")
     ap.add_argument("--freigeben", action="store_true", help="erstes Freischalten im Katalog / Abnahme Verlag")
     ap.add_argument("--zurueckziehen", action="store_true", help="Werk aus dem Katalog nehmen (Dateien bleiben)")
     ap.add_argument("--grund")
+    ap.add_argument("--extern-hochgeladen", action="append", metavar="LG",
+                    help="Extern-Paket dieser Sprache wurde auf die Plattform hochgeladen (Protokoll)")
     ap.add_argument("--dry", action="store_true", help="Probelauf ohne Upload und Status")
     a = ap.parse_args(argv)
     try:
         gates = run(a.werk, a.wer, ziel=a.ziel, nur=a.lang, bitrate=a.bitrate, nur_manifest=a.nur_manifest,
-                    freigeben=a.freigeben, zurueckziehen=a.zurueckziehen, grund=a.grund, dry=a.dry)
+                    freigeben=a.freigeben, zurueckziehen=a.zurueckziehen, grund=a.grund, dry=a.dry,
+                    kanaele=a.kanal, extern_hochgeladen=a.extern_hochgeladen)
     except (ValueError, RuntimeError) as e:
         print(f"[710] {e}")
         return 1

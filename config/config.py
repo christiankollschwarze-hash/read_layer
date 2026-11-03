@@ -425,6 +425,13 @@ GCS_BUCKET       = os.environ.get("GCS_BUCKET", "readlayer-taella-content").stri
 AUSLIEFERUNG_ZIEL = os.environ.get("AUSLIEFERUNG_ZIEL", "gcs").strip() or "gcs"
 APP_PUBLIC = os.environ.get("APP_PUBLIC", os.path.join(os.path.dirname(BASE_DIR), "taella-app", "public"))
 AUSLIEFERUNG_BITRATE = {"taella": "128k", "epub": "64k", "extern": "192k"}   # MP3 je Kanal (Regler --bitrate)
+# Stage 710 Kanal Extern (AP 710b): Plattformen fuer das Paket; gemini True = nimmt Gemini-Audio (Premium/Drama) an,
+# False = nein, None = Rueckfrage (RECHT_gemini_tts_verwertung.md). Premium/Drama nur bei "extern" in GEMINI_AUDIO_KANAELE.
+EXTERN_PLATTFORMEN = {"google_play": {"name": "Google Play Books", "gemini": True},
+                      "spotify": {"name": "Spotify (Findaway)", "gemini": None},
+                      "acx": {"name": "ACX / Audible", "gemini": False},
+                      "apple": {"name": "Apple Books", "gemini": False},
+                      "inaudio": {"name": "INaudio", "gemini": False}}
 
 
 # ============================================================

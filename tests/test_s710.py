@@ -287,13 +287,159 @@ class T710(unittest.TestCase):
         self.assertEqual(Z.n, 2)
         self.assertNotIn("upload", [p["name"] for p in g.fehler()])
 
-    def test_epub_kanal_folgt_710b_und_altcheckpoint(self):
-        self.werk(produkte=PRODUKTE + [{"sprache": "en", "inhalt": "text", "kanaele": ["epub"]}])
+    def test_altcheckpoint(self):
+        self.werk()
         dump({"x": 1}, config.work_path("w", "710_cloud_export_de"))
-        gs = self.lauf()
-        self.assertEqual(gs["en:epub"].ergebnis["ergebnis"], "mensch")
-        self.assertIn("710b", " ".join(gs["en:epub"].ergebnis["gruende"]))
+        self.lauf()
         self.assertTrue(os.path.exists(config.work_path("w", "710_cloud_export_de_alt")))
+
+    # ------------------------------------------------------------ AP 710b: EPUB
+    def epub_620(self, w="w", lg="en", var="text"):
+        name = f"{w}_{lg}{'_audio' if var == 'audio' else ''}.epub"
+        p = os.path.join(self.r, w, "fassungen", lg, "output", name)
+        os.makedirs(os.path.dirname(p), exist_ok=True)
+        open(p, "wb").write(b"PK" + name.encode())
+        m = json.load(open(config.work_path(w, "620_epub"), encoding="utf-8")) \
+            if os.path.exists(config.work_path(w, "620_epub")) else {"schema": 1, "varianten": {}}
+        m["varianten"][f"{lg}:{var}"] = {"datei": os.path.relpath(p, os.path.join(self.r, w)), "sprache": lg,
+                                         "variante": var, "ausgabe_hash": manifest.hash_datei(p)}
+        dump(m, config.work_path(w, "620_epub"))
+        return p
+
+    def test_epub_download_und_katalogfeld(self):
+        self.werk(produkte=PRODUKTE + [{"sprache": "en", "inhalt": "text", "kanaele": ["epub"]}])
+        p = self.epub_620()
+        gs = self.lauf()
+        g = gs["en:epub"]
+        self.assertEqual(g.ergebnis["ergebnis"], "auto", g.bericht())
+        self.assertIn("noch) nicht im Katalog", " ".join(g.ergebnis["hinweise"]))
+        z = os.path.join(self.pub, "demo", "w", "download", "w_en.epub")
+        self.assertEqual(open(z, "rb").read(), open(p, "rb").read())
+        self.assertEqual(S.zustand("w", "710", scope="en:epub"), "frei")
+        gs = self.lauf(freigeben=True)
+        self.assertEqual(gs["en:epub"].ergebnis["ergebnis"], "auto", gs["en:epub"].bericht())
+        e = self.pub_json("demo/katalog.json")["werke"][0]
+        self.assertEqual(e["downloads"], {"en": {"text": "download/w_en.epub"}})
+        exp = json.load(open(P.pfad("w"), encoding="utf-8"))
+        sc = exp["ziele"][P.Lokal(self.pub).kennung()]["scopes"]["en:epub"]
+        self.assertEqual(sc["downloads"], {"text": "download/w_en.epub"})
+        # nur Kanal epub: Katalogfeld bleibt, ePub geaendert ohne 620 -> Stopp
+        gs = self.lauf(kanaele=["epub"])
+        self.assertEqual(set(gs), {"en:epub"})
+        self.assertEqual(self.pub_json("demo/katalog.json")["werke"][0]["downloads"], {"en": {"text": "download/w_en.epub"}})
+        open(p, "ab").write(b"x")
+        g = self.lauf(kanaele=["epub"])["en:epub"]
+        self.assertEqual(g.ergebnis["ergebnis"], "stopp")
+        self.assertIn("veraendert", " ".join(g.ergebnis["gruende"]))
+
+    def test_epub_fehlt_im_manifest_stopp_620(self):
+        self.werk(produkte=PRODUKTE + [{"sprache": "de", "inhalt": "hoerbuch", "stufe": "basic", "kanaele": ["epub"]}])
+        g = self.lauf()["de:epub"]
+        self.assertEqual(g.ergebnis["ergebnis"], "stopp")
+        self.assertIn("620", json.dumps(g.ergebnis, ensure_ascii=False))
+
+    # ------------------------------------------------------------ AP 710b: Extern
+    def extern_vorstufen(self, w="w", lg="de"):
+        from pipeline import s615_cover_final as s615
+        d = os.path.join(self.r, w)
+        kap = []
+        for i, k in enumerate(("anfang", "c001", "ende")):
+            p = os.path.join(d, "fassungen", lg, "hoerbuch", "extern", f"{i:02d}_{k}.mp3")
+            os.makedirs(os.path.dirname(p), exist_ok=True)
+            open(p, "wb").write(b"ID3" + k.encode())
+            kap.append({"kapitel": k, "nr": i, "titel": k, "datei": os.path.relpath(p, d).replace(os.sep, "/"),
+                        "datei_hash": manifest.hash_datei(p), "dauer": 60.0})
+        m4 = os.path.join(d, "fassungen", lg, "hoerbuch", "extern", f"{w}_{lg}.m4b")
+        open(m4, "wb").write(b"M4B")
+        dump({"profile": {"extern": {"werte": {"bitrate": "192k"}, "kapitel": kap,
+                                     "m4b": {"datei": os.path.relpath(m4, d), "eingang_hash": "h"}}}},
+             config.work_path(w, f"650_hoerbuch_{lg}"))
+        c = s615.ausgabe_pfad(w, lg, "quadrat")
+        os.makedirs(os.path.dirname(c), exist_ok=True)
+        open(c, "wb").write(b"\xff\xd8Q")
+        from pipeline import s615_cover_final as s615_
+        alt_autor = s615_.autor
+        s615_.autor = lambda *a, **k: "O. Henry"
+        self.addCleanup(setattr, s615_, "autor", alt_autor)
+        S.ergebnis(w, "650", "auto", scope=lg, wer="test")
+        S.ergebnis(w, "615", "auto", scope=f"{lg}:quadrat", wer="test")
+        return kap
+
+    def test_extern_paket_mensch_dann_hochgeladen(self):
+        from pipeline import s410_casting
+        self.werk(produkte=PRODUKTE + [{"sprache": "de", "inhalt": "hoerbuch", "stufe": "basic", "kanaele": ["extern"]}])
+        kap = self.extern_vorstufen()
+        alt = s410_casting.stimme
+        s410_casting.stimme = lambda w, lg, *a, **k: "margaret"
+        try:
+            g = self.lauf()["de:extern"]
+            self.assertEqual(g.ergebnis["ergebnis"], "mensch", g.bericht())
+            self.assertIn("Paket bereit", " ".join(g.ergebnis["gruende"]))
+            pk = os.path.join(self.r, "w", "fassungen", "de", "extern_paket")
+            for f in ("kapitel/00_anfang.mp3", "kapitel/01_c001.mp3", "kapitel/02_ende.mp3", "w_de.m4b", "cover.jpg",
+                      "metadaten.json"):
+                self.assertTrue(os.path.exists(os.path.join(pk, *f.split("/"))), f)
+            m = json.load(open(os.path.join(pk, "metadaten.json"), encoding="utf-8"))
+            self.assertEqual((m["titel"], m["sprache"], m["isbn"], m["sprecher"]),
+                             ("Die Geschichte", "de", "", "margaret (KI-Stimme)"))
+            self.assertEqual(len(m["kapitel"]), 3)
+            self.assertTrue(m["plattformen"]["acx"]["zulaessig"])
+            self.assertEqual(S.zustand("w", "710", scope="de:extern"), "mensch")
+            gs = self.lauf(extern_hochgeladen=["de"])
+            self.assertEqual(gs["de:extern"].ergebnis["ergebnis"], "auto", gs["de:extern"].bericht())
+            # Kapitel neu gebaut (650) -> Paket neu, wieder Mensch
+            p = os.path.join(self.r, "w", *kap[1]["datei"].split("/"))
+            open(p, "wb").write(b"ID3neu")
+            d650 = json.load(open(config.work_path("w", "650_hoerbuch_de"), encoding="utf-8"))
+            d650["profile"]["extern"]["kapitel"][1]["datei_hash"] = manifest.hash_datei(p)
+            dump(d650, config.work_path("w", "650_hoerbuch_de"))
+            g = self.lauf()["de:extern"]
+            self.assertEqual(g.ergebnis["ergebnis"], "mensch")
+            self.assertEqual(open(os.path.join(pk, "kapitel", "01_c001.mp3"), "rb").read(), b"ID3neu")
+            # Kapitel veraendert ohne 650 -> Stopp
+            open(p, "ab").write(b"x")
+            g = self.lauf()["de:extern"]
+            self.assertEqual(g.ergebnis["ergebnis"], "stopp")
+            self.assertIn("650", json.dumps(g.ergebnis, ensure_ascii=False))
+        finally:
+            s410_casting.stimme = alt
+
+    def test_extern_premium_gemini_regel(self):
+        from pipeline import s410_casting
+        self.werk(produkte=PRODUKTE + [{"sprache": "de", "inhalt": "hoerbuch", "stufe": "premium",
+                                        "kanaele": ["extern"]}])
+        self.extern_vorstufen()
+        alt = s410_casting.stimme
+        s410_casting.stimme = lambda w, lg, *a, **k: "kore"
+        alt_k = getattr(config, "GEMINI_AUDIO_KANAELE", None)
+        try:
+            g = self.lauf()["de:extern"]
+            self.assertEqual(g.ergebnis["ergebnis"], "stopp")
+            self.assertIn("gemini_regel", [p["name"] for p in g.fehler()])
+            config.GEMINI_AUDIO_KANAELE = ("taella", "extern")
+            g = self.lauf()["de:extern"]
+            self.assertEqual(g.ergebnis["ergebnis"], "mensch", g.bericht())
+            m = json.load(open(os.path.join(self.r, "w", "fassungen", "de", "extern_paket", "metadaten.json"),
+                               encoding="utf-8"))
+            self.assertTrue(m["gemini_audio"])
+            self.assertTrue(m["plattformen"]["google_play"]["zulaessig"])
+            self.assertFalse(m["plattformen"]["acx"]["zulaessig"])
+            self.assertTrue(m["plattformen"]["spotify"].get("rueckfrage"))
+        finally:
+            s410_casting.stimme = alt
+            if alt_k is None:
+                del config.GEMINI_AUDIO_KANAELE
+            else:
+                config.GEMINI_AUDIO_KANAELE = alt_k
+
+    def test_kanal_filter_und_unbekannt(self):
+        self.werk(produkte=PRODUKTE + [{"sprache": "en", "inhalt": "text", "kanaele": ["epub"]}])
+        self.epub_620()
+        self.assertEqual(set(self.lauf(kanaele=["taella"])), {"en:taella", "de:taella"})
+        with self.assertRaises(ValueError):
+            self.lauf(kanaele=["spotify"])
+        with self.assertRaises(ValueError):
+            self.lauf(extern_hochgeladen=["de"])
 
     def test_dry_und_fremdes_ziel_ohne_status(self):
         self.werk()
