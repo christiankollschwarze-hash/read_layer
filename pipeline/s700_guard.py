@@ -52,6 +52,19 @@ def entscheidungen_pfad(werk):
     return config.work_path(werk, "700_entscheidungen")
 
 
+def _kt_saetze(blurb, lg):
+    """Klappentext-Saetze einer Sprache. 600 schreibt blurb {koeder, einordnung, autor: [{lg: satz}]};
+    aeltere Ablagen {lg: text} gelten weiter."""
+    if isinstance(blurb.get(lg), str):
+        return [blurb[lg]]
+    return [str(s.get(lg)).strip() for blk in ("koeder", "einordnung", "autor")
+            for s in (blurb.get(blk) or []) if isinstance(s, dict) and s.get(lg)]
+
+
+def _kt_text(blurb, lg):
+    return " ".join(_kt_saetze(blurb, lg))
+
+
 def _json(p, leer=None):
     try:
         with open(p, encoding="utf-8") as f:
@@ -287,13 +300,13 @@ class Pruefer:
             a["befunde"].append("600_klappentext.json fehlt")
             return self._gate(a)
         blurb, meta = d.get("blurb") or {}, d.get("meta") or {}
-        if not blurb.get(lg):
+        if not _kt_text(blurb, lg):
             a["befunde"].append(f"Klappentext {lg} fehlt")
         h = manifest.hash_obj({"b": blurb, "v": d.get("vermerke"),
                                "m": {k: meta.get(k) for k in ("genre", "hauptfigur_geschlecht", "ton")}})
         a["hash"] = h
         self._status_hash(a, h)
-        if mock.ist_obj(blurb.get(lg)):
+        if mock.ist_obj(_kt_saetze(blurb, lg)):
             a["mock"] += 1
             if not mock.aktiv():
                 a["befunde"].append(f"Mock-Klappentext {lg}")

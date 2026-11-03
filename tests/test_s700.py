@@ -44,7 +44,7 @@ class T700(Basis):
               "mandant": mandant, "produkte": produkte, "rechte": RECHTE}, os.path.join(d, "book.json"))
         os.makedirs(os.path.join(d, "work", "modernized"), exist_ok=True)
         S.ergebnis(w, "190", "auto", wer="test")
-        k = {"blurb": {"en": "A quiet tale."}, "vermerke": {}, "meta": {"genre": "novel", "ton": "ruhig"}}
+        k = {"blurb": {"koeder": [], "einordnung": [{"en": "A quiet tale."}], "autor": []}, "vermerke": {}, "meta": {"genre": "novel", "ton": "ruhig"}}
         dump(k, config.work_path(w, "600_klappentext"))
         h600 = manifest.hash_obj({"b": k["blurb"], "v": k["vermerke"],
                                   "m": {"genre": "novel", "hauptfigur_geschlecht": None, "ton": "ruhig"}})
@@ -113,7 +113,7 @@ class T700(Basis):
     def test_klappentext_geaendert_ohne_neues_gate(self):
         self.werk()
         k = json.load(open(config.work_path("w", "600_klappentext"), encoding="utf-8"))
-        k["blurb"]["en"] = "Edited by hand."
+        k["blurb"]["einordnung"][0]["en"] = "Edited by hand."
         dump(k, config.work_path("w", "600_klappentext"))
         g = self.lauf()["en:text:epub"]
         self.assertEqual((g.ergebnis["ergebnis"], g.ergebnis["ruecksprung"]), ("stopp", "600"))

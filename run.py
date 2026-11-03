@@ -47,6 +47,19 @@ from config import config
 UMGEBAUT = {"080", "090", "095", "100", "110", "115", "120", "150", "190", "195", "200", "210", "300", "310", "320", "330", "340", "400", "410", "420", "500", "510", "530", "520", "540", "600", "610", "615", "620", "630", "640", "650", "700", "710"}
 
 
+
+def _gruende(book_id, s, ersatz=None):
+    """Gruende des Stage-Gates; leer -> Gruende der Teile (Scopes) als '<scope>: <grund>'."""
+    from pipeline import status
+    st = status.laden(book_id)["stages"].get(s) or {}
+    g = list((st.get("gate") or {}).get("gruende") or [])
+    if not g:
+        for sc, x in sorted((st.get("teile") or {}).items()):
+            if x.get("zustand") in ("mensch", "stopp"):
+                g += [f"{sc}: {r}" for r in ((x.get("gate") or {}).get("gruende") or [x.get("zustand")])]
+    return g or list(ersatz or [])
+
+
 def _neu(modul, **kw):
     """Kettenaufruf einer umgebauten Stage: run(book_id, wer=...) -> auto/mensch/stopp."""
     def f(book_id, b, force, wer):
@@ -334,14 +347,12 @@ def run_pipeline(book_id, start_from=None, stop_to=None, only=None, force=False,
         if s == "095":
             b, laeuft, _ = kette.bedarf_setzen(book_id, wer=wer)    # neue Bestellung -> Stage-Liste
         if z == "mensch":
-            st = (status.laden(book_id)["stages"].get(s) or {}).get("gate") or {}
-            print(f"\n[MENSCH] Stage {s}: " + "; ".join(st.get("gruende") or ["Entscheidung offen"]))
+            print(f"\n[MENSCH] Stage {s}: " + "; ".join(_gruende(book_id, s, ["Entscheidung offen"])))
             print(f"[MENSCH] python -m pipeline.status {book_id} --entscheiden {s} frei --wer CK --grund \"...\"")
             ergebnis = "mensch"
             break
         if z == "stopp":
-            st = (status.laden(book_id)["stages"].get(s) or {}).get("gate") or {}
-            print(f"\n[STOPP] Stage {s}: " + "; ".join(st.get("gruende") or []))
+            print(f"\n[STOPP] Stage {s}: " + "; ".join(_gruende(book_id, s)))
             ergebnis = "stopp"
             break
 
