@@ -479,3 +479,85 @@ def ampel_alle():
     werke.sort(key=lambda w: (rang[w["farbe"]], w["book_id"]))
     n = {f: sum(1 for w in werke if w["farbe"] == f) for f in AMPEL_FARBEN[:5]}
     return {"werke": werke, "anzahl": n}
+
+
+# ------------------------------------------------------------------ Start: Werkliste + Upload (Schritt 1/2)
+_LISTE = {"t": 0, "daten": None}
+
+
+def werke_liste():
+    """Alle Werke aus daten/index.json mit Autor + Titel (book.json/author.json) und Ampelfarbe. Cache 30 s."""
+    import json as _j
+    import time as _t
+    if _LISTE["daten"] is not None and _t.time() - _LISTE["t"] < 30:
+        return _LISTE["daten"]
+    try:
+        books = config._load_index().get("books", {})
+    except Exception:
+        books = {}
+    autoren, out = {}, []
+    for bid, a in sorted(books.items()):
+        ordner = (os.path.join(BASE, "users", a[5:], "works", bid) if a.startswith("user:")
+                  else os.path.join(BASE, "authors", a, "books", bid))
+        try:
+            with open(os.path.join(ordner, "book.json"), encoding="utf-8") as f:
+                bj = _j.load(f)
+        except (OSError, ValueError):
+            bj = {}
+        autor = bj.get("autor_name")
+        if not autor and a and not a.startswith("user:"):
+            if a not in autoren:
+                try:
+                    with open(os.path.join(BASE, "authors", a, "author.json"), encoding="utf-8") as f:
+                        autoren[a] = _j.load(f).get("name_display") or a
+                except (OSError, ValueError):
+                    autoren[a] = a
+            autor = autoren[a]
+        farbe = None
+        sp = os.path.join(ordner, "work", "status.json")
+        if os.path.exists(sp):
+            try:
+                with open(sp, encoding="utf-8") as f:
+                    farbe = _ampel_aus(_j.load(f), os.path.dirname(sp), LAEUFE.state(bid, zeilen=0))["farbe"]
+            except (OSError, ValueError):
+                pass
+        out.append({"book_id": bid, "autor": autor or "", "titel": bj.get("titel_original") or bid,
+                    "privat": a.startswith("user:"), "ampel": farbe})
+    _LISTE.update(t=_t.time(), daten=out)
+    return out
+
+
+UPLOAD_DIR = os.path.join(BASE, "daten", "uploads")
+
+
+def upload(art, dateiname, inhalt, wer):
+    """Upload speichern und Neuanlage als Unterprozess starten. epub -> Stage 150 (Neuanlage).
+    txt: noch kein Eingangsweg in der Pipeline (090 kennt gutenberg/user_epub/verlag_epub/fremd_audio)."""
+    import re as _re
+    try:
+        wer = s080_mandant.nutzer(wer)
+        if art != "epub":
+            raise ValueError("TXT-Upload: noch kein Eingangsweg in der Pipeline (Stage 090/150) – folgt")
+        name = _re.sub(r"[^A-Za-z0-9._-]+", "_", os.path.basename(dateiname or "upload.epub"))[:80]
+        if not name.lower().endswith(".epub"):
+            raise ValueError("Datei ist kein .epub")
+        os.makedirs(UPLOAD_DIR, exist_ok=True)
+        pfad = os.path.join(UPLOAD_DIR, f"{dt.datetime.now():%Y%m%d_%H%M%S}_{name}")
+        with open(pfad, "wb") as f:
+            f.write(inhalt)
+        vorher = set(werke())
+        argv = [PY, "-m", "pipeline.s150_epub_import", pfad, "--user", wer.lower(), "--wer", wer]
+        st = LAEUFE.start("_upload", argv, f"EPUB-Upload {name}")
+        LAEUFE.jobs["_upload"]["vorher"] = vorher
+        return {"ok": True, "lauf": st}
+    except (ValueError, RuntimeError, OSError) as e:
+        return {"ok": False, "fehler": str(e)}
+
+
+def upload_stand():
+    """Stand des Uploads; nach Ende: neu angelegte Book-ID(s)."""
+    st = LAEUFE.state("_upload", zeilen=40)
+    if st and not st["laeuft"]:
+        st["neu"] = sorted(set(werke()) - LAEUFE.jobs["_upload"].get("vorher", set()))
+        _LISTE["daten"] = None
+    return st

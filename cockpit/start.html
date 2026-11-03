@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><title>READ LAYER – Cockpit</title>
+<style>
+body{font:15px/1.45 system-ui,Segoe UI,sans-serif;margin:0;background:#f4f5f7;color:#222}
+header{background:#263238;color:#fff;padding:10px 18px;display:flex;align-items:center;gap:18px}
+header b{letter-spacing:.5px}
+.schritte{display:flex;gap:6px;font-size:13px}
+.schritte span{padding:2px 10px;border-radius:10px;background:#455a64;color:#cfd8dc}
+.schritte span.akt{background:#fff;color:#263238;font-weight:600}
+#wer{margin-left:auto;font-size:13px;color:#cfd8dc}
+main{max-width:860px;margin:28px auto;padding:0 16px}
+.karte{background:#fff;border:1px solid #ddd;border-radius:8px;padding:22px 26px}
+h1{font-size:20px;margin:0 0 16px}
+button{font:inherit;padding:7px 18px;border-radius:5px;border:1px solid #90a4ae;background:#fff;cursor:pointer}
+button.haupt{background:#263238;color:#fff;border-color:#263238}
+select,input[type=search]{font:inherit;padding:6px 8px}
+.tabs{display:flex;gap:4px;margin-bottom:14px}
+.tabs button{border-radius:5px 5px 0 0}
+.tabs button.akt{background:#263238;color:#fff}
+table{width:100%;border-collapse:collapse}
+td,th{text-align:left;padding:6px 8px;border-bottom:1px solid #eee}
+tr.zeile{cursor:pointer}tr.zeile:hover{background:#eef3f7}
+.liste{max-height:58vh;overflow:auto;border:1px solid #eee;margin-top:10px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#cfd8dc}
+.produktion,.stockt{background:#2e7d32}.handlung{background:#ef6c00}.angehalten,.fehler{background:#c62828}
+.blink{animation:p 1s infinite}@keyframes p{50%{opacity:.2}}
+.klein{font-size:12px;color:#777}
+.drop{border:2px dashed #b0bec5;border-radius:8px;padding:34px;text-align:center;color:#607d8b}
+.drop.hover{background:#e3f2fd}
+pre{background:#111;color:#ddd;padding:8px;max-height:220px;overflow:auto;font-size:12px;white-space:pre-wrap}
+.err{color:#c62828}
+</style></head><body>
+<header><b>READ LAYER · Cockpit</b>
+ <div class="schritte"><span id="s1">1 Anmeldung</span><span id="s2">2 Werk</span><span>3 …</span></div>
+ <span id="wer"></span></header>
+<main><div class="karte" id="inhalt"></div></main>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const api=(p,o)=>fetch(p,o).then(r=>r.json());
+let wer=sessionStorage.getItem("wer"), liste=[], tab="bestand";
+function schritt(n){$("s1").className=n==1?"akt":"";$("s2").className=n==2?"akt":"";
+  $("wer").innerHTML=wer?`angemeldet: <b>${esc(wer)}</b> · <a href="#" style="color:#cfd8dc" onclick="abmelden()">abmelden</a>`:"";}
+
+// ---- Schritt 1: Anmeldung (simuliert, Nutzer aus config/rollen.json)
+async function anmeldung(){
+  schritt(1);const n=await api("/api/nutzer");
+  $("inhalt").innerHTML=`<h1>Anmeldung</h1>
+   <p class="klein">Simuliert: Nutzer aus config/rollen.json, kein Passwort.</p>
+   <select id="nutzer">${n.nutzer.map(u=>`<option value="${esc(u.id)}" ${u.id==n.standard?"selected":""}>${esc(u.name||u.id)} (${esc(u.rolle)})</option>`).join("")}</select>
+   <button class="haupt" onclick="anmelden()">Anmelden</button>`;
+}
+function anmelden(){wer=$("nutzer").value;sessionStorage.setItem("wer",wer);werkwahl();}
+function abmelden(){sessionStorage.removeItem("wer");wer=null;anmeldung();}
+
+// ---- Schritt 2: Werk wählen (Bestand) oder hochladen (EPUB / TXT)
+async function werkwahl(){
+  schritt(2);
+  $("inhalt").innerHTML=`<h1>Werk wählen</h1>
+   <div class="tabs"><button id="t_bestand" onclick="zeigeTab('bestand')">Bestand (Autor / Titel)</button>
+   <button id="t_epub" onclick="zeigeTab('epub')">EPUB hochladen</button>
+   <button id="t_txt" onclick="zeigeTab('txt')">TXT hochladen</button></div><div id="tab"></div>`;
+  zeigeTab(tab);
+}
+async function zeigeTab(t){
+  tab=t;["bestand","epub","txt"].forEach(x=>$("t_"+x).className=x==t?"akt":"");
+  if(t=="bestand"){
+    $("tab").innerHTML=`<input type="search" id="suche" placeholder="Autor oder Titel suchen" style="width:60%" oninput="tabelle()"> <span class="klein" id="anz"></span>
+     <div class="liste"><table><thead><tr><th></th><th>Autor</th><th>Titel</th></tr></thead><tbody id="tb"><tr><td colspan=3>lädt …</td></tr></tbody></table></div>`;
+    liste=await api("/api/werkliste");tabelle();$("suche").focus();
+  }else{
+    const txt=t=="txt";
+    $("tab").innerHTML=`<div class="drop" id="drop">${txt?"TXT":"EPUB"}-Datei hierher ziehen oder <input type="file" id="datei" accept="${txt?".txt":".epub"}"></div>
+     ${txt?`<p class="err">Hinweis: Für TXT gibt es in der Pipeline noch keinen Eingangsweg (Stage 090/150). Upload wird abgelehnt, bis der Weg gebaut ist.</p>`:
+     `<p class="klein">Neuanlage über Stage 150 (ePub-Import), Besitzer: ${esc(wer)}.</p>`}
+     <div id="up"></div>`;
+    const d=$("drop");
+    d.ondragover=e=>{e.preventDefault();d.classList.add("hover")};d.ondragleave=()=>d.classList.remove("hover");
+    d.ondrop=e=>{e.preventDefault();d.classList.remove("hover");hochladen(e.dataTransfer.files[0],t)};
+    $("datei").onchange=e=>hochladen(e.target.files[0],t);
+  }
+}
+function tabelle(){
+  const q=($("suche").value||"").toLowerCase();
+  const f=liste.filter(w=>!q||(w.autor+" "+w.titel+" "+w.book_id).toLowerCase().includes(q));
+  $("anz").textContent=`${f.length} von ${liste.length}`;
+  const bl={handlung:1,stockt:1,fehler:1};
+  $("tb").innerHTML=f.map(w=>`<tr class="zeile" onclick="waehle('${esc(w.book_id)}')"><td><span class="dot ${w.ampel||""} ${bl[w.ampel]?"blink":""}"></span></td>
+    <td>${esc(w.autor)}</td><td>${esc(w.titel)}${w.privat?` <span class="klein">(privat)</span>`:""}</td></tr>`).join("");
+}
+function waehle(id){location.href="/werk#"+encodeURIComponent(id);}
+async function hochladen(file,art){
+  if(!file)return;
+  $("up").innerHTML=`<p>Lade ${esc(file.name)} hoch …</p>`;
+  const r=await api(`/api/upload?art=${art}&name=${encodeURIComponent(file.name)}&wer=${encodeURIComponent(wer)}`,{method:"POST",body:file});
+  if(!r.ok){$("up").innerHTML=`<p class="err">${esc(r.fehler)}</p>`;return;}
+  pollUpload();
+}
+async function pollUpload(){
+  const s=await api("/api/upload");
+  $("up").innerHTML=`<p>${s.laeuft?"Anlage läuft …":"Fertig: Exit "+s.exit+" ("+esc(s.deutung)+")"}</p><pre>${esc(s.log)}</pre>`+
+    (!s.laeuft&&s.neu&&s.neu.length?`<button class="haupt" onclick="waehle('${esc(s.neu[0])}')">Weiter mit ${esc(s.neu[0])}</button>`:"");
+  if(s.laeuft)setTimeout(pollUpload,1500);
+}
+wer?werkwahl():anmeldung();
+</script></body></html>

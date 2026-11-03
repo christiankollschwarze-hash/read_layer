@@ -48,7 +48,7 @@ pre{background:#111;color:#ddd;padding:8px;max-height:420px;overflow:auto;font-s
  <label><input type="checkbox" id="weg"> entfallene zeigen</label>
  <span id="info" class="klein" style="color:#cfd8dc"></span>
  <span id="global" style="margin-left:auto"></span>
- <a href="/">altes Cockpit</a>
+ <a href="/">← Werkwahl</a>
 </header>
 <main>
  <section>
@@ -71,7 +71,7 @@ async function api(p,body){const r=await fetch(p,body?{method:"POST",headers:{"C
 
 async function start(){
   const n=await api("/api/nutzer");
-  $("wer").innerHTML=n.nutzer.map(u=>`<option value="${esc(u.id)}" ${u.id==n.standard?"selected":""}>${esc(u.id)} (${esc(u.rolle)})</option>`).join("");
+  $("wer").innerHTML=n.nutzer.map(u=>`<option value="${esc(u.id)}" ${u.id==(sessionStorage.getItem("wer")||n.standard)?"selected":""}>${esc(u.id)} (${esc(u.rolle)})</option>`).join("");
   const w=await api("/api/werke");$("werke").innerHTML=w.map(x=>`<option value="${esc(x)}">`).join("");
   const h=decodeURIComponent(location.hash.slice(1));if(h){$("werk").value=h;laden();}
   $("weg").onchange=zeichnen;$("werk").onkeydown=e=>{if(e.key=="Enter")laden();};
