@@ -558,7 +558,7 @@ def _cmd(step, r):
             return [PY, "-m", "pipeline.s610_cover", s, "--force"]
         kt = r.get("kt_pruefung")
         if kt and not kt.get("ok"):   # Klappentext da, aber Pruefung nicht bestanden -> nur reparieren
-            return [PY, "-m", "pipeline.s600_klappentext", s, "--pruefen"]
+            return [PY, "-m", "pipeline.s600_klappentext", s]
         return [PY, "run.py", s, "--line", "epub", "--from", "600", "--to", "610", "--live"]
     if step == "cover_final":
         return [PY, "-m", "pipeline.s615_cover_final", s]

@@ -53,7 +53,7 @@ class Vorgaenger(unittest.TestCase):
     def test_entfaellt_faellt_weg(self):
         laeuft = kette.bedarf(B(TEXT_EPUB_EN))
         self.assertEqual(kette.wirksame_vorgaenger("620", laeuft, set(S.STAGES)), ["615"])
-        self.assertEqual(kette.wirksame_vorgaenger("600", laeuft, set(S.STAGES)), [])
+        self.assertEqual(kette.wirksame_vorgaenger("600", laeuft, set(S.STAGES)), ["190"])
 
     def test_nicht_gebaut_wird_ersetzt(self):
         laeuft = set(S.STAGES)
@@ -141,6 +141,8 @@ class Kette(unittest.TestCase):
                                                S.ergebnis(w, "520", "auto", wer="test"))
         run.NEU["540"] = lambda w, b, f, wer: (self.gelaufen.append("540"),
                                                S.ergebnis(w, "540", "auto", wer="test"))
+        run.NEU["600"] = lambda w, b, f, wer: (self.gelaufen.append("600"),
+                                               S.ergebnis(w, "600", "auto", wer="test"))
 
     def tearDown(self):
         self.run.ALT.clear(); self.run.ALT.update(self._alt)
