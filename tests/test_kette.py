@@ -200,6 +200,34 @@ class Kette(unittest.TestCase):
         rc, out = self.lauf(start_from="615")
         self.assertEqual(rc, 0, out)
 
+    def test_meldung_stopp_befund_ruecksprung(self):
+        """Aufraeumpaket 1: Stopp nennt Befunde, Ruecksprung und Fortsetzungsbefehl."""
+        self.run.NEU["610"] = lambda w, b, f, wer: S.ergebnis(w, "610", "stopp", wer="test",
+                                                               gruende=["breite = 832 (Soll >= 1000)"],
+                                                               ruecksprung="600")
+        rc, out = self.lauf()
+        self.assertEqual(rc, 2)
+        self.assertIn("1 Befund(e)", out)
+        self.assertIn("- breite = 832 (Soll >= 1000)", out)
+        self.assertIn("Ruecksprung -> 600", out)
+        self.assertIn("--from 600", out)
+        rc, out = self.lauf(start_from="615")              # Vorgaenger nicht frei: gleiche Meldung
+        self.assertIn("- Gate 610 nicht frei (stopp)", out)
+        self.assertIn("Ruecksprung -> 610", out)
+
+    def test_meldung_mensch_teil(self):
+        """Aufraeumpaket 1: Mensch an einem Teil -> Scope-Befund, Ruecksprung des Teils, Befehl mit --scope."""
+        self.run.NEU["710"] = lambda w, b, f, wer: (
+            S.ergebnis(w, "710", "auto", scope="de:taella", wer="test"),
+            S.ergebnis(w, "710", "mensch", scope="en:epub", wer="test", gruende=["Paket bereit"],
+                       ruecksprung="700"))
+        rc, out = self.lauf()
+        self.assertEqual(rc, 3, out)
+        self.assertIn("- en:epub: Paket bereit", out)
+        self.assertIn("Ruecksprung -> 700 (en:epub)", out)
+        self.assertIn("--entscheiden 710 frei --scope en:epub", out)
+        self.assertNotIn("--scope de:taella", out)
+
     def test_bestellung_ungueltig(self):
         json.dump({"quellsprache": "xx", "produkte": []}, open(os.path.join(self.tmp.name, "book.json"), "w"))
         rc, out = self.lauf()

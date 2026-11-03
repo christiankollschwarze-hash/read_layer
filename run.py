@@ -60,6 +60,43 @@ def _gruende(book_id, s, ersatz=None):
     return g or list(ersatz or [])
 
 
+def _ruecksprung(book_id, s):
+    """Ruecksprung(e) des Stage-Gates bzw. der nicht freien Teile: [(ziel, scope|None)]."""
+    from pipeline import status
+    st = status.laden(book_id)["stages"].get(s) or {}
+    out = []
+    r = (st.get("gate") or {}).get("ruecksprung")
+    if r:
+        out.append((r, None))
+    for sc, x in sorted((st.get("teile") or {}).items()):
+        r = (x.get("gate") or {}).get("ruecksprung")
+        if x.get("zustand") in ("mensch", "stopp") and r and (r, None) not in out:
+            out.append((r, sc))
+    return out
+
+
+def _melden(book_id, s, art, ersatz=None):
+    """Stopp/Mensch melden: Befunde, Ruecksprung und naechster Befehl – fuer jede Stage gleich."""
+    from pipeline import status
+    tag = art.upper()
+    g = _gruende(book_id, s, ersatz or ["Entscheidung offen" if art == "mensch" else "ohne Begruendung"])
+    print(f"\n[{tag}] Stage {s}: {len(g)} Befund(e)")
+    for x in g:
+        print(f"  - {x}")
+    rs = _ruecksprung(book_id, s)
+    if rs:
+        print(f"[{tag}] Ruecksprung -> " + ", ".join(r + (f" ({sc})" if sc else "") for r, sc in rs))
+    if art == "mensch":
+        st = status.laden(book_id)["stages"].get(s) or {}
+        offen = [sc for sc, x in sorted((st.get("teile") or {}).items()) if x.get("zustand") == "mensch"]
+        for sc in offen or [None]:
+            print(f"[MENSCH] python -m pipeline.status {book_id} --entscheiden {s} frei"
+                  f"{' --scope ' + sc if sc else ''} --wer CK --grund \"...\"")
+    else:
+        ziel = rs[0][0] if rs else s
+        print(f"[STOPP] Nach Fix: python run.py {book_id} --from {ziel}   (Status: python -m pipeline.status {book_id})")
+
+
 def _neu(modul, **kw):
     """Kettenaufruf einer umgebauten Stage: run(book_id, wer=...) -> auto/mensch/stopp."""
     def f(book_id, b, force, wer):
@@ -327,8 +364,7 @@ def run_pipeline(book_id, start_from=None, stop_to=None, only=None, force=False,
         try:
             gate.vorgaenger_frei(book_id, s, vorg, wer=wer)
         except gate.GateHalt as e:
-            print(f"\n[STOPP] Stage {s}: " + "; ".join(e.gruende))
-            print(f"[STOPP] Status: python -m pipeline.status {book_id}")
+            _melden(book_id, s, "stopp", e.gruende)
             return e.exit_code
 
         print(f"\n--- Stage {s} ---")
@@ -336,7 +372,7 @@ def run_pipeline(book_id, start_from=None, stop_to=None, only=None, force=False,
         try:
             z = _stage_ausfuehren(book_id, s, b, force, only_lang, wer=wer)
         except gate.GateHalt as e:
-            print(f"\n[{e.ergebnis.upper()}] Stage {s}: " + "; ".join(e.gruende))
+            _melden(book_id, s, e.ergebnis if e.ergebnis in ("mensch", "stopp") else "stopp", e.gruende)
             return e.exit_code
         except Exception as e:
             status.ergebnis(book_id, s, "stopp", gruende=[f"Fehler: {e}"], ruecksprung=s, wer="run.py")
@@ -346,14 +382,9 @@ def run_pipeline(book_id, start_from=None, stop_to=None, only=None, force=False,
         print(f"--- Stage {s}: {z} ({time.time()-t0:.1f}s) ---")
         if s == "095":
             b, laeuft, _ = kette.bedarf_setzen(book_id, wer=wer)    # neue Bestellung -> Stage-Liste
-        if z == "mensch":
-            print(f"\n[MENSCH] Stage {s}: " + "; ".join(_gruende(book_id, s, ["Entscheidung offen"])))
-            print(f"[MENSCH] python -m pipeline.status {book_id} --entscheiden {s} frei --wer CK --grund \"...\"")
-            ergebnis = "mensch"
-            break
-        if z == "stopp":
-            print(f"\n[STOPP] Stage {s}: " + "; ".join(_gruende(book_id, s)))
-            ergebnis = "stopp"
+        if z in ("mensch", "stopp"):
+            _melden(book_id, s, z)
+            ergebnis = z
             break
 
     print("\n" + "=" * 60)
