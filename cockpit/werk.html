@@ -31,9 +31,9 @@ pre{background:#111;color:#ddd;padding:8px;max-height:420px;overflow:auto;font-s
 .err{color:var(--r)}
 .ampel{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:6px;font-weight:600;margin-bottom:12px;color:#fff}
 .ampel .dot{width:16px;height:16px;border-radius:50%;background:#fff;flex:none}
-.a-produktion{background:var(--b)}.a-produktion .dot{animation:puls 1s infinite}
-.a-still{background:#6d4c41}.a-stopp{background:var(--r)}.a-mensch{background:var(--a)}
-.a-bereit{background:#546e7a}.a-fertig{background:var(--g)}
+.a-produktion,.a-stockt{background:var(--g)}.a-handlung{background:#ef6c00}
+.a-angehalten,.a-fehler{background:var(--r)}.a-ruhe{background:#78909c}
+.blink{animation:puls 1s infinite}
 @keyframes puls{0%,100%{opacity:1}50%{opacity:.2}}
 .z.laeuft{animation:puls 1s infinite}
 #global{display:flex;gap:6px;align-items:center}
@@ -183,21 +183,22 @@ function laufZeigen(l){
 }
 let letzteFarbe=null;
 function ampelZeigen(a){
-  if(!a)return;$("ampel").className="ampel a-"+a.farbe;
-  let t=a.text;if(a.still_s!=null&&a.farbe!="fertig")t+=` · letzte Aktivität vor ${a.still_s<120?a.still_s+" s":Math.round(a.still_s/60)+" min"}`;
+  if(!a)return;$("ampel").className="ampel a-"+a.farbe+(a.blink?" blink":"");
+  let t=a.text;if(a.still_s!=null&&a.farbe!="ruhe")t+=` · letzte Aktivität vor ${a.still_s<120?a.still_s+" s":Math.round(a.still_s/60)+" min"}`;
   $("ampeltext").textContent=t;
-  document.title=({produktion:"▶ ",still:"? ",stopp:"■ ",mensch:"! "}[a.farbe]||"")+(W?W.book_id:"Einzeltitel");
+  document.title=({produktion:"▶ ",stockt:"⏸ ",angehalten:"■ ",fehler:"✖ ",handlung:"! "}[a.farbe]||"")+(W?W.book_id:"Einzeltitel");
   if(letzteFarbe&&letzteFarbe!=a.farbe&&W)laden();            // Zustandswechsel -> Ansicht neu laden
   letzteFarbe=a.farbe;
 }
 async function ampelPoll(){
   try{
     if(W)ampelZeigen(await api(`/api/werk/${encodeURIComponent(W.book_id)}/ampel`));
-    const g=await api("/api/ampel"),fb={produktion:"var(--b)",still:"#6d4c41",stopp:"var(--r)",mensch:"var(--a)"},
-      nm={produktion:"in Produktion",still:"unklar",stopp:"Stopp",mensch:"Entscheidung"};
+    const g=await api("/api/ampel"),fb={fehler:"var(--r)",angehalten:"var(--r)",handlung:"#ef6c00",stockt:"var(--g)",produktion:"var(--g)"},
+      nm={fehler:"Fehler",angehalten:"angehalten",handlung:"Handlungsbedarf",stockt:"stockt",produktion:"läuft"},
+      bl={fehler:1,handlung:1,stockt:1};
     $("global").innerHTML=Object.entries(g.anzahl).filter(([f,n])=>n).map(([f,n])=>
-      `<span class="g" style="background:${fb[f]}" title="${esc(g.werke.filter(w=>w.farbe==f).map(w=>w.book_id+": "+w.text).join("\n"))}"
-        onclick="springe('${f}')">${n} ${nm[f]}</span>`).join("")||`<span class="g" style="background:var(--g)">nichts läuft</span>`;
+      `<span class="g ${bl[f]?"blink":""}" style="background:${fb[f]}" title="${esc(g.werke.filter(w=>w.farbe==f).map(w=>w.book_id+": "+w.text).join("\n"))}"
+        onclick="springe('${f}')">${n} ${nm[f]}</span>`).join("")||`<span class="g" style="background:#78909c">nichts läuft, nichts offen</span>`;
     window._g=g;
   }catch(e){}
   setTimeout(ampelPoll,4000);

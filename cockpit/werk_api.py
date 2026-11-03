@@ -369,7 +369,7 @@ def regler(book_id, stage, werte, wer, nur_vorschau=False):
 # letzte Aktivitaet = juengste Aenderung im Werk-work-Ordner (status.json, kosten.jsonl, Ordner + Unterordner;
 # atomares Schreiben aendert die Ordnerzeit). 'laeuft' ohne Aktivitaet > STILL_MIN -> evtl. abgebrochen.
 STILL_MIN = 15
-AMPEL_FARBEN = ("produktion", "still", "stopp", "mensch", "bereit", "fertig")
+AMPEL_FARBEN = ("fehler", "angehalten", "handlung", "stockt", "produktion", "ruhe")   # Rang fuer Gesamtliste
 
 
 def _aktivitaet(work):
@@ -388,41 +388,62 @@ def _aktivitaet(work):
     return max(0, int(_t.time() - t))
 
 
+def _fehler(st):
+    """Unerwarteter Fehler: Stopp mit 'Fehler: …' (Ausnahme in einer Stage, von run.py geschrieben)."""
+    for t in [st] + list((st.get("teile") or {}).values()):
+        if t.get("zustand") == "stopp" and any(str(g).startswith("Fehler:") for g in (t.get("gate") or {}).get("gruende") or []):
+            return True
+    return False
+
+
 def _ampel_aus(d, work, job, naechster=None):
-    """Ampel eines Werks aus Status-Dict, work-Ordner und Cockpit-Job."""
-    laufend, mensch, stopp, offen = [], [], [], []
+    """Ampel (CK 03.11.2026): produktion gruen · stockt gruen blinkend · handlung orange blinkend ·
+    angehalten rot · fehler rot blinkend · ruhe grau (nichts laeuft, nichts offen)."""
+    laufend, mensch, stopp, fehler = [], [], [], []
     for s in status.STAGES:
         st = d["stages"].get(s) or {}
         z = st.get("zustand")
         teile_l = [sc for sc, t in (st.get("teile") or {}).items() if t.get("zustand") == "laeuft"]
         if z == "laeuft" or teile_l:
             laufend.append({"stage": s, "seit": st.get("wann"), "teile": teile_l})
-        elif z == "mensch":
-            mensch.append(s)
+        elif _fehler(st):
+            fehler.append(s)
         elif z == "stopp":
             stopp.append(s)
-        elif z == "offen":
-            offen.append(s)
+        elif z == "mensch":
+            mensch.append(s)
     still = _aktivitaet(work)
     job_laeuft = bool(job and job.get("laeuft"))
-    out = {"laufend": laufend, "mensch": mensch, "stopp": stopp, "still_s": still, "cockpit_lauf": job_laeuft,
-           "cockpit_art": job.get("art") if job else None}
-    if job_laeuft or (laufend and still is not None and still < STILL_MIN * 60):
-        st = ", ".join(x["stage"] for x in laufend) or "Start"
-        out.update(farbe="produktion", text=f"In Produktion: Stage {st}" + (f" ({job['art']})" if job_laeuft else
-                                                                                  " (Lauf ausserhalb Cockpit)"))
-    elif laufend:
-        out.update(farbe="still", text=f"Stage {', '.join(x['stage'] for x in laufend)} steht auf 'laeuft', "
-                                       f"keine Aktivitaet seit {still // 60} min – evtl. abgebrochen")
+    if job and job.get("exit") == 1 and not job_laeuft and not laufend:
+        fehler = fehler or ["Lauf"]
+    out = {"laufend": laufend, "mensch": mensch, "stopp": stopp, "fehler": fehler, "still_s": still,
+           "cockpit_lauf": job_laeuft, "cockpit_art": job.get("art") if job else None}
+    st_txt = ", ".join(x["stage"] for x in laufend) or "Start"
+    ruhig = [x for x in (still, _log_alter(job) if job_laeuft else None) if x is not None]
+    if (laufend or job_laeuft) and ruhig and min(ruhig) >= STILL_MIN * 60:
+        still = min(ruhig)
+        out.update(farbe="stockt", blink=True, text=f"Produktion stockt: Stage {st_txt}, keine Aktivitaet seit "
+                                                     f"{still // 60} min")
+    elif job_laeuft or laufend:
+        out.update(farbe="produktion", blink=False, text=f"Produktion laeuft: Stage {st_txt}")
+    elif fehler:
+        out.update(farbe="fehler", blink=True, text=f"Unerwarteter Fehler: {', '.join(fehler)}")
     elif stopp:
-        out.update(farbe="stopp", text=f"Stopp: {', '.join(stopp)} – Handlungsbedarf")
+        out.update(farbe="angehalten", blink=False, text=f"Produktion angehalten: Stopp {', '.join(stopp)}")
     elif mensch:
-        out.update(farbe="mensch", text=f"Entscheidung offen: {', '.join(mensch)} – Handlungsbedarf")
-    elif offen:                                   # nur status.json (gleiches Ergebnis fuer Poll und Ansicht)
-        out.update(farbe="bereit", text=f"Bereit, nichts laeuft – offen ab Stage {offen[0]}")
+        out.update(farbe="handlung", blink=True, text=f"Handlungsbedarf: Entscheidung {', '.join(mensch)}")
     else:
-        out.update(farbe="fertig", text="Fertig – nichts laeuft, nichts offen")
+        out.update(farbe="ruhe", blink=False, text="Nichts laeuft, nichts offen")
     return out
+
+
+def _log_alter(job):
+    """Sekunden seit der letzten Zeile im Log des Cockpit-Laufs (None = unbekannt)."""
+    import time as _t
+    try:
+        return int(_t.time() - os.path.getmtime(os.path.join(BASE, job["logdatei"])))
+    except (OSError, KeyError, TypeError):
+        return None
 
 
 def ampel(book_id):
@@ -449,12 +470,12 @@ def ampel_alle():
         except (OSError, ValueError):
             continue
         a = _ampel_aus(d, os.path.dirname(p), LAEUFE.state(bid, zeilen=0))
-        if a["farbe"] in ("produktion", "still", "stopp", "mensch"):
+        if a["farbe"] != "ruhe":
             werke.append({"book_id": bid, "farbe": a["farbe"], "text": a["text"]})
     for bid in LAEUFE.jobs:                      # Cockpit-Lauf fuer Werk ohne status.json
         if LAEUFE.jobs[bid]["exit"] is None and bid not in [w["book_id"] for w in werke]:
-            werke.append({"book_id": bid, "farbe": "produktion", "text": f"In Produktion ({LAEUFE.jobs[bid]['art']})"})
+            werke.append({"book_id": bid, "farbe": "produktion", "text": f"Produktion laeuft ({LAEUFE.jobs[bid]['art']})"})
     rang = {f: i for i, f in enumerate(AMPEL_FARBEN)}
     werke.sort(key=lambda w: (rang[w["farbe"]], w["book_id"]))
-    n = {f: sum(1 for w in werke if w["farbe"] == f) for f in AMPEL_FARBEN[:4]}
+    n = {f: sum(1 for w in werke if w["farbe"] == f) for f in AMPEL_FARBEN[:5]}
     return {"werke": werke, "anzahl": n}

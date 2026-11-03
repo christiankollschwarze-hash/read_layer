@@ -364,8 +364,11 @@ render(); runinfo();
 
 // Produktions-Ampel (Phase 3): alle Werke, alle 4 s
 (function prodAmpel(){fetch("/api/ampel").then(r=>r.json()).then(g=>{const a=g.anzahl,e=document.getElementById("prodampel");
- const t=[a.produktion&&a.produktion+" in Produktion",a.still&&a.still+" unklar",a.stopp&&a.stopp+" Stopp",a.mensch&&a.mensch+" Entscheidung"].filter(Boolean);
- e.textContent=t.join(" · ")||"nichts läuft";e.style.background=a.produktion?"#1565c0":a.still?"#6d4c41":a.stopp?"#c62828":a.mensch?"#b26a00":"#2e7d32";
+ const t=[a.fehler&&a.fehler+" Fehler",a.angehalten&&a.angehalten+" angehalten",a.handlung&&a.handlung+" Handlungsbedarf",a.stockt&&a.stockt+" stockt",a.produktion&&a.produktion+" läuft"].filter(Boolean);
+ e.textContent=t.join(" · ")||"nichts läuft, nichts offen";
+ e.style.background=a.fehler||a.angehalten?"#c62828":a.handlung?"#ef6c00":a.stockt||a.produktion?"#2e7d32":"#78909c";
+ e.style.animation=(a.fehler||a.handlung||a.stockt)&&!a.angehalten?"pa 1s infinite":"";
+ if(!document.getElementById("pa-css")){const c=document.createElement("style");c.id="pa-css";c.textContent="@keyframes pa{50%{opacity:.25}}";document.head.appendChild(c);}
  e.title=g.werke.map(w=>w.book_id+": "+w.text).join("\n");}).catch(()=>{}).finally(()=>setTimeout(prodAmpel,4000));})();
 </script>
 </body></html>

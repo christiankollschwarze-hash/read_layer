@@ -143,26 +143,24 @@ class T(unittest.TestCase):
 
     def test_ampel(self):
         self._stand()
-        self.assertEqual(A.ampel(self.w)["farbe"], "mensch")                     # 310 wartet
-        S.ergebnis(self.w, "300", "stopp", gruende=["x"])
-        self.assertEqual(A.ampel(self.w)["farbe"], "stopp")
-        S.start(self.w, "320")                                                      # Lauf ausserhalb Cockpit
         a = A.ampel(self.w)
-        self.assertEqual((a["farbe"], a["laufend"][0]["stage"]), ("produktion", "320"))
+        self.assertEqual((a["farbe"], a["blink"]), ("handlung", True))              # 310 wartet
+        S.ergebnis(self.w, "300", "stopp", gruende=["Luecke"])
+        self.assertEqual((A.ampel(self.w)["farbe"], A.ampel(self.w)["blink"]), ("angehalten", False))
+        S.ergebnis(self.w, "320", "stopp", gruende=["Fehler: KeyError 'x'"])        # Ausnahme (run.py)
+        self.assertEqual((A.ampel(self.w)["farbe"], A.ampel(self.w)["blink"]), ("fehler", True))
+        S.start(self.w, "330")                                                      # Lauf ausserhalb Cockpit
+        a = A.ampel(self.w)
+        self.assertEqual((a["farbe"], a["laufend"][0]["stage"]), ("produktion", "330"))
         alt = time.time() - 3600                                                    # 1 h keine Aktivitaet
         for p in [self.tmp.name] + [os.path.join(self.tmp.name, f) for f in os.listdir(self.tmp.name)]:
             os.utime(p, (alt, alt))
-        self.assertEqual(A.ampel(self.w)["farbe"], "still")
-        A.LAEUFE.jobs[self.w] = {"exit": None, "art": "run.py fortsetzen", "cmd": "", "log": os.path.join(self.tmp.name, "x.log"), "start": "", "ende": None}
-        try:
-            self.assertEqual(A.ampel(self.w)["farbe"], "produktion")               # Cockpit-Lauf gilt immer
-        finally:
-            A.LAEUFE.jobs.pop(self.w)
+        self.assertEqual((A.ampel(self.w)["farbe"], A.ampel(self.w)["blink"]), ("stockt", True))
+        S.ergebnis(self.w, "330", "auto")
         S.ergebnis(self.w, "320", "auto")
         S.ergebnis(self.w, "300", "auto")
         S.entscheiden(self.w, "310", "frei", "CK", "ok", scope="c002/de")
-        self.assertEqual(A.werk(self.w)["ampel"]["farbe"], "bereit")
-
+        self.assertEqual(A.werk(self.w)["ampel"]["farbe"], "ruhe")
 
 if __name__ == "__main__":
     unittest.main()
