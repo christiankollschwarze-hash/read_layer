@@ -29,7 +29,7 @@ import sys
 
 from config import config
 from pipeline import bestellung, gate, mock, s080_mandant, usage_log
-from pipeline import s620_epub_original as epub
+from pipeline import kapiteltext as epub
 from pipeline.manifest import hash_obj, json_atomar
 
 STAGE = "120"

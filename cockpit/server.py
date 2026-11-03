@@ -176,11 +176,15 @@ def _audio_soll_lesen(bdir, lang):
 
 
 def _epubs(bdir, slug):
+    """ePubs aus 620/630 (<slug>_<lg>[_audio].epub, Manifest work/620_epub.json); Altbestand <slug>.epub."""
     out = []
-    for lang in ("en", "de"):
-        p = os.path.join(bdir, "fassungen", lang, "output", slug + ".epub")
-        if os.path.exists(p):
-            out.append(p)
+    fdir = os.path.join(bdir, "fassungen")
+    for lang in sorted(os.listdir(fdir)) if os.path.isdir(fdir) else []:
+        odir = os.path.join(fdir, lang, "output")
+        for name in (f"{slug}_{lang}.epub", f"{slug}_{lang}_audio.epub", f"{slug}.epub"):
+            p = os.path.join(odir, name)
+            if os.path.exists(p):
+                out.append(p)
     return out
 
 

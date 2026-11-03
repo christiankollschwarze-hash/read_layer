@@ -1,1040 +1,683 @@
-"""STAGE 620 — ePub Original
-Funktion:     EPUB3 der Originalfassung im SOMNIO-Layout.
-Wirkungsweise: Kapitel aus work/modernized, Cover, Klappentext, Titelseite, Colophon; zipfile-Verpackung.
-Komponenten:  pipeline/s620_epub_original.py, Pillow
-Zulieferer:   s120 Modernisierung, s600 Klappentext, s610 Cover
-Abnehmer:     Auslieferung (fassungen/en/output/<werk>.epub), s630 (Gleiche Bausteine)
-(Nomenklatur seit 18.10.2026, Uebersicht: docs/Pipeline_Strang_Matrix.xlsx)
-
---- Bisherige Beschreibung ---
-
-READ LAYER — Stage 11: EPUB-Setzung (Katalog-Format)
-====================================================
-Erzeugt ein valides EPUB3 nach dem Vorbild der Public-Domain-Library/
-Standard-Ebooks-Schule (EPUB3, kein NCX, alles unter epub/), aber mit
-SOMNIO-Branding.
-
-ARCHITEKTUR — bewusst zweigeteilt:
-  1. INHALTSGEWINNUNG  (_extract_chapters_*): liefert [(titel, [absatz, ...]), ...].
-     Aktuell einsprachig aus raw.txt. Die zweisprachige Variante (EN/DE)
-     dockt SPAETER genau hier an -- ohne die Verpackung anzufassen.
-  2. VERPACKUNG  (build_epub): nimmt Metadaten + Kapitel und schreibt das EPUB.
-
-Aufruf wie die anderen Stages:  run(book_id).
-Ausgabe:  books/<book_id>/output/<book_slug>.epub
-Gutenberg ist aus dem Claude-Container gesperrt -> echter raw.txt-Lauf laeuft lokal.
+"""STAGE 620/630 — ePub (Ausgangssprache 620, Zielsprache 630 ueber s630_epub_zielsprache)
+Funktion:     EPUB3 je Sprache x Variante laut Bestellung (Kanal EPUB): Text (<werk>_<lg>.epub) und
+              Audio (Hoerbuch Basic, EPUB3 mit Media Overlay, <werk>_<lg>_audio.epub).
+Wirkungsweise: Eingaenge -> Kapitel aus Satzteilen -> epub_bau.bauen -> Gate am fertigen EPUB (epubcheck,
+              Textabgleich, Kapitel, Fallback, Vermerke, Sprache, Bilder/Fussnoten, SMIL). Rein deterministisch,
+              Neu-Bauen aendert nichts -> rot = Stopp (geklebte Absaetze und Mandant verlag -> Mensch).
+Eingang:      Text Ausgangssprache: work/modernized/chapter-N.json (190); Zielsprache: 330_rueckuebersetzung.json;
+              Audio: Knoten 200 bzw. 330 + work/650_hoerbuch_<lg>.json (Kapiteldateien, Satz-Zeitmarken);
+              Klappentext 600 (Gate frei); Cover 615 (cover_final_<lg>[_audio].jpg, Gate frei); anhang.json (150);
+              book.json (Bestellung, fassung, teil/teile_gesamt, Rechte, Mandant 080); Profil 210 (Rollennamen).
+Ausgabe:      fassungen/<lg>/output/<werk>_<lg>[_audio].epub; work/620_epub.json (je Scope <lg>:<variante>:
+              Eingangs-/Ausgabe-Hash, Pruefmetriken); Gate je Scope in status.json (Stage 620 bzw. 630).
+Regler:       --variante text|audio, --mobil an|aus, --mobil-laenge N, --bilder an|aus, --fussnoten an|aus,
+              --kolophon LG=TEXT (nur Admin), --sprache LG, --neu, --freigeben, --trocken
+Kosten:       0 $ (CPU, Java epubcheck).
+Aufruf:       python -m pipeline.s620_epub_original <werk> [Regler] [--wer CK]
 """
 
-import os, re, io, json, html, uuid, base64, zipfile, datetime
+import argparse
+import datetime
+import difflib
+import json
+import os
+import re
+import shutil
+import tempfile
+import uuid
+
 from config import config
+from pipeline import bestellung, epub_bau, gate, manifest, mock, status
 
-STAGE = "620"
-
-# Stabiler UUID-Namensraum fuer deterministische Identifier ueber Neulaeufe hinweg.
-_NS = uuid.uuid5(uuid.NAMESPACE_DNS, "readlayer.somnio")
-
-# --- Cover-Branding ------------------------------------------------------
-BG_COLOR    = getattr(config, "COVER_BG", "#faf8f4")   # Source of Truth: config.COVER_BG
-TITLE_COLOR = "#9e3324"   # patiniertes Zinnoberrot; eine Zeile zum Aendern
-# Projektweites Hai-Logo (CK legt somniosus_draft1.svg hier ab):
-LOGO_PATH   = os.path.join(config.BASE_DIR, "assets", "somnio_logo.svg")
-IMPRINT     = "SOMNIO PUBLISHING"
-
-# BCP-47-Sprachkennung (knapp gehalten; bei Bedarf erweitern)
-_BCP47 = {"en": "en", "de": "de", "fr": "fr", "es": "es", "it": "it", "ru": "ru"}
+STAGE_Q, STAGE_Z = "620", "630"
+BAU_V = 1
+TEXT_AUS = ("p", "tt", "skip", "ansage")         # keine Lesetext-Knoten
+AUDIO_MEDIA = {".mp3": "audio/mpeg", ".m4a": "audio/mp4", ".mp4": "audio/mp4"}
+BILD_MEDIA = {".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".gif": "image/gif",
+              ".svg": "image/svg+xml", ".webp": "image/webp"}
+REGLER = {"mobil": "an", "mobil_laenge": 320, "bilder": "an", "fussnoten": "an", "kolophon": {}}
+SCHWELLEN = {"textabgleich_min": 1.0, "fallback_max": 0, "epubcheck_fehler_max": 0, "smil_min": 1.0}
 
 
-# ============================================================
-# 1) INHALTSGEWINNUNG
-# ============================================================
-def _strip_boilerplate(t: str) -> str:
-    for mk in ("*** START OF THE PROJECT GUTENBERG", "*** START OF THIS PROJECT GUTENBERG"):
-        i = t.find(mk)
-        if i != -1:
-            nl = t.find("\n", i); t = t[nl + 1:] if nl != -1 else t; break
-    for mk in ("*** END OF THE PROJECT GUTENBERG", "*** END OF THIS PROJECT GUTENBERG"):
-        i = t.find(mk)
-        if i != -1:
-            t = t[:i]; break
-    # Sicherheitsnetz: Lizenz-/Nachspann-Bloecke, die manchmal trotzdem anhaengen.
-    for mk in ("START: FULL LICENSE", "*** START OF THE FULL PROJECT GUTENBERG LICENSE",
-               "THE FULL PROJECT GUTENBERG LICENSE", "End of the Project Gutenberg"):
-        i = t.find(mk)
-        if i != -1:
-            t = t[:i]; break
-    return t.strip()
+# ------------------------------------------------------------ Pfade / Ablage
+def ausgabe_pfad(werk, lg, variante):
+    zus = "_audio" if variante == "audio" else ""
+    return os.path.join(config.book_dir(werk), "fassungen", lg, "output", f"{werk}_{lg}{zus}.epub")
 
 
-_CHAP_RE = re.compile(r"^\s*(chapter|kapitel)\b", re.IGNORECASE)
-
-def _is_heading_block(block: str) -> bool:
-    """Ein Block ist eine Ueberschrift, wenn er einzeilig, kurz und ueberwiegend
-    Grossbuchstaben ist (Gutenberg-Konvention) ODER mit 'Chapter/Kapitel' beginnt."""
-    if "\n" in block:
-        return False
-    s = block.strip()
-    if not s or len(s) > 60:
-        return False
-    if _CHAP_RE.match(s):
-        return True
-    # Echte Titel enden NICHT auf einen Punkt; Signaturen/Saetze schon
-    # ("HENRY JEKYLL.", "HASTIE LANYON.", "H.J.", "1.F.", "DAMAGE.").
-    if s.rstrip("\u201d\u2019\"' ").endswith("."):
-        return False
-    letters = [c for c in s if c.isalpha()]
-    if len(letters) < 2:
-        return False
-    upper = sum(1 for c in letters if c.isupper())
-    return upper / len(letters) >= 0.8
-
-_SMALL = {"a","an","and","the","of","or","to","in","on","at","by","for","with",
-          "von","der","die","das","und","oder","im","zu"}
-
-def _titlecase(s: str) -> str:
-    """ALL-CAPS-Ueberschrift -> lesbare Schreibung. Gemischte Schreibung bleibt."""
-    letters = [c for c in s if c.isalpha()]
-    if not letters or sum(c.isupper() for c in letters) / len(letters) < 0.9:
-        return s  # nicht durchgaengig Caps -> unveraendert lassen
-    words = s.lower().split()
-    out = []
-    for i, w in enumerate(words):
-        out.append(w if (w in _SMALL and i != 0) else (w[:1].upper() + w[1:]))
-    return " ".join(out)
-
-def _split_chapters(text: str):
-    """Liefert [(titel, [absatz, ...]), ...]. Marker-Konvention zuerst, sonst Heuristik."""
-    marker = config.MARKERS.get("chapter", "###CHAPTER###")
-    chapters = []
-
-    if marker in text:
-        for seg in text.split(marker)[1:]:
-            lines = seg.strip("\n").split("\n", 1)
-            title = lines[0].strip()
-            body = lines[1] if len(lines) > 1 else ""
-            chapters.append((title or f"Chapter {len(chapters)+1}", _paragraphs(body)))
-        if chapters:
-            return chapters
-
-    # Heuristik (blockbasiert):
-    #  - Echte Ueberschrift = Caps-Block, dem substanzieller Fliesstext folgt
-    #    (bevor die naechste Ueberschrift kommt). Das verwirft TOC-Listen
-    #    (Ueberschrift folgt auf Ueberschrift) UND den Vorspann (Titel/Autor).
-    #  - Caps-Bloecke OHNE folgenden Fliesstext (z.B. Signaturen) bleiben Absatz.
-    blocks = [b.strip() for b in re.split(r"\n\s*\n", text) if b.strip()]
-    is_hr = lambda b: bool(re.fullmatch(r"[\*\u2014\-\s]{3,}", b))
-    heads = [(_is_heading_block(b) and not is_hr(b)) for b in blocks]
-
-    def _body_follows(i: int) -> bool:
-        for j in range(i + 1, len(blocks)):
-            if heads[j]:
-                return False
-            if not is_hr(blocks[j]) and len(blocks[j]) >= 120:
-                return True
-        return False
-
-    cur = None
-    started = False
-    for i, b in enumerate(blocks):
-        if heads[i] and _body_follows(i):
-            cur = (_titlecase(b), [])
-            chapters.append(cur)
-            started = True
-        elif not started:
-            continue  # Vorspann / Inhaltsverzeichnis vor dem 1. echten Kapitel -> weg
-        elif is_hr(b):
-            if cur:
-                cur[1].append("\u2014\u2014HR\u2014\u2014")
-        else:
-            cur[1].append(" ".join(l.strip() for l in b.split("\n")))
-
-    if not chapters:
-        chapters = [("", _paragraphs(text))]
-    return chapters
-
-def _paragraphs(body: str):
-    out = []
-    for block in re.split(r"\n\s*\n", body):
-        b = block.strip()
-        if b:
-            out.append(" ".join(l.strip() for l in b.split("\n")))
-    return out
-
-def _rewrap(text: str) -> str:
-    """Entfasert hart umbrochenen Text zu echten Absatz-Bloecken.
-    Feste Regel fuer ALLE Titel -- robust gegen normal UND doppelt
-    zeilengeschaltete Gutenberg-Dateien:
-      - normal (wenige Leerzeilen): Leerzeile = Absatzgrenze, Zeilen verbinden.
-      - doppelt (Leerzeile nach jeder Zeile): Fuell-Heuristik -- eine kurze
-        Schlusszeile beendet den Absatz; 2+ Leerzeilen sind harte Grenzen.
-    Ueberschriften (kurze Caps-Zeilen) bleiben eigene Bloecke.
-    Ausgabe: Bloecke durch genau eine Leerzeile getrennt."""
-    lines = text.replace("\r\n", "\n").replace("\r", "\n").split("\n")
-    nonempty = [l for l in lines if l.strip()]
-    if not nonempty:
-        return text
-    blanks = sum(1 for l in lines if not l.strip())
-    double_spaced = blanks >= 0.6 * len(nonempty)
-    lens = sorted(len(l.rstrip()) for l in nonempty)
-    wrapw = lens[int(len(lens) * 0.9)]          # 90%-Perzentil der Zeilenlaenge
-    thresh = max(40, int(wrapw * 0.66))         # "kurze" Zeile -> Absatzende
-
-    blocks, cur, blank_run = [], [], 0
-    def flush():
-        if cur:
-            blocks.append(" ".join(cur)); cur.clear()
-
-    for l in lines:
-        s = l.strip()
-        if not s:
-            blank_run += 1
-            if not double_spaced:
-                flush()
-            elif blank_run >= 2:
-                flush()
-            continue
-        blank_run = 0
-        if _is_heading_block(s):     # Ueberschrift steht allein
-            flush(); blocks.append(s); continue
-        cur.append(s)
-        if double_spaced and len(l.rstrip()) < thresh:
-            flush()                  # kurze Schlusszeile beendet den Absatz
-    flush()
-    return "\n\n".join(blocks)
+def manifest_pfad(werk):
+    return config.work_path(werk, "620_epub")
 
 
-def _extract_chapters_from_raw(book_id: str):
-    rp = config.raw_path(book_id)
-    if not os.path.exists(rp):
-        raise FileNotFoundError(f"Kein Rohtext: {rp}")
-    text = _strip_boilerplate(open(rp, encoding="utf-8", errors="ignore").read())
-    text = _rewrap(text)             # FESTE REGEL: entfasern vor der Kapitel-Erkennung
-    return _split_chapters(text)
+def entscheidungen_pfad(werk):
+    return config.work_path(werk, "620_entscheidungen")
 
 
-# Mobil-Absaetze: lange Absaetze an Satzgrenzen in handygerechte Haeppchen teilen.
-MOBILE_MAX_CHARS = 320
-
-def _split_for_mobile(paragraphs, max_chars: int = MOBILE_MAX_CHARS):
-    out = []
-    for p in paragraphs:
-        if p == "\u2014\u2014HR\u2014\u2014" or len(p) <= max_chars:
-            out.append(p); continue
-        sentences = re.split(r"(?<=[.!?\u201d\u2019])\s+", p)
-        chunk = ""
-        for s in sentences:
-            if chunk and len(chunk) + len(s) + 1 > max_chars:
-                out.append(chunk); chunk = s
-            else:
-                chunk = (chunk + " " + s).strip()
-        if chunk:
-            out.append(chunk)
-    return out
+def hoerbuch_pfad(werk, lg):
+    return config.work_path(werk, f"650_hoerbuch_{lg}")
 
 
-def _is_modernized(book_id: str) -> bool:
-    """True, wenn ein modernisierter Text vorliegt (work/modernized/chapter-*.json).
-    22.10.2026: eigenes Werk (rechte=eigene) ist nie "modernisiert" (Kapitel stammen aus dem Import)."""
-    if config.eigene_rechte(book_id):
-        return False
-    mod_dir = os.path.join(config.work_dir(book_id), "modernized")
-    return (os.path.isdir(mod_dir) and
-            any(re.fullmatch(r"chapter-\d+\.json", f) for f in os.listdir(mod_dir)))
-
-
-# ============================================================
-# FRONT-MATTER-STRIPPER (gemeinsam fuer EPUB + Audio-Quelle)
-# Entfernt den werkinternen Titelblock am Anfang des ERSTEN Kapitels
-# (doppelter Titel, "by Autor", Attribution, Epigraph), der sonst getaggt+
-# vertont und im EPUB doppelt gezeigt wird. Konservativ: greift nur bei
-# bestaetigtem Titel/Autor-Duplikat und nie ueber den ersten echten Absatz.
-# ============================================================
-_FM_MIN_PROSE = 200     # ein "echter" Erzaehl-Absatz ist lang
-_FM_SCAN_LIMIT = 15     # nur ganz am Anfang suchen
-
-def _fm_norm(s: str) -> str:
-    return re.sub(r"[^\w]", "", (s or "").lower())
-
-def strip_leading_front_matter(paragraphs, title: str = "", author: str = ""):
-    """Liefert die Absatzliste OHNE fuehrenden Titelblock. Entfernt nur fuehrende Absaetze, die
-    selbst Titelblock sind (Titel-/Autor-Duplikat, 'by Autor', HR, leer, ohne Kleinbuchstaben),
-    und nur, wenn ein Titel- oder 'by Autor'-Duplikat den Block bestaetigt. Der erste andere Absatz
-    bleibt immer stehen – auch kurze Erzaehlsaetze (Fix 02.11.2026, Yellow Wallpaper: vorher wurde
-    bis zum ersten Absatz >= _FM_MIN_PROSE Zeichen gestrichen)."""
-    hr = "\u2014\u2014HR\u2014\u2014"
-    paras = list(paragraphs)
-    tnorm, anorm = _fm_norm(title), _fm_norm(author)
-    ende, confirmed = 0, False
-    for p in paras[:_FM_SCAN_LIMIT]:
-        n = _fm_norm(p or "")
-        titel = bool(tnorm and n and (n == tnorm or (len(n) >= 5 and tnorm.startswith(n))))
-        byline = (bool(re.match(r"(?i)^\s*by(\s+\w|\s*$)", p or "")) and len(p) < 120)
-        autor = bool(anorm and n == anorm)
-        vermerk = bool(p) and len(p) < 300 and bool(re.search(
-            r"(?i)\b(translated by|reprinted by|copyright|all rights reserved|illustrated by)\b", p))
-        if titel or byline:
-            confirmed = True
-        if titel or byline or autor or vermerk or not p or p == hr \
-                or not re.search(r"[a-z\u00e0-\u00ff]", p):
-            ende += 1
-            continue
-        break
-    return paras[ende:] if confirmed and ende < len(paras) else paras
-
-def strip_trailing_end_marker(paragraphs):
-    """Entfernt einen blanken Schluss-Marker ('THE END', 'FINIS') am Werkende.
-    Echter Inhalt (z.B. 'Postscript'-Abschnitte) bleibt stehen."""
-    paras = list(paragraphs)
-    while paras:
-        last = paras[-1].strip().rstrip(".")
-        if last.upper() in ("THE END", "FINIS", "END") and len(last) <= 8:
-            paras.pop()
-        else:
-            break
-    return paras
-
-
-def _load_chapters(book_id: str):
-    """Kapitel fuer EPUB/Uebersetzung: modernisierten Text bevorzugen (work/modernized/),
-    sonst Rohtext. Danach IMMER Mobil-Absaetze anwenden (Default)."""
-    mod_dir = os.path.join(config.work_dir(book_id), "modernized")
-    chapters = None
-    s6 = config.work_path(book_id, "400_regie")
-    if os.path.exists(s6) and (json.load(open(s6, encoding="utf-8")).get("meta") or {}).get("modus") == "drama":
-        # Drama: Akte/Repliken aus dem bereinigten 400_regie (gleiche Gliederung wie die Uebersetzung)
-        from pipeline.s630_epub_zielsprache import _build_chapters_from_stage06
-        chapters = _build_chapters_from_stage06(book_id, config.SOURCE_LANGUAGE)
-    if chapters is None and os.path.isdir(mod_dir):
-        files = [f for f in os.listdir(mod_dir) if re.fullmatch(r"chapter-\d+\.json", f)]
-        if files:
-            files.sort(key=lambda f: int(re.search(r"\d+", f).group()))
-            chapters = []
-            for f in files:
-                d = json.load(open(os.path.join(mod_dir, f), encoding="utf-8"))
-                chapters.append((d["title"], d["paragraphs"]))
-    if chapters is None:
-        chapters = _extract_chapters_from_raw(book_id)
-
-    # Front-Matter NUR im ersten Kapitel entfernen (Titelblock + Schluss-Marker).
-    if chapters:
-        try:
-            meta = _gather_meta(book_id)
-            t0, p0 = chapters[0]
-            p0 = strip_leading_front_matter(p0, meta.get("title", ""), meta.get("author", ""))
-            chapters[0] = (t0, p0)
-            lt, lp = chapters[-1]
-            chapters[-1] = (lt, strip_trailing_end_marker(lp))
-        except Exception:
-            pass
-
-    return [(t, _split_for_mobile(paras)) for t, paras in chapters]
-
-
-
-
-def _find_raster_cover(book_id: str):
-    """Sucht ein von Stage 12 erzeugtes Cover-Bild. Liefert dict oder None."""
-    img_dir = os.path.join(config.book_dir(book_id), "images")
-    for name, media in (("cover.png", "image/png"), ("cover.jpg", "image/jpeg"),
-                        ("cover.jpeg", "image/jpeg"), ("cover.webp", "image/webp")):
-        p = os.path.join(img_dir, name)
-        if os.path.exists(p) and os.path.getsize(p) > 0:
-            return {"name": name, "media": media, "data": open(p, "rb").read()}
-    return None
-
-
-# ============================================================
-# 2) VERPACKUNG — XHTML-Bausteine
-# ============================================================
-def _esc(s: str) -> str:
-    return html.escape(s, quote=False)
-
-_HTML_OPEN = ('<?xml version="1.0" encoding="utf-8"?>\n'
-              '<html xmlns="http://www.w3.org/1999/xhtml" '
-              'xmlns:epub="http://www.idpf.org/2007/ops" '
-              'epub:prefix="z3998: http://www.daisy.org/z3998/2012/vocab/structure/#" '
-              'xml:lang="{lang}">\n')
-
-def _chapter_xhtml(idx: int, title: str, paragraphs, lang: str) -> str:
-    head_title = _esc(title) if title else f"Chapter {idx}"
-    body = []
-    for p in paragraphs:
-        if p == "\u2014\u2014HR\u2014\u2014":
-            body.append("\t\t\t<hr/>")
-        else:
-            body.append(f"\t\t\t<p>{_esc(p)}</p>")
-    # Kein sichtbarer Titel hier -- der steht auf dem eigenen Kapitel-Titelblatt.
-    return (_HTML_OPEN.format(lang=lang) +
-            f"\t<head>\n\t\t<title>{head_title}</title>\n"
-            '\t\t<link href="../css/core.css" rel="stylesheet" type="text/css"/>\n'
-            '\t\t<link href="../css/local.css" rel="stylesheet" type="text/css"/>\n'
-            "\t</head>\n"
-            '\t<body epub:type="bodymatter z3998:fiction">\n'
-            f'\t\t<section id="chapter-{idx}-body">\n'
-            + "\n".join(body) +
-            "\n\t\t</section>\n\t</body>\n</html>\n")
-
-def _chapter_title_xhtml(idx: int, title: str, lang: str) -> str:
-    """Eigenes Kapitel-Titelblatt: prominenter Titel, Hai-Signet klein unten mittig."""
-    head_title = _esc(title) if title else f"Chapter {idx}"
-    signet = _logo_inline_svg("#8a7f70")  # reduziertes Graubraun
-    return (_HTML_OPEN.format(lang=lang) +
-            f"\t<head>\n\t\t<title>{head_title}</title>\n"
-            '\t\t<link href="../css/core.css" rel="stylesheet" type="text/css"/>\n'
-            '\t\t<link href="../css/local.css" rel="stylesheet" type="text/css"/>\n'
-            "\t</head>\n"
-            '\t<body epub:type="bodymatter z3998:fiction">\n'
-            f'\t\t<section id="chapter-{idx}" epub:type="chapter" class="chapter-title-page">\n'
-            f'\t\t\t<h1 epub:type="title">{head_title}</h1>\n'
-            f'\t\t\t{signet}\n'
-            "\t\t</section>\n\t</body>\n</html>\n")
-
-def _blurb_xhtml(stage09: dict, lang: str, lang_attr: str, modernized: bool = False) -> str:
-    """Klappentext-Seite (Vorsatz). Sprache = Output-Sprache; Fallback Quellsprache."""
-    blurb = stage09.get("blurb", {})
-    def pick(sent):
-        return (sent.get(lang) or sent.get(config.SOURCE_LANGUAGE)
-                or (next(iter(sent.values()), "") if sent else ""))
-    koeder     = [pick(s) for s in blurb.get("koeder", []) if pick(s)]
-    einordnung = [pick(s) for s in blurb.get("einordnung", []) if pick(s)]
-    autorb     = [pick(s) for s in blurb.get("autor", []) if pick(s)]
-
-    body = ['\t\t\t<section epub:type="frontmatter" class="blurb">']
-    for q in koeder:
-        body.append(f'\t\t\t\t<p class="epigraph">{_esc(q)}</p>')
-    if koeder and (einordnung or autorb):
-        body.append("\t\t\t\t<hr/>")
-    for p in einordnung:
-        body.append(f"\t\t\t\t<p>{_esc(p)}</p>")
-    if autorb:
-        body.append("\t\t\t\t<hr/>")
-        for p in autorb:
-            body.append(f'\t\t\t\t<p class="author-note">{_esc(p)}</p>')
-    if modernized:
-        note = _MOD_NOTE.get(lang, _MOD_NOTE["en"])
-        body.append(f'\t\t\t\t<p class="mod-note">{_esc(note)}</p>')
-    body.append("\t\t\t</section>")
-
-    return (_HTML_OPEN.format(lang=lang_attr) +
-            "\t<head>\n\t\t<title>About</title>\n"
-            '\t\t<link href="../css/core.css" rel="stylesheet" type="text/css"/>\n'
-            '\t\t<link href="../css/local.css" rel="stylesheet" type="text/css"/>\n'
-            "\t</head>\n"
-            '\t<body epub:type="frontmatter">\n'
-            + "\n".join(body) +
-            "\n\t</body>\n</html>\n")
-
-_MOD_NOTE = {
-    "en": "A gently modernized edition \u2014 clearer sentences and contemporary "
-          "vocabulary, with the story left intact.",
-    "de": "Eine behutsam modernisierte Ausgabe \u2014 klarere S\u00e4tze und "
-          "zeitgem\u00e4\u00dfes Vokabular, die Geschichte unangetastet.",
-}
-
-def _titlepage_xhtml(title: str, author: str, lang: str) -> str:
-    return (_HTML_OPEN.format(lang=lang) +
-            "\t<head>\n\t\t<title>Titlepage</title>\n"
-            '\t\t<link href="../css/core.css" rel="stylesheet" type="text/css"/>\n'
-            '\t\t<link href="../css/local.css" rel="stylesheet" type="text/css"/>\n'
-            "\t</head>\n"
-            '\t<body epub:type="frontmatter">\n'
-            '\t\t<section id="titlepage" epub:type="titlepage">\n'
-            f'\t\t\t<h1 epub:type="title">{_esc(title)}</h1>\n'
-            f'\t\t\t<p epub:type="z3998:author">{_esc(author)}</p>\n'
-            '\t\t\t<p class="imprint">SOMNIO</p>\n'
-            "\t\t</section>\n\t</body>\n</html>\n")
-
-def _cover_xhtml(lang: str, cover_file: str = "cover.svg") -> str:
-    return (_HTML_OPEN.format(lang=lang) +
-            "\t<head>\n\t\t<title>Cover</title>\n"
-            '\t\t<link href="../css/local.css" rel="stylesheet" type="text/css"/>\n'
-            "\t</head>\n"
-            '\t<body epub:type="cover">\n'
-            '\t\t<section id="cover" epub:type="cover">\n'
-            f'\t\t\t<img src="../images/{cover_file}" alt="Cover" class="cover-image"/>\n'
-            "\t\t</section>\n\t</body>\n</html>\n")
-
-_COLOPHON = {
-    "en": {"head": "Colophon",
-           "source": "This ebook is based on a transcription from {src}.",
-           "rights": "The source text is believed to be in the public domain. "
-                     "This edition is produced by SOMNIO and dedicated to the public "
-                     "domain where applicable.",
-           "source_mod": "This is a gently modernized edition, revised by SOMNIO from a "
-                         "public-domain text transcribed by {src}.",
-           "rights_mod": "The modernization and this edition are \u00a9 SOMNIO. "
-                         "The underlying source text is in the public domain.",
-           "gutenberg": "Project Gutenberg",
-           "rights_own": "\u00a9 {year} SOMNIO. All rights reserved."},
-    "de": {"head": "Impressum",
-           "source": "Dieses E-Book basiert auf einer Transkription von {src}.",
-           "rights": "Der Quelltext gilt als gemeinfrei. Diese Ausgabe wurde von "
-                     "SOMNIO erstellt und, soweit zutreffend, der Gemeinfreiheit gewidmet.",
-           "source_mod": "Dies ist eine behutsam modernisierte Ausgabe, von SOMNIO auf "
-                         "Basis eines gemeinfreien, von {src} transkribierten Textes \u00fcberarbeitet.",
-           "rights_mod": "Die Modernisierung und diese Ausgabe sind \u00a9 SOMNIO. "
-                         "Der zugrunde liegende Quelltext ist gemeinfrei.",
-           "gutenberg": "Project Gutenberg",
-           "rights_own": "\u00a9 {year} SOMNIO. Alle Rechte vorbehalten."},
-}
-
-def _colophon_xhtml(title: str, author: str, source_url: str, lang: str,
-                    modernized: bool = False, own_year=None) -> str:
-    L = _COLOPHON.get(lang, _COLOPHON["en"])
-    s_key = "source_mod" if modernized else "source"
-    r_key = "rights_mod" if modernized else "rights"
-    rights_txt = L[r_key]
-    if own_year is not None:                  # 22.10.2026: eigenes Werk -> keine Gemeinfreiheit, keine Quelle
-        source_url = ""
-        rights_txt = L["rights_own"].replace("{year}", str(own_year))
-    if source_url:
-        link = f'<a href="{_esc(source_url)}">{L["gutenberg"]}</a>'
-        src = "\t\t\t<p>" + L[s_key].replace("{src}", link) + "</p>\n"
-    else:
-        src = ""
-    return (_HTML_OPEN.format(lang=lang) +
-            f"\t<head>\n\t\t<title>{_esc(L['head'])}</title>\n"
-            '\t\t<link href="../css/core.css" rel="stylesheet" type="text/css"/>\n'
-            '\t\t<link href="../css/local.css" rel="stylesheet" type="text/css"/>\n'
-            "\t</head>\n"
-            '\t<body epub:type="backmatter">\n'
-            '\t\t<section id="colophon" epub:type="colophon">\n'
-            f'\t\t\t<h2 epub:type="title">{_esc(L["head"])}</h2>\n'
-            '\t\t\t<p class="imprint">SOMNIO</p>\n'
-            f"\t\t\t<p><i>{_esc(title)}</i><br/>{_esc(author)}</p>\n"
-            f"{src}"
-            f'\t\t\t<p>{_esc(rights_txt)}</p>\n'
-            "\t\t</section>\n\t</body>\n</html>\n")
-
-def _nav_xhtml(title: str, chapters, lang: str, has_blurb: bool = False) -> str:
-    items = []
-    if has_blurb:
-        items.append('\t\t\t\t<li><a href="text/blurb.xhtml">About this Book</a></li>')
-    items.append('\t\t\t\t<li><a href="text/titlepage.xhtml">Titlepage</a></li>')
-    for i, (ctitle, _) in enumerate(chapters, 1):
-        label = _esc(ctitle) if ctitle else f"Chapter {i}"
-        items.append(f'\t\t\t\t<li><a href="text/chapter-{i}-title.xhtml">{label}</a></li>')
-    items.append('\t\t\t\t<li><a href="text/colophon.xhtml">Colophon</a></li>')
-    toc = "\n".join(items)
-    return (_HTML_OPEN.format(lang=lang) +
-            "\t<head>\n\t\t<title>Table of Contents</title>\n"
-            '\t\t<link href="css/local.css" rel="stylesheet" type="text/css"/>\n'
-            "\t</head>\n"
-            '\t<body epub:type="frontmatter">\n'
-            '\t\t<nav id="toc" epub:type="toc">\n'
-            '\t\t\t<h2 epub:type="title">Table of Contents</h2>\n'
-            f"\t\t\t<ol>\n{toc}\n\t\t\t</ol>\n"
-            "\t\t</nav>\n"
-            '\t\t<nav id="landmarks" epub:type="landmarks" hidden="hidden">\n'
-            "\t\t\t<ol>\n"
-            '\t\t\t\t<li><a href="text/titlepage.xhtml" epub:type="title-page">Titlepage</a></li>\n'
-            '\t\t\t\t<li><a href="text/chapter-1-title.xhtml" epub:type="bodymatter">Beginning</a></li>\n'
-            "\t\t\t</ol>\n\t\t</nav>\n"
-            "\t</body>\n</html>\n")
-
-def _wrap(t: str, limit: int):
-    words, lines, cur = t.split(), [], ""
-    for w in words:
-        if len(cur) + len(w) + 1 <= limit or not cur:
-            cur = (cur + " " + w).strip()
-        else:
-            lines.append(cur); cur = w
-    if cur:
-        lines.append(cur)
-    return lines
-
-def _logo_fragment(x, y, w, h, color):
-    """Hai-Signet aus assets/somnio_logo.svg als verschachteltes <svg> (eingefaerbt)."""
-    if not os.path.exists(LOGO_PATH):
-        return ""
-    raw = open(LOGO_PATH, encoding="utf-8").read()
-    m = re.search(r'viewBox="([^"]+)"', raw)
-    vb = m.group(1) if m else "0 0 1280 714"
-    g = re.search(r"(<g\b.*?</g>)", raw, re.S)
-    inner = g.group(1) if g else ""
-    inner = re.sub(r'fill="#0{3,6}"', f'fill="{color}"', inner)
-    return (f'<svg x="{x}" y="{y}" width="{w}" height="{h}" viewBox="{vb}" '
-            f'preserveAspectRatio="xMidYMid meet">{inner}</svg>')
-
-def _logo_inline_svg(color: str, width: int = 130) -> str:
-    """Eigenstaendiges Signet fuers Kapitel-Titelblatt mit FESTEN Maszen
-    (manche Reader rechnen height aus dem viewBox nicht aus -> sonst Hoehe 0)."""
-    if not os.path.exists(LOGO_PATH):
-        return ""
-    raw = open(LOGO_PATH, encoding="utf-8").read()
-    m = re.search(r'viewBox="([^"]+)"', raw)
-    vb = m.group(1) if m else "0 0 1280 714"
+def _json(p):
     try:
-        _, _, vbw, vbh = (float(x) for x in vb.split())
-        height = max(1, round(width * vbh / vbw))
-    except Exception:
-        height = round(width * 0.56)
-    g = re.search(r"(<g\b.*?</g>)", raw, re.S)
-    inner = re.sub(r'fill="#0{3,6}"', f'fill="{color}"', g.group(1) if g else "")
-    return (f'<svg xmlns="http://www.w3.org/2000/svg" class="signet" width="{width}" height="{height}" viewBox="{vb}" '
-            f'preserveAspectRatio="xMidYMid meet" role="img" aria-label="SOMNIO">{inner}</svg>')
-
-LANG_LABEL = {
-    "en": "English Edition", "de": "Deutsche Ausgabe", "fr": "\u00c9dition fran\u00e7aise",
-    "es": "Edici\u00f3n espa\u00f1ola", "it": "Edizione italiana",
-}
-
-_FONT_DIR = os.path.join(config.BASE_DIR, "assets", "fonts")
-# Font-Aufloesung: gebuendelt (assets/fonts) -> Windows-Georgia -> System-DejaVu -> PIL-Default.
-_FONT_CANDIDATES = {
-    "bold":  [os.path.join(_FONT_DIR, "DejaVuSerif-Bold.ttf"), "C:/Windows/Fonts/georgiab.ttf",
-              "/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf"],
-    "reg":   [os.path.join(_FONT_DIR, "DejaVuSerif.ttf"), "C:/Windows/Fonts/georgia.ttf",
-              "/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf"],
-    "ital":  [os.path.join(_FONT_DIR, "DejaVuSerif-Italic.ttf"), "C:/Windows/Fonts/georgiai.ttf",
-              "/usr/share/fonts/truetype/dejavu/DejaVuSerif-Italic.ttf"],
-}
-
-def _hex_rgb(c: str):
-    c = c.lstrip("#")
-    return tuple(int(c[i:i+2], 16) for i in (0, 2, 4))
-
-def _cover_font(style: str, size: int):
-    from PIL import ImageFont
-    for path in _FONT_CANDIDATES.get(style, []):
-        if os.path.exists(path):
-            return ImageFont.truetype(path, size)
-    return ImageFont.load_default()
-
-def _compose_cover_raster(title: str, author: str, cover: dict | None, lang: str = "en",
-                          sprecher: str = "", imprint: str = "") -> bytes | None:
-    """Komponiert das Cover als RASTER (JPEG) mit Pillow -- Illustration + Titel
-    (sprachbewusst) + Autor + Sprachlabel + Wortmarke. Das ist das cover-image,
-    das App-Reader fuers Regal-Thumbnail nutzen (SVG wird dort nicht gerendert).
-    Liefert JPEG-Bytes; None, wenn Pillow fehlt (Aufrufer faellt dann auf SVG zurueck)."""
-    try:
-        from PIL import Image, ImageDraw
-    except Exception:
+        with open(p, encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, ValueError):
         return None
 
-    W, H = 1000, 1500
-    C = _hex_rgb(TITLE_COLOR)
-    bg = _hex_rgb(BG_COLOR)
 
-    if cover:
-        from io import BytesIO
-        base = Image.open(BytesIO(cover["data"])).convert("RGBA")
-        scale = max(W / base.width, H / base.height)          # cover/slice auf 2:3
-        base = base.resize((round(base.width * scale), round(base.height * scale)))
-        l = (base.width - W) // 2; t = (base.height - H) // 2
-        base = base.crop((l, t, l + W, t + H))
+def entscheidungen(werk):
+    return {**REGLER, **(_json(entscheidungen_pfad(werk)) or {})}
+
+
+def entscheidung_setzen(werk, wer, **k):
+    d = _json(entscheidungen_pfad(werk)) or {}
+    d.update(k)
+    d.setdefault("protokoll", []).append({"wer": wer, "wann": manifest.jetzt(), "was": sorted(k)})
+    manifest.json_atomar(entscheidungen_pfad(werk), d, indent=2)
+
+
+def _frei(werk, stage, scope=None, d=None):
+    z = status.zustand(werk, stage, scope=scope, d=d)
+    if z == "offen" and scope is not None:
+        st = (d or status.laden(werk))["stages"].get(stage) or {}
+        if not st.get("teile"):
+            z = st.get("zustand", "offen")
+    return z
+
+
+# ------------------------------------------------------------ Bestellung
+def varianten(b, stage):
+    """[(lg, variante)] laut Bestellung: Text bei Text/EPUB, Audio bei Hoerbuch Basic/EPUB."""
+    lgs = [b.quellsprache] if stage == STAGE_Q else list(b.zielsprachen)
+    out = []
+    for lg in lgs:
+        if b.hat(sprache=lg, inhalt="text", kanal="epub"):
+            out.append((lg, "text"))
+        if b.hat(sprache=lg, inhalt="hoerbuch", stufe="basic", kanal="epub"):
+            out.append((lg, "audio"))
+    return out
+
+
+# ------------------------------------------------------------ Eingaenge
+def kapitel_190(werk):
+    """[(titel, absaetze)] aus work/modernized/chapter-N.json (ohne .original), Reihenfolge N."""
+    d = os.path.join(config.work_dir(werk), "modernized")
+    if not os.path.isdir(d):
+        return []
+    nr = sorted(int(m.group(1)) for f in os.listdir(d) if (m := re.fullmatch(r"chapter-(\d+)\.json", f)))
+    out = []
+    for n in nr:
+        k = _json(os.path.join(d, f"chapter-{n}.json")) or {}
+        out.append(((k.get("title") or "").strip(), [str(p) for p in k.get("paragraphs") or []]))
+    return out
+
+
+def knoten(werk, quelle):
+    """Knoten in Reihenfolge: quelle 'q' -> 200_tagging, 'z' -> 330_rueckuebersetzung. -> (liste, meta)."""
+    d = _json(config.work_path(werk, "200_tagging" if quelle == "q" else "330_rueckuebersetzung")) or {}
+    return list((d.get("content") or {}).items()), d.get("meta") or {}
+
+
+def _kap_id(tid):
+    return tid.split("_")[0]
+
+
+def _norm(s):
+    return re.sub(r"[\W_]+", "", str(s)).lower()
+
+
+def _woerter(s):
+    return re.findall(r"\w+", str(s).lower())
+
+
+def teile_text(text, lg):
+    try:
+        from tools import satzweise
+        return [{"text": t, "id": None} for t in satzweise.teile_text(text, lg)] or [{"text": text, "id": None}]
+    except Exception:                       # satzweise fehlt -> ganzer Absatz (Teilung nur Darstellung)
+        return [{"text": text, "id": None}]
+
+
+def kapitel_aus_190(k190, lg):
+    """Text Ausgangssprache: Absaetze aus 190, Satzteile ueber satzweise (Mobil-Teilung)."""
+    out = []
+    for titel, paras in k190:
+        abs_ = [{"hr": True} if p == epub_bau.HR else {"teile": teile_text(p, lg), "refs": []}
+                for p in paras if p == epub_bau.HR or p.strip()]
+        out.append({"titel": titel, "titel_id": None, "absaetze": abs_, "quelle_idx": None})
+    return out
+
+
+def rollen(profil, lg, q):
+    """Rollennamen je Sprache aus Profil 210 (characters[name][lg]); Ausgangssprache = Original."""
+    if lg == q:
+        return {}
+    ch = (profil or {}).get("characters") or {}
+    return {n: (v.get(lg) or n) for n, v in ch.items() if isinstance(v, dict)}
+
+
+def kapitel_aus_knoten(liste, lg, q, k190, mit_ids, rollen_namen=None):
+    """Knoten -> Kapitel. Absatzgrenzen ueber Abgleich mit 190 (Quelltext); geht ein Kapitel nicht auf ->
+    p-Marken (Kapitel als 'geklebt' gemeldet, wenn die Absatzzahl von 190 abweicht).
+    -> (kapitel, fallback_ids, geklebt [kapitelnr])."""
+    gruppen = {}
+    for tid, e in liste:
+        gruppen.setdefault(_kap_id(tid), []).append((tid, e))
+    drama = any(e.get("type") == "dl" and e.get("sprecher") for _, e in liste)
+    kapitel, fallback, geklebt = [], [], []
+    for n, kid in enumerate(sorted(gruppen), 1):
+        titel, titel_id, saetze, pmarken = "", None, [], set()
+        for tid, e in gruppen[kid]:
+            typ = e.get("type")
+            src = str(e.get(q) or "").strip()
+            ziel = str(e.get(lg) or "").strip()
+            if typ in TEXT_AUS:
+                if typ == "p" and saetze:
+                    pmarken.add(saetze[-1][0])
+                continue
+            if src and not ziel:
+                fallback.append(tid)
+                continue
+            if typ == "h":
+                if not titel:
+                    titel, titel_id = ziel, (tid if mit_ids else None)
+                continue
+            if ziel:
+                saetze.append((tid, e, ziel, src))
+        paras190 = k190[n - 1][1] if n - 1 < len(k190) else []
+        absaetze = None
+        if drama:
+            absaetze, key = [], None
+            for tid, e, ziel, _ in saetze:
+                k = (e.get("sprecher"), e.get("replik")) if e.get("type") == "dl" else None
+                if k is None or k != key:
+                    sp = e.get("sprecher") if k else None
+                    absaetze.append({"teile": [], "refs": [], "rolle": (rollen_namen or {}).get(sp, sp) if sp else None})
+                key = k
+                absaetze[-1]["teile"].append({"text": ziel, "id": tid if mit_ids else None})
+        else:
+            absaetze = _ausrichten(saetze, paras190, mit_ids)
+            if absaetze is None:
+                absaetze, cur = [], []
+                for tid, e, ziel, _ in saetze:
+                    cur.append({"text": ziel, "id": tid if mit_ids else None})
+                    if tid in pmarken:
+                        absaetze.append({"teile": cur, "refs": []})
+                        cur = []
+                if cur:
+                    absaetze.append({"teile": cur, "refs": []})
+                if len(absaetze) != len([p for p in paras190 if p != epub_bau.HR and p.strip()]):
+                    geklebt.append(n)
+        kapitel.append({"titel": titel or (k190[n - 1][0] if n - 1 < len(k190) else ""), "titel_id": titel_id,
+                        "absaetze": absaetze, "quelle_idx": None})
+    return kapitel, fallback, geklebt
+
+
+def _ausrichten(saetze, paras190, mit_ids):
+    """Saetze (Quelltext) auf die Absaetze aus 190 legen. -> Absatzliste (inkl. HR, gleiche Indizes wie 190)
+    oder None, wenn das Kapitel nicht aufgeht."""
+    if not paras190:
+        return None
+    out, i = [], 0
+    for p in paras190:
+        if p == epub_bau.HR:
+            out.append({"hr": True})
+            continue
+        pn = _norm(p)
+        if not pn:
+            out.append(None)
+            continue
+        acc, teile = "", []
+        while i < len(saetze) and len(acc) < len(pn):
+            tid, _, ziel, src = saetze[i]
+            acc += _norm(src)
+            teile.append({"text": ziel, "id": tid if mit_ids else None})
+            i += 1
+        if acc != pn:
+            return None
+        out.append({"teile": teile, "refs": []})
+    if i != len(saetze):
+        return None
+    return [a for a in out if a is not None]
+
+
+def anhang_einhaengen(werk, kapitel, k190, lg, q, bilder_an, fussnoten_an):
+    """anhang.json (150) -> refs an den Absaetzen, Bilder/Noten fuer den Anhang. -> (bilder, noten, hinweise)."""
+    a = _json(os.path.join(config.work_dir(werk), "anhang.json")) or {}
+    bilder, noten, hinw = [], [], []
+    bdir = config.book_dir(werk)
+
+    def absatz(k_nr, idx):
+        if not (1 <= k_nr <= len(kapitel)):
+            return None
+        abs_ = kapitel[k_nr - 1]["absaetze"]
+        nhr = [x for x in abs_ if not x.get("hr")]
+        if not nhr:
+            return None
+        # gleiche Indizes wie 190 nur, wenn die Absatzzahl uebereinstimmt; sonst ans Kapitelende
+        paras = k190[k_nr - 1][1] if k_nr - 1 < len(k190) else []
+        echt = [p for p in paras if p == epub_bau.HR or p.strip()]
+        if len(abs_) == len(echt) and 0 <= idx < len(abs_) and not abs_[idx].get("hr"):
+            return abs_[idx]
+        hinw.append(f"Anker Kapitel {k_nr} Absatz {idx} ans Kapitelende")
+        return nhr[-1]
+
+    if bilder_an:
+        for b in a.get("bilder") or []:
+            p = os.path.join(bdir, b.get("datei") or "")
+            if not os.path.isfile(p):
+                hinw.append(f"Bild fehlt: {b.get('datei')}")
+                continue
+            ziel = absatz(int(b.get("kapitel") or 0), int(b.get("nach_absatz") or 0))
+            if ziel is not None:
+                ziel.setdefault("refs", []).append(("bild", b["nr"]))
+            ext = os.path.splitext(p)[1].lower()
+            with open(p, "rb") as f:
+                bilder.append({"nr": b["nr"], "name": os.path.basename(p), "data": f.read(),
+                               "media": BILD_MEDIA.get(ext, "image/jpeg"), "alt": b.get("alt") or "",
+                               "unterschrift": b.get("bildunterschrift") or "", "datei": b.get("datei")})
+    if fussnoten_an:
+        unuebersetzt = 0
+        for fn in a.get("fussnoten") or []:
+            ziel = absatz(int(fn.get("kapitel") or 0), int(fn.get("absatz") or 0))
+            if ziel is not None:
+                ziel.setdefault("refs", []).append(("fn", fn["nr"]))
+            t = fn.get(f"text_{lg}") or (fn.get("text") if lg == q else None)
+            if not t:
+                t, unuebersetzt = fn.get("text") or "", unuebersetzt + 1
+            noten.append({"nr": fn["nr"], "text": t})
+        if unuebersetzt:
+            hinw.append(f"{unuebersetzt} Fussnote(n) ohne Uebersetzung ({lg}) – Ausgangstext gesetzt")
+    return bilder, noten, hinw, (len(a.get("bilder") or []) if bilder_an else 0,
+                                 len(a.get("fussnoten") or []) if fussnoten_an else 0)
+
+
+def klappentext(werk, lg):
+    """Bloecke aus 600 genau in Sprache lg (kein Rueckfall). -> dict oder None."""
+    d = _json(config.work_path(werk, "600_klappentext")) or {}
+    bl = d.get("blurb") or {}
+    out = {k: [str(s.get(lg)).strip() for s in bl.get(k) or [] if isinstance(s, dict) and s.get(lg)]
+           for k in ("koeder", "einordnung", "autor")}
+    return out if (out["koeder"] or out["einordnung"]) else None
+
+
+def audio_kapitel(werk, lg, kapitel):
+    """650-Manifest -> ({idx: {name, data, media, dauer, clips}}, fehler, metriken).
+    Format work/650_hoerbuch_<lg>.json: {"kapitel": [{"kapitel": "c001", "datei": <rel. book_dir>,
+    "dauer": s, "saetze": {tid: [start, ende]}}]}."""
+    d = _json(hoerbuch_pfad(werk, lg))
+    if not d:
+        return None, ["650-Manifest fehlt"], {}
+    eintr = {e.get("kapitel"): e for e in d.get("kapitel") or []}
+    out, fehl, ohne, zu_lang, n_ges = {}, [], [], [], 0
+    for i, k in enumerate(kapitel, 1):
+        ids = ([k["titel_id"]] if k.get("titel_id") else []) + \
+              [t["id"] for a in k["absaetze"] if not a.get("hr") for t in a["teile"] if t.get("id")]
+        if not ids:
+            continue
+        kid = _kap_id(ids[0])
+        e = eintr.get(kid)
+        if not e:
+            fehl.append(f"Kapitel {kid} ohne Audio")
+            ohne += ids
+            continue
+        p = os.path.join(config.book_dir(werk), e.get("datei") or "")
+        if not os.path.isfile(p):
+            fehl.append(f"Audiodatei fehlt: {e.get('datei')}")
+            ohne += ids
+            continue
+        dauer = float(e.get("dauer") or 0)
+        z = e.get("saetze") or {}
+        clips = []
+        for tid in ids:
+            n_ges += 1
+            if tid not in z:
+                ohne.append(tid)
+                continue
+            a_, e_ = float(z[tid][0]), float(z[tid][1])
+            if e_ > dauer + 0.05 or a_ < 0 or e_ <= a_:
+                zu_lang.append(tid)
+            clips.append((tid, a_, min(e_, dauer)))
+        ext = os.path.splitext(p)[1].lower()
+        with open(p, "rb") as f:
+            out[i] = {"name": f"chapter-{i}{ext}", "data": f.read(), "media": AUDIO_MEDIA.get(ext, "audio/mpeg"),
+                      "dauer": dauer, "clips": clips, "datei": e.get("datei")}
+    met = {"smil_abdeckung": round(1 - len(ohne) / n_ges, 4) if n_ges else 0.0, "smil_ohne": ohne[:20],
+           "smil_ausserhalb": zu_lang[:20], "audio_saetze": n_ges}
+    return out, fehl, met
+
+
+# ------------------------------------------------------------ Metadaten / Kolophon
+def metadaten(werk, b, lg, var):
+    from pipeline import s080_mandant, s615_cover_final as s615
+    roh = b.roh
+    t, tq, _, _ = s615.titel(roh, lg, b.quellsprache)
+    au = s615.autor(werk, roh, lg)
+    imprint = s080_mandant.imprint(werk, b)
+    art = (b.rechte or {}).get("art")
+    quelle_url = ""
+    gid = str(roh.get("gutenberg_id") or "").strip()
+    if gid and art != "eigene":
+        quelle_url = f"https://www.gutenberg.org/ebooks/{gid}"
+    zeilen = []
+    from pipeline import kette
+    if kette.eingangsart(roh) in ("user_epub", "verlag_epub"):
+        zeilen.append(epub_bau.text(lg, "original"))
+    jahr = roh.get("erscheinungsjahr") or datetime.date.today().year
+    if art == "eigene":
+        inhaber = au or roh.get("owner_name") or roh.get("label") or ""
+        rechte = epub_bau.text(lg, "eigene", jahr=jahr, inhaber=inhaber).replace("  ", " ")
+    elif art == "gemeinfrei":
+        rechte = epub_bau.text(lg, "pd")
+        if b.fassung == "modernisiert" and imprint:
+            zeilen.append(epub_bau.text(lg, "mod", imprint=imprint))
     else:
-        base = Image.new("RGBA", (W, H), (*bg, 255))
-
-    d = ImageDraw.Draw(base)
-
-    def scrim(box, alpha):
-        x0, y0, x1, y1 = box
-        ov = Image.new("RGBA", (max(1, x1 - x0), max(1, y1 - y0)), (*bg, int(255 * alpha)))
-        base.alpha_composite(ov, (x0, y0))
-
-    def center(y, s, font):
-        bb = d.textbbox((0, 0), s, font=font)
-        d.text((W // 2 - (bb[2] - bb[0]) / 2, y), s, font=font, fill=C)
-
-    # --- Titel oben links: Schriftgroesse so waehlen, dass die breiteste Zeile passt ---
-    avail = W - 110
-    tlines, fs = _wrap(title, 16), 84
-    for size in (84, 72, 64, 56, 48):
-        fb = _cover_font("bold", size)
-        lines = _wrap(title, 16)
-        widest = max((d.textbbox((0, 0), l, font=fb)[2] for l in lines), default=0)
-        if widest <= avail:
-            tlines, fs = lines, size; break
-    fb = _cover_font("bold", fs)
-    lh = int(fs * 1.12); top = 70
-    scrim((40, top - 10, W - 40, top + len(tlines) * lh + 30), 0.55)
-    for i, line in enumerate(tlines):
-        d.text((70, top + i * lh), line, font=fb, fill=C)
-
-    # --- Fuss zentriert: Autor -> Sprachlabel (kursiv) -> Sprecher (kursiv) -> Verlag ---
-    scrim((40, 1150, W - 40, 1430), 0.55)
-    center(1170, author, _cover_font("reg", 44))
-    label = LANG_LABEL.get(lang)
-    if label:
-        center(1236, label, _cover_font("ital", 28))
-    if sprecher:
-        sf = _cover_font("ital", 28)
-        while d.textbbox((0, 0), sprecher, font=sf)[2] > W - 140 and sf.size > 18:
-            sf = _cover_font("ital", sf.size - 2)
-        center(1278, sprecher, sf)
-    center(1340, imprint or IMPRINT, _cover_font("reg", 32))
-
-    from io import BytesIO
-    buf = BytesIO()
-    base.convert("RGB").save(buf, format="JPEG", quality=88)
-    return buf.getvalue()
+        rechte = epub_bau.text(lg, "fremd")
+    zeilen.append(rechte)
+    sp = s615.sprecher(werk, lg) if var == "audio" else ""
+    return {"titel": t, "titel_quelle": tq, "autor": au, "autor_sort": _sortname(au), "lang": lg,
+            "uuid": str(uuid.uuid5(epub_bau.NS, f"{werk}:{lg}:{var}")), "publisher": imprint or roh.get("label") or "",
+            "imprint": imprint, "rechte": rechte, "quelle_url": quelle_url, "kolophon": zeilen, "sprecher": sp}
 
 
-def _compose_cover_svg(title: str, author: str, cover: dict | None, lang: str = "en") -> str:
-    """Selbsttragendes Cover-SVG (2:3): vollflaechiges Bild (base64) ODER Creme,
-    darueber Titel (links oben), Autor -> Sprachlabel -> Wortmarke -> Hai (unten)."""
-    W, H = 1000, 1500
-    C = TITLE_COLOR
-    out = ['<?xml version="1.0" encoding="utf-8"?>',
-           f'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" '
-           f'viewBox="0 0 {W} {H}" preserveAspectRatio="xMidYMid meet">']
-
-    if cover:
-        b64 = base64.b64encode(cover["data"]).decode("ascii")
-        out.append(f'<image x="0" y="0" width="{W}" height="{H}" '
-                   f'preserveAspectRatio="xMidYMid slice" '
-                   f'xlink:href="data:{cover["media"]};base64,{b64}"/>')
-    else:
-        out.append(f'<rect width="{W}" height="{H}" fill="{BG_COLOR}"/>')
-
-    # --- Titel: links oben, prominent, mit dezentem Creme-Schleier ---
-    tlines = _wrap(title, 16)
-    fs = 84 if max(len(l) for l in tlines) <= 14 else 72
-    lh = int(fs * 1.12)
-    top = 120
-    scrim_h = len(tlines) * lh + 50
-    out.append(f'<rect x="40" y="{top - lh + 18}" width="{W-80}" height="{scrim_h}" '
-               f'rx="14" fill="{BG_COLOR}" fill-opacity="0.55"/>')
-    spans = "".join(f'<tspan x="70" dy="{0 if i==0 else lh}">{_esc(l)}</tspan>'
-                    for i, l in enumerate(tlines))
-    out.append(f'<text x="70" y="{top}" text-anchor="start" font-family="Georgia, serif" '
-               f'font-weight="bold" font-size="{fs}" fill="{C}">{spans}</text>')
-
-    # --- Fuss: Autor -> Sprachlabel -> Wortmarke -> Hai-Signet, zentriert ---
-    out.append(f'<rect x="40" y="1165" width="{W-80}" height="310" rx="14" '
-               f'fill="{BG_COLOR}" fill-opacity="0.5"/>')
-    out.append(f'<text x="{W//2}" y="1222" text-anchor="middle" font-family="Georgia, serif" '
-               f'font-size="44" fill="{C}">{_esc(author)}</text>')
-    label = LANG_LABEL.get(lang)
-    if label:
-        out.append(f'<text x="{W//2}" y="1276" text-anchor="middle" font-family="Georgia, serif" '
-                   f'font-style="italic" font-size="28" fill="{C}" fill-opacity="0.85">'
-                   f'{_esc(label)}</text>')
-    out.append(f'<text x="{W//2}" y="1328" text-anchor="middle" font-family="Georgia, serif" '
-               f'font-size="32" letter-spacing="4" fill="{C}">{_esc(IMPRINT)}</text>')
-    # Hai zentriert UNTER der Wortmarke
-    logo = _logo_fragment((W - 100) // 2, 1352, 100, 56, C)
-    if logo:
-        out.append(logo)
-
-    out.append('</svg>\n')
-    return "\n".join(out)
-
-_CORE_CSS = """@charset "utf-8";
-@namespace epub "http://www.idpf.org/2007/ops";
-
-body{
-	margin: 0 5%;
-	font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
-	line-height: 1.5;
-	text-align: justify;
-	hyphens: auto;
-	-epub-hyphens: auto;
-}
-p{ margin: 0; text-indent: 1em; }
-h2 + p, hr + p, section > p:first-of-type{ text-indent: 0; }
-h1, h2{
-	text-align: center;
-	font-weight: normal;
-	font-variant: small-caps;
-	line-height: 1.2;
-	margin: 2em 0 1.5em;
-	hyphens: none;
-	-epub-hyphens: none;
-}
-h1{ font-size: 1.6em; }
-h2{ font-size: 1.3em; }
-hr{
-	border: none;
-	border-top: 1px solid currentColor;
-	width: 25%;
-	margin: 1.5em auto;
-}
-a{ color: inherit; }
-"""
-
-_LOCAL_CSS = """@charset "utf-8";
-@namespace epub "http://www.idpf.org/2007/ops";
-
-section[epub|type~="titlepage"]{ text-align: center; margin-top: 25%; }
-section[epub|type~="titlepage"] h1{ font-size: 2em; margin-bottom: 1em; }
-p[epub|type~="z3998:author"]{ text-indent: 0; font-size: 1.2em; margin-top: 1em; }
-.imprint{
-	text-indent: 0;
-	letter-spacing: .35em;
-	color: #9a3b1b;
-	margin-top: 3em;
-}
-section[epub|type~="cover"]{ margin: 0; padding: 0; text-align: center; }
-.cover-image{ max-width: 100%; max-height: 100vh; }
-nav#toc ol{ list-style: none; padding-left: 0; line-height: 2; }
-section[epub|type~="colophon"]{ text-align: center; }
-section[epub|type~="colophon"] p{ text-indent: 0; margin: 1em 0; }
-
-/* Kapitel-Titelblatt: Titel oben mittig, Signet unten mittig.
-   space-between + Padding degradiert sauber, falls ein Reader flex/vh ignoriert. */
-.chapter-title-page{
-	min-height: 90vh;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: space-between;
-	text-align: center;
-	padding: 26vh 0 8vh;
-}
-.chapter-title-page h1{ margin: 0; }
-/* feste Maesse stehen im SVG selbst -> hier nur Wirkung */
-.signet{ display: block; margin: 2em auto 0; opacity: .8; }
-
-/* Klappentext-Vorsatz */
-.blurb{ margin-top: 8%; }
-.blurb p{ text-indent: 0; margin: 1em 0; }
-.blurb .epigraph{ font-style: italic; margin: 1em 1.5em; }
-.blurb .author-note{ font-size: .95em; }
-.blurb .mod-note{ font-size: .85em; font-style: italic; color: #6b5f50; margin-top: 1.5em; }
-"""
+def _sortname(n):
+    p = (n or "").split()
+    return f"{p[-1]}, {' '.join(p[:-1])}" if len(p) > 1 else (n or "")
 
 
-# ============================================================
-# 2) VERPACKUNG — OPF + ZIP
-# ============================================================
-def _opf(meta: dict, manifest_items, spine_items) -> str:
-    now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    lang = _BCP47.get(meta["lang"], meta["lang"])
-
-    src = f'\t\t<dc:source>{_esc(meta["source_url"])}</dc:source>\n' if meta.get("source_url") else ""
-    year = f'\t\t<dc:date>{meta["year"]}-01-01T00:00:00Z</dc:date>\n' if meta.get("year") else ""
-
-    return ('<?xml version="1.0" encoding="utf-8"?>\n'
-            '<package xmlns="http://www.idpf.org/2007/opf" dir="ltr" '
-            'unique-identifier="uid" version="3.0" '
-            f'xml:lang="{lang}">\n'
-            '\t<metadata xmlns:dc="http://purl.org/dc/elements/1.1/">\n'
-            f'\t\t<dc:identifier id="uid">urn:uuid:{meta["uuid"]}</dc:identifier>\n'
-            f'\t\t<meta property="dcterms:modified">{now}</meta>\n'
-            f'\t\t<dc:title id="title">{_esc(meta["title"])}</dc:title>\n' +
-            (f'\t\t<meta property="file-as" refines="#title">{_esc(meta["title_sort"])}</meta>\n'
-             if meta.get("title_sort") else "") +
-            f'\t\t<dc:creator id="author">{_esc(meta["author"] or "Unbekannt")}</dc:creator>\n'
-            f'\t\t<meta property="file-as" refines="#author">{_esc(meta["author_sort"] or meta["author"] or "Unbekannt")}</meta>\n'
-            '\t\t<meta property="role" refines="#author" scheme="marc:relators">aut</meta>\n'
-            f'\t\t<dc:language>{lang}</dc:language>\n'
-            f'\t\t<dc:publisher>{_esc(meta["publisher"])}</dc:publisher>\n'
-            f'\t\t<dc:rights>{_esc(meta["rights"])}</dc:rights>\n'
-            '\t\t<meta name="cover" content="cover-image"/>\n'   # Legacy: Apple Books/Kindle-Thumbnail
-            f"{year}{src}"
-            '\t</metadata>\n'
-            '\t<manifest>\n' + "\n".join(manifest_items) + '\n\t</manifest>\n'
-            '\t<spine>\n' + "\n".join(spine_items) + '\n\t</spine>\n'
-            '</package>\n')
+# ------------------------------------------------------------ Pruefung des fertigen EPUB
+def textabgleich(ist, soll):
+    a, b_ = _woerter(" ".join(ist)), _woerter(" ".join(soll))
+    if a == b_:
+        return 1.0
+    return round(difflib.SequenceMatcher(None, a, b_, autojunk=False).ratio(), 4)
 
 
-def build_epub(meta: dict, chapters, out_path: str) -> str:
-    """Schreibt das EPUB aus Metadaten + Kapiteln. Sprachunabhaengig.
-    Reihenfolge: Cover -> [Klappentext] -> Titelseite ->
-                 (Kapitel-Titelblatt + Kapitel-Inhalt)* -> Colophon."""
-    lang = _BCP47.get(meta["lang"], meta["lang"])
-    files = {}  # arcname -> bytes
-
-    files["mimetype"] = b"application/epub+zip"
-    files["META-INF/container.xml"] = (
-        '<?xml version="1.0" encoding="utf-8"?>\n'
-        '<container xmlns="urn:oasis:names:tc:opendocument:xmlns:container" version="1.0">\n'
-        '\t<rootfiles>\n'
-        '\t\t<rootfile full-path="epub/content.opf" media-type="application/oebps-package+xml"/>\n'
-        '\t</rootfiles>\n</container>\n').encode("utf-8")
-
-    # Cover: RASTER (JPEG) bevorzugt -> App-Reader thumbnailen kein SVG.
-    # Faellt Pillow aus, degradiert es sauber auf das Vektor-SVG (bisheriges Verhalten).
-    raster = _compose_cover_raster(meta["title"], meta["author"], meta.get("cover"), meta["lang"],
-                                   meta.get("sprecher", ""), meta.get("imprint", ""))
-    if raster:
-        cover_file, cover_media, cover_id = "cover.jpg", "image/jpeg", "cover-image"
-        files["epub/images/cover.jpg"] = raster
-        # Fertiges Cover (Bild + Typografie) auch fuer App/Demo ablegen (tools/export_app.py)
-        try:
-            with open(os.path.join(os.path.dirname(out_path), f"cover_final_{meta['lang']}.jpg"), "wb") as f:
-                f.write(raster)
-        except Exception as e:
-            print(f"[620] HINWEIS: cover_final nicht geschrieben ({e})")
-    else:
-        cover_file, cover_media, cover_id = "cover.svg", "image/svg+xml", "cover-image"
-        files["epub/images/cover.svg"] = _compose_cover_svg(
-            meta["title"], meta["author"], meta.get("cover"), meta["lang"]).encode("utf-8")
-        print("[620] HINWEIS: Pillow nicht verfuegbar -> SVG-Cover statt Raster. "
-              "App-Reader zeigen dann KEIN Regal-Thumbnail. Beheben: pip install pillow.")
-    files["epub/css/core.css"]  = _CORE_CSS.encode("utf-8")
-    files["epub/css/local.css"] = _LOCAL_CSS.encode("utf-8")
-
-    has_blurb = bool(meta.get("blurb_html"))
-    files["epub/toc.xhtml"] = _nav_xhtml(meta["title"], chapters, lang, has_blurb).encode("utf-8")
-
-    # --- geordnete Inhalts-Dokumente (id, dateiname, xhtml) ---
-    pages = [("cover", "cover.xhtml", _cover_xhtml(lang, cover_file))]
-    if has_blurb:
-        pages.append(("blurb", "blurb.xhtml", meta["blurb_html"]))
-    pages.append(("titlepage", "titlepage.xhtml",
-                  _titlepage_xhtml(meta["title"], meta["author"], lang)))
-    for i, (ctitle, paras) in enumerate(chapters, 1):
-        pages.append((f"chapter-{i}-title", f"chapter-{i}-title.xhtml",
-                      _chapter_title_xhtml(i, ctitle, lang)))
-        pages.append((f"chapter-{i}", f"chapter-{i}.xhtml",
-                      _chapter_xhtml(i, ctitle, paras, lang)))
-    pages.append(("colophon", "colophon.xhtml",
-                  _colophon_xhtml(meta["title"], meta["author"], meta.get("source_url", ""),
-                                  lang, meta.get("modernized", False), meta.get("own_year"))))
-
-    # statische Manifest-Eintraege (CSS, Nav, Cover-Bild)
-    manifest = [
-        '\t\t<item href="css/core.css" id="core.css" media-type="text/css"/>',
-        '\t\t<item href="css/local.css" id="local.css" media-type="text/css"/>',
-        '\t\t<item href="toc.xhtml" id="toc" media-type="application/xhtml+xml" properties="nav"/>',
-        f'\t\t<item href="images/{cover_file}" id="{cover_id}" '
-        f'media-type="{cover_media}" properties="cover-image"/>',
-    ]
-    spine = []
-    for pid, name, data in pages:
-        files[f"epub/text/{name}"] = data.encode("utf-8")
-        props = ' properties="svg"' if "<svg" in data else ""   # 24.10.2026: Inline-SVG (OPF-014)
-        manifest.append(f'\t\t<item href="text/{name}" id="{pid}" '
-                        f'media-type="application/xhtml+xml"{props}/>')
-        spine.append(f'\t\t<itemref idref="{pid}"/>')
-
-    files["epub/content.opf"] = _opf(meta, manifest, spine).encode("utf-8")
-
-    os.makedirs(os.path.dirname(out_path), exist_ok=True)
-    with zipfile.ZipFile(out_path, "w") as z:
-        # mimetype MUSS zuerst und UNKOMPRIMIERT stehen (EPUB-Spec)
-        z.writestr(zipfile.ZipInfo("mimetype"), files.pop("mimetype"),
-                   compress_type=zipfile.ZIP_STORED)
-        for arc, data in files.items():
-            z.writestr(arc, data, compress_type=zipfile.ZIP_DEFLATED)
-    return out_path
+def pruefen(pfad, kapitel, lg, vermerke, n_bilder, n_noten, audio):
+    """Fertiges EPUB lesen + epubcheck -> Metriken (im Manifest gespeichert, beim Resume wiederverwendet)."""
+    r = epub_bau.lesen(pfad)
+    soll = [" ".join(t["text"] for a in k["absaetze"] if not a.get("hr") for t in a["teile"]) for k in kapitel]
+    ec = epub_bau.epubcheck(pfad)
+    kol = _norm(r["kolophon"])
+    m = {"epubcheck": ec, "textabgleich": textabgleich(r["kapitel"], soll), "kapitel_epub": len(r["kapitel"]),
+         "sprache": r["sprache"], "vermerke_ist": sum(1 for v in vermerke if _norm(v) and _norm(v) in kol),
+         "bilder_epub": r["bilder"], "bildrefs": r["bildrefs"], "noten_epub": r["noten"],
+         "noterefs": r["noterefs"], "bilder_soll": n_bilder, "noten_soll": n_noten}
+    if audio is not None:
+        smil = r["smil"]
+        n = sum(len(v) for v in smil.values())
+        m["smil_eintraege"] = n
+        m["smil_kapitel"] = len(smil)
+    return m
 
 
-# ============================================================
-# METADATEN aus book.json / author.json
-# ============================================================
-def _derive_sort_name(name: str) -> str:
-    parts = name.split()
-    return f"{parts[-1]}, {' '.join(parts[:-1])}" if len(parts) > 1 else name
+# ------------------------------------------------------------ Lauf
+def lauf(werk, stage=STAGE_Q, wer=None, nur=None, nur_var=None, neu=False, trocken=False, freigeben=False,
+         regler=None):
+    """-> Liste der Gates (je Scope <lg>:<variante>)."""
+    wer = wer or "pipeline"
+    b = bestellung.lesen(werk)
+    q = b.quellsprache
+    if regler and not trocken:
+        r = dict(regler)
+        if "kolophon" in r:
+            r["kolophon"] = {**(entscheidungen(werk).get("kolophon") or {}), **r["kolophon"]}
+        entscheidung_setzen(werk, wer, **r)
+    ents = entscheidungen(werk)
+    if freigeben and not trocken:
+        return _freigeben(werk, stage, wer)
 
-def _fassung_title(bj: dict, lang: str) -> str:
-    """Laendertitel DIESER Fassung (aus Stage 08b --work in book.json.fassungen[]),
-    sonst Originaltitel. Fallback IMMER auf titel_original -> nie leer, nie falsch."""
-    for f in bj.get("fassungen", []):
-        if f.get("sprache") == lang and (f.get("titel") or "").strip():
-            return f["titel"].strip()
-    return (bj.get("titel_original") or "").strip()
+    mobil = int(ents.get("mobil_laenge") or 0) if ents.get("mobil", "an") != "aus" else 0
+    bilder_an, fussnoten_an = ents.get("bilder", "an") != "aus", ents.get("fussnoten", "an") != "aus"
+    d = status.laden(werk)
+    st = d["stages"].get(stage) or {}
+    man = _json(manifest_pfad(werk)) or {}
+    eintraege = dict(man.get("varianten") or {})
+    k190 = kapitel_190(werk)
+    profil = _json(config.work_path(werk, "210_profil")) or {}
+    from pipeline import s615_cover_final as s615
+    verlag = b.mandant_art == "verlag"
+    gates = []
+
+    for lg, var in varianten(b, stage):
+        if (nur and lg not in nur) or (nur_var and var != nur_var):
+            continue
+        scope = f"{lg}:{var}"
+        if var == "audio" and _frei(werk, "650", lg, d) not in status.FREI and not trocken:
+            print(f"[{stage}] {scope}: wartet auf Gate 650 ({lg}) – uebersprungen")
+            continue
+        g = gate.Gate(werk, stage, scope=scope, ruecksprung=stage, wer=wer)
+        g.metrik("variante", var)
+
+        def pf(name, ok, wert=None, ruecksprung=None, text=None, g=g):
+            if trocken:
+                g.hinweis(name, ok, wert, text=text)
+            else:
+                g.pflicht(name, ok, wert, ruecksprung=ruecksprung, text=text)
+
+        # Vorgaenger
+        vor = [("600", None, "600"), ("615", scope, "615")]
+        vor.append(("190", None, "190") if lg == q else ("330", None, "330"))
+        if var == "audio":
+            vor.append(("650", lg, "650"))
+        for s, sc, rs in vor:
+            z = _frei(werk, s, sc, d)
+            pf(f"gate_{s}", z in status.FREI, z, ruecksprung=rs, text=f"Gate {s}{' ' + sc if sc else ''} frei ({z})")
+        cover = s615.ausgabe_pfad(werk, lg, var)
+        g.pflicht("cover", os.path.isfile(cover), ruecksprung="615", text=f"Cover 615 ({os.path.basename(cover)})")
+        g.pflicht("kapitel_190", bool(k190), ruecksprung="190", text="Kapitel aus 190 (work/modernized)")
+        bl = klappentext(werk, lg)
+        g.pflicht("klappentext", bool(bl), ruecksprung="600", text=f"Klappentext {lg} aus 600")
+        meta = metadaten(werk, b, lg, var)
+        g.pflicht("titel", bool(meta["titel"]), ruecksprung="615", text=f"Titel {lg}")
+        if var == "audio":
+            g.pflicht("sprecher", bool(meta["sprecher"]), ruecksprung="410", text="Sprecher aus casting.json")
+
+        # Kapitel
+        fallback, geklebt = [], []
+        if lg == q and var == "text":
+            kapitel = kapitel_aus_190(k190, lg)
+        else:
+            liste, kmeta = knoten(werk, "q" if lg == q else "z")
+            g.pflicht("knoten", bool(liste), ruecksprung="200" if lg == q else "330",
+                      text=f"Knoten {'200' if lg == q else '330'} vorhanden")
+            kapitel, fallback, geklebt = kapitel_aus_knoten(
+                liste, lg, q, k190, var == "audio",
+                rollen(profil.get("profile") or profil or kmeta.get("profile"), lg, q))
+        if g.fehler():
+            g.entscheide(schreiben=not trocken)
+            gates.append(g)
+            continue
+
+        g.gleich("kapitel", len(kapitel), len(k190), ruecksprung="190" if lg == q else "200")
+        if lg != q:
+            g.max("fallback", len(fallback), SCHWELLEN["fallback_max"], bei_fehler="stopp", ruecksprung="310")
+            g.metrik("fallback_ids", fallback[:20])
+        vm, vsoll, vq = s615.vermerke(werk, b, lg, True)
+        if vq == "bestellung":
+            g.hinweis("vermerke_600", False, text="Vermerke aus 600 fehlen (altes Format) – aus Bestellung gesetzt")
+        meta["vermerke"] = vm
+        meta["kolophon"] = meta["kolophon"] + ([ents["kolophon"][lg]] if (ents.get("kolophon") or {}).get(lg) else [])
+        bilder, noten, a_hinw, (n_b, n_n) = anhang_einhaengen(werk, kapitel, k190, lg, q, bilder_an, fussnoten_an)
+        for h in a_hinw[:5]:
+            g.hinweis("anhang", False, text=h)
+        audio = None
+        if var == "audio":
+            audio, a_fehl, a_met = audio_kapitel(werk, lg, kapitel)
+            for f in a_fehl[:5]:
+                g.pflicht("audio", False, f, ruecksprung="650", text=f)
+            for k_, v in a_met.items():
+                g.metrik(k_, v)
+            if not a_fehl:
+                g.min("smil_abdeckung", a_met["smil_abdeckung"], SCHWELLEN["smil_min"], bei_fehler="stopp", ruecksprung="650")
+                g.max("smil_ausserhalb", len(a_met["smil_ausserhalb"]), 0, bei_fehler="stopp", ruecksprung="650")
+        if g.fehler():
+            g.entscheide(schreiben=not trocken)
+            gates.append(g)
+            continue
+
+        with open(cover, "rb") as f:
+            cdata = f.read()
+        eingang = manifest.hash_obj({
+            "v": BAU_V, "kapitel": kapitel, "meta": meta, "blurb": bl, "cover": manifest.hash_datei(cover),"mobil": mobil, "anhang": [(x["nr"], x["datei"]) for x in bilder] + noten,
+            "audio": {i: [a["datei"], a["dauer"], a["clips"], manifest.hash_datei(
+                os.path.join(config.book_dir(werk), a["datei"]))] for i, a in (audio or {}).items()}})
+        pfad = ausgabe_pfad(werk, lg, var)
+        alt = eintraege.get(scope) or {}
+        unveraendert = (not neu and alt.get("eingang_hash") == eingang and os.path.isfile(pfad)
+                        and manifest.hash_datei(pfad) == alt.get("ausgabe_hash") and alt.get("metriken"))
+        tmpdir = None
+        if unveraendert:
+            met = alt["metriken"]
+            ziel = pfad
+            g.metrik("unveraendert", True)
+        else:
+            tmpdir = tempfile.mkdtemp(prefix="epub620_")
+            ziel = os.path.join(tmpdir, os.path.basename(pfad))
+            meta["geaendert"] = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+            epub_bau.bauen(meta, kapitel, ziel, (cdata, "image/jpeg", "jpg"), mobil=mobil, blurb=bl,
+                           bilder=bilder, noten=noten, audio=audio)
+            met = pruefen(ziel, kapitel, lg, vm, n_b, n_n, audio)
+
+        # Gate am fertigen EPUB
+        ec = met["epubcheck"]
+        g.pflicht("epubcheck_werkzeug", ec.get("werkzeug"), ruecksprung=stage,
+                  text="epubcheck (tools/epubcheck-5.4.0, Java) lauffaehig")
+        if ec.get("werkzeug"):
+            g.max("epubcheck_fehler", ec["fehler"], SCHWELLEN["epubcheck_fehler_max"], bei_fehler="stopp", ruecksprung=stage)
+            g.metrik("epubcheck_warnungen", ec["warnungen"])
+            if ec["fehler"]:
+                g.metrik("epubcheck_meldungen", ec["meldungen"])
+        g.min("textabgleich", met["textabgleich"], SCHWELLEN["textabgleich_min"], bei_fehler="stopp", ruecksprung=stage)
+        g.gleich("kapitel_epub", met["kapitel_epub"], len(k190), ruecksprung=stage)
+        g.gleich("sprache", met["sprache"], epub_bau.BCP47.get(lg, lg), ruecksprung=stage)
+        g.gleich("vermerke", met["vermerke_ist"], len(vm), ruecksprung="115")
+        g.gleich("bilder", met["bilder_epub"], met["bilder_soll"], ruecksprung="150")
+        g.gleich("fussnoten", met["noten_epub"], met["noten_soll"], ruecksprung="150")
+        if audio is not None:
+            g.gleich("smil_eintraege", met.get("smil_eintraege"), sum(len(a["clips"]) for a in audio.values()),
+                     ruecksprung=stage)
+        g.metrik("geklebt_kapitel", geklebt)
+        g.pruefe("geklebt", not geklebt, len(geklebt), 0, "mensch", "200",
+                 text=f"Absaetze geklebt: Kapitel {', '.join(map(str, geklebt)) or 'keine'} (Absatzgrenzen 200/190)")
+        mocks = [os.path.basename(p) for p in [cover] + [os.path.join(config.book_dir(werk), a["datei"])
+                 for a in (audio or {}).values()] if mock.ist_datei(p)]
+        g.mock(len(mocks), mocks, ruecksprung="615" if mocks and mocks[0] == os.path.basename(cover) else "650")
+        g.metrik("eingang_hash", eingang)
+
+        # Mensch-Freigabe gilt bei gleichem Eingang
+        alt_st = (st.get("teile") or {}).get(scope) or {}
+        mensch_gilt = alt_st.get("zustand") == "frei" and (alt_st.get("gate") or {}).get("ergebnis") == "mensch" \
+            and (alt_st.get("metriken") or {}).get("eingang_hash") == eingang
+        if mensch_gilt:
+            for p in g.pruefungen:
+                if not p["ok"] and p["bei_fehler"] == "mensch":
+                    p["bei_fehler"] = "hinweis"
+                    p["text"] += " [Mensch-Freigabe gilt, Eingaenge unveraendert]"
+        immer = verlag and not mensch_gilt
+        e = g.entscheide(mensch_immer=immer, mensch_grund="Vorschau ePub (Mandant verlag): --freigeben" if immer else None,
+                         schreiben=not trocken)
+
+        if not trocken and e != "stopp" and not unveraendert:
+            os.makedirs(os.path.dirname(pfad), exist_ok=True)
+            shutil.move(ziel, pfad + ".tmp")
+            os.replace(pfad + ".tmp", pfad)
+        if not trocken and e != "stopp":
+            eintraege[scope] = {"datei": os.path.relpath(pfad, config.book_dir(werk)), "stage": stage, "sprache": lg,
+                                "variante": var, "eingang_hash": eingang,
+                                "ausgabe_hash": manifest.hash_datei(pfad), "titel": meta["titel"],
+                                "kapitel": len(kapitel), "metriken": met,
+                                "gebaut": alt.get("gebaut") if unveraendert else manifest.jetzt(),
+                                "pruefung": {"ergebnis": e, "gruende": g.ergebnis["gruende"],
+                                             "hinweise": g.ergebnis["hinweise"], "zeit": manifest.jetzt()}}
+        if tmpdir:
+            g.aus = {"datei": ziel if trocken else pfad}
+            if not trocken:
+                shutil.rmtree(tmpdir, ignore_errors=True)
+        else:
+            g.aus = {"datei": pfad}
+        gates.append(g)
+
+    if not trocken:
+        neu_man = _json(manifest_pfad(werk)) or {}           # 620 und 630 teilen die Datei
+        v = dict(neu_man.get("varianten") or {})
+        v.update({s: e for s, e in eintraege.items() if e.get("stage") == stage})
+        manifest.json_atomar(manifest_pfad(werk), {"schema": 1, "bau_v": BAU_V, "varianten": v,
+                                                   "zeit": manifest.jetzt()}, indent=2)
+    return gates
 
 
-_GELESEN = {"de": "Gelesen von", "en": "Read by", "fr": "Lu par", "es": "Leído por", "it": "Letto da"}
-_KI = {"de": "KI-Stimme", "en": "AI voice", "fr": "voix IA", "es": "voz IA", "it": "voce IA"}
+def run(werk, wer=None, **kw):
+    """Kettenaufruf 620 (Ausgangssprache)."""
+    return lauf(werk, STAGE_Q, wer=wer, **kw)
 
 
-def _sprecher_zeile(bj: dict, bdir: str, lang: str) -> str:
-    """Sprecherzeile fuers Cover (18.10.2026): nur fuer die aktuelle Vertonung mit designter
-    Stimme. LibriVox-Spur und Thorsten sind abgeloest -> nie mehr auf dem Cover.
-    Quelle: fassungen[lang].sprecher, sonst audio_voice -- nur wenn Audio dieser Sprache vorliegt."""
-    f = next((x for x in bj.get("fassungen", []) if x.get("sprache") == lang), {}) or {}
-    if str(f.get("audio_quelle") or "").startswith(("librivox", "thorsten")):
-        return ""
-    adir = os.path.join(bdir, "fassungen", lang, "audio")
-    if not (os.path.isdir(adir) and any(n.endswith(".wav") for n in os.listdir(adir))):
-        return ""
-    av = bj.get("audio_voice") if isinstance(bj.get("audio_voice"), str) else ""
-    stimme = f.get("sprecher") or av
-    if not stimme or stimme.lower() == "thorsten":
-        return ""
-    gel = _GELESEN.get(lang, "Read by")
-    return f"{gel} {stimme} \u00b7 {_KI.get(lang, 'AI voice')}"
+def _freigeben(werk, stage, wer):
+    d = status.laden(werk)
+    teile = ((d["stages"].get(stage) or {}).get("teile") or {})
+    offen = [s for s, t in teile.items() if t.get("zustand") == "mensch"]
+    for s in offen:
+        status.entscheiden(werk, stage, "frei", wer=wer, grund=f"Freigabe ePub {stage}", scope=s)
+    print(f"[{stage}] Freigabe: {', '.join(offen) or 'nichts offen'}")
+    return []
 
 
-def _gather_meta(book_id: str, lang: str | None = None) -> dict:
-    """Metadaten fuer EINE Fassung. lang=None -> Originalsprache (Stage 30).
-    Stage 31 (Uebersetzung) uebergibt lang=<ziel> -> Titel kommt aus der Fassung."""
-    bdir = config.book_dir(book_id)
-    bj = json.load(open(os.path.join(bdir, "book.json"), encoding="utf-8"))
-    aj = {}
-    ap = os.path.join(config.author_dir(config.author_of(book_id)), "author.json")
-    if os.path.exists(ap):
-        aj = json.load(open(ap, encoding="utf-8"))
-
-    lang   = lang or bj.get("originalsprache") or config.SOURCE_LANGUAGE
-    title  = _fassung_title(bj, lang) or book_id          # Laendertitel -> sonst Original
-    author = aj.get(f"name_display_{lang}") or aj.get("name_display") or bj.get("author_slug", "")
-    # 18.10.2026: Gutenberg-Schreibweise "H. G. (Herbert George) Wells" -> "H. G. Wells"
-    author = re.sub(r"\s*\([^)]*\)", "", author).strip() or author
-    # 24.10.2026 (Smoke #2): User-ePub ohne author_slug -> Autor aus book.json, sonst "Unbekannt"
-    author = author or (bj.get("autor_name") or "").strip() or "Unbekannt"
-    publisher = bj.get("publisher", "")
-    if not publisher or publisher == "<eigenes-label>":
-        publisher = "SOMNIO"
-    imprint = "SOMNIO PUBLISHING" if publisher == "SOMNIO" else publisher.upper()
-    sprecher = _sprecher_zeile(bj, bdir, lang)
-    gid = str(bj.get("gutenberg_id", "")).strip()
-    source_url = f"https://www.gutenberg.org/ebooks/{gid}" if gid else ""
-    # 22.10.2026: eigenes Werk (book.json rechte=eigene) -> "Alle Rechte vorbehalten", keine Quelle
-    eigen = str(bj.get("rechte") or "").lower().startswith("eigen")
-    own_year = (bj.get("erscheinungsjahr") or datetime.datetime.now().year) if eigen else None
-    if eigen:
-        source_url = ""
-        rights = _COLOPHON.get(lang, _COLOPHON["en"])["rights_own"].replace("{year}", str(own_year))
-    else:
-        rights = "The source text is believed to be in the public domain."
-
-    return {
-        "title": title,
-        "title_sort": title,
-        "author": author,
-        "author_sort": aj.get("name_sort") or _derive_sort_name(author),
-        "lang": lang,
-        "year": bj.get("erscheinungsjahr"),
-        "publisher": publisher,
-        "imprint": imprint,
-        "sprecher": sprecher,
-        "rights": rights,
-        "own_year": own_year,
-        "source_url": source_url,
-        "uuid": uuid.uuid5(_NS, book_id),
-        "cover": _find_raster_cover(book_id),
-        "modernized": _is_modernized(book_id),
-    }
-
-
-def run(book_id: str):
-    chapters = _load_chapters(book_id)
-    meta = _gather_meta(book_id)
-
-    # Klappentext-Vorsatz in der Output-Sprache (aus 600_klappentext.json), falls vorhanden.
-    sp = config.work_path(book_id, "600_klappentext")
-    if os.path.exists(sp):
-        try:
-            stage09 = json.load(open(sp, encoding="utf-8"))
-            meta["blurb_html"] = _blurb_xhtml(stage09, meta["lang"],
-                                              _BCP47.get(meta["lang"], meta["lang"]),
-                                              meta.get("modernized", False))
-        except Exception as e:
-            print(f"[620] HINWEIS: Klappentext uebersprungen ({type(e).__name__}).")
-
-    # Sprach-Ebene (FASSUNG): books/<buch>/fassungen/<lang>/output/<slug>.epub
-    out_dir = os.path.join(config.book_dir(book_id), "fassungen", meta["lang"], "output")
-    os.makedirs(out_dir, exist_ok=True)
-    out_path = os.path.join(out_dir, f"{book_id}.epub")
-    build_epub(meta, chapters, out_path)
-
-    n_titled = sum(1 for t, _ in chapters if t)
-    n_paras = sum(len(p) for _, p in chapters)
-    print(f"[620] EPUB -> {out_path}")
-    print(f"[620] Kapitel: {len(chapters)} (mit Titel: {n_titled}), "
-          f"Absaetze: {n_paras}, Klappentext: {'ja' if meta.get('blurb_html') else 'nein'}, "
-          f"Sprache: {meta['lang']}")
-    if n_titled == 0:
-        print("[620] HINWEIS: keine Kapitel-Titel erkannt -> Heuristik pruefen "
-              "(oder ###CHAPTER###-Marker setzen).")
-    return out_path
+def main(argv=None, stage=STAGE_Q):
+    ap = argparse.ArgumentParser(description=f"Stage {stage} ePub")
+    ap.add_argument("werk")
+    ap.add_argument("--wer")
+    ap.add_argument("--variante", choices=["text", "audio"])
+    ap.add_argument("--mobil", choices=["an", "aus"], help="Mobil-Absaetze (Teilung an Satzgrenzen)")
+    ap.add_argument("--mobil-laenge", type=int, metavar="N")
+    ap.add_argument("--bilder", choices=["an", "aus"])
+    ap.add_argument("--fussnoten", choices=["an", "aus"])
+    ap.add_argument("--kolophon", action="append", metavar="LG=TEXT", help="Kolophon-Zusatz (nur Admin)")
+    ap.add_argument("--sprache", action="append", metavar="LG")
+    ap.add_argument("--neu", action="store_true", help="neu bauen")
+    ap.add_argument("--force", action="store_true", help=argparse.SUPPRESS)
+    ap.add_argument("--freigeben", action="store_true", help="Mensch-Faelle freigeben")
+    ap.add_argument("--trocken", action="store_true", help="nur pruefen, nichts schreiben")
+    ap.add_argument("--lang", help=argparse.SUPPRESS)
+    a = ap.parse_args(argv)
+    try:
+        regler = {}
+        for n in ("mobil", "bilder", "fussnoten"):
+            if getattr(a, n):
+                regler[n] = getattr(a, n)
+        if a.mobil_laenge is not None:
+            if a.mobil_laenge < 0:
+                raise ValueError("--mobil-laenge >= 0")
+            regler["mobil_laenge"] = a.mobil_laenge
+        kol = {}
+        for x in a.kolophon or []:
+            if "=" not in x:
+                raise ValueError(f"--kolophon {x!r}: Format LG=TEXT")
+            lg, t = x.split("=", 1)
+            kol[lg.strip().lower()] = t.strip()
+        if kol:
+            regler["kolophon"] = kol
+        if not a.trocken and (regler or a.freigeben):
+            from pipeline import s080_mandant
+            s080_mandant.darf(a.werk, "override" if kol else "entscheiden", a.wer or "pipeline")
+        nur = a.sprache or (a.lang.split(",") if a.lang else None)
+        gates = lauf(a.werk, stage, a.wer, nur, a.variante, a.neu or a.force, a.trocken, a.freigeben, regler or None)
+    except gate.GateHalt as e:
+        print(e)
+        return e.exit_code
+    except (ValueError, PermissionError, RuntimeError) as e:
+        print(f"[{stage}] Fehler: {e}")
+        return 1
+    if a.freigeben:
+        return 0
+    for g in gates:
+        print(f"--- {g.scope}")
+        print(g.bericht())
+        if getattr(g, "aus", None):
+            print(f"    -> {g.aus['datei']}")
+    if not gates:
+        print(f"[{stage}] nichts zu tun (keine EPUB-Bestellung bzw. Vorstufe offen)")
+    return gate.EXIT[gate.gesamt([g.ergebnis["ergebnis"] for g in gates])] if gates else 0
 
 
 if __name__ == "__main__":
-    import sys
-    run(sys.argv[1] if len(sys.argv) > 1 else "jekyll-and-hyde")
+    raise SystemExit(main())

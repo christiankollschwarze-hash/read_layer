@@ -214,17 +214,17 @@ class T(unittest.TestCase):
 class Vorspann(unittest.TestCase):
     """Front-Matter-Stripper: nur Titelblock weg, kurze Erzaehlsaetze bleiben (Yellow Wallpaper)."""
     def test_kurzer_erster_absatz_bleibt(self):
-        from pipeline import s620_epub_original as E
+        from pipeline import kapiteltext as E
         P = ["The Yellow Wallpaper", "By Charlotte Perkins Gilman", "It is very rare.", "x" * 300]
         self.assertEqual(E.strip_leading_front_matter(P, "The Yellow Wallpaper", "C")[0], "It is very rare.")
 
     def test_vermerke_und_einzelnes_by(self):
-        from pipeline import s620_epub_original as E
+        from pipeline import kapiteltext as E
         P = ["The Cask", "by", "Edgar Allan Poe", "Translated by Nobody", "I had put up with it."]
         self.assertEqual(E.strip_leading_front_matter(P, "The Cask", "Edgar Allan Poe"), ["I had put up with it."])
 
     def test_ohne_bestaetigung_nichts(self):
-        from pipeline import s620_epub_original as E
+        from pipeline import kapiteltext as E
         P = ["Some Heading", "Real text."]
         self.assertEqual(E.strip_leading_front_matter(P, "Other", "X"), P)
 
