@@ -66,7 +66,7 @@ def vorladen(lora: str = ""):
     return info
 
 
-@app.function(image=image, gpu="L4", volumes={"/vol": vol}, timeout=4 * 3600, secrets=GEHEIM)
+@app.function(image=image, gpu=["L4", "A10G", "T4"], volumes={"/vol": vol}, timeout=4 * 3600, secrets=GEHEIM)
 def kapitel(paket: str, kap: str, parallel: int = 1, fp16: bool = False, variante: str = "", batch: int = 0,
             s3batch: bool = False) -> dict:
     import time, threading, queue

@@ -39,7 +39,7 @@ image = (
 )
 
 
-@app.function(image=image, gpu="L4", volumes={"/vol": vol}, timeout=3 * 3600)
+@app.function(image=image, gpu=["L4", "A10G", "T4"], volumes={"/vol": vol}, timeout=3 * 3600)
 def fertig(rel_werk: str, werk: str, lang: str, quelle: str, tempo: str) -> dict:
     import shutil, subprocess, tarfile
     vol.reload()

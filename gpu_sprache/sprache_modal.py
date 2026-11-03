@@ -15,7 +15,7 @@ app = modal.App("readlayer-sprache530")
 image = (
     modal.Image.from_registry("nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04", add_python="3.11")
     .apt_install("ffmpeg")
-    .pip_install("faster-whisper==1.1.1", "huggingface_hub")
+    .pip_install("faster-whisper==1.1.1", "huggingface_hub", "requests")
     .run_function(_modell_laden)
 )
 
