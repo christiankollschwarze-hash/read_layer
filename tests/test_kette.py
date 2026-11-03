@@ -26,6 +26,11 @@ class Bedarf(unittest.TestCase):
         for st in ("150", "200", "210", "300", "330", "340", "400", "500", "520", "630", "640", "650"):
             self.assertNotIn(st, s)
 
+    def test_user_txt_wie_gutenberg(self):
+        s = kette.bedarf(B(TEXT_EPUB_EN, quelle="user_txt"))
+        self.assertTrue({"100", "110", "120"} <= s)
+        self.assertNotIn("150", s)
+
     def test_taella_uebersetzung(self):
         s = kette.bedarf(B(TAELLA_DE, herkunft="privat_upload"))
         self.assertTrue({"150", "200", "210", "300", "310", "320", "330", "340", "640"} <= s)

@@ -92,8 +92,9 @@ class H(BaseHTTPRequestHandler):
             if n > 300 * 1024 * 1024:
                 return self._send(413, {"ok": False, "fehler": "Datei > 300 MB"})
             inhalt = self.rfile.read(n)
+            meta = {k: q.get(k, [""])[0] for k in ("titel", "autor", "sprache", "todesjahr")}
             return self._send(200, WERK.upload(q.get("art", [""])[0], q.get("name", [""])[0], inhalt,
-                                               q.get("wer", [None])[0]))
+                                               q.get("wer", [None])[0], meta))
         try:
             data = json.loads(self.rfile.read(n) or b"{}")
         except Exception:

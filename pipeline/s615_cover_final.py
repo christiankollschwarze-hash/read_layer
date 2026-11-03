@@ -334,8 +334,8 @@ def _jpeg(im):
 # ------------------------------------------------------------------ Lauf
 def _ruecksprung_titel(quelle, lg, b):
     if lg == b.quellsprache:
-        return "110" if quelle == "gutenberg" else "150"
-    return "110" if quelle == "gutenberg" else "310"
+        return "110" if quelle in ("gutenberg", "user_txt") else "150"
+    return "110" if quelle in ("gutenberg", "user_txt") else "310"
 
 
 def run(werk, wer=None, neu=False, titel_neu=None, umbruch=None, schrift=None, position=None,
@@ -429,7 +429,7 @@ def run(werk, wer=None, neu=False, titel_neu=None, umbruch=None, schrift=None, p
         if eigene and not au:
             g.hinweis("autor", False, text="Autor unbekannt (rechte eigene) – Cover ohne Autorzeile")
         else:
-            g.pflicht("autor", bool(au), ruecksprung="110" if quelle == "gutenberg" else "150",
+            g.pflicht("autor", bool(au), ruecksprung="110" if quelle in ("gutenberg", "user_txt") else "150",
                       text="Autor (author.json bzw. book.json autor_name) vorhanden")
         if g.fehler():
             g.entscheide(schreiben=not trocken)

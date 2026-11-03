@@ -142,7 +142,7 @@ def werke():
 
 def nutzer_liste():
     reg = s080_mandant.register()
-    return {"standard": s080_mandant.nutzer(), "nutzer": [
+    return {"standard": s080_mandant.nutzer(), "sprachen": list(bestellung.sprachliste()), "nutzer": [
         {"id": k, "rolle": v.get("rolle"), "name": v.get("name", k)} for k, v in (reg.get("nutzer") or {}).items()]}
 
 
@@ -530,24 +530,40 @@ def werke_liste():
 UPLOAD_DIR = os.path.join(BASE, "daten", "uploads")
 
 
-def upload(art, dateiname, inhalt, wer):
-    """Upload speichern und Neuanlage als Unterprozess starten. epub -> Stage 150 (Neuanlage).
-    txt: noch kein Eingangsweg in der Pipeline (090 kennt gutenberg/user_epub/verlag_epub/fremd_audio)."""
+def upload(art, dateiname, inhalt, wer, meta=None):
+    """Upload speichern und Neuanlage als Unterprozess starten.
+    epub -> Stage 150 (Neuanlage) · txt -> Stage 100 --txt (Eingangsart user_txt; meta: titel, autor, sprache, todesjahr)."""
     import re as _re
+    meta = meta or {}
     try:
         wer = s080_mandant.nutzer(wer)
-        if art != "epub":
-            raise ValueError("TXT-Upload: noch kein Eingangsweg in der Pipeline (Stage 090/150) – folgt")
-        name = _re.sub(r"[^A-Za-z0-9._-]+", "_", os.path.basename(dateiname or "upload.epub"))[:80]
-        if not name.lower().endswith(".epub"):
-            raise ValueError("Datei ist kein .epub")
+        if art not in ("epub", "txt"):
+            raise ValueError(f"Art {art!r} unbekannt")
+        name = _re.sub(r"[^A-Za-z0-9._-]+", "_", os.path.basename(dateiname or f"upload.{art}"))[:80]
+        if not name.lower().endswith("." + art):
+            raise ValueError(f"Datei ist kein .{art}")
+        if art == "txt":
+            if not (meta.get("titel") or "").strip():
+                raise ValueError("Titel fehlt")
+            if (meta.get("sprache") or "") not in bestellung.sprachliste():
+                raise ValueError(f"Sprache fehlt/ungueltig (erlaubt {', '.join(bestellung.sprachliste())})")
+            try:
+                inhalt.decode("utf-8")
+            except UnicodeDecodeError:
+                raise ValueError("TXT ist nicht UTF-8")
         os.makedirs(UPLOAD_DIR, exist_ok=True)
         pfad = os.path.join(UPLOAD_DIR, f"{dt.datetime.now():%Y%m%d_%H%M%S}_{name}")
         with open(pfad, "wb") as f:
             f.write(inhalt)
         vorher = set(werke())
-        argv = [PY, "-m", "pipeline.s150_epub_import", pfad, "--user", wer.lower(), "--wer", wer]
-        st = LAEUFE.start("_upload", argv, f"EPUB-Upload {name}")
+        if art == "epub":
+            argv = [PY, "-m", "pipeline.s150_epub_import", pfad, "--user", wer.lower(), "--wer", wer]
+        else:
+            argv = [PY, os.path.join("tools", "s100_anlegen.py"), "--txt", pfad, f"--titel={meta['titel'].strip()}",
+                    f"--autor={(meta.get('autor') or '').strip()}", f"--sprache={meta['sprache']}", "--wer", wer]
+            if str(meta.get("todesjahr") or "").strip():
+                argv.append(f"--todesjahr={int(meta['todesjahr'])}")
+        st = LAEUFE.start("_upload", argv, f"{art.upper()}-Upload {name}")
         LAEUFE.jobs["_upload"]["vorher"] = vorher
         return {"ok": True, "lauf": st}
     except (ValueError, RuntimeError, OSError) as e:

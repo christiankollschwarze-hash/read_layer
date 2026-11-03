@@ -96,7 +96,7 @@ def bedarf(b, roh=None):
     taella = [p for p in P if "taella" in p["kanaele"]]
 
     s = {"080", "090", "095", "115", "120", "190", "195", "600", "610", "615", "700", "710"}
-    if eingangsart(roh) == "gutenberg":
+    if eingangsart(roh) in bestellung.TEXT_EINGANG:      # gutenberg, user_txt
         s |= {"100", "110"}
     else:
         s.add("150")

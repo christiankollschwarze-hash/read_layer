@@ -47,7 +47,8 @@ ZUSAETZE = ("sound_carpet",)
 BETA = ("sound_carpet",)
 FASSUNGEN = ("modernisiert", "original")
 RECHTE_ARTEN = ("gemeinfrei", "eigene", "lizenz", "verlag")
-QUELLEN = ("gutenberg", "user_epub", "verlag_epub", "fremd_audio")   # Eingangsart (090)
+QUELLEN = ("gutenberg", "user_txt", "user_epub", "verlag_epub", "fremd_audio")   # Eingangsart (090)
+TEXT_EINGANG = ("gutenberg", "user_txt")   # Rohtext raw.txt -> 100/110/120 (user_txt: mitgebrachte TXT, 03.11.2026)
 
 # Gueltigkeitsmatrix (Katalog Produktmodell 095): (inhalt, stufe) -> erlaubte Kanaele
 MATRIX = {
@@ -153,7 +154,7 @@ def rechte_norm(r, roh=None):
         if roh.get("rechte_hinweis"):
             out["hinweis"] = roh.get("rechte_hinweis")
         return out
-    if roh.get("gutenberg_id"):
+    if roh.get("gutenberg_id") or roh.get("quelle") == "user_txt":    # PD prueft Gate 100 (Todesjahr/Nachweis)
         return dict(leer, art="gemeinfrei", bearbeitung=True, drm_frei=True)
     return dict(leer)
 
@@ -193,7 +194,7 @@ class Bestellung:
                 fa = "original"
             elif roh.get("herkunft") in ("privat_upload", "eigenwerk"):
                 fa = "original"
-            elif roh.get("gutenberg_id"):
+            elif roh.get("gutenberg_id") or roh.get("quelle") == "user_txt":
                 fa = "modernisiert"
         self.fassung = fa
 

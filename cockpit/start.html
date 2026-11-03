@@ -29,6 +29,7 @@ tr.zeile{cursor:pointer}tr.zeile:hover{background:#eef3f7}
 .drop.hover{background:#e3f2fd}
 pre{background:#111;color:#ddd;padding:8px;max-height:220px;overflow:auto;font-size:12px;white-space:pre-wrap}
 .err{color:#c62828}
+.formular label{display:inline-block;margin:0 14px 10px 0}.formular input,.formular select{font:inherit;padding:5px 7px}
 </style></head><body>
 <header><b>READ LAYER · Cockpit</b>
  <div class="schritte"><span id="s1">1 Anmeldung</span><span id="s2">2 Werk</span><span>3 …</span></div>
@@ -38,13 +39,13 @@ pre{background:#111;color:#ddd;padding:8px;max-height:220px;overflow:auto;font-s
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const api=(p,o)=>fetch(p,o).then(r=>r.json());
-let wer=sessionStorage.getItem("wer"), liste=[], tab="bestand";
+let wer=sessionStorage.getItem("wer"), liste=[], tab="bestand", sprachen=["en","de"];
 function schritt(n){$("s1").className=n==1?"akt":"";$("s2").className=n==2?"akt":"";
   $("wer").innerHTML=wer?`angemeldet: <b>${esc(wer)}</b> · <a href="#" style="color:#cfd8dc" onclick="abmelden()">abmelden</a>`:"";}
 
 // ---- Schritt 1: Anmeldung (simuliert, Nutzer aus config/rollen.json)
 async function anmeldung(){
-  schritt(1);const n=await api("/api/nutzer");
+  schritt(1);const n=await api("/api/nutzer");sprachen=n.sprachen||sprachen;
   $("inhalt").innerHTML=`<h1>Anmeldung</h1>
    <p class="klein">Simuliert: Nutzer aus config/rollen.json, kein Passwort.</p>
    <select id="nutzer">${n.nutzer.map(u=>`<option value="${esc(u.id)}" ${u.id==n.standard?"selected":""}>${esc(u.name||u.id)} (${esc(u.rolle)})</option>`).join("")}</select>
@@ -55,7 +56,7 @@ function abmelden(){sessionStorage.removeItem("wer");wer=null;anmeldung();}
 
 // ---- Schritt 2: Werk wählen (Bestand) oder hochladen (EPUB / TXT)
 async function werkwahl(){
-  schritt(2);
+  schritt(2);if(sprachen.length<3){const n=await api("/api/nutzer");sprachen=n.sprachen||sprachen;}
   $("inhalt").innerHTML=`<h1>Werk wählen</h1>
    <div class="tabs"><button id="t_bestand" onclick="zeigeTab('bestand')">Bestand (Autor / Titel)</button>
    <button id="t_epub" onclick="zeigeTab('epub')">EPUB hochladen</button>
@@ -70,9 +71,14 @@ async function zeigeTab(t){
     liste=await api("/api/werkliste");tabelle();$("suche").focus();
   }else{
     const txt=t=="txt";
-    $("tab").innerHTML=`<div class="drop" id="drop">${txt?"TXT":"EPUB"}-Datei hierher ziehen oder <input type="file" id="datei" accept="${txt?".txt":".epub"}"></div>
-     ${txt?`<p class="err">Hinweis: Für TXT gibt es in der Pipeline noch keinen Eingangsweg (Stage 090/150). Upload wird abgelehnt, bis der Weg gebaut ist.</p>`:
-     `<p class="klein">Neuanlage über Stage 150 (ePub-Import), Besitzer: ${esc(wer)}.</p>`}
+    $("tab").innerHTML=(txt?`<div class="formular">
+       <label>Titel* <input id="m_titel" size="50"></label><br>
+       <label>Autor <input id="m_autor" size="34"></label>
+       <label>Todesjahr <input id="m_todesjahr" size="5" placeholder="z. B. 1910"></label><br>
+       <label>Sprache* <select id="m_sprache">${sprachen.map(l=>`<option>${l}</option>`).join("")}</select></label>
+       <p class="klein">Neuanlage über Stage 100 (Eingangsart „user_txt“): die TXT wird zur raw.txt, danach wie Gutenberg (110 Wikidata, 120 Kapitel). Ohne Todesjahr fragt Stage 100 nach dem PD-Nachweis. Datei in UTF-8.</p></div>`:
+     `<p class="klein">Neuanlage über Stage 150 (ePub-Import), Besitzer: ${esc(wer)}.</p>`)+
+     `<div class="drop" id="drop">${txt?"TXT":"EPUB"}-Datei hierher ziehen oder <input type="file" id="datei" accept="${txt?".txt":".epub"}"></div>
      <div id="up"></div>`;
     const d=$("drop");
     d.ondragover=e=>{e.preventDefault();d.classList.add("hover")};d.ondragleave=()=>d.classList.remove("hover");
@@ -92,7 +98,11 @@ function waehle(id){location.href="/werk#"+encodeURIComponent(id);}
 async function hochladen(file,art){
   if(!file)return;
   $("up").innerHTML=`<p>Lade ${esc(file.name)} hoch …</p>`;
-  const r=await api(`/api/upload?art=${art}&name=${encodeURIComponent(file.name)}&wer=${encodeURIComponent(wer)}`,{method:"POST",body:file});
+  let meta="";
+  if(art=="txt"){const m={titel:$("m_titel").value.trim(),autor:$("m_autor").value.trim(),todesjahr:$("m_todesjahr").value.trim(),sprache:$("m_sprache").value};
+    if(!m.titel){$("up").innerHTML=`<p class="err">Titel fehlt</p>`;return;}
+    meta=Object.entries(m).map(([k,v])=>`&${k}=${encodeURIComponent(v)}`).join("");}
+  const r=await api(`/api/upload?art=${art}&name=${encodeURIComponent(file.name)}&wer=${encodeURIComponent(wer)}${meta}`,{method:"POST",body:file});
   if(!r.ok){$("up").innerHTML=`<p class="err">${esc(r.fehler)}</p>`;return;}
   pollUpload();
 }

@@ -207,7 +207,7 @@ def original_kapitel(werk, b):
     """-> (kapitel [(titel, absaetze)], referenz [titel] | None, herkunft)."""
     from pipeline import s090_eingang
     d = mod_dir(werk)
-    if s090_eingang.eingangsart(b.roh)[0] == "gutenberg":
+    if s090_eingang.eingangsart(b.roh)[0] in bestellung.TEXT_EINGANG:
         text = _gutenberg_text(werk)
         flach = epub._rewrap(text)
         kap = epub._split_chapters(flach)
@@ -530,7 +530,7 @@ def run(werk, wer=None, staerke=None, modell=None, temperatur=None, stueck=None,
     except (FileNotFoundError, RuntimeError) as e:
         from pipeline import s090_eingang
         g.pflicht("quelle", False, wert=str(e),
-                  ruecksprung="100" if s090_eingang.eingangsart(b.roh)[0] == "gutenberg" else "150",
+                  ruecksprung="100" if s090_eingang.eingangsart(b.roh)[0] in bestellung.TEXT_EINGANG else "150",
                   text=str(e))
         e2 = g.entscheide()
         print(g.bericht())

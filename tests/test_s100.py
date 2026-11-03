@@ -126,5 +126,43 @@ class T(unittest.TestCase):
         self.assertEqual((s, e, kern.strip()), (True, True, "K"))
 
 
+    # ---- Eingangsart user_txt (mitgebrachte TXT, 03.11.2026)
+    def _txt(self, inhalt="Kapitel 1\n\n" + "Wort " * 2000):
+        p = os.path.join(self.tmp.name, "eigen.txt")
+        with open(p, "w", encoding="utf-8") as f:
+            f.write(inhalt)
+        return p
+
+    def test_txt_neuanlage(self):
+        e, slug = self.still(A.neu_anlegen_txt, self._txt(), "The Test Book", "Max Muster", "en", 1910)
+        self.assertEqual((e, slug), ("auto", "the-test-book"))
+        self.assertEqual(self.abrufe, [])                                   # kein Gutendex, kein Download
+        b = json.load(open(os.path.join(self.dir, "book.json")))
+        self.assertEqual((b["quelle"], b["quellsprache"], b["textquelle"]["art"]), ("user_txt", "en", "datei"))
+        self.assertTrue(open(os.path.join(self.dir, "raw.txt"), encoding="utf-8").read().startswith("Kapitel 1"))
+        g = self.gate()
+        self.assertEqual(g["ergebnis"], "auto")
+        a = json.load(open(os.path.join(self.tmp.name, "authors", "muster-m", "author.json")))
+        self.assertEqual((a["name_display"], a["todesjahr"]), ("Max Muster", 1910))
+        from pipeline import bestellung
+        bb = bestellung.lesen(self.dir)
+        self.assertEqual((bb.fehler(), bb.fassung, bb.rechte["art"]), ([], "modernisiert", "gemeinfrei"))
+
+    def test_txt_ohne_todesjahr_mensch(self):
+        e, _ = self.still(A.neu_anlegen_txt, self._txt(), "The Test Book", "Max Muster", "en")
+        self.assertEqual(e, "mensch")
+        self.assertTrue(any("Todesjahr" in x for x in self.gate()["gruende"]))
+
+    def test_txt_fehler(self):
+        with self.assertRaises(ValueError):
+            A.neu_anlegen_txt(self._txt(), "", "X", "en")
+        with self.assertRaises(ValueError):
+            A.neu_anlegen_txt(self._txt(), "T", "X", "xx")
+        with self.assertRaises(FileNotFoundError):
+            A.neu_anlegen_txt("/gibt/es/nicht.txt", "T", "X", "en")
+        e, _ = self.still(A.neu_anlegen_txt, self._txt("zu kurz"), "The Test Book", "Max Muster", "en", 1910)
+        self.assertEqual(e, "stopp")
+
+
 if __name__ == "__main__":
     unittest.main()

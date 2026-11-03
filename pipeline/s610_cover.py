@@ -447,7 +447,7 @@ def run(werk, wer=None, modell=None, neu=False, motiv=None, bild=None, varianten
     if eigene and not autor:
         g.hinweis("autor", False, text="Autor unbekannt (rechte eigene) – Prompt ohne Autor")
     else:
-        g.pflicht("autor", bool(autor), ruecksprung="150" if quelle != "gutenberg" else "110",
+        g.pflicht("autor", bool(autor), ruecksprung="150" if quelle not in ("gutenberg", "user_txt") else "110",
                   text="Autor (author.json name_display bzw. book.json autor_name) vorhanden")
     if g.fehler():
         g.entscheide(schreiben=not trocken)

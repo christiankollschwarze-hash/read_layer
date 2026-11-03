@@ -1,6 +1,6 @@
 """STAGE 090 — Eingangsweiche (neu; GATE_KATALOG.md, 01.11.2026)
 Funktion:     Legt die Eingangsart (`quelle`) in book.json fest und leitet weiter:
-              gutenberg -> 100 · user_epub / verlag_epub -> 150 · fremd_audio -> geparkt (Stopp).
+              gutenberg / user_txt -> 100 · user_epub / verlag_epub -> 150 · fremd_audio -> geparkt (Stopp).
 Gate:         Eingangsart gesetzt; Gutenberg-ID gueltig; ePub: Rechte-Versicherung (art + wer/wann),
               DRM-frei, verlag_epub nur bei Mandant verlag:<id>. Erfuellt -> auto; sonst Stopp
               (Ruecksprung 090). fremd_audio -> immer Stopp (loses Ende, FA bei Fremd-Audio ungeloest).
@@ -25,7 +25,7 @@ from pipeline import bestellung, gate, s080_mandant
 
 STAGE = "090"
 QUELLEN = bestellung.QUELLEN
-WEITER = {"gutenberg": "100", "user_epub": "150", "verlag_epub": "150", "fremd_audio": None}
+WEITER = {"gutenberg": "100", "user_txt": "100", "user_epub": "150", "verlag_epub": "150", "fremd_audio": None}
 SLUG = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 
 
@@ -91,6 +91,10 @@ def pruefen(g, werk, ordner, roh, b, epub=None):
         gid = _gid(roh.get("gutenberg_id"))
         g.pflicht("gutenberg_id", bool(gid and gid > 0), wert=roh.get("gutenberg_id"), ruecksprung="090",
                   text=f"Gutenberg-ID {roh.get('gutenberg_id')!r}")
+    elif q == "user_txt":
+        tq = roh.get("textquelle") or {}
+        g.pflicht("textquelle", tq.get("art") == "datei" and bool(tq.get("quelle")), wert=tq, ruecksprung="090",
+                  text=f"mitgebrachte TXT {tq.get('quelle')!r}" if tq.get("quelle") else "TXT-Quelle fehlt")
     elif q in ("user_epub", "verlag_epub"):
         r = b.rechte
         v = r.get("versichert") if isinstance(r.get("versichert"), dict) else None

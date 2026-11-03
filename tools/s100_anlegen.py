@@ -17,6 +17,8 @@ Kosten:       0 $ (kein LLM).
 Aufruf:
   python tools/s100_anlegen.py --gutenberg 215 [--slug x] [--autor-slug y] [--dry]   Neuanlage + Gate
   python tools/s100_anlegen.py <werk> [--textquelle vorhanden] [--todesjahr 1916] [--force] [--wer CK]
+  python tools/s100_anlegen.py --txt datei.txt --titel "..." --autor "..." --sprache en [--todesjahr N] [--slug x]
+                                                                                    Neuanlage aus TXT (user_txt)
   python tools/s100_anlegen.py <eingabe.json> [--dry] [--force]                        Altweg (JSON-Liste)
 Exit: 0 auto, 2 Stopp, 3 Mensch, 1 Fehler.
 """
@@ -422,6 +424,47 @@ def neu_anlegen(gid, slug=None, autor_slug=None, wer=None, dry=False, force=Fals
     return e
 
 
+def neu_anlegen_txt(datei, titel, autor, sprache, todesjahr=None, slug=None, wer=None, force=False):
+    """--txt DATEI (Eingangsart user_txt, 03.11.2026): mitgebrachte TXT statt Gutenberg-Download.
+    Titel/Autor/Sprache aus dem Upload, raw.txt = Kopie der Datei, danach Gate 100. Rueckgabe (ergebnis, book_slug)."""
+    if not os.path.isfile(datei):
+        raise FileNotFoundError(f"TXT {datei!r} nicht gefunden")
+    if not (titel or "").strip():
+        raise ValueError("Titel fehlt")
+    lg = (sprache or "").strip().lower()
+    if lg not in bestellung.sprachliste():
+        raise ValueError(f"Sprache {lg!r} nicht in Sprachliste {bestellung.sprachliste()}")
+    wer = s080_mandant.nutzer(wer)
+    b = {"book_slug": slug or config.slugify(titel), "titel_original": titel.strip(),
+         "autor_name": (autor or "").strip(), "originalsprache": lg, "raw_quelle": os.path.abspath(datei),
+         "_death_year": int(todesjahr) if todesjahr not in (None, "") else None}
+    print(f"TXT-Neuanlage: \"{b['titel_original']}\" – {b['autor_name'] or '(Autor unbekannt)'} – {lg}")
+    idx = config._load_index()
+    if b["book_slug"] in idx.get("books", {}) and not force:
+        raise ValueError(f"Book-ID {b['book_slug']!r} existiert bereits (anderer --slug oder --force)")
+    a, s, fehler = anlege_buch(b, idx, force=force)
+    config._save_index(idx)
+    werk = os.path.join(config.author_dir(a), "books", s)
+    jetzt = datetime.datetime.now().isoformat(timespec="seconds")
+    bestellung.feld_setzen(werk, quelle="user_txt",
+                           textquelle={"art": "datei", "quelle": os.path.abspath(datei), "wer": wer, "wann": jetzt})
+    if todesjahr not in (None, ""):
+        ap = os.path.join(config.author_dir(a), "author.json")
+        aj = _lj(ap)
+        if aj.get("todesjahr") is None:
+            aj["todesjahr"] = int(todesjahr)
+            aj["todesjahr_quelle"] = {"art": "manuell", "wer": wer, "wann": jetzt}
+            json_atomar(ap, aj, indent=2)
+    gg = gate.Gate(s, STAGE, ruecksprung="100", wer=wer)
+    bb = bestellung.lesen(werk)
+    pruefen(gg, werk, werk, bb.roh, bb, fehler)
+    e = gg.entscheide()
+    print(gg.bericht())
+    print(f"\nNEU_BOOK_ID={s}")
+    print(f"Weiter: python run.py {s}")
+    return e, s
+
+
 def json_eingabe(pfad, dry=False, force=False):
     """Altweg: JSON-Liste {'books': [...]} anlegen (z. B. tools/pooh_vorbereiten.py). Ohne Gate."""
     with open(pfad, encoding="utf-8") as f:
@@ -443,6 +486,10 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description="Stage 100 Werk anlegen (Gutenberg)")
     ap.add_argument("werk", nargs="?", help="Book-ID/Werkordner oder Eingabe-JSON (Altweg)")
     ap.add_argument("--gutenberg", metavar="ID", help="Neuanlage aus Gutendex")
+    ap.add_argument("--txt", metavar="DATEI", help="Neuanlage aus mitgebrachter TXT (Eingangsart user_txt)")
+    ap.add_argument("--titel", help="--txt: Werktitel")
+    ap.add_argument("--autor", help="--txt: Autor (Anzeigename)")
+    ap.add_argument("--sprache", help="--txt: Quellsprache (Sprachliste)")
     ap.add_argument("--slug")
     ap.add_argument("--autor-slug")
     ap.add_argument("--textquelle", help="URL | lokale Datei | vorhanden (raw.txt bereinigt/lokal)")
@@ -453,6 +500,9 @@ def main(argv=None):
     ap.add_argument("--wer")
     a = ap.parse_args(argv)
     try:
+        if a.txt:
+            e, _s = neu_anlegen_txt(a.txt, a.titel, a.autor, a.sprache, a.todesjahr, a.slug, a.wer, a.force)
+            return gate.EXIT[e]
         if a.gutenberg:
             e = neu_anlegen(a.gutenberg, a.slug, a.autor_slug, a.wer, a.dry, a.force)
             return 0 if e is None else gate.EXIT[e]
@@ -464,6 +514,9 @@ def main(argv=None):
         return gate.EXIT[e]
     except config.IndexDefekt as e:
         print(f"! Index defekt: {e}")
+        return 2
+    except (ValueError, FileNotFoundError) as e:
+        print(f"! {e}")
         return 2
 
 
