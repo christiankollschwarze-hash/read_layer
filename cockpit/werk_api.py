@@ -1,0 +1,361 @@
+"""Phase 3, P3-1: Einzeltitel-Ansicht – Lese-API und Aktionen fuer EIN Werk (Book-ID).
+
+Eine Wahrheit: liest/schreibt nur work/status.json ueber pipeline.status (Sperrdatei + atomar).
+  - Lesen (werk) veraendert status.json nicht (kein bedarf_setzen, kein run.py --plan).
+  - Entscheiden/Zuruecksetzen/Override wie CLI `python -m pipeline.status` inkl. Rechtepruefung 080.
+  - Laeufe nur als Unterprozess run.py, Regler nur als Unterprozess `python -m pipeline.sNNN_*`.
+Exit-Codes: 0 frei, 1 Fehler, 2 Stopp, 3 Mensch (3 ist kein Fehler).
+"""
+import datetime as dt
+import glob
+import os
+import subprocess
+import sys
+import threading
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+BASE = os.path.dirname(HERE)
+if BASE not in sys.path:
+    sys.path.insert(0, BASE)
+
+from config import config                                            # noqa: E402
+from pipeline import bestellung, kette, status, s080_mandant, usage_log  # noqa: E402
+import run as RUN                                                    # noqa: E402
+
+PY = sys.executable
+LOGDIR = os.path.join(HERE, "logs")
+EXIT_DEUTUNG = {0: "frei", 1: "fehler", 2: "stopp", 3: "mensch"}
+NAMEN = {"080": "Mandant & Rechte", "090": "Eingang", "095": "Produktwahl", "100": "Anlegen"}
+
+# Regler je Stage = CLI-Parameter des Stage-Moduls (Whitelist). typ: schalter|text|zahl|ganz|wahl|liste
+REGLER = {
+    "095": {"modul": "pipeline.s095_produktwahl", "aktion": "bestellen", "felder": [
+        {"flag": "--produkt", "typ": "liste",
+         "hilfe": "je Zeile SPRACHE:INHALT[:STUFE]:KANAL[,KANAL][:+ZUSATZ] – ersetzt die Bestellung"},
+        {"flag": "--default", "typ": "schalter", "hilfe": "Bestellung aus Wunsch (090) neu ableiten"}]},
+    "410": {"modul": "pipeline.s410_casting", "aktion": "lauf", "felder": [
+        {"flag": "--freigeben", "typ": "schalter", "hilfe": "Casting freigeben (nach Hoerprobe)"},
+        {"flag": "--grund", "typ": "text"},
+        {"flag": "--schwelle", "typ": "zahl"},
+        {"flag": "--f0-abstand", "typ": "zahl"},
+        {"flag": "--max-ensemble", "typ": "ganz"},
+        {"flag": "--min-anteil", "typ": "zahl"},
+        {"flag": "--max-text", "typ": "ganz"},
+        {"flag": "--trocken", "typ": "schalter", "hilfe": "nur pruefen"}]},
+    "615": {"modul": "pipeline.s615_cover_final", "aktion": "lauf", "felder": [
+        {"flag": "--titel", "typ": "liste", "hilfe": "je Zeile LG=TEXT"},
+        {"flag": "--umbruch", "typ": "liste", "hilfe": "je Zeile LG=A|B ('LG=' = auto)"},
+        {"flag": "--schrift", "typ": "ganz", "hilfe": "Titel-Schriftgroesse pt"},
+        {"flag": "--position", "typ": "wahl", "werte": ["oben", "unten"]},
+        {"flag": "--transparenz", "typ": "zahl", "hilfe": "0..1"},
+        {"flag": "--sprecher", "typ": "wahl", "werte": ["an", "aus"]},
+        {"flag": "--neu", "typ": "schalter", "hilfe": "Varianten neu schreiben"},
+        {"flag": "--freigeben", "typ": "schalter", "hilfe": "Sichtfreigabe"},
+        {"flag": "--trocken", "typ": "schalter", "hilfe": "nur pruefen"}]},
+    "710": {"modul": "pipeline.s710_cloud_export", "aktion": "lauf", "felder": [
+        {"flag": "--bitrate", "typ": "text", "hilfe": "z. B. 96k (wird gemerkt)"},
+        {"flag": "--nur-manifest", "typ": "schalter"},
+        {"flag": "--freigeben", "typ": "schalter", "hilfe": "Freischalten im Katalog"},
+        {"flag": "--grund", "typ": "text"},
+        {"flag": "--dry", "typ": "schalter", "hilfe": "Probelauf ohne Upload und Status"}]},
+}
+
+
+# ------------------------------------------------------------------ Hilfen
+def _modul(s):
+    """Stage-Modul (Dateiname) fuer Namen; 100 liegt in tools/."""
+    treffer = sorted(glob.glob(os.path.join(BASE, "pipeline", f"s{s}_*.py")))
+    return os.path.splitext(os.path.basename(treffer[0]))[0] if treffer else None
+
+
+def name(s):
+    if s in NAMEN:
+        return NAMEN[s]
+    m = _modul(s)
+    return m.split("_", 1)[1].replace("_", " ").capitalize() if m else s
+
+
+def _auszug(m, n=40):
+    """Metriken kurz: Skalare direkt, kurze Skalarlisten verbunden, Rest als Groessenangabe."""
+    out = {}
+    for k, v in list((m or {}).items())[:n]:
+        if isinstance(v, str):
+            out[k] = v if len(v) <= 200 else v[:200] + "…"
+        elif isinstance(v, (int, float, bool)) or v is None:
+            out[k] = v
+        elif isinstance(v, list) and len(v) <= 8 and all(isinstance(x, (str, int, float)) for x in v):
+            out[k] = ", ".join(str(x) for x in v)
+        elif isinstance(v, dict) and len(v) <= 8 and all(isinstance(x, (str, int, float, bool)) or x is None
+                                                          for x in v.values()):
+            out[k] = ", ".join(f"{a}={b}" for a, b in v.items())
+        elif isinstance(v, (list, dict)):
+            out[k] = f"[{len(v)}]" if isinstance(v, list) else "{" + ", ".join(list(v)[:6]) + ("…" if len(v) > 6 else "") + "}"
+        else:
+            out[k] = str(v)[:200]
+    return out
+
+
+def _eintrag(t):
+    g = t.get("gate") or {}
+    return {"zustand": t.get("zustand", "offen"), "gate": g.get("ergebnis"), "gruende": list(g.get("gruende") or []),
+            "ruecksprung": g.get("ruecksprung"), "gate_wann": g.get("wann"), "hinweise": list(t.get("hinweise") or []),
+            "metriken": _auszug(t.get("metriken")), "versuche": t.get("versuche", 0), "wer": t.get("wer"),
+            "wann": t.get("wann"), "override": t.get("override"), "stand": t.get("stand")}
+
+
+def befunde(st):
+    """Offene Befunde (mensch/stopp) der Stage bzw. ihrer Teile + Ruecksprungziele [(ziel, scope)]."""
+    if not st:
+        return [], []
+    g = st.get("gate") or {}
+    gr = list(g.get("gruende") or []) if st.get("zustand") in ("mensch", "stopp") else []
+    rs = [(g["ruecksprung"], None)] if g.get("ruecksprung") and st.get("zustand") in ("mensch", "stopp") else []
+    for sc, t in sorted((st.get("teile") or {}).items()):
+        if t.get("zustand") in ("mensch", "stopp"):
+            tg = t.get("gate") or {}
+            gr += [f"{sc}: {x}" for x in (tg.get("gruende") or [t["zustand"]])]
+            if tg.get("ruecksprung") and tg["ruecksprung"] not in [r for r, _ in rs]:
+                rs.append((tg["ruecksprung"], sc))
+    return gr, rs
+
+
+def _manifeste(book_id, s):
+    try:
+        w = config.work_dir(book_id)
+    except Exception:
+        return []
+    out = []
+    for p in sorted(glob.glob(os.path.join(w, f"{s}_*.json"))):
+        out.append({"datei": os.path.relpath(p, BASE).replace("\\", "/"),
+                    "wann": dt.datetime.fromtimestamp(os.path.getmtime(p)).isoformat(timespec="seconds")})
+    return out
+
+
+# ------------------------------------------------------------------ Lesen
+def werke():
+    """Book-IDs aus daten/index.json (fuer Titelwechsel)."""
+    try:
+        return sorted(config._load_index().get("books", {}))
+    except Exception:
+        return []
+
+
+def nutzer_liste():
+    reg = s080_mandant.register()
+    return {"standard": s080_mandant.nutzer(), "nutzer": [
+        {"id": k, "rolle": v.get("rolle"), "name": v.get("name", k)} for k, v in (reg.get("nutzer") or {}).items()]}
+
+
+def werk(book_id, wer=None):
+    """Alles fuer die Einzeltitel-Ansicht. Schreibt nichts."""
+    d = status.laden(book_id)
+    try:
+        b = bestellung.lesen(book_id)
+        bfehler = b.fehler()
+    except Exception as e:
+        b, bfehler = None, [f"Bestellung nicht lesbar: {e}"]
+    if b is not None and not bfehler:
+        laeuft = kette.bedarf(b)
+    else:
+        laeuft = {s for s, st in d["stages"].items() if st.get("zustand") != "entfaellt"}
+    try:
+        kosten = usage_log.summe(book_id)
+    except Exception:
+        kosten = {"gesamt": {}, "stages": {}}
+
+    stages, naechster = [], None
+    for s in status.STAGES:
+        st = d["stages"].get(s) or {}
+        bestellt = s in laeuft
+        z = st.get("zustand", "offen") if st else ("offen" if bestellt else "entfaellt")
+        frei = bestellt and z in status.FREI
+        fehlt = alt = []
+        if frei and b is not None:
+            try:
+                fehlt = RUN.fehlende_teile(book_id, s, b, d=d)
+                alt = [(v, t.isoformat(timespec="seconds")) for v, t in RUN.veraltet(book_id, s, laeuft, d=d)]
+            except Exception:
+                pass
+        gr, rs = befunde(st)
+        try:
+            sprachen = kette.sprachen(s, b) if (b is not None and bestellt) else None
+        except Exception:
+            sprachen = None
+        e = _eintrag(st) if st else _eintrag({"zustand": z})
+        e.update(stage=s, name=name(s), bestellt=bestellt, zustand=z,
+                 bedarf_abweichung=bool(st) and ((z == "entfaellt") == bestellt),
+                 befunde=gr, ruecksprung_ziele=[{"ziel": r, "scope": sc} for r, sc in rs],
+                 teile={sc: _eintrag(t) for sc, t in sorted((st.get("teile") or {}).items())},
+                 vorgaenger=kette.wirksame_vorgaenger(s, laeuft, RUN.IN_KETTE) if bestellt else [],
+                 sprachen=sprachen, fehlende_teile=fehlt, veraltet=alt,
+                 kosten=(kosten.get("stages") or {}).get(s), regler=REGLER.get(s),
+                 manifeste=_manifeste(book_id, s))
+        stages.append(e)
+        if naechster is None and bestellt and (z not in status.FREI or fehlt or alt):
+            naechster = {"stage": s, "zustand": z, "ruecksprung": rs[0][0] if rs else None,
+                         "grund": "Teile offen" if fehlt else ("veraltet" if alt else z)}
+
+    wer = s080_mandant.nutzer(wer)
+    rechte = {}
+    for a in ("lauf", "bestellen", "entscheiden", "zuruecksetzen", "override"):
+        try:
+            ok, grund = s080_mandant.pruefen(book_id, a, wer, b=b)
+        except Exception as ex:
+            ok, grund = False, str(ex)
+        rechte[a] = {"ok": ok, "grund": grund}
+    return {"book_id": book_id, "aktualisiert": d.get("aktualisiert"), "status_vorhanden": os.path.exists(status.pfad(book_id)),
+            "bestellung": b.als_dict() if b is not None else None, "bestellung_fehler": bfehler,
+            "kosten_gesamt": kosten.get("gesamt"), "stages": stages, "naechster": naechster,
+            "protokoll": list(reversed(d.get("protokoll") or []))[:80],
+            "run_mode": config.RUN_MODE, "wer": wer, "rolle": s080_mandant.rolle(wer), "rechte": rechte, "lauf": LAEUFE.state(book_id)}
+
+
+# ------------------------------------------------------------------ Entscheidungen (wie status-CLI)
+def aktion(book_id, art, stage, wer, grund, scope=None, nach=None):
+    """art: entscheiden (nach frei|stopp|offen) | zuruecksetzen | override (nach, nur admin)."""
+    try:
+        if not (grund or "").strip():
+            raise ValueError("Grund ist Pflicht")
+        wer = s080_mandant.nutzer(wer)
+        if art not in ("entscheiden", "zuruecksetzen", "override"):
+            raise ValueError(f"Aktion {art!r} unbekannt")
+        rolle = s080_mandant.darf(book_id, art, wer)
+        scope = scope or None
+        if art == "entscheiden":
+            status.entscheiden(book_id, stage, nach, wer, grund, scope, rolle)
+        elif art == "override":
+            status.override(book_id, stage, wer, rolle, grund, nach or "frei", scope)
+        else:
+            status.zuruecksetzen(book_id, stage, wer, grund, scope)
+        return {"ok": True, "zustand": status.zustand(book_id, stage, scope)}
+    except (ValueError, PermissionError, RuntimeError, TimeoutError) as e:
+        return {"ok": False, "fehler": str(e)}
+
+
+# ------------------------------------------------------------------ Unterprozesse
+def lauf_argv(book_id, modus, wer, von=None, live=False):
+    """modus fortsetzen (Kette ab Anfang, freie Stages werden uebersprungen) | ab (--from von) | nur (--only von)."""
+    argv = [PY, "run.py", book_id]
+    if modus in ("ab", "nur"):
+        von = status._norm(von or "")
+        argv += ["--from" if modus == "ab" else "--only", von]
+    elif modus != "fortsetzen":
+        raise ValueError(f"Modus {modus!r} unbekannt")
+    if live:
+        argv.append("--live")
+    return argv + ["--wer", s080_mandant.nutzer(wer)]
+
+
+def regler_argv(book_id, stage, werte, wer):
+    """Whitelist-Aufbau; Werte immer als --flag=wert (kein Einschleusen weiterer Optionen)."""
+    r = REGLER.get(status._norm(stage))
+    if not r:
+        raise ValueError(f"Stage {stage}: keine Regler")
+    felder = {f["flag"]: f for f in r["felder"]}
+    argv = [PY, "-m", r["modul"], book_id, "--wer", s080_mandant.nutzer(wer)]
+    for flag, v in (werte or {}).items():
+        f = felder.get(flag)
+        if f is None:
+            raise ValueError(f"Regler {flag} fuer {stage} nicht erlaubt")
+        t = f["typ"]
+        if t == "schalter":
+            if v:
+                argv.append(flag)
+            continue
+        if v is None or v == "" or v == []:
+            continue
+        if t == "liste":
+            zeilen = v if isinstance(v, list) else str(v).splitlines()
+            argv += [f"{flag}={z.strip()}" for z in zeilen if z.strip()]
+        elif t == "zahl":
+            argv.append(f"{flag}={float(str(v).replace(',', '.'))}")
+        elif t == "ganz":
+            argv.append(f"{flag}={int(v)}")
+        elif t == "wahl":
+            if v not in f["werte"]:
+                raise ValueError(f"{flag}: {v!r} nicht in {f['werte']}")
+            argv.append(f"{flag}={v}")
+        else:
+            argv.append(f"{flag}={str(v).strip()}")
+    return argv, r["aktion"]
+
+
+class Laeufe:
+    """Ein Unterprozess je Werk (Lauf oder Regler), Log in cockpit/logs/werk_<id>_<zeit>.log."""
+
+    def __init__(self):
+        self.lock = threading.Lock()
+        self.jobs = {}
+
+    def start(self, book_id, argv, art):
+        with self.lock:
+            j = self.jobs.get(book_id)
+            if j and j["exit"] is None:
+                raise RuntimeError(f"Fuer {book_id} laeuft bereits: {j['art']}")
+            os.makedirs(LOGDIR, exist_ok=True)
+            log = os.path.join(LOGDIR, f"werk_{book_id}_{dt.datetime.now():%Y%m%d_%H%M%S}.log")
+            env = dict(os.environ, PYTHONIOENCODING="utf-8", PYTHONUNBUFFERED="1")
+            fh = open(log, "w", encoding="utf-8")
+            fh.write("$ " + " ".join(argv[1:]) + "\n")
+            fh.flush()
+            p = subprocess.Popen(argv, cwd=BASE, stdout=fh, stderr=subprocess.STDOUT, env=env)
+            j = {"art": art, "cmd": " ".join(argv[1:]), "log": log, "start": dt.datetime.now().isoformat(timespec="seconds"),
+                 "ende": None, "exit": None, "proc": p}
+            self.jobs[book_id] = j
+
+        def warten():
+            rc = p.wait()
+            fh.close()
+            j.update(exit=rc, ende=dt.datetime.now().isoformat(timespec="seconds"))
+        threading.Thread(target=warten, daemon=True).start()
+        return self.state(book_id)
+
+    def stop(self, book_id):
+        j = self.jobs.get(book_id)
+        if j and j["exit"] is None:
+            j["proc"].terminate()
+            return True
+        return False
+
+    def state(self, book_id, zeilen=200):
+        j = self.jobs.get(book_id)
+        if not j:
+            return None
+        try:
+            with open(j["log"], encoding="utf-8", errors="replace") as f:
+                tail = f.read().splitlines()[-zeilen:]
+        except OSError:
+            tail = []
+        rc = j["exit"]
+        return {"art": j["art"], "cmd": j["cmd"], "start": j["start"], "ende": j["ende"], "laeuft": rc is None,
+                "exit": rc, "deutung": None if rc is None else EXIT_DEUTUNG.get(rc, "fehler"),
+                "log": "\n".join(tail), "logdatei": os.path.relpath(j["log"], BASE).replace("\\", "/")}
+
+
+LAEUFE = Laeufe()
+
+
+def _recht(book_id, akt, wer):
+    ok, grund = s080_mandant.pruefen(book_id, akt, s080_mandant.nutzer(wer))
+    if not ok:
+        raise PermissionError(f"080: {grund}")
+
+
+def lauf(book_id, modus, wer, von=None, live=False):
+    try:
+        _recht(book_id, "lauf", wer)
+        argv = lauf_argv(book_id, modus, wer, von, live)
+        return {"ok": True, "lauf": LAEUFE.start(book_id, argv, f"run.py {modus}{' ' + von if von else ''}")}
+    except (ValueError, PermissionError, RuntimeError) as e:
+        return {"ok": False, "fehler": str(e)}
+
+
+def regler(book_id, stage, werte, wer, nur_vorschau=False):
+    try:
+        argv, akt = regler_argv(book_id, stage, werte, wer)
+        if nur_vorschau:
+            return {"ok": True, "cmd": " ".join(argv[1:])}
+        _recht(book_id, akt, wer)
+        return {"ok": True, "lauf": LAEUFE.start(book_id, argv, f"Regler {stage}")}
+    except (ValueError, PermissionError, RuntimeError) as e:
+        return {"ok": False, "fehler": str(e)}

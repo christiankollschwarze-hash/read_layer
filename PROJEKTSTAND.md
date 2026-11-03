@@ -1054,3 +1054,15 @@ Sicherung: archive/2026-10-29_62/ (PROJEKTSTAND, hybrid_einbau.py, tts_client.py
 - 31.10. Archiv-Regel Stimmen: je Stimme muster_<lg>.wav (ca. 5 s) + klon_<lg>.wav (Nordwind-Text, ca. 60 s). pipeline/hoerprobe.py (erzeuge, fuer_neue_stimme, ref_schnitt an Sprechpause 12-20 s); voice_registry: neue Design-Stimmen bekommen klon_<lg> automatisch; gate.ref_clip nimmt klon_<lg> zuerst; s502 schneidet Referenz an Sprechpause. Nachzug Bestand: tools/hoerproben_archiv.py + start_hoerproben.bat [liste|los]: 69 Stimmen, 138 Proben, ca. 1,86 USD (2026). Nicht gelaufen. Sicherung archive/2026-10-31_63/code_vor_hoerprobe/.
 - 31.10. Klon-Hoerproben Bestand erzeugt: 138/138 ok (69 Stimmen x de/en), 52,6-69,9 s je Probe, 137,4 min gesamt, ca. 1,85 USD. Log cockpit/logs/hoerproben_los.log.
 - 31.10. MAGI DE Stimme = Despina (book.json stimme.de). Charon-Fassung (150 WAVs) nach archive/2026-10-31_63/magi_de_charon/audio. Neulauf: start_magi_de.bat (ca. 0,18 USD).
+
+- 03.11.2026 Smoke-Werk u-smoketest-the-mirror-sisters: Kette bis 340 gelaufen; 340 Pruefaligner fehlte (Windows-Python ohne Modul modal) -> `pip install modal` nachziehen. 090 Rechte-Versicherung fuer Testwerk als "eigene" (CK) gesetzt.
+
+## 03.11.2026 — Phase 3, AP P3-1: Cockpit Einzeltitel-Ansicht (gebaut)
+- Start: cockpit_start.bat -> http://127.0.0.1:8765/werk#<book-id> (Link auch oben im alten Cockpit). Titelwechsel per Book-ID (Liste aus daten/index.json). Kein Bulk.
+- cockpit/werk_api.py: Lese-API GET /api/werk/<id>?wer= (Bestellung, Stages in Katalogreihenfolge mit Zustand/Teilen/Befunden/Ruecksprung/Metriken-Auszug/Kosten Ist je Stage/fehlende_teile/veraltet/Manifeste, naechster Schritt, Rechte 080, Protokoll). Liest nur, schreibt status.json nicht (Smoke: sha1 vor/nach gleich).
+- Aktionen POST /api/werk/<id>/aktion (entscheiden/zuruecksetzen/override, Grund Pflicht, Rolle aus config/rollen.json) direkt ueber pipeline.status; /lauf (run.py fortsetzen | ab <stage> | nur <stage>, --wer, optional --live) und /regler als Unterprozess, Live-Log cockpit/logs/werk_<id>_<zeit>.log, Exit 0 frei / 1 fehler / 2 stopp / 3 mensch (kein Fehler). Ein Unterprozess je Werk.
+- Regler (Whitelist, --flag=wert): 095 --produkt/--default; 410 --freigeben/--grund/Schwellen/--trocken; 615 --titel/--umbruch/--schrift/--position/--transparenz/--sprecher/--neu/--freigeben/--trocken; 710 --bitrate/--nur-manifest/--freigeben/--grund/--dry. Vor Ausfuehrung Befehlsvorschau + Bestaetigung.
+- Entscheidungen CK: Hoerproben/Vorschauen (640/615/530) = eigenes AP; Kosten nur Ist (kosten.jsonl).
+- Hinweis: config.RUN_MODE ist live -> jeder Lauf aus dem Cockpit ist live (Anzeige rot). Smoke-Abnahme ohne Kosten: run.py --only 080 ueber API -> Exit 0. Naechster Schritt Smoke laut Ansicht: 150 veraltet (095 juenger; lokal).
+- Tests: tests/test_cockpit_werk.py (6), zusammen mit status/kette/s080 38 ok.
+- Offen: P3-2 Vorschauen (Teaser 640, Cover 615, Hoerliste 530); Restpunkte Nachtrag 23 (3,5,8-12); altes Cockpit (Bulk) nicht erweitert.

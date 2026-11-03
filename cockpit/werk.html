@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><title>Cockpit – Einzeltitel</title>
+<style>
+:root{--g:#2e7d32;--a:#b26a00;--r:#c62828;--b:#1565c0;--x:#9e9e9e;--l:#eceff1}
+body{font:14px/1.4 system-ui,Segoe UI,sans-serif;margin:0;color:#222;background:#fafafa}
+header{position:sticky;top:0;background:#263238;color:#fff;padding:8px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;z-index:2}
+header input,header select{font:inherit;padding:3px 6px}
+header a{color:#b0bec5}
+main{display:grid;grid-template-columns:minmax(560px,1.4fr) 1fr;gap:14px;padding:14px}
+.box{background:#fff;border:1px solid #ddd;border-radius:6px;padding:10px 12px;margin-bottom:12px}
+h2{font-size:15px;margin:0 0 8px}
+.st{border-bottom:1px solid #eee}
+.st>.kopf{display:grid;grid-template-columns:44px 1fr 90px 70px 70px;gap:6px;padding:4px 2px;cursor:pointer;align-items:center}
+.st>.kopf:hover{background:#f5f5f5}
+.st.weg>.kopf{color:var(--x)}
+.z{display:inline-block;padding:1px 7px;border-radius:9px;font-size:12px;color:#fff;background:var(--x)}
+.z.frei{background:var(--g)}.z.mensch{background:var(--a)}.z.stopp{background:var(--r)}.z.laeuft{background:var(--b)}.z.offen{background:#78909c}
+.flag{font-size:11px;color:var(--a);margin-left:6px}
+.detail{display:none;padding:6px 10px 10px 50px;background:#fcfcfc}
+.st.auf .detail{display:block}
+table{border-collapse:collapse;font-size:12px}td{padding:1px 6px;vertical-align:top;border-bottom:1px solid #f0f0f0}
+.bef{color:var(--r)}.hin{color:#555}
+.teil{margin:4px 0;padding:4px 6px;border-left:3px solid var(--l)}
+.teil summary{cursor:pointer}
+button{font:inherit;padding:3px 10px;cursor:pointer}
+.akt{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px}
+.akt input[type=text]{min-width:220px}
+pre{background:#111;color:#ddd;padding:8px;max-height:420px;overflow:auto;font-size:12px;white-space:pre-wrap}
+.klein{font-size:12px;color:#666}
+.regler label{display:block;margin:3px 0}.regler textarea{width:100%;height:46px}
+.err{color:var(--r)}
+</style></head><body>
+<header>
+ <b>Einzeltitel</b>
+ <input id="werk" list="werke" size="40" placeholder="Book-ID">
+ <datalist id="werke"></datalist>
+ <button onclick="laden()">Laden</button>
+ Nutzer <select id="wer" onchange="laden()"></select>
+ <label><input type="checkbox" id="weg"> entfallene zeigen</label>
+ <span id="info" class="klein" style="color:#cfd8dc"></span>
+ <a href="/" style="margin-left:auto">altes Cockpit</a>
+</header>
+<main>
+ <section>
+  <div class="box" id="kopf"></div>
+  <div class="box"><h2>Stages</h2><div id="stages"></div></div>
+ </section>
+ <section>
+  <div class="box"><h2>Lauf</h2><div id="laufknoepfe" class="akt"></div><div id="laufinfo" class="klein"></div><pre id="log">–</pre></div>
+  <div class="box"><h2>Protokoll</h2><div id="protokoll"></div></div>
+ </section>
+</main>
+<script>
+let W=null, offen=new Set(), poll=null, sahLaufen=false;
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const zb=z=>`<span class="z ${esc(z)}">${esc(z)}</span>`;
+const usd=k=>k&&k.usd!=null?("$"+k.usd.toFixed(k.usd<1?3:2)):"";
+async function api(p,body){const r=await fetch(p,body?{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}:{});return r.json();}
+
+async function start(){
+  const n=await api("/api/nutzer");
+  $("wer").innerHTML=n.nutzer.map(u=>`<option value="${esc(u.id)}" ${u.id==n.standard?"selected":""}>${esc(u.id)} (${esc(u.rolle)})</option>`).join("");
+  const w=await api("/api/werke");$("werke").innerHTML=w.map(x=>`<option value="${esc(x)}">`).join("");
+  const h=decodeURIComponent(location.hash.slice(1));if(h){$("werk").value=h;laden();}
+  $("weg").onchange=zeichnen;$("werk").onkeydown=e=>{if(e.key=="Enter")laden();};
+}
+async function laden(){
+  const id=$("werk").value.trim();if(!id)return;location.hash=encodeURIComponent(id);
+  const d=await api(`/api/werk/${encodeURIComponent(id)}?wer=${encodeURIComponent($("wer").value)}`);
+  if(d.fehler){$("kopf").innerHTML=`<span class="err">${esc(d.fehler)}</span>`;$("stages").innerHTML="";return;}
+  W=d;zeichnen();laufZeigen(d.lauf);
+}
+function zeichnen(){
+  const d=W;if(!d)return;const b=d.bestellung||{};
+  const prod=(b.produkte||[]).map(p=>`${p.sprache}:${p.inhalt}${p.stufe?":"+p.stufe:""}:${(p.kanaele||[]).join(",")}`).join(" · ");
+  const n=d.naechster;
+  $("kopf").innerHTML=`<h2>${esc(d.book_id)}</h2>
+   <div>Bestellung: ${esc(prod)||"–"} <span class="klein">(${esc(b.quellsprache)}→${esc((b.zielsprachen||[]).join(","))}, Mandant ${esc(b.mandant)})</span></div>
+   ${d.bestellung_fehler.length?`<div class="err">${d.bestellung_fehler.map(esc).join("<br>")}</div>`:""}
+   <div>Kosten (Ist): <b>${usd(d.kosten_gesamt)||"0"}</b> · Status aktualisiert ${esc(d.aktualisiert||"–")}${d.status_vorhanden?"":" <span class='err'>(status.json fehlt)</span>"}</div>
+   <div>Nächster Schritt: ${n?`<b>${n.stage}</b> ${zb(n.zustand)} ${esc(n.grund)}${n.ruecksprung?" → Rücksprung "+esc(n.ruecksprung):""}`:"<b>alles frei</b>"}</div>
+   <div class="klein">Nutzer ${esc(d.wer)} (${esc(d.rolle)}) · darf: ${Object.entries(d.rechte).filter(([k,v])=>v.ok).map(([k])=>k).join(", ")||"nichts"}</div>`;
+  $("stages").innerHTML=d.stages.filter(s=>s.bestellt||$("weg").checked||!["entfaellt"].includes(s.zustand)).map(stageHtml).join("");
+  $("protokoll").innerHTML="<table>"+d.protokoll.map(p=>`<tr><td class="klein">${esc((p.wann||"").slice(5,16).replace("T"," "))}</td><td>${esc(p.wer)}</td><td>${esc(p.aktion)} ${esc(p.stage||"")}${p.scope?"/"+esc(p.scope):""}</td><td>${p.von?esc(p.von)+"→"+esc(p.nach):""}</td><td class="klein">${esc(p.grund||"")}</td></tr>`).join("")+"</table>";
+  laufKnoepfe();
+}
+function stageHtml(s){
+  const nt=Object.keys(s.teile).length;
+  const flags=(s.fehlende_teile.length?`<span class="flag">Teile offen</span>`:"")+(s.veraltet.length?`<span class="flag">veraltet</span>`:"")+(s.bedarf_abweichung?`<span class="flag">Bedarf ≠ Status</span>`:"")+(s.befunde.length?`<span class="flag" style="color:var(--r)">${s.befunde.length} Befund(e)</span>`:"");
+  return `<div class="st ${s.bestellt?"":"weg"} ${offen.has(s.stage)?"auf":""}" id="st${s.stage}">
+   <div class="kopf" onclick="umschalten('${s.stage}')"><b>${s.stage}</b><span>${esc(s.name)}${flags}</span><span>${zb(s.zustand)}</span><span class="klein">${nt?nt+" Teile":""}</span><span class="klein">${usd(s.kosten)}</span></div>
+   <div class="detail">${offen.has(s.stage)?detailHtml(s):""}</div></div>`;
+}
+function umschalten(st){offen.has(st)?offen.delete(st):offen.add(st);zeichnen();}
+function liste(t,a,cls){return a&&a.length?`<div class="${cls}"><b>${t}:</b> ${a.map(esc).join("<br>")}</div>`:"";}
+function metr(m){const e=Object.entries(m||{});return e.length?"<table>"+e.map(([k,v])=>`<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join("")+"</table>":"";}
+function detailHtml(s){
+  const rs=s.ruecksprung_ziele.map(r=>r.ziel+(r.scope?` (${r.scope})`:"")).join(", ");
+  let h=`<div class="klein">Gate ${esc(s.gate||"–")} · ${esc(s.wer||"")} ${esc((s.wann||"").replace("T"," ").slice(0,16))} · Versuche ${s.versuche}${s.sprachen?" · Sprachen "+esc(s.sprachen.join(",")):""}${s.vorgaenger.length?" · nach "+esc(s.vorgaenger.join(",")):""}</div>`;
+  h+=liste("Befunde",s.befunde,"bef")+(rs?`<div><b>Rücksprung:</b> ${esc(rs)}</div>`:"")+liste("Gründe (Gate)",s.befunde.length?[]:s.gruende,"hin")+liste("Hinweise",s.hinweise,"hin");
+  if(s.fehlende_teile.length)h+=`<div class="flag">Teile laut Bestellung offen: ${esc(s.fehlende_teile.join(", "))}</div>`;
+  if(s.veraltet.length)h+=`<div class="flag">veraltet nach: ${esc(s.veraltet.map(v=>v[0]+" ("+v[1].slice(5,16)+")").join(", "))}</div>`;
+  if(s.override)h+=`<div class="flag">Override ${esc(s.override.wer)}: ${esc(s.override.von)} – ${esc(s.override.grund)}</div>`;
+  h+=metr(s.metriken);
+  for(const[sc,t]of Object.entries(s.teile)){
+    h+=`<details class="teil" ${["mensch","stopp"].includes(t.zustand)?"open":""}><summary>${esc(sc)} ${zb(t.zustand)} <span class="klein">${esc(t.gate||"")}</span></summary>
+     ${liste("Gründe",t.gruende,"bef")}${t.ruecksprung?`<div>Rücksprung: ${esc(t.ruecksprung)}</div>`:""}${liste("Hinweise",t.hinweise,"hin")}${metr(t.metriken)}${aktHtml(s,sc,t.zustand)}</details>`;
+  }
+  h+=aktHtml(s,null,s.zustand);
+  if(s.manifeste.length)h+=`<div class="klein">Manifeste: ${s.manifeste.map(m=>`<a target="_blank" href="/datei?p=${encodeURIComponent(m.datei)}">${esc(m.datei.split("/").pop())}</a>`).join(" · ")}</div>`;
+  if(s.regler)h+=reglerHtml(s);
+  return h;
+}
+function aktHtml(s,sc,z){
+  const r=W.rechte,k=`${s.stage}_${sc||""}`.replace(/[^\w]/g,"_");let b="";
+  if(z=="mensch"&&r.entscheiden.ok)b+=["frei","stopp","offen"].map(n=>`<button onclick="akt('entscheiden','${s.stage}',${sc?`'${esc(sc)}'`:"null"},'${n}','${k}')">${n}</button>`).join("");
+  if(r.zuruecksetzen.ok&&z!="entfaellt"&&z!="offen")b+=`<button onclick="akt('zuruecksetzen','${s.stage}',${sc?`'${esc(sc)}'`:"null"},null,'${k}')">zurücksetzen</button>`;
+  if(r.override.ok)b+=`<select id="ov_${k}">${["frei","stopp","offen","entfaellt"].map(n=>`<option>${n}</option>`).join("")}</select><button onclick="akt('override','${s.stage}',${sc?`'${esc(sc)}'`:"null"},$('ov_${k}').value,'${k}')">Override</button>`;
+  if(!b)return"";
+  return `<div class="akt">${sc?"":"<b>Stage:</b>"}<input type="text" id="gr_${k}" placeholder="Grund (Pflicht)">${b}</div>`;
+}
+async function akt(art,stage,scope,nach,k){
+  const grund=$("gr_"+k).value.trim();if(!grund){alert("Grund ist Pflicht");return;}
+  const r=await api(`/api/werk/${encodeURIComponent(W.book_id)}/aktion`,{art,stage,scope,nach,grund,wer:$("wer").value});
+  if(!r.ok)alert(r.fehler);await laden();
+}
+function reglerHtml(s){
+  const f=s.regler.felder.map(x=>{const id=`rg_${s.stage}_${x.flag.replace(/\W/g,"")}`,h=x.hilfe?` <span class="klein">${esc(x.hilfe)}</span>`:"";
+    if(x.typ=="schalter")return `<label><input type="checkbox" id="${id}"> ${x.flag}${h}</label>`;
+    if(x.typ=="liste")return `<label>${x.flag}${h}<textarea id="${id}"></textarea></label>`;
+    if(x.typ=="wahl")return `<label>${x.flag} <select id="${id}"><option></option>${x.werte.map(v=>`<option>${v}</option>`).join("")}</select>${h}</label>`;
+    return `<label>${x.flag} <input type="text" id="${id}" size="12">${h}</label>`;}).join("");
+  return `<details class="regler teil"><summary><b>Regler ${s.stage}</b> <span class="klein">(${esc(s.regler.modul)})</span></summary>${f}<div class="akt"><button onclick="reglerLos('${s.stage}')">Ausführen …</button></div></details>`;
+}
+function reglerWerte(st){
+  const s=W.stages.find(x=>x.stage==st),w={};
+  for(const x of s.regler.felder){const el=$(`rg_${st}_${x.flag.replace(/\W/g,"")}`);w[x.flag]=x.typ=="schalter"?el.checked:el.value;}
+  return w;
+}
+async function reglerLos(st){
+  const body={stage:st,werte:reglerWerte(st),wer:$("wer").value};
+  const v=await api(`/api/werk/${encodeURIComponent(W.book_id)}/regler`,{...body,nur_vorschau:true});
+  if(!v.ok){alert(v.fehler);return;}
+  if(!confirm("Ausführen?\n\n"+v.cmd))return;
+  const r=await api(`/api/werk/${encodeURIComponent(W.book_id)}/regler`,body);
+  if(!r.ok)alert(r.fehler);else laufZeigen(r.lauf);
+}
+function laufKnoepfe(){
+  const n=W.naechster,ok=W.rechte.lauf.ok;
+  $("laufknoepfe").innerHTML=ok?`<button onclick="laufLos('fortsetzen')">Kette fortsetzen</button>`+
+   (n&&n.ruecksprung?`<button onclick="laufLos('ab','${n.ruecksprung}')">Lauf ab Rücksprung ${n.ruecksprung}</button>`:"")+
+   `<input id="von" size="4" placeholder="Stage"><button onclick="laufLos('ab',$('von').value)">ab</button><button onclick="laufLos('nur',$('von').value)">nur</button>
+   ${W.run_mode=="live"?`<span class="err">Modus live (config) – Läufe können kosten</span>`:`<label><input type="checkbox" id="live"> live</label>`}<button onclick="laufStop()">Stopp</button>`:`<span class="err">${esc(W.rechte.lauf.grund)}</span>`;
+}
+async function laufLos(modus,von){
+  const live=!!($("live")&&$("live").checked);
+  if(!confirm(`run.py ${W.book_id} ${modus}${von?" "+von:""}${live||W.run_mode=="live"?"  [LIVE – kann kosten]":""}?`))return;
+  const r=await api(`/api/werk/${encodeURIComponent(W.book_id)}/lauf`,{modus,von,live,wer:$("wer").value});
+  if(!r.ok)alert(r.fehler);else laufZeigen(r.lauf);
+}
+async function laufStop(){await api(`/api/werk/${encodeURIComponent(W.book_id)}/stop`,{});}
+function laufZeigen(l){
+  clearTimeout(poll);
+  if(!l){$("laufinfo").textContent="kein Lauf in dieser Sitzung";$("log").textContent="–";return;}
+  const farbe={frei:"var(--g)",mensch:"var(--a)",stopp:"var(--r)",fehler:"var(--r)"}[l.deutung]||"var(--b)";
+  $("laufinfo").innerHTML=`<b>${esc(l.art)}</b> · ${esc(l.start)} · <span style="color:${farbe}">${l.laeuft?"läuft …":"Exit "+l.exit+" = "+esc(l.deutung)}</span> · <span class="klein">${esc(l.logdatei)}</span>`;
+  const pre=$("log");pre.textContent=l.log;pre.scrollTop=pre.scrollHeight;
+  if(l.laeuft){sahLaufen=true;}
+  if(l.laeuft)poll=setTimeout(async()=>{laufZeigen(await api(`/api/werk/${encodeURIComponent(W.book_id)}/lauf`));},1500);
+  else if(sahLaufen){sahLaufen=false;laden();}
+}
+start();
+</script></body></html>

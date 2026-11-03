@@ -4,7 +4,8 @@ READ LAYER — Cockpit (lokal)
 Kleiner Webserver um die bestehende Pipeline. Nur Standardbibliothek, keine Installation.
 
 Start:   cockpit_start.bat   (oder: py -3.11 cockpit\\server.py)
-Browser: http://127.0.0.1:8765
+Browser: http://127.0.0.1:8765        (neu, Phase 3: Einzeltitel-Ansicht http://127.0.0.1:8765/werk#<book-id>,
+                                        cockpit/werk_api.py – alte Bulk-Ansichten unten bleiben, werden nicht erweitert)
 
 Was es tut:
   - Katalog: Startliste (cockpit/startliste.json) + vorhandene Buecher (authors/...),
@@ -36,6 +37,7 @@ BASE = os.path.dirname(HERE)
 AUTHORS = os.path.join(BASE, "authors")
 sys.path.insert(0, BASE)
 from pipeline.klappentext_pruefung import pruefe as _kt_pruefe  # noqa: E402  (18.10.2026)
+from cockpit import werk_api as WERK  # noqa: E402  (Phase 3 P3-1: Einzeltitel-Ansicht, 03.11.2026)
 INDEX = os.path.join(BASE, "daten", "index.json")
 FREIGABEN = os.path.join(BASE, "daten", "freigaben.json")
 STARTLISTE = os.path.join(HERE, "startliste.json")
@@ -970,6 +972,19 @@ class H(BaseHTTPRequestHandler):
             if u.path in ("/", "/index.html"):
                 with open(os.path.join(HERE, "index.html"), "rb") as f:
                     return self._send(200, f.read(), MIME[".html"])
+            if u.path == "/werk":
+                with open(os.path.join(HERE, "werk.html"), "rb") as f:
+                    return self._send(200, f.read(), MIME[".html"])
+            if u.path == "/api/werke":
+                return self._send(200, WERK.werke())
+            if u.path == "/api/nutzer":
+                return self._send(200, WERK.nutzer_liste())
+            if u.path.startswith("/api/werk/"):
+                teil = [urllib.parse.unquote(x) for x in u.path[len("/api/werk/"):].split("/")]
+                if len(teil) == 2 and teil[1] == "lauf":
+                    return self._send(200, json.dumps(WERK.LAEUFE.state(teil[0]), ensure_ascii=False))
+                if len(teil) == 1 and teil[0]:
+                    return self._send(200, WERK.werk(teil[0], q.get("wer", [None])[0] or None))
             if u.path == "/api/katalog":
                 hs = hoerspiel_items()
                 return self._send(200, {"werke": scan(), "flow": FLOW, "extra": EXTRA_GATES,
@@ -1000,6 +1015,21 @@ class H(BaseHTTPRequestHandler):
         except Exception:
             data = {}
         try:
+            if self.path.startswith("/api/werk/"):
+                teil = [urllib.parse.unquote(x) for x in self.path[len("/api/werk/"):].split("/")]
+                if len(teil) == 2:
+                    w, was = teil
+                    if was == "aktion":
+                        return self._send(200, WERK.aktion(w, data.get("art"), data.get("stage"), data.get("wer"),
+                                                           data.get("grund"), data.get("scope"), data.get("nach")))
+                    if was == "lauf":
+                        return self._send(200, WERK.lauf(w, data.get("modus"), data.get("wer"), data.get("von"),
+                                                         bool(data.get("live"))))
+                    if was == "regler":
+                        return self._send(200, WERK.regler(w, data.get("stage"), data.get("werte"), data.get("wer"),
+                                                           bool(data.get("nur_vorschau"))))
+                    if was == "stop":
+                        return self._send(200, {"ok": WERK.LAEUFE.stop(w)})
             if self.path == "/api/freigabe":
                 gate, status = data["gate"], data["status"]
                 if status not in ("frei", "abgelehnt", "offen"):
