@@ -1,12 +1,14 @@
-"""Laeuft in Modal (aufgerufen von messung_modal.py).
-1) ECAPA-TDNN (speechbrain/spkrec-ecapa-voxceleb): Embedding je Segment -> /out/embeddings.npz
-2) pyannote/speaker-diarization-3.1 auf spur_vc / spur_v1 / spur_orig -> /out/diar.json (+ DER gegen spur_ref.json)
+"""Laeuft in Modal (messung_modal.py) oder lokal (Stage 540 --messung cpu): python messung_gpu.py <paket> [<ausgabe>].
+1) ECAPA-TDNN (speechbrain/spkrec-ecapa-voxceleb): Embedding je Segment -> <ausgabe>/embeddings.npz
+2) pyannote/speaker-diarization-3.1 auf spur_<var> (540: hs Hoerspiel, hb Hoerbuch-Kontrolle) -> <ausgabe>/diar.json (+ DER gegen spur_ref.json)
 3) Zweitmeinung ohne pyannote: ECAPA-Fenster (1,5 s) in den Referenz-Sprechregionen + agglomeratives Clustering
 """
 import json, os, sys, traceback
 import numpy as np, torch, torchaudio
 
 P = sys.argv[1]
+OUT = sys.argv[2] if len(sys.argv) > 2 else "/out"
+os.makedirs(OUT, exist_ok=True)
 DEV = "cuda" if torch.cuda.is_available() else "cpu"
 TOK = os.environ.get("HF_TOKEN") or None
 bericht = []
@@ -31,7 +33,7 @@ with torch.no_grad():
             continue
         e = enc.encode_batch(w.to(DEV)).squeeze().cpu().numpy()
         ids.append(s["id"]); embs.append(e)
-np.savez("/out/embeddings.npz", ids=np.array(ids), emb=np.stack(embs))
+np.savez(os.path.join(OUT, "embeddings.npz"), ids=np.array(ids), emb=np.stack(embs))
 bericht.append(f"ECAPA: {len(ids)} Embeddings")
 
 ref = json.load(open(os.path.join(P, "spur_ref.json"), encoding="utf-8"))
@@ -54,8 +56,10 @@ for var in VARS:
         for a, b in fen:
             x = w[int(a * 16000):int(b * 16000)].unsqueeze(0).to(DEV)
             E.append(enc.encode_batch(x).squeeze().cpu().numpy())
+    if not E:
+        continue
     E = np.stack(E); E /= np.linalg.norm(E, axis=1, keepdims=True)
-    np.save(f"/out/fenster_{var}.npy", E)
+    np.save(os.path.join(OUT, f"fenster_{var}.npy"), E)
     diar["ecapa_cluster"][var] = {"fenster": fen}
 
 # 2) pyannote
@@ -88,6 +92,6 @@ except Exception as ex:
     bericht.append("pyannote FEHLER: " + diar["pyannote_fehler"][:300])
     traceback.print_exc()
 
-json.dump(diar, open("/out/diar.json", "w", encoding="utf-8"), ensure_ascii=False)
-open("/out/bericht.txt", "w", encoding="utf-8").write("\n".join(bericht) + "\n")
+json.dump(diar, open(os.path.join(OUT, "diar.json"), "w", encoding="utf-8"), ensure_ascii=False)
+open(os.path.join(OUT, "bericht.txt"), "w", encoding="utf-8").write("\n".join(bericht) + "\n")
 print("\n".join(bericht))

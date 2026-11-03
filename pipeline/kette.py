@@ -39,7 +39,7 @@ VORGAENGER = {
     "510": ["500", "420"],
     "530": ["500", "510"],
     "520": ["530", "340"],
-    "540": ["520"],
+    "540": ["510", "530", "520"],
     "600": ["330"],          # bei Uebersetzung nach 330, sonst (330 entfaellt) transitiv nach 190
     "610": ["600"],
     "615": ["610", "410"],   # Audio-Variante zusaetzlich nach Freigabe 410

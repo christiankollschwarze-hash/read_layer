@@ -185,6 +185,16 @@ class T510(unittest.TestCase):
         self.assertEqual(self.korr, [(1.05, 1.0)])
         self.assertEqual(g.metriken["offen"], {"de": 1})
 
+    def test_nachrunde_540_freigabe_gilt(self):
+        self.lauf()
+        self.freigeben()
+        self.werk(rl=rollen(korr={"formant_faktor": 1.05, "tonhoehe_ht": 0.0}))
+        P.korrigieren = lambda x, sr, f=1.0, ht=0.0: (self.korr.append((f, ht)), x + 0.01)[1]   # Ausgabe aendert sich
+        g = self.lauf(nachrunde=True)
+        self.assertEqual(g.ergebnis["ergebnis"], "auto", g.bericht())             # Freigabe gilt (Aufruf aus 540)
+        self.assertEqual(self.korr, [(1.05, 0.0)])
+        self.assertIn("nachrunde_540", {x["name"] for x in g.pruefungen})
+
     def test_korrektur_ohne_praat_stopp(self):
         self.werk(rl=rollen(korr={"formant_faktor": 1.05}))
         self.fa_fehlt = "ModuleNotFoundError: parselmouth"

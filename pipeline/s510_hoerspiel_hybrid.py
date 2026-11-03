@@ -384,7 +384,9 @@ def _pf(g, trocken, name, ok, wert=None, ruecksprung=None, text=None):
 
 
 def run(werk, wer=None, regler=None, saetze=None, kapitel=None, nur_lang=None, neu=False, probe=None,
-        kosten_freigeben=None, trocken=False):
+        kosten_freigeben=None, trocken=False, nachrunde=False):
+    """nachrunde=True: Aufruf aus 540 nach geaenderter Korrekturstufe – die Hoerspiel-Freigabe (Ensemble-Stichprobe)
+    gilt weiter, wenn 510 frei war; echte Pruefbefunde bleiben Mensch/Stopp."""
     wer = wer or "pipeline"
     g = gate.Gate(werk, STAGE, ruecksprung="510", wer=wer)
     b = bestellung.lesen(werk)
@@ -581,6 +583,9 @@ def run(werk, wer=None, regler=None, saetze=None, kapitel=None, nur_lang=None, n
     st0 = status.laden(werk)["stages"].get(STAGE) or {}
     bestaetigt = (st0.get("zustand") == "frei" and (st0.get("metriken") or {}).get("ausgabe_hash") == aus_hash
                   and not probe)
+    freigabe_gilt = bestaetigt or (nachrunde and st0.get("zustand") == "frei" and not probe)
+    if nachrunde and freigabe_gilt and not bestaetigt:
+        g.hinweis("nachrunde_540", True, text="Nachrunde 540 (Korrekturstufe) – Hoerspiel-Freigabe gilt weiter")
     if bestaetigt:
         for x in g.pruefungen:
             if not x["ok"] and x["bei_fehler"] == "mensch" and x["name"] != "kosten":
@@ -593,7 +598,7 @@ def run(werk, wer=None, regler=None, saetze=None, kapitel=None, nur_lang=None, n
         manifest.json_atomar(os.path.join(config.work_dir(werk), "510_pruefung.json"), pruef, indent=1)
     grund = (f"Probe {probe} Saetze je Sprache – anhoeren (work/510_pruefung.json), dann Volllauf" if probe else
              "Hoerspiel-Freigabe: Ensemble-Stichprobe je Figur anhoeren (work/510_pruefung.json → stichprobe)")
-    g.entscheide(mensch_immer=bool(probe) or (bool(alle) and not bestaetigt), mensch_grund=grund,
+    g.entscheide(mensch_immer=bool(probe) or (bool(alle) and not freigabe_gilt), mensch_grund=grund,
                  schreiben=not trocken)
     g.pruef = pruef
     return g
