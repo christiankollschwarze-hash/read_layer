@@ -37,17 +37,17 @@ def lora_werte(name):
         return MS_STD, TEMPO_STD
 
 
-def paket_name(werk, lg):
-    return f"{werk}_{lg}_500"
+def paket_name(werk, lg, stage="500"):
+    return f"{werk}_{lg}_{stage}"
 
 
-def paket_dir(werk, lg):
-    return os.path.join(config.BASE_DIR, "gpu_tts", paket_name(werk, lg))
+def paket_dir(werk, lg, stage="500"):
+    return os.path.join(config.BASE_DIR, "gpu_tts", paket_name(werk, lg, stage))
 
 
-def paket_bauen(werk, lg, jobs, stimme, referenz, adapter, ex=0.5, cfg=0.5, tag=None):
+def paket_bauen(werk, lg, jobs, stimme, referenz, adapter, ex=0.5, cfg=0.5, tag=None, stage="500"):
     """jobs [(tid, text)] -> Paketordner. referenz relativ zu BASE_DIR (casting.json) oder None (Standardstimme)."""
-    d = paket_dir(werk, lg)
+    d = paket_dir(werk, lg, stage)
     shutil.rmtree(d, ignore_errors=True)
     os.makedirs(d)
     ref = "chatterbox-standard"
@@ -60,7 +60,7 @@ def paket_bauen(werk, lg, jobs, stimme, referenz, adapter, ex=0.5, cfg=0.5, tag=
         ref = stimme or "werkstimme"
     ein = len(jobs) <= EIN_CONTAINER_BIS
     tag = tag or time.strftime("%Y%m%d%H%M%S")
-    daten = {"werk": werk, "lang": lg, "ref": ref, "ziel": f"work/_500/{lg}/{tag}", "tag": tag,
+    daten = {"werk": werk, "lang": lg, "ref": ref, "ziel": f"work/_{stage}/{lg}/{tag}", "tag": tag, "stage": stage,
              "jobs": [{"id": t, "kap": "neu" if ein else t[:4], "text": x, "ex": ex, "cfg": cfg} for t, x in jobs]}
     if adapter:
         ms, tempo = lora_werte(adapter)
@@ -70,9 +70,9 @@ def paket_bauen(werk, lg, jobs, stimme, referenz, adapter, ex=0.5, cfg=0.5, tag=
     return d, daten
 
 
-def modal_lauf(werk, lg, batch=BATCH_STD, fp16=False, tag=None):
+def modal_lauf(werk, lg, batch=BATCH_STD, fp16=False, tag=None, stage="500"):
     """Startet Modal (Batch mit Satzpruefung) und laedt ab. -> Messung (dict) inkl. befund {tid: grund}."""
-    name = paket_name(werk, lg)
+    name = paket_name(werk, lg, stage)
     cmd = [sys.executable, "-m", "modal", "run", "gpu_tts/tts_modal_opt.py::main", "--paket", name,
            "--batch", str(int(batch)), "--zusatz", tag or "z"]
     if fp16:
@@ -81,7 +81,7 @@ def modal_lauf(werk, lg, batch=BATCH_STD, fp16=False, tag=None):
     r = subprocess.run(cmd, cwd=config.BASE_DIR)
     if r.returncode != 0:
         raise RuntimeError(f"Modal-Lauf {name} Exit {r.returncode}")
-    m = sorted(glob.glob(os.path.join(paket_dir(werk, lg), f"messung_*{tag or 'z'}.json")), key=os.path.getmtime)
+    m = sorted(glob.glob(os.path.join(paket_dir(werk, lg, stage), f"messung_*{tag or 'z'}.json")), key=os.path.getmtime)
     if not m:
         return {}
     with open(m[-1], encoding="utf-8") as f:

@@ -360,7 +360,7 @@ def main(paket: str, kapitel_nur: str = "", parallel: int = 1, fp16: bool = Fals
           f"(x{messung['gpu_h_je_audio_h']}) | ~{usd:.2f} $ | {messung['usd_je_50k_zeichen']:.3f} $ je 50.000 Zeichen")
     if daten.get("werk"):   # 24.10.2026 (Smoke #7): Modal-Kosten ins Werk (kosten.jsonl)
         from pipeline import usage_log
-        usage_log.log_gpu(daten["werk"], "500", gpu_s, extra={"paket": paket, "variante": variante,
+        usage_log.log_gpu(daten["werk"], daten.get("stage") or "500", gpu_s, extra={"paket": paket, "variante": variante,
                                                               "sprache": daten.get("lang")})
     if not herunterladen:
         return

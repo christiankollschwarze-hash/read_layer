@@ -44,7 +44,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from config import config
 
 # Stages, die ihr Gate selbst ueber gate.py/status.py schreiben (waechst mit jedem Stage-Umbau).
-UMGEBAUT = {"080", "090", "095", "100", "110", "115", "120", "150", "190", "195", "200", "210", "300", "310", "320", "330", "340", "400", "410", "420", "500", "510", "530", "520", "540", "600", "610", "615", "620", "630"}
+UMGEBAUT = {"080", "090", "095", "100", "110", "115", "120", "150", "190", "195", "200", "210", "300", "310", "320", "330", "340", "400", "410", "420", "500", "510", "530", "520", "540", "600", "610", "615", "620", "630", "640"}
 
 
 def _neu(modul, **kw):
@@ -84,6 +84,7 @@ NEU = {"090": _neu("pipeline.s090_eingang"),
        "615": _neu("pipeline.s615_cover_final"),
        "620": _neu("pipeline.s620_epub_original"),
        "630": _neu("pipeline.s630_epub_zielsprache"),
+       "640": _neu("pipeline.s640_teaser"),
        "150": _neu("pipeline.s150_epub_import")}        # --force der Kette laedt raw.txt nicht neu (nur Stage-CLI)
 
 
@@ -134,7 +135,6 @@ def _alt_700(book_id, b, **_):
 
 # key -> (aufruf(book_id, lang, b, force), fertig(book_id, lang) | None)
 ALT = {
-    "640": (lambda w, lg, b, f: _mod("pipeline.s640_teaser").run(w), _work_json("640_teaser")),
     "700": (lambda w, lg, b, f: _alt_700(w, b), None),
     "710": (lambda w, lg, b, f: _mod("pipeline.s710_cloud_export").run(w, lg, force=f), _cloud_export_done),
 }
