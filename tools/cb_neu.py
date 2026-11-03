@@ -195,7 +195,7 @@ def einspielen(werk, lg):
     json.dump(wt, open(wp, "w", encoding="utf-8"), ensure_ascii=False)
     prot = {"datum": HEUTE, "tempo": f, "tags": [x[:-4] for x in neu], "gruende": d.get("gruende", {})}
     json.dump(prot, open(os.path.join(config.work_dir(werk), f"neuvertonung_cb_{lg}.json"), "w", encoding="utf-8"), indent=1)
-    print(f"[cb_neu] {len(neu)} Saetze eingespielt (alt -> {bak}), Wortzeiten verworfen -> jetzt fa_modal")
+    print(f"[cb_neu] {len(neu)} Saetze eingespielt (alt -> {bak}), Wortzeiten verworfen -> jetzt fa_modal (Altweg tools/wortzeiten_alt.py)")
 
 
 def abschluss(werk, lg):

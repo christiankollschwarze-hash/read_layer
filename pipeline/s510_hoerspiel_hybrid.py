@@ -184,8 +184,8 @@ def aligner_pruefen(art, korrektur):
 
 
 def zeiten_cpu(jobs, werk=None, lg=None):
-    from pipeline.s520_wortzeiten import _Aligner
-    al = _Aligner()
+    from pipeline.fa_mms import Aligner
+    al = Aligner()
     return {key: al.ausrichten(p, w) for key, p, w in jobs}
 
 

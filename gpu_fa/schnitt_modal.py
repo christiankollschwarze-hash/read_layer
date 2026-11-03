@@ -1,7 +1,7 @@
 """READ LAYER — AP 62 Punkt 4: Schnitt-Zeitpunkte (MMS_FA) fuer die Hoerspiel-Stufe 510 auf Modal-GPU.
-Gleicher Aligner wie lokal (pipeline/s520_wortzeiten.py, _Aligner), nur READLAYER_FA_DEVICE=cuda.
-Wird aus pipeline/s510_hoerspiel_hybrid.py (zeiten_modal) ueber `with app.run():` aufgerufen (je WAV eine Wortliste). Rueckfall: CPU (lokal).
-GPU-Liste wie fa_modal.py: ["L4", "A10G", "T4"].
+Gleicher Aligner wie lokal (pipeline/fa_mms.py), nur READLAYER_FA_DEVICE=cuda.
+Wird aus pipeline/s510_hoerspiel_hybrid.py (zeiten_modal) ueber `with app.run():` aufgerufen (je WAV eine Wortliste) –
+genutzt von 510 (Schnitt), 530 (Raender) und 520 (Wortzeiten). Rueckfall: CPU (lokal). GPU-Liste ["L4", "A10G", "T4"].
 """
 from pathlib import Path
 import modal
@@ -15,11 +15,8 @@ image = (
     modal.Image.debian_slim(python_version="3.11")
     .pip_install("torch", "torchaudio", "numpy")
     .env({"TORCH_HOME": "/vol/torch", "READLAYER_FA_DEVICE": "cuda", "PYTHONUNBUFFERED": "1"})
-    .add_local_dir(str(LESER / "config"), remote_path="/rl/config", ignore=["*.bak*", "__pycache__"])
     .add_local_file(str(LESER / "pipeline" / "__init__.py"), remote_path="/rl/pipeline/__init__.py")
-    .add_local_file(str(LESER / "pipeline" / "s520_wortzeiten.py"), remote_path="/rl/pipeline/s520_wortzeiten.py")
-    .add_local_file(str(LESER / "pipeline" / "s525_wortbruecke.py"), remote_path="/rl/pipeline/s525_wortbruecke.py")
-    .add_local_file(str(LESER / "daten" / "index.json"), remote_path="/rl/daten/index.json")
+    .add_local_file(str(LESER / "pipeline" / "fa_mms.py"), remote_path="/rl/pipeline/fa_mms.py")
 )
 
 
@@ -29,6 +26,6 @@ def zeiten(chunk: list) -> dict:
     import sys
     sys.path.insert(0, "/rl")
     vol.reload()
-    from pipeline.s520_wortzeiten import _Aligner
-    AL = _Aligner()
+    from pipeline.fa_mms import Aligner
+    AL = Aligner()
     return {j["key"]: AL.ausrichten("/vol" + j["wav"], j["woerter"]) for j in chunk}

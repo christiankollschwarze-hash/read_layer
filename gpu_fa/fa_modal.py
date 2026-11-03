@@ -1,5 +1,6 @@
 """READ LAYER — Stage 58c (Wortzeiten, MMS_FA) auf Modal-GPU (L4).
-Gleicher Code wie lokal (pipeline/s520_wortzeiten.py), nur READLAYER_FA_DEVICE=cuda.
+ALTWEG (03.11.2026) nur fuer Altwerke (start_cb_neu.bat): tools/wortzeiten_alt.py (alte Stage 520), READLAYER_FA_DEVICE=cuda.
+Neue Werke: Stage 520 (pipeline/s520_wortzeiten.py, FA ueber gpu_fa/schnitt_modal.py).
 Aufruf:  py -3.11 -m modal run gpu_fa/fa_modal.py --werk jekyll-and-hyde [--sprachen de,en] [--force]
 Ablauf:  Audio + 340_wortalignment.json ins Volume laden -> je Sprache ein GPU-Container -> Ergebnis-JSON zurueck nach work/.
 """
@@ -18,7 +19,7 @@ image = (
     .env({"TORCH_HOME": "/vol/torch", "READLAYER_FA_DEVICE": "cuda", "PYTHONUNBUFFERED": "1"})
     .add_local_dir(str(LESER / "config"), remote_path="/rl/config", ignore=["*.bak*", "__pycache__"])
     .add_local_file(str(LESER / "pipeline" / "__init__.py"), remote_path="/rl/pipeline/__init__.py")
-    .add_local_file(str(LESER / "pipeline" / "s520_wortzeiten.py"), remote_path="/rl/pipeline/s520_wortzeiten.py")
+    .add_local_file(str(LESER / "tools" / "wortzeiten_alt.py"), remote_path="/rl/tools/wortzeiten_alt.py")
     .add_local_file(str(LESER / "pipeline" / "s525_wortbruecke.py"), remote_path="/rl/pipeline/s525_wortbruecke.py")
     .add_local_file(str(LESER / "daten" / "index.json"), remote_path="/rl/daten/index.json")
 )
@@ -34,7 +35,7 @@ def ausrichten(rel_werk: str, werk: str, lang: str, force: bool) -> str:
     if not ziel.exists():
         os.symlink(f"/vol/fa/{rel_werk}", ziel)
     t0 = time.time()
-    cmd = [sys.executable, "-m", "pipeline.s520_wortzeiten", werk, "--lang", lang] + (["--force"] if force else [])
+    cmd = [sys.executable, "tools/wortzeiten_alt.py", werk, "--lang", lang] + (["--force"] if force else [])
     r = subprocess.run(cmd, cwd="/rl", capture_output=True, text=True)
     vol.commit()
     log = (r.stdout + r.stderr)[-1500:]

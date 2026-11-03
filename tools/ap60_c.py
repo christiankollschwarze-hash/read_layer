@@ -11,7 +11,7 @@ import numpy as np
 
 LESER = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(LESER))
-from pipeline.s520_wortzeiten import _Aligner  # noqa: E402
+from pipeline.fa_mms import Aligner as _Aligner  # noqa: E402
 from pipeline.s525_wortbruecke import lautwoerter  # noqa: E402
 
 T = LESER / "tests/ap60"

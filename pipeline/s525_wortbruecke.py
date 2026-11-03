@@ -13,12 +13,14 @@ Wirkungsweise: Gemeinsame Wahrheit ist die ZEICHENPOSITION im Satztext, nie ein 
                5) zeit_fuer_span(): Span -> Ziel-Tokens; Teil eines Tokens (Kompositum, "Santa-Clara-Tal")
                   bekommt den Zeitanteil nach Buchstabenposition, mehrere Tokens die Vereinigung.
 Komponenten:   pipeline/s525_wortbruecke.py (einzige Stelle fuer Lautwort-Zerlegung + Token-Bindung)
-Zulieferer:    s340/s345 (work/340_wortalignment.json), s520 (work/520_wortzeiten_<lg>.json)
+Phase 2 (03.11.2026): Teil der Stage 520 (ein Gate) – Lauf und Ausgabe in pipeline/s520_wortzeiten.bruecke (je
+               Zielsprache align_<lg>, Ausgabe zusaetzlich je_ziel); dieses Modul ist nur noch Bibliothek.
+Zulieferer:    s340 (work/340_wortalignment.json), s520 (work/520_wortzeiten_<lg>.json)
 Abnehmer:      s520 (lautwoerter, bind_to_tokens), s710 Cloud-Export (Felder t / tz / Ziel-Span je Anker),
                TAELLA-App. Ausgabe: work/525_wortbruecke.json
                { "tags": { tid: [ {"i", "t":[t0,t1]|null, "tq", "zspans":[[a,b],..], "tz":[[t0,t1],..]|null, "sq"} ] },
                  "messung": {"vorher": {...}, "nachher": {...}} }
-Aufruf:        python -m pipeline.s525_wortbruecke <werk>
+Aufruf:        ueber Stage 520 (py -3.11 -m pipeline.s520_wortzeiten <werk>)
 (AP 54b, 26.10.2026)
 AP 55 (26.10.2026): richtungsneutral (Quelle aus book.json, auch DE-Original); Hoerspiel-Zeiten je Anker
                ths (Quell-Hoerspiel-Clip) / tzhs (Ziel-Hoerspiel-Clip) aus 520_wortzeiten_<lg>_hoerspiel.json.
@@ -156,10 +158,11 @@ def zeit_fuer_span(span, spans, z, text, reparatur=True):
 # ---------------------------------------------------------------------------
 # Bruecke je Satz + Messung
 # ---------------------------------------------------------------------------
-def bruecke_satz(quell_text, ziel_text, align, quell_520, ziel_520, reparatur=True, quell_hs=None, ziel_hs=None):
+def bruecke_satz(quell_text, ziel_text, align, quell_520, ziel_520, reparatur=True, quell_hs=None, ziel_hs=None,
+                 lg=None):
     q_sp, q_z, q_q = tokenzeiten(quell_text, quell_520, reparatur)
     z_sp, z_z, _ = tokenzeiten(ziel_text, ziel_520, reparatur)
-    zsp = ziel_spans(align, ziel_text, reparatur)
+    zsp = ziel_spans(align, ziel_text, reparatur, lg=lg)
     out = []
     for w, (spans, sq) in zip(align, zsp):
         i = w.get("i")
@@ -190,11 +193,13 @@ def bruecke_satz(quell_text, ziel_text, align, quell_520, ziel_520, reparatur=Tr
 
 def _leer():
     return {"woerter": 0, "anker": 0, "zeit_quelle": 0, "zeit_ziel": 0, "anker_und_zeit_quelle": 0,
-            "anker_und_beide_zeiten": 0, "spans_repariert": 0, "zeit_interpoliert": 0, "mehrere_spans": 0}
+            "anker_und_beide_zeiten": 0, "anker_mit_zeit": 0, "spans_repariert": 0, "zeit_interpoliert": 0,
+            "mehrere_spans": 0}
 
 
-def messen(tags, content):
-    src = config.SOURCE_LANGUAGE
+def messen(tags, content, src=None, q_audio=True, z_audio=True):
+    """Kennzahlen je Wort; anker_mit_zeit = Anker mit Zeit in jedem Audio, das es gibt (q_audio/z_audio)."""
+    src = src or config.SOURCE_LANGUAGE
     m = _leer()
     for tid, ws in tags.items():
         text = content[tid].get(src, "")
@@ -210,54 +215,10 @@ def messen(tags, content):
             m["zeit_ziel"] += tz
             m["anker_und_zeit_quelle"] += a and tq
             m["anker_und_beide_zeiten"] += a and tq and tz
+            m["anker_mit_zeit"] += a and (tq or not q_audio) and (tz or not z_audio)
             m["spans_repariert"] += w["sq"] == "repariert"
             m["zeit_interpoliert"] += w["tq"] == "interp"
             m["mehrere_spans"] += len(w["zspans"]) > 1
     n = max(1, m["woerter"])
     m["prozent"] = {k: round(100.0 * v / n, 2) for k, v in m.items() if k != "woerter"}
     return m
-
-
-def run(book_id, reparatur=True):
-    config.werk_sprachen(book_id)   # AP 55: Richtung aus book.json (DE-Original -> Quelle de) VOR dem ersten Zugriff
-    src = config.SOURCE_LANGUAGE
-    tgt = config.TARGET_LANGUAGES[0]
-    content = json.load(open(config.work_path(book_id, "340_wortalignment"), encoding="utf-8"))["content"]
-
-    def lade(lg, zusatz=""):
-        p = config.work_path(book_id, f"520_wortzeiten_{lg}{zusatz}")
-        return json.load(open(p, encoding="utf-8")).get("tags", {}) if os.path.exists(p) else {}
-
-    zq, zz = lade(src), lade(tgt)
-    hq, hz = lade(src, "_hoerspiel"), lade(tgt, "_hoerspiel")   # AP 55
-    erg = {}
-    for modus in (False, True):
-        tags = {}
-        for tid, v in content.items():
-            al = v.get("align")
-            if not al:
-                continue
-            tags[tid] = bruecke_satz(v.get(src, ""), v.get(tgt, ""), al,
-                                     zq.get(tid), zz.get(tid) if tid in zz else None, modus,
-                                     hq.get(tid) if modus else None, hz.get(tid) if modus else None)
-        erg["nachher" if modus else "vorher"] = (tags, messen(tags, content))
-    hs = {"saetze_quelle": sum(1 for t in hq if t in erg["nachher"][0]), "saetze_ziel": sum(1 for t in hz if t in erg["nachher"][0]),
-          "anker_ths": sum(1 for ws in erg["nachher"][0].values() for w in ws if w.get("ths")),
-          "anker_tzhs": sum(1 for ws in erg["nachher"][0].values() for w in ws if w.get("tzhs"))}
-    if hq or hz:
-        print(f"[{STAGE}] Hoerspiel: {hs}")
-    out = config.work_path(book_id, f"{STAGE}_wortbruecke")
-    json.dump({"quelle": src, "ziel": tgt, "tags": erg["nachher"][0],
-               "messung": {"vorher": erg["vorher"][1], "nachher": erg["nachher"][1]}, "hoerspiel": hs},
-              open(out, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
-    for k in ("vorher", "nachher"):
-        m = erg[k][1]
-        print(f"[{STAGE}] {k:7s} Woerter {m['woerter']} | " +
-              " | ".join(f"{a} {b}%" for a, b in m["prozent"].items()))
-    print(f"[{STAGE}] Geschrieben: {out}")
-    return erg["nachher"][1]
-
-
-if __name__ == "__main__":
-    args = [a for a in sys.argv[1:] if not a.startswith("--")]
-    run(args[0] if args else "call-of-the-wild")
