@@ -189,7 +189,9 @@ def start(book_id, stage, wer="pipeline", scope=None):
     with aendern(book_id) as d:
         z = _ziel(d, stage, scope)
         z.update(zustand="laeuft", wer=wer, wann=jetzt())
-        if scope is not None:
+        if scope is None:                  # neuer Lauf: Befunde/Hinweise des Vorlaufs gelten nicht mehr
+            z.update(gate=None, hinweise=[])
+        else:
             _st(d, stage)["zustand"] = "laeuft"
 
 
@@ -300,6 +302,24 @@ def ist_frei(book_id, stage, scope=None, d=None):
     return zustand(book_id, stage, scope, d) in FREI
 
 
+def _befund_zeile(st):
+    """Befunde nur fuer offene Entscheidungen/Halts (mensch, stopp) – bei frei/entfaellt keine alten
+    Fehlertexte. Stage-Gate leer -> Befunde der nicht freien Teile als '<scope>: <grund>'."""
+    if st.get("zustand") not in ("mensch", "stopp"):
+        return ""
+    g = st.get("gate") or {}
+    gr, rs = list(g.get("gruende") or []), [g["ruecksprung"]] if g.get("ruecksprung") else []
+    if not gr:
+        for sc, t in sorted((st.get("teile") or {}).items()):
+            if t.get("zustand") in ("mensch", "stopp"):
+                tg = t.get("gate") or {}
+                gr += [f"{sc}: {x}" for x in (tg.get("gruende") or [t["zustand"]])]
+                if tg.get("ruecksprung") and tg["ruecksprung"] not in rs:
+                    rs.append(tg["ruecksprung"])
+    info = (" | " + "; ".join(gr)[:100]) if gr else ""
+    return info + (f" -> {','.join(rs)}" if rs else "")
+
+
 def uebersicht(book_id):
     d = laden(book_id)
     zeilen = [f"Werk {book_id}  (aktualisiert {d.get('aktualisiert')})"]
@@ -307,12 +327,7 @@ def uebersicht(book_id):
         st = d["stages"].get(s)
         if not st:
             continue
-        g = (st.get("gate") or {})
-        info = ""
-        if g.get("gruende"):
-            info = " | " + "; ".join(g["gruende"])[:100]
-        if g.get("ruecksprung"):
-            info += f" -> {g['ruecksprung']}"
+        info = _befund_zeile(st)
         teile = f" [{len(st['teile'])} Teile]" if st.get("teile") else ""
         zeilen.append(f"  {s}  {st['zustand']:<9} v{st.get('versuche', 0)}{teile}{info}")
     return "\n".join(zeilen)

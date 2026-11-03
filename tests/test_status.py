@@ -67,6 +67,22 @@ class T(unittest.TestCase):
         with self.assertRaises(ValueError):
             S.start(self.w, "345")
 
+    def test_uebersicht_nur_aktuelle_befunde(self):
+        """Aufraeumpaket 2: frei/entfaellt ohne alte Fehlertexte; neuer Lauf loescht Befunde des Vorlaufs."""
+        S.bedarf_setzen(self.w, ["340", "640", "700"])
+        S.ergebnis(self.w, "340", "mensch", gruende=["Pruefaligner nicht erreichbar"], ruecksprung="340")
+        S.entscheiden(self.w, "340", "frei", wer="CK", grund="ok")
+        S.ergebnis(self.w, "640", "stopp", gruende=["Fehler: No module named 'faster_whisper'"], ruecksprung="640")
+        S.start(self.w, "640")
+        self.assertIsNone(S.laden(self.w)["stages"]["640"]["gate"])
+        S.ergebnis(self.w, "640", "auto", scope="de")
+        S.ergebnis(self.w, "700", "mensch", scope="de:text:taella", gruende=["Klappentext fehlt"], ruecksprung="600")
+        u = S.uebersicht(self.w)
+        z = {l.split()[0]: l for l in u.splitlines()[1:]}
+        self.assertNotIn("Pruefaligner", z["340"])
+        self.assertNotIn("faster_whisper", z["640"])
+        self.assertIn("de:text:taella: Klappentext fehlt -> 600", z["700"])
+
 
 if __name__ == "__main__":
     unittest.main()
