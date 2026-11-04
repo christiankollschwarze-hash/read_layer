@@ -577,3 +577,160 @@ def upload_stand():
         st["neu"] = sorted(set(werke()) - LAEUFE.jobs["_upload"].get("vorher", set()))
         _LISTE["daten"] = None
     return st
+
+
+# ------------------------------------------------------------------ Gate-Monitore (Phase 3, Bau ab 04.11.2026)
+# Rahmen: je Stage eine Ansicht (/monitor#<id>/<stage>), Schema 1 Anzeigen · 2 Bearbeiten · 3 Speichern ·
+# 4 Freigeben · 5 Ruecksprung (claude/GATE_MONITORE.md). Speichern nur ueber das Stage-Modul (Unterprozess),
+# dessen Lauf die Stage zugleich neu prueft. Stages ohne eigenen Monitor zeigen Befunde/Metriken/Manifeste.
+MONITOR_DATEN = {}       # stage -> f(book_id) -> dict
+MONITOR_SPEICHERN = {}   # stage -> f(book_id, eingabe, wer) -> argv (Stage-Modul)
+
+
+def monitor(book_id, stage, wer=None):
+    stage = status._norm(stage)
+    w = werk(book_id, wer)
+    st = next((s for s in w["stages"] if s["stage"] == stage), None)
+    if st is None:
+        return {"fehler": f"Stage {stage} unbekannt"}
+    daten = dfehler = None
+    f = MONITOR_DATEN.get(stage)
+    if f:
+        try:
+            daten = f(book_id)
+        except Exception as e:
+            dfehler = f"{type(e).__name__}: {e}"
+    kette_kurz = [{"stage": s["stage"], "name": s["name"], "zustand": s["zustand"]} for s in w["stages"] if s["bestellt"]]
+    return {"book_id": book_id, "wer": w["wer"], "rolle": w["rolle"], "rechte": w["rechte"], "ampel": w["ampel"],
+            "run_mode": w["run_mode"], "lauf": w["lauf"], "naechster": w["naechster"], "kette": kette_kurz,
+            "titel": _titel(book_id),
+            "stage": st, "monitor": stage in MONITOR_DATEN, "daten": daten, "daten_fehler": dfehler}
+
+
+def _titel(book_id):
+    try:
+        return bestellung.lesen(book_id).roh.get("titel_original") or book_id
+    except Exception:
+        return book_id
+
+
+def monitor_speichern(book_id, stage, eingabe, wer):
+    """'Uebernehmen und neu pruefen': Stage-Modul als Unterprozess mit den Monitor-Werten."""
+    try:
+        stage = status._norm(stage)
+        f = MONITOR_SPEICHERN.get(stage)
+        if not f:
+            raise ValueError(f"Stage {stage}: kein Monitor zum Speichern")
+        _recht(book_id, "bestellen", wer)
+        argv = f(book_id, eingabe or {}, s080_mandant.nutzer(wer))
+        if eingabe.get("nur_vorschau"):
+            return {"ok": True, "cmd": " ".join(argv[1:])}
+        return {"ok": True, "lauf": LAEUFE.start(book_id, argv, f"Monitor {stage}: übernehmen und neu prüfen")}
+    except (ValueError, PermissionError, RuntimeError, OSError) as e:
+        return {"ok": False, "fehler": str(e)}
+
+
+# ---- 100 Anlegen
+def _m100_daten(book_id):
+    import datetime as _d
+    import json as _j
+    from tools import s100_anlegen as S
+    b = bestellung.lesen(book_id)
+    roh = b.roh
+    ordner = bestellung.werkordner(book_id)
+    jahr = _d.date.today().year
+    ap = S._author_pfad(roh, ordner)
+    aj = {}
+    if os.path.exists(ap):
+        with open(ap, encoding="utf-8") as f:
+            aj = _j.load(f)
+
+    def pd(person, name_, tj, quelle=None):
+        nw = [n for n in S.nachweise(roh) if person in (n.get("deckt") or [])]
+        grenze = int(tj) + S.PD_JAHRE if tj not in (None, "") else None
+        ok = bool(nw) or (grenze is not None and grenze < jahr)
+        return {"person": person, "name": name_, "todesjahr": tj, "todesjahr_quelle": quelle, "grenze": grenze,
+                "ok": ok, "per_nachweis": bool(nw) and not (grenze is not None and grenze < jahr),
+                "nachweise": [S.nachweis_text(n) for n in nw]}
+    personen = [pd("autor", aj.get("name_display") or "", aj.get("todesjahr"),
+                   (aj.get("todesjahr_quelle") or {}).get("art") if isinstance(aj.get("todesjahr_quelle"), dict) else None)]
+    if (roh.get("quell_uebersetzer") or "").strip():
+        personen.append(pd("uebersetzer", roh["quell_uebersetzer"], roh.get("quell_uebersetzer_todesjahr")))
+    raw = os.path.join(ordner, "raw.txt")
+    rt = {"vorhanden": os.path.exists(raw)}
+    if rt["vorhanden"]:
+        with open(raw, encoding="utf-8", errors="replace") as f:
+            text = f.read()
+        s, e, kern = S.text_rahmen(text)
+        ms, me = S.START.search(text), S.ENDE.search(text)
+        rt.update(zeichen=len(text), zeilen=text.count("\n") + 1, kern=len(kern.strip()), min=S.MIN_ZEICHEN,
+                  start=text.count("\n", 0, ms.start()) + 1 if ms else None,
+                  ende=text.count("\n", 0, me.start()) + 1 if me else None)
+    tq = roh.get("textquelle") or {}
+    gid = roh.get("gutenberg_id") or ""
+    return {"titel": roh.get("titel_original") or book_id, "quelle": roh.get("quelle") or ("gutenberg" if gid else ""),
+            "gutenberg_id": gid, "gutenberg_link": f"https://www.gutenberg.org/ebooks/{gid}" if gid else None,
+            "textquelle": tq, "personen": personen, "jahr": jahr, "pd_jahre": S.PD_JAHRE,
+            "nachweise": [dict(n, text=S.nachweis_text(n)) for n in S.nachweise(roh)],
+            "rechte_art": b.rechte.get("art"), "quellsprache": b.quellsprache,
+            "sprachliste": list(bestellung.sprachliste()), "sprache_ok": b.quellsprache in bestellung.sprachliste(),
+            "rohtext": rt, "rohtext_url": f"/api/werk/{book_id}/rohtext"}
+
+
+def _m100_argv(book_id, e, wer):
+    import re as _re
+    argv = [PY, os.path.join("tools", "s100_anlegen.py"), book_id, "--wer", wer]
+    grund = (e.get("grund") or "").strip()
+    for k, flag in (("todesjahr", "--todesjahr"), ("uebersetzer_todesjahr", "--uebersetzer-todesjahr")):
+        if str(e.get(k) or "").strip():
+            argv.append(f"{flag}={int(e[k])}")
+    if e.get("quellsprache"):
+        if e["quellsprache"] not in bestellung.sprachliste():
+            raise ValueError("Quellsprache nicht in Sprachliste")
+        argv.append(f"--quellsprache={e['quellsprache']}")
+    n = e.get("nachweis") or {}
+    if n.get("art"):
+        deckt = [p for p in (n.get("deckt") or []) if p in ("autor", "uebersetzer")]
+        if not deckt:
+            raise ValueError("Nachweis: deckt Autor und/oder Übersetzer wählen")
+        if n["art"] == "url":
+            argv.append(f"--pd-url={(n.get('url') or '').strip()}")
+        elif n["art"] == "rechteinhaber":
+            ra = n.get("rechte_art") or "eigene"
+            if ra not in ("eigene", "lizenz"):
+                raise ValueError("Rechteinhaber: eigene|lizenz")
+            argv.append(f"--rechteinhaber={ra}")
+        elif n["art"] == "andere_quelle":
+            argv.append(f"--pd-quelle={(n.get('quelle') or '').strip()}")
+            if (n.get("url") or "").strip():
+                argv.append(f"--pd-url={n['url'].strip()}")
+        else:
+            raise ValueError(f"Nachweis-Art {n['art']!r} unbekannt")
+        argv.append(f"--deckt={','.join(deckt)}")
+    url = (e.get("textquelle_url") or "").strip()
+    if url:
+        if not _re.match(r"^https?://", url):
+            raise ValueError("andere Quelle: nur http(s)-URL (Datei über 'Datei laden' in den Editor)")
+        argv.append(f"--textquelle={url}")
+    if e.get("rohtext") is not None:
+        if url:
+            raise ValueError("Editor-Text und andere Quelle schließen sich aus")
+        if not grund:
+            raise ValueError("Grund ist Pflicht (Rohtext geändert)")
+        p = os.path.join(config.work_dir(book_id), "100_editor.txt")
+        with open(p, "w", encoding="utf-8", newline="") as f:
+            f.write(e["rohtext"])
+        argv += [f"--rohtext-aus={p}", f"--grund={grund}"]
+    if e.get("neu_laden"):
+        argv.append("--force")
+    return argv
+
+
+def rohtext(book_id):
+    p = os.path.join(bestellung.werkordner(book_id), "raw.txt")
+    with open(p, "rb") as f:
+        return f.read()
+
+
+MONITOR_DATEN["100"] = _m100_daten
+MONITOR_SPEICHERN["100"] = _m100_argv

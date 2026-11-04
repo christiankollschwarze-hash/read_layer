@@ -90,7 +90,7 @@ function zeichnen(){
    <div>Bestellung: ${esc(prod)||"–"} <span class="klein">(${esc(b.quellsprache)}→${esc((b.zielsprachen||[]).join(","))}, Mandant ${esc(b.mandant)})</span></div>
    ${d.bestellung_fehler.length?`<div class="err">${d.bestellung_fehler.map(esc).join("<br>")}</div>`:""}
    <div>Kosten (Ist): <b>${usd(d.kosten_gesamt)||"0"}</b> · Status aktualisiert ${esc(d.aktualisiert||"–")}${d.status_vorhanden?"":" <span class='err'>(status.json fehlt)</span>"}</div>
-   <div>Nächster Schritt: ${n?`<b>${n.stage}</b> ${zb(n.zustand)} ${esc(n.grund)}${n.ruecksprung?" → Rücksprung "+esc(n.ruecksprung):""}`:"<b>alles frei</b>"}</div>
+   <div>Nächster Schritt: ${n?`<b>${n.stage}</b> ${zb(n.zustand)} ${esc(n.grund)}${n.ruecksprung?" → Rücksprung "+esc(n.ruecksprung):""} <a href="/monitor#${encodeURIComponent(d.book_id)}/${n.stage}">Monitor öffnen →</a>`:"<b>alles frei</b>"}</div>
    <div class="klein">Nutzer ${esc(d.wer)} (${esc(d.rolle)}) · darf: ${Object.entries(d.rechte).filter(([k,v])=>v.ok).map(([k])=>k).join(", ")||"nichts"}</div>`;
   $("stages").innerHTML=d.stages.filter(s=>s.bestellt||$("weg").checked||!["entfaellt"].includes(s.zustand)).map(stageHtml).join("");
   $("protokoll").innerHTML="<table>"+d.protokoll.map(p=>`<tr><td class="klein">${esc((p.wann||"").slice(5,16).replace("T"," "))}</td><td>${esc(p.wer)}</td><td>${esc(p.aktion)} ${esc(p.stage||"")}${p.scope?"/"+esc(p.scope):""}</td><td>${p.von?esc(p.von)+"→"+esc(p.nach):""}</td><td class="klein">${esc(p.grund||"")}</td></tr>`).join("")+"</table>";
@@ -108,7 +108,7 @@ function liste(t,a,cls){return a&&a.length?`<div class="${cls}"><b>${t}:</b> ${a
 function metr(m){const e=Object.entries(m||{});return e.length?"<table>"+e.map(([k,v])=>`<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join("")+"</table>":"";}
 function detailHtml(s){
   const rs=s.ruecksprung_ziele.map(r=>r.ziel+(r.scope?` (${r.scope})`:"")).join(", ");
-  let h=`<div class="klein">Gate ${esc(s.gate||"–")} · ${esc(s.wer||"")} ${esc((s.wann||"").replace("T"," ").slice(0,16))} · Versuche ${s.versuche}${s.sprachen?" · Sprachen "+esc(s.sprachen.join(",")):""}${s.vorgaenger.length?" · nach "+esc(s.vorgaenger.join(",")):""}</div>`;
+  let h=`<div><a href="/monitor#${encodeURIComponent(W.book_id)}/${s.stage}">Monitor ${s.stage} öffnen →</a></div><div class="klein">Gate ${esc(s.gate||"–")} · ${esc(s.wer||"")} ${esc((s.wann||"").replace("T"," ").slice(0,16))} · Versuche ${s.versuche}${s.sprachen?" · Sprachen "+esc(s.sprachen.join(",")):""}${s.vorgaenger.length?" · nach "+esc(s.vorgaenger.join(",")):""}</div>`;
   h+=liste("Befunde",s.befunde,"bef")+(rs?`<div><b>Rücksprung:</b> ${esc(rs)}</div>`:"")+liste("Gründe (Gate)",s.befunde.length?[]:s.gruende,"hin")+liste("Hinweise",s.hinweise,"hin");
   if(s.fehlende_teile.length)h+=`<div class="flag">Teile laut Bestellung offen: ${esc(s.fehlende_teile.join(", "))}</div>`;
   if(s.veraltet.length)h+=`<div class="flag">veraltet nach: ${esc(s.veraltet.map(v=>v[0]+" ("+v[1].slice(5,16)+")").join(", "))}</div>`;

@@ -3,6 +3,7 @@ READ LAYER — Cockpit (Phase 3, ab 03.11.2026)
 =============================================
 Nur Standardbibliothek. Start: cockpit_start.bat (oder: py -3.11 cockpit\\server.py)
 Browser: http://127.0.0.1:8765  ->  Einzeltitel-Ansicht (cockpit/werk.html, #<book-id>)
+         Gate-Monitor je Stage: /monitor#<book-id>/<stage> (cockpit/monitor.html, ab 04.11.2026)
 
 Eine Wahrheit: work/status.json je Werk ueber pipeline.status; Laeufe nur ueber run.py (cockpit/werk_api.py).
 Kein eigener Zustand, keine Auftraege, nichts startet beim Serverstart von selbst.
@@ -24,7 +25,7 @@ PORT = 8765
 MIME = {".html": "text/html; charset=utf-8", ".png": "image/png", ".jpg": "image/jpeg",
         ".jpeg": "image/jpeg", ".webp": "image/webp", ".wav": "audio/wav", ".mp3": "audio/mpeg",
         ".json": "application/json", ".epub": "application/epub+zip", ".log": "text/plain; charset=utf-8",
-        ".txt": "text/plain; charset=utf-8"}
+        ".txt": "text/plain; charset=utf-8", ".js": "text/javascript; charset=utf-8"}
 
 
 class H(BaseHTTPRequestHandler):
@@ -56,6 +57,15 @@ class H(BaseHTTPRequestHandler):
             if u.path == "/werk":
                 with open(os.path.join(HERE, "werk.html"), "rb") as f:
                     return self._send(200, f.read(), MIME[".html"])
+            if u.path == "/monitor":
+                with open(os.path.join(HERE, "monitor.html"), "rb") as f:
+                    return self._send(200, f.read(), MIME[".html"])
+            if u.path.startswith("/vendor/"):
+                p = os.path.normpath(os.path.join(HERE, "vendor", os.path.basename(u.path)))
+                if not os.path.isfile(p):
+                    return self._send(404, {"fehler": "nicht gefunden"})
+                with open(p, "rb") as f:
+                    return self._send(200, f.read(), MIME.get(os.path.splitext(p)[1].lower(), "application/octet-stream"))
             if u.path == "/api/werkliste":
                 return self._send(200, WERK.werke_liste())
             if u.path == "/api/upload":
@@ -72,6 +82,10 @@ class H(BaseHTTPRequestHandler):
                     return self._send(200, WERK.ampel(t[0]))
                 if len(t) == 2 and t[1] == "lauf":
                     return self._send(200, WERK.LAEUFE.state(t[0]))
+                if len(t) == 2 and t[1] == "rohtext":
+                    return self._send(200, WERK.rohtext(t[0]), MIME[".txt"])
+                if len(t) == 3 and t[1] == "monitor":
+                    return self._send(200, WERK.monitor(t[0], t[2], q.get("wer", [None])[0] or None))
                 if len(t) == 1 and t[0]:
                     return self._send(200, WERK.werk(t[0], q.get("wer", [None])[0] or None))
             if u.path == "/datei":
@@ -102,6 +116,8 @@ class H(BaseHTTPRequestHandler):
         try:
             if self.path.startswith("/api/werk/"):
                 t = self._teil(self.path)
+                if len(t) == 3 and t[1] == "monitor":
+                    return self._send(200, WERK.monitor_speichern(t[0], t[2], data, data.get("wer")))
                 if len(t) == 2:
                     w, was = t
                     if was == "aktion":

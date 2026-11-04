@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><title>Cockpit – Gate-Monitor</title>
+<script src="/vendor/codemirror6.min.js"></script>
+<style>
+:root{--g:#2e7d32;--a:#b26a00;--r:#c62828;--b:#1565c0;--x:#9e9e9e;--l:#eceff1}
+body{font:14px/1.4 system-ui,Segoe UI,sans-serif;margin:0;color:#222;background:#fafafa}
+header{position:sticky;top:0;background:#263238;color:#fff;padding:8px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;z-index:5}
+header select,header input{font:inherit;padding:3px 6px}
+header a{color:#b0bec5}
+main{max-width:1200px;margin:0 auto;padding:14px}
+.box{background:#fff;border:1px solid #ddd;border-radius:6px;padding:10px 12px;margin-bottom:12px}
+h2{font-size:15px;margin:0 0 8px}h3{font-size:13px;margin:10px 0 6px;color:#455a64;text-transform:uppercase;letter-spacing:.04em}
+.z{display:inline-block;padding:1px 7px;border-radius:9px;font-size:12px;color:#fff;background:var(--x)}
+.z.frei{background:var(--g)}.z.mensch{background:var(--a)}.z.stopp{background:var(--r)}.z.laeuft{background:var(--b)}.z.offen{background:#78909c}
+table{border-collapse:collapse;font-size:13px;width:100%}td,th{padding:4px 8px;vertical-align:top;border-bottom:1px solid #eee;text-align:left}th{font-weight:600;color:#555;font-size:12px}
+.bef{color:var(--r)}.hin{color:#555}.klein{font-size:12px;color:#666}.err{color:var(--r)}.ok{color:var(--g)}
+button{font:inherit;padding:4px 12px;cursor:pointer}
+button.haupt{background:var(--b);color:#fff;border:0;border-radius:4px;padding:6px 16px;font-weight:600}
+.akt{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
+input[type=text],input[type=number]{font:inherit;padding:3px 6px}
+pre{background:#111;color:#ddd;padding:8px;max-height:260px;overflow:auto;font-size:12px;white-space:pre-wrap;margin:6px 0 0}
+.ampel{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:6px;font-weight:600;margin-bottom:12px;color:#fff}
+.ampel .dot{width:16px;height:16px;border-radius:50%;background:#fff;flex:none}
+.a-produktion,.a-stockt{background:var(--g)}.a-handlung{background:#ef6c00}.a-angehalten,.a-fehler{background:var(--r)}.a-ruhe{background:#78909c}
+.blink{animation:puls 1s infinite}@keyframes puls{0%,100%{opacity:1}50%{opacity:.2}}
+.pd{display:inline-block;width:11px;height:11px;border-radius:50%;vertical-align:middle;margin-right:4px}
+.pd.ja{background:var(--g)}.pd.nein{background:var(--r)}.pd.nw{background:#f9a825}
+.schritt{display:flex;gap:4px;flex-wrap:wrap}
+.schritt a{font-size:12px;padding:1px 7px;border-radius:9px;text-decoration:none;color:#fff;background:#78909c}
+.schritt a.frei{background:var(--g)}.schritt a.mensch{background:var(--a)}.schritt a.stopp{background:var(--r)}.schritt a.akt{outline:2px solid #fff}
+#editor{border:1px solid #ccc;height:460px;overflow:hidden}#editor .cm-editor{height:100%}
+.feld{display:grid;grid-template-columns:150px 1fr;gap:6px 10px;align-items:center}
+fieldset{border:1px solid #e0e0e0;border-radius:4px;margin:6px 0;padding:6px 10px}
+legend{font-size:12px;color:#555}
+.geaendert{color:var(--a);font-weight:600}
+details.ausnahme summary{cursor:pointer;color:#777;font-size:12px}
+</style></head><body>
+<header>
+ <b>Gate-Monitor</b>
+ <span id="kopfwerk"></span>
+ <span class="schritt" id="kette"></span>
+ <span style="margin-left:auto"></span>
+ Nutzer <select id="wer" onchange="sessionStorage.setItem('wer',this.value);laden()"></select>
+ <a id="zurueck" href="/werk">← Werkansicht</a>
+</header>
+<main>
+ <div class="ampel ampel a-ruhe" id="ampel"><span class="dot"></span><span id="ampeltext">–</span></div>
+ <div class="box" id="gate"></div>
+ <div id="inhalt"></div>
+ <div class="box" id="laufbox" style="display:none"><h2>Lauf</h2><div id="laufinfo" class="klein"></div><pre id="log">–</pre></div>
+</main>
+<script>
+let M=null,poll=null,sahLaufen=false,ED=null,edOriginal=null,edGeaendert=false;
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const zb=z=>`<span class="z ${esc(z)}">${esc(z)}</span>`;
+async function api(p,body){const r=await fetch(p,body?{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}:{});return r.json();}
+function ziel(){const h=decodeURIComponent(location.hash.slice(1)).split("/");return {id:h[0]||"",stage:h[1]||""};}
+const B=()=>encodeURIComponent(M.book_id);
+
+async function start(){
+  const n=await api("/api/nutzer");
+  $("wer").innerHTML=n.nutzer.map(u=>`<option value="${esc(u.id)}" ${u.id==(sessionStorage.getItem("wer")||n.standard)?"selected":""}>${esc(u.id)} (${esc(u.rolle)})</option>`).join("");
+  window.onhashchange=()=>{ED=null;laden();};
+  laden();ampelPoll();
+}
+async function laden(){
+  const z=ziel();if(!z.id){$("gate").innerHTML="Aufruf: /monitor#&lt;book-id&gt;/&lt;stage&gt;";return;}
+  if(!z.stage){const w=await api(`/api/werk/${encodeURIComponent(z.id)}`);location.hash=`${z.id}/${(w.naechster||{}).stage||"100"}`;return;}
+  const d=await api(`/api/werk/${encodeURIComponent(z.id)}/monitor/${z.stage}?wer=${encodeURIComponent($("wer").value)}`);
+  if(d.fehler){$("gate").innerHTML=`<span class="err">${esc(d.fehler)}</span>`;return;}
+  M=d;$("zurueck").href="/werk#"+encodeURIComponent(d.book_id);
+  $("kopfwerk").innerHTML=`<b>${esc(d.titel)}</b> <span class="klein" style="color:#cfd8dc">${esc(d.book_id)}</span>`;
+  $("kette").innerHTML=d.kette.map(k=>`<a class="${esc(k.zustand)} ${k.stage==d.stage.stage?"akt":""}" title="${esc(k.name)}: ${esc(k.zustand)}" href="#${esc(d.book_id)}/${k.stage}">${k.stage}</a>`).join("");
+  document.title=`${d.stage.stage} ${d.stage.name} – ${d.book_id}`;
+  ampelZeigen(d.ampel);gateZeigen();
+  const mon=MON[d.stage.stage];
+  if(d.daten_fehler)$("inhalt").innerHTML=`<div class="box err">Monitor-Daten: ${esc(d.daten_fehler)}</div>`;
+  else if(mon&&d.daten){$("inhalt").innerHTML=mon.html(d.daten);mon.danach&&mon.danach(d.daten);}
+  else $("inhalt").innerHTML=allgemein(d.stage);
+  laufZeigen(d.lauf);
+}
+// ---------- Rahmen: Gate-Kopf (Zustand, Befunde, Rücksprung, Ausnahme)
+function gateZeigen(){
+  const s=M.stage,r=M.rechte;
+  const rs=s.ruecksprung_ziele||[];
+  let h=`<h2>${s.stage} ${esc(s.name)} ${zb(s.zustand)} <span class="klein">${esc(s.wer||"")} ${esc((s.wann||"").replace("T"," ").slice(0,16))}</span></h2>`;
+  if(s.befunde.length)h+=`<div class="bef"><b>Befunde:</b><br>${s.befunde.map(esc).join("<br>")}</div>`;
+  else if(s.gruende.length)h+=`<div class="hin">${s.gruende.map(esc).join("<br>")}</div>`;
+  else h+=`<div class="klein">keine Befunde</div>`;
+  if(s.hinweise.length)h+=`<div class="hin klein" style="margin-top:4px"><b>Hinweise:</b> ${s.hinweise.map(esc).join(" · ")}</div>`;
+  const kn=[];
+  if(r.lauf.ok){
+    kn.push(`<button onclick="pruefen()">${s.stage} neu prüfen</button>`);
+    for(const z of rs)if(z.ziel&&z.ziel!=s.stage)kn.push(`<button onclick="laufLos('ab','${esc(z.ziel)}')">Rücksprung ${esc(z.ziel)}${z.scope?" ("+esc(z.scope)+")":""}</button>`);
+  }
+  h+=kn.length?`<div class="akt">${kn.join("")}</div>`:"";
+  if(s.zustand=="mensch"&&r.entscheiden.ok)h+=`<details class="ausnahme"><summary>Ausnahme: ohne Korrektur entscheiden (Grund Pflicht)</summary>
+    <div class="akt"><input type="text" id="ausgrund" placeholder="Grund" size="40">${["frei","stopp"].map(n=>`<button onclick="entscheide('${n}')">${n}</button>`).join("")}</div></details>`;
+  $("gate").innerHTML=h;
+}
+async function entscheide(nach){
+  const grund=$("ausgrund").value.trim();if(!grund){alert("Grund ist Pflicht");return;}
+  const r=await api(`/api/werk/${B()}/aktion`,{art:"entscheiden",stage:M.stage.stage,nach,grund,wer:$("wer").value});
+  if(!r.ok)alert(r.fehler);laden();
+}
+function allgemein(s){
+  const m=Object.entries(s.metriken||{});
+  return `<div class="box"><h2>Daten des Gates</h2><div class="klein">Für diese Stage ist der Monitor noch nicht gebaut (GATE_MONITORE.md). Angezeigt: Metriken, Teile, Manifeste.</div>
+   ${m.length?"<table>"+m.map(([k,v])=>`<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join("")+"</table>":""}
+   ${Object.entries(s.teile||{}).map(([sc,t])=>`<h3>${esc(sc)} ${zb(t.zustand)}</h3>${(t.gruende||[]).map(esc).join("<br>")}`).join("")}
+   ${s.manifeste.length?`<div class="klein" style="margin-top:6px">Manifeste: ${s.manifeste.map(x=>`<a target="_blank" href="/datei?p=${encodeURIComponent(x.datei)}">${esc(x.datei.split("/").pop())}</a>`).join(" · ")}</div>`:""}</div>`;
+}
+// ---------- Lauf
+async function laufLos(modus,von){
+  if(!confirm(`run.py ${M.book_id} ${modus}${von?" "+von:""}${M.run_mode=="live"?"  [LIVE – kann kosten]":""}?`))return;
+  const r=await api(`/api/werk/${B()}/lauf`,{modus,von,wer:$("wer").value});
+  if(!r.ok)alert(r.fehler);else laufZeigen(r.lauf);
+}
+function pruefen(){laufLos("nur",M.stage.stage);}
+async function speichern(eingabe){
+  const body={...eingabe,wer:$("wer").value};
+  const v=await api(`/api/werk/${B()}/monitor/${M.stage.stage}`,{...body,nur_vorschau:true});
+  if(!v.ok){alert(v.fehler);return;}
+  if(!confirm("Übernehmen und "+M.stage.stage+" neu prüfen?\n\n"+v.cmd.replace(/--rohtext-aus=\S+/,"--rohtext-aus=<Editor>")))return;
+  const r=await api(`/api/werk/${B()}/monitor/${M.stage.stage}`,body);
+  if(!r.ok)alert(r.fehler);else{ED=null;laufZeigen(r.lauf);}
+}
+function laufZeigen(l){
+  clearTimeout(poll);
+  if(!l){$("laufbox").style.display="none";return;}
+  $("laufbox").style.display="";
+  const farbe={frei:"var(--g)",mensch:"var(--a)",stopp:"var(--r)",fehler:"var(--r)"}[l.deutung]||"var(--b)";
+  $("laufinfo").innerHTML=`<b>${esc(l.art)}</b> · ${esc(l.start)} · <span style="color:${farbe}">${l.laeuft?"läuft …":"Exit "+l.exit+" = "+esc(l.deutung)}</span>`;
+  const pre=$("log");pre.textContent=l.log;pre.scrollTop=pre.scrollHeight;
+  if(l.laeuft){sahLaufen=true;poll=setTimeout(async()=>laufZeigen(await api(`/api/werk/${B()}/lauf`)),1500);}
+  else if(sahLaufen){sahLaufen=false;laden();}
+}
+function ampelZeigen(a){if(!a)return;$("ampel").className="ampel a-"+a.farbe+(a.blink?" blink":"");$("ampeltext").textContent=a.text;}
+async function ampelPoll(){try{if(M)ampelZeigen(await api(`/api/werk/${B()}/ampel`));}catch(e){}setTimeout(ampelPoll,4000);}
+
+// ---------- Baustein Text-Editor (CodeMirror 6, lokal)
+async function editorAuf(el,url){
+  const txt=await (await fetch(url)).text();
+  edGeaendert=false;
+  ED=new CM.EditorView({parent:el,doc:txt,extensions:[CM.basicSetup,CM.EditorView.lineWrapping,
+    CM.EditorView.updateListener.of(u=>{if(u.docChanged){edGeaendert=ED.state.doc.toString()!==edOriginal;const m=$("edstatus");if(m)m.innerHTML=edGeaendert?'<span class="geaendert">geändert – Grund nötig</span>':"unverändert";}})]});
+  edOriginal=ED.state.doc.toString();
+}
+function zuZeile(n){if(!ED||!n)return;const l=ED.state.doc.line(Math.min(n,ED.state.doc.lines));ED.dispatch({selection:{anchor:l.from},effects:CM.EditorView.scrollIntoView(l.from,{y:"center"})});ED.focus();}
+function dateiLaden(inp){const f=inp.files[0];if(!f||!ED)return;const r=new FileReader();r.onload=()=>{ED.dispatch({changes:{from:0,to:ED.state.doc.length,insert:r.result}});};r.readAsText(f,"utf-8");}
+
+// ---------- Monitore je Stage
+const MON={};
+MON["100"]={
+  html(d){
+    const nwArten={url:"PD-Beleg-URL",rechteinhaber:"Ich bin Rechteinhaber",andere_quelle:"PD über andere Quelle"};
+    const pers=d.personen.map(p=>`<tr><td>${p.person=="autor"?"Autor":"Übersetzer"}</td><td>${esc(p.name)||"<span class='err'>unbekannt</span>"}</td>
+      <td><input type="number" id="tj_${p.person}" value="${esc(p.todesjahr??"")}" style="width:80px"> <span class="klein">${esc(p.todesjahr_quelle||"")}</span></td>
+      <td>${p.grenze!=null?`${p.todesjahr} + ${d.pd_jahre} = ${p.grenze} ${p.grenze<d.jahr?"&lt;":"≥"} ${d.jahr}`:"<span class='err'>Todesjahr fehlt</span>"}</td>
+      <td><span class="pd ${p.ok?(p.per_nachweis?"nw":"ja"):"nein"}"></span>${p.ok?(p.per_nachweis?"frei per Nachweis":"gemeinfrei"):"nicht belegt"}${p.nachweise.length?`<div class="klein">${p.nachweise.map(esc).join("<br>")}</div>`:""}</td></tr>`).join("");
+    const rt=d.rohtext,tq=d.textquelle||{};
+    return `<div class="box"><h2>1 Anzeigen · 2 Bearbeiten</h2>
+     <h3>Werk</h3><div class="feld">
+      <span>Titel</span><b>${esc(d.titel)}</b>
+      <span>Herkunft</span><span>${d.gutenberg_id?`Gutenberg <a target="_blank" href="${esc(d.gutenberg_link)}">#${esc(d.gutenberg_id)}</a>`:"mitgebrachte TXT"} · Eingang ${esc(d.quelle||"–")}</span>
+      <span>Textquelle</span><span>${esc(tq.art||"–")} ${esc(tq.quelle||"")}${tq.bearbeitet?` <span class="klein">(im Editor bearbeitet ${esc(tq.wer||"")} ${esc((tq.wann||"").slice(0,16).replace("T"," "))})</span>`:""}</span>
+      <span>Rechte</span><span>${esc(d.rechte_art||"–")}</span></div>
+     <h3>Personen · PD-Ampel</h3>
+     <table><tr><th>Person</th><th>Name</th><th>Todesjahr</th><th>EU-PD</th><th>Status</th></tr>${pers}</table>
+     <fieldset><legend>PD-/Rechte-Nachweis hinzufügen (je Quelle)</legend>
+      <div class="akt">${Object.entries(nwArten).map(([k,v])=>`<label><input type="radio" name="nwart" value="${k}" onchange="MON['100'].nwFelder()"> ${v}</label>`).join("")}<label><input type="radio" name="nwart" value="" checked onchange="MON['100'].nwFelder()"> keiner</label></div>
+      <div id="nwfelder" style="display:none" class="feld">
+       <span id="nw_url_l">URL</span><input type="text" id="nw_url" size="60" placeholder="https://…">
+       <span id="nw_q_l">Quelle (Text)</span><input type="text" id="nw_quelle" size="60" placeholder="z. B. Verlagsvertrag, Nachlassverzeichnis …">
+       <span id="nw_ra_l">Rechte</span><span id="nw_ra"><label><input type="radio" name="nwra" value="eigene" checked> eigene</label> <label><input type="radio" name="nwra" value="lizenz"> Lizenz</label></span>
+       <span>deckt</span><span><label><input type="checkbox" id="nw_autor" checked> Autor</label> ${d.personen.length>1?`<label><input type="checkbox" id="nw_ue"> Übersetzer</label>`:""}</span>
+      </div></fieldset>
+     <h3>Sprache</h3>
+     <div class="akt">Quellsprache <select id="lg">${d.sprachliste.map(l=>`<option ${l==d.quellsprache?"selected":""}>${l}</option>`).join("")}${d.sprache_ok?"":`<option selected value="">${esc(d.quellsprache)} (nicht freigeschaltet)</option>`}</select>
+      ${d.sprache_ok?"":`<span class="err">Sprache „${esc(d.quellsprache)}“ nicht freigeschaltet – Stopp. Freischaltung nur über die Sprachliste in config.</span>`}</div>
+     <h3>Rohtext</h3>
+     ${rt.vorhanden?`<div class="klein">${rt.zeichen.toLocaleString("de")} Zeichen · ${rt.zeilen.toLocaleString("de")} Zeilen · Kern ${rt.kern.toLocaleString("de")} <span class="${rt.kern>=rt.min?"ok":"err"}">(min. ${rt.min.toLocaleString("de")})</span> ·
+       START ${rt.start?`<a href="javascript:zuZeile(${rt.start})">Zeile ${rt.start}</a>`:"<span class='err'>fehlt</span>"} · END ${rt.ende?`<a href="javascript:zuZeile(${rt.ende})">Zeile ${rt.ende}</a>`:"<span class='err'>fehlt</span>"}</div>
+      <div class="akt"><button onclick="ED&&CM.openSearchPanel(ED)">Suchen/Ersetzen</button><button onclick="ED&&CM.gotoLine(ED)">Gehe zu Zeile</button>
+       <label>Datei laden <input type="file" accept=".txt,text/plain" onchange="dateiLaden(this)"></label><span id="edstatus" class="klein">unverändert</span></div>
+      <div id="editor"></div>`:`<div class="err">raw.txt fehlt</div>`}
+     <div class="akt"><label><input type="checkbox" id="neuladen"> neu laden (Gutenberg/Quelle, ersetzt raw.txt)</label>
+      andere Quelle <input type="text" id="tqurl" size="44" placeholder="https://… (URL)"></div>
+    </div>
+    <div class="box"><h2>3 Speichern · 4 Freigeben</h2>
+     <div class="akt"><input type="text" id="grund" size="50" placeholder="Grund (Pflicht bei geändertem Rohtext)">
+     <button class="haupt" onclick="MON['100'].los()">Übernehmen und 100 neu prüfen</button></div>
+     <div class="klein">Speichern läuft über Stage 100 (Regler), die das Gate dabei neu prüft. Alte raw.txt wird gesichert (work/sicherung/), Protokoll mit Grund.</div>
+    </div>`;
+  },
+  danach(d){if(d.rohtext.vorhanden)editorAuf($("editor"),d.rohtext_url);},
+  nwFelder(){
+    const a=(document.querySelector("input[name=nwart]:checked")||{}).value;
+    $("nwfelder").style.display=a?"":"none";
+    const zeig=(id,on)=>{$(id).style.display=on?"":"none";};
+    zeig("nw_url",a=="url"||a=="andere_quelle");zeig("nw_url_l",a=="url"||a=="andere_quelle");
+    zeig("nw_quelle",a=="andere_quelle");zeig("nw_q_l",a=="andere_quelle");
+    zeig("nw_ra",a=="rechteinhaber");zeig("nw_ra_l",a=="rechteinhaber");
+    $("nw_url_l").textContent=a=="andere_quelle"?"URL (optional)":"URL";
+  },
+  los(){
+    const d=M.daten,e={grund:$("grund").value.trim()};
+    for(const p of d.personen){const v=$("tj_"+p.person).value.trim();if(v!==""&&v!=String(p.todesjahr??""))e[p.person=="autor"?"todesjahr":"uebersetzer_todesjahr"]=v;}
+    const lg=$("lg").value;if(lg&&lg!=d.quellsprache)e.quellsprache=lg;
+    const art=(document.querySelector("input[name=nwart]:checked")||{}).value;
+    if(art)e.nachweis={art,url:$("nw_url").value,quelle:$("nw_quelle").value,
+      rechte_art:(document.querySelector("input[name=nwra]:checked")||{}).value,
+      deckt:[$("nw_autor").checked&&"autor",$("nw_ue")&&$("nw_ue").checked&&"uebersetzer"].filter(Boolean)};
+    if(ED&&edGeaendert)e.rohtext=ED.state.doc.toString();
+    if($("tqurl").value.trim())e.textquelle_url=$("tqurl").value.trim();
+    if($("neuladen").checked)e.neu_laden=true;
+    if(e.rohtext!=null&&!e.grund){alert("Rohtext geändert: Grund ist Pflicht");return;}
+    speichern(e);
+  }
+};
+start();
+</script></body></html>

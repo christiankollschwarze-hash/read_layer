@@ -145,6 +145,8 @@ def rechte_norm(r, roh=None):
         out.update({k: r.get(k) for k in leer if k in r})
         if out["art"]:
             out["art"] = str(out["art"]).strip().lower()
+        if r.get("nachweise"):                     # PD-/Rechte-Nachweise (Stage 100/110, 04.11.2026)
+            out["nachweise"] = list(r["nachweise"])
         return out
     if isinstance(r, str) and r.strip():
         art = r.strip().lower()

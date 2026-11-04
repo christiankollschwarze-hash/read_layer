@@ -3,11 +3,14 @@ Funktion:     Legt ein Gutenberg-Werk an bzw. vervollstaendigt es: author.json, 
               Eintrag in daten/index.json. Laeuft bei quelle = gutenberg (nach 095, vor 110).
 Gate:         Index lesbar + Eintrag stimmig; raw.txt da; Gutenberg START/END-Marken; Laenge >= 5.000
               Zeichen (zwischen den Marken); Quellsprache in Sprachliste; EU-PD (Todesjahr Autor bzw.
-              Uebersetzer + 70 < Jahr).
-              auto bei allem gruen · Sprache nicht in Sprachliste -> Mensch (Anfrage) · Todesjahr fehlt/zu
-              jung -> Mensch · Index defekt, Download/Marken/Laenge, author.json fehlt -> Stopp (Exit != 0).
+              Uebersetzer + 70 < Jahr) oder PD-/Rechte-Nachweis, der die Person deckt (rechte.nachweise).
+              auto bei allem gruen · Sprache nicht in Sprachliste -> Stopp (Grundsatz 3, nur config) ·
+              Todesjahr fehlt/zu jung ohne Nachweis -> Mensch · Index defekt, Download/Marken/Laenge,
+              author.json fehlt -> Stopp (Exit != 0).
 Regler:       --gutenberg ID (Neuanlage aus Gutendex), --slug / --autor-slug, --textquelle URL|DATEI|vorhanden,
-              --todesjahr N (Autor, manuell), --uebersetzer-todesjahr N, --force (Neu laden).
+              --todesjahr N (Autor, manuell), --uebersetzer-todesjahr N, --force (Neu laden),
+              --quellsprache LG, Nachweis --pd-url URL | --rechteinhaber [eigene|lizenz] | --pd-quelle TEXT
+              (jeweils --deckt autor,uebersetzer), --rohtext-aus DATEI --grund TEXT (Monitor 100, 04.11.2026).
 Befunde 100:  Download-Fehler -> Stopp statt Exit 0; Download atomar (keine halbe raw.txt);
               config._load_index wirft bei defekter Datei (kein Index-Verlust), Speichern atomar;
               PD-/Sprach-/Laengenpruefung in der Stage; Uebersetzer aus Gutendex; erscheinungsjahr
@@ -34,7 +37,7 @@ import urllib.request
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import config
-from pipeline import bestellung, gate, s080_mandant
+from pipeline import bestellung, gate, s080_mandant, status
 from pipeline.manifest import json_atomar
 
 STAGE = "100"
@@ -118,7 +121,7 @@ def text_laden(quelle, ziel):
     else:
         raise FileNotFoundError(f"Textquelle {quelle!r} nicht gefunden")
     tmp = f"{ziel}.{os.getpid()}.tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
+    with open(tmp, "w", encoding="utf-8", newline="") as f:     # Zeilenenden unveraendert (kein \r\r\n unter Windows)
         f.write(data)
     os.replace(tmp, ziel)
     return len(data)
@@ -256,11 +259,84 @@ def _author_pfad(roh, ordner):
     return os.path.join(os.path.dirname(os.path.dirname(os.path.normpath(ordner))), "author.json")
 
 
+NACHWEIS_ARTEN = ("url", "rechteinhaber", "andere_quelle")
+PERSONEN = ("autor", "uebersetzer")
+
+
+def nachweise(roh):
+    """PD-/Rechte-Nachweise (book.json rechte.nachweise; Baustein 100+110, CK 03.11.2026)."""
+    r = roh.get("rechte") if isinstance(roh.get("rechte"), dict) else {}
+    return [n for n in (r.get("nachweise") or []) if isinstance(n, dict)]
+
+
+def nachweis_text(n):
+    q = " ".join(x for x in (n.get("quelle") or "", n.get("url") or "") if x)
+    return f"{n.get('art')}{': ' + q if q else ''} ({n.get('wer') or '?'} {str(n.get('wann') or '')[:10]})"
+
+
+def _deckt(roh, person):
+    return [n for n in nachweise(roh) if person in (n.get("deckt") or [])]
+
+
+def nachweis_setzen(werk, art, wer, url=None, quelle=None, deckt=("autor",), rechte_art=None):
+    """Nachweis anhaengen; 'rechteinhaber' setzt zusaetzlich rechte.art (eigene|lizenz) + rechte.versichert."""
+    if art not in NACHWEIS_ARTEN:
+        raise ValueError(f"Nachweis-Art {art!r} unbekannt")
+    deckt = [p for p in deckt if p]
+    if not deckt or any(p not in PERSONEN for p in deckt):
+        raise ValueError(f"--deckt nur {', '.join(PERSONEN)}")
+    if art == "url" and not re.match(r"^https?://", url or ""):
+        raise ValueError("PD-Beleg braucht eine URL (http/https)")
+    if art == "andere_quelle" and not ((quelle or "").strip() or (url or "").strip()):
+        raise ValueError("andere Quelle: Text und/oder URL noetig")
+    jetzt = datetime.datetime.now().isoformat(timespec="seconds")
+    roh = bestellung.lesen(werk).roh
+    r = dict(roh.get("rechte")) if isinstance(roh.get("rechte"), dict) else dict(bestellung.lesen(werk).rechte)
+    n = {"art": art, "url": (url or "").strip() or None, "quelle": (quelle or "").strip() or None,
+         "deckt": deckt, "wer": wer, "wann": jetzt}
+    r["nachweise"] = list(r.get("nachweise") or []) + [n]
+    if art == "rechteinhaber":
+        ra = rechte_art or "eigene"
+        if ra not in ("eigene", "lizenz"):
+            raise ValueError("--rechteinhaber eigene|lizenz")
+        r.update(art=ra, versichert={"wer": wer, "wann": jetzt})
+    bestellung.feld_setzen(werk, rechte=r)
+    return n
+
+
+def rohtext_ersetzen(werk, ordner, datei, wer, grund):
+    """Rohtext aus dem Cockpit-Editor: alte raw.txt sichern, neue atomar einsetzen, Protokoll (wer/wann/Grund)."""
+    if not (grund or "").strip():
+        raise ValueError("Grund ist Pflicht (Rohtext ersetzen)")
+    if not os.path.isfile(datei):
+        raise FileNotFoundError(f"Editor-Datei {datei!r} fehlt")
+    raw = os.path.join(ordner, "raw.txt")
+    jetzt = datetime.datetime.now()
+    sich = None
+    if os.path.exists(raw):
+        sdir = os.path.join(ordner, "work", "sicherung")
+        os.makedirs(sdir, exist_ok=True)
+        sich = os.path.join(sdir, f"100_raw_{jetzt:%Y%m%d_%H%M%S}.txt")
+        shutil.copy2(raw, sich)
+    n = text_laden(datei, raw)
+    slug = os.path.basename(os.path.normpath(ordner))
+    rel = os.path.relpath(sich, ordner).replace("\\", "/") if sich else None
+    with status.aendern(slug) as d:
+        status._protokoll(d, wer=wer, aktion="rohtext", stage=STAGE, grund=grund.strip(), sicherung=rel, zeichen=n)
+    bestellung.feld_setzen(werk, textquelle={"art": "datei", "quelle": "raw.txt", "bearbeitet": True,
+                                             "wer": wer, "wann": jetzt.isoformat(timespec="seconds")})
+    return rel
+
+
 def pd_pruefen(g, aj, roh, jahr=None):
-    """EU-PD: Todesjahr Autor bzw. Uebersetzer + 70 < Jahr. Fehlt/zu jung -> Mensch."""
+    """EU-PD: Todesjahr Autor bzw. Uebersetzer + 70 < Jahr. Fehlt/zu jung -> Mensch.
+    Ein Nachweis, der die Person deckt, erfuellt die Pruefung (auch bei Todesjahr + 70 >= Jahr)."""
     jahr = jahr or datetime.date.today().year
     tj = (aj or {}).get("todesjahr")
-    if tj in (None, ""):
+    nw = _deckt(roh, "autor")
+    if nw:
+        g.pflicht("pd_autor", True, wert=tj, text="PD Autor per Nachweis: " + nachweis_text(nw[-1]))
+    elif tj in (None, ""):
         g.pflicht("pd_autor", False, wert=None, bei_fehler="mensch", ruecksprung="100",
                   text="Todesjahr Autor fehlt (Regler --todesjahr oder Freigabe durch CK)")
     else:
@@ -269,7 +345,11 @@ def pd_pruefen(g, aj, roh, jahr=None):
     ue = (roh.get("quell_uebersetzer") or "").strip()
     if ue:
         utj = roh.get("quell_uebersetzer_todesjahr")
-        if utj in (None, ""):
+        nwu = _deckt(roh, "uebersetzer")
+        if nwu:
+            g.pflicht("pd_uebersetzer", True, wert=utj, text=f"PD Uebersetzer {ue} per Nachweis: "
+                      + nachweis_text(nwu[-1]))
+        elif utj in (None, ""):
             g.pflicht("pd_uebersetzer", False, bei_fehler="mensch", ruecksprung="100",
                       text=f"Todesjahr Uebersetzer {ue} fehlt (Regler --uebersetzer-todesjahr)")
         else:
@@ -330,9 +410,10 @@ def pruefen(g, werk, ordner, roh, b, download_fehler=None, jahr=None):
         g.min("laenge", len(kern.strip()), MIN_ZEICHEN, bei_fehler="stopp", ruecksprung="100")
     # Sprache
     q = b.quellsprache
-    g.pflicht("sprache", q in bestellung.sprachliste(), wert=q, bei_fehler="mensch", ruecksprung="100",
+    # Grundsatz 3 (CK 03.11.2026): Sprache ausserhalb der Sprachliste = Stopp; Freischaltung nur ueber config
+    g.pflicht("sprache", q in bestellung.sprachliste(), wert=q, bei_fehler="stopp", ruecksprung="100",
               text=f"Quellsprache {q!r} " + ("in Sprachliste" if q in bestellung.sprachliste()
-                                              else "nicht in Sprachliste – Anfrage, Stopp bis freigeschaltet"))
+                                              else "nicht freigeschaltet (Sprachliste in config) – Stopp"))
     if "quellsprache" in b.abgeleitet and not roh.get("originalsprache"):
         g.hinweis("sprache_quelle", False, text="Quellsprache nicht angegeben (en angenommen)")
     # PD
@@ -342,15 +423,30 @@ def pruefen(g, werk, ordner, roh, b, download_fehler=None, jahr=None):
 
 
 def run(werk, wer=None, force=False, textquelle=None, todesjahr=None, uebersetzer_todesjahr=None,
-        jahr=None):
+        jahr=None, quellsprache=None, nachweis=None, rohtext_aus=None, grund=None):
     """Gate 100 fuer ein vorhandenes Werk (book.json). Laedt raw.txt nach, wenn sie fehlt oder --force.
-    Rueckgabe auto | mensch | stopp."""
+    nachweis = {art, url, quelle, deckt, rechte_art} (Monitor 100). Rueckgabe auto | mensch | stopp."""
     wer = s080_mandant.nutzer(wer)
     ordner = bestellung.werkordner(werk)
     roh = bestellung.lesen(werk).roh
     jetzt = datetime.datetime.now().isoformat(timespec="seconds")
-    if force or textquelle or todesjahr is not None or uebersetzer_todesjahr is not None:
+    if (force or textquelle or todesjahr is not None or uebersetzer_todesjahr is not None or quellsprache
+            or nachweis or rohtext_aus):
         s080_mandant.darf(werk, "bestellen", wer)
+    if textquelle and rohtext_aus:
+        raise ValueError("--textquelle und --rohtext-aus schliessen sich aus")
+    if quellsprache:
+        lg = quellsprache.strip().lower()
+        if lg not in bestellung.sprachliste():
+            raise ValueError(f"Quellsprache {lg!r} nicht in Sprachliste {bestellung.sprachliste()} (nur config)")
+        roh = bestellung.feld_setzen(werk, quellsprache=lg, originalsprache=lg).roh
+    if nachweis:
+        nachweis_setzen(werk, nachweis.get("art"), wer, nachweis.get("url"), nachweis.get("quelle"),
+                        nachweis.get("deckt") or ("autor",), nachweis.get("rechte_art"))
+        roh = bestellung.lesen(werk).roh
+    if rohtext_aus:
+        rohtext_ersetzen(werk, ordner, rohtext_aus, wer, grund)
+        roh = bestellung.lesen(werk).roh
     if todesjahr is not None:
         ap = _author_pfad(roh, ordner)
         aj = _lj(ap) if os.path.exists(ap) else None
@@ -496,9 +592,22 @@ def main(argv=None):
     ap.add_argument("--todesjahr", type=int, help="Todesjahr Autor manuell (PD)")
     ap.add_argument("--uebersetzer-todesjahr", type=int)
     ap.add_argument("--force", action="store_true", help="Neu laden (raw.txt; Neuanlage: Dateien ueberschreiben)")
+    ap.add_argument("--quellsprache", help="Quellsprache setzen (nur Sprachliste)")
+    ap.add_argument("--pd-url", help="Nachweis: PD-Beleg-URL")
+    ap.add_argument("--rechteinhaber", nargs="?", const="eigene", choices=("eigene", "lizenz"),
+                    help="Nachweis: Erklaerung 'Ich bin Rechteinhaber' (setzt rechte.art)")
+    ap.add_argument("--pd-quelle", help="Nachweis: PD ueber andere Quelle (Text; URL optional per --pd-url)")
+    ap.add_argument("--deckt", default="autor", help="Nachweis deckt: autor,uebersetzer")
+    ap.add_argument("--rohtext-aus", metavar="DATEI", help="Rohtext ersetzen (Cockpit-Editor; alte raw.txt gesichert)")
+    ap.add_argument("--grund", help="Grund (Pflicht bei --rohtext-aus)")
     ap.add_argument("--dry", action="store_true")
     ap.add_argument("--wer")
     a = ap.parse_args(argv)
+    nachweis = None
+    if a.rechteinhaber or a.pd_quelle or a.pd_url:
+        art = "rechteinhaber" if a.rechteinhaber else ("andere_quelle" if a.pd_quelle else "url")
+        nachweis = {"art": art, "url": a.pd_url, "quelle": a.pd_quelle, "rechte_art": a.rechteinhaber,
+                    "deckt": [p.strip() for p in (a.deckt or "").split(",") if p.strip()]}
     try:
         if a.txt:
             e, _s = neu_anlegen_txt(a.txt, a.titel, a.autor, a.sprache, a.todesjahr, a.slug, a.wer, a.force)
@@ -510,12 +619,13 @@ def main(argv=None):
             ap.error("werk oder --gutenberg ID noetig")
         if a.werk.endswith(".json") and os.path.isfile(a.werk):
             return json_eingabe(a.werk, a.dry, a.force)
-        e = run(a.werk, a.wer, a.force, a.textquelle, a.todesjahr, a.uebersetzer_todesjahr)
+        e = run(a.werk, a.wer, a.force, a.textquelle, a.todesjahr, a.uebersetzer_todesjahr,
+                quellsprache=a.quellsprache, nachweis=nachweis, rohtext_aus=a.rohtext_aus, grund=a.grund)
         return gate.EXIT[e]
     except config.IndexDefekt as e:
         print(f"! Index defekt: {e}")
         return 2
-    except (ValueError, FileNotFoundError) as e:
+    except (ValueError, FileNotFoundError, PermissionError) as e:
         print(f"! {e}")
         return 2
 

@@ -99,12 +99,48 @@ class T(unittest.TestCase):
         self.assertEqual(self.still(A.run, "the-test-book", jahr=2026), "mensch")
         self.assertEqual(self.still(A.run, "the-test-book", uebersetzer_todesjahr=1920, jahr=2026), "auto")
 
-    def test_sprache_nicht_in_liste_mensch(self):
+    def test_sprache_nicht_in_liste_stopp(self):
         self.neu()
         b = json.load(open(os.path.join(self.dir, "book.json")))
         b["quellsprache"] = "fi"; b["originalsprache"] = "fi"
         json.dump(b, open(os.path.join(self.dir, "book.json"), "w"))
-        self.assertEqual(self.still(A.run, "the-test-book"), "mensch")
+        self.assertEqual(self.still(A.run, "the-test-book"), "stopp")
+        with self.assertRaises(ValueError):
+            self.still(A.run, "the-test-book", quellsprache="fi")
+        self.assertEqual(self.still(A.run, "the-test-book", quellsprache="en"), "auto")
+
+    def test_nachweis_deckt_person(self):
+        self.neu()
+        ap = os.path.join(config.author_dir("muster-m"), "author.json")
+        aj = json.load(open(ap)); aj["todesjahr"] = 1990; json.dump(aj, open(ap, "w"))
+        b = json.load(open(os.path.join(self.dir, "book.json")))
+        b["quell_uebersetzer"] = "Ue B"; json.dump(b, open(os.path.join(self.dir, "book.json"), "w"))
+        self.assertEqual(self.still(A.run, "the-test-book", jahr=2026), "mensch")
+        with self.assertRaises(ValueError):
+            self.still(A.run, "the-test-book", nachweis={"art": "url", "url": "kein-link"})
+        self.assertEqual(self.still(A.run, "the-test-book", jahr=2026,
+                                    nachweis={"art": "url", "url": "https://beleg.test", "deckt": ["autor"]}), "mensch")
+        self.assertEqual(self.still(A.run, "the-test-book", jahr=2026,
+                                    nachweis={"art": "rechteinhaber", "rechte_art": "lizenz",
+                                              "deckt": ["uebersetzer"]}), "auto")
+        r = json.load(open(os.path.join(self.dir, "book.json")))["rechte"]
+        self.assertEqual((len(r["nachweise"]), r["art"], r["versichert"]["wer"]), (2, "lizenz", "CK"))
+        from pipeline import bestellung
+        self.assertEqual(len(bestellung.lesen("the-test-book").rechte["nachweise"]), 2)
+
+    def test_rohtext_aus_editor(self):
+        self.neu()
+        neu = os.path.join(self.tmp.name, "ed.txt")
+        open(neu, "w", encoding="utf-8").write("Bereinigt " * 1000)
+        with self.assertRaises(ValueError):
+            self.still(A.run, "the-test-book", rohtext_aus=neu)
+        self.assertEqual(self.still(A.run, "the-test-book", rohtext_aus=neu, grund="Kopf entfernt"), "auto")
+        self.assertTrue(open(os.path.join(self.dir, "raw.txt")).read().startswith("Bereinigt"))
+        d = S.laden("the-test-book")
+        p = [x for x in d["protokoll"] if x.get("aktion") == "rohtext"][-1]
+        self.assertEqual(p["grund"], "Kopf entfernt")
+        self.assertTrue(os.path.exists(os.path.join(self.dir, p["sicherung"])))
+        self.assertEqual(len(self.abrufe), 2)
 
     def test_index_defekt_stopp_und_kein_verlust(self):
         self.neu()
@@ -162,6 +198,27 @@ class T(unittest.TestCase):
             A.neu_anlegen_txt("/gibt/es/nicht.txt", "T", "X", "en")
         e, _ = self.still(A.neu_anlegen_txt, self._txt("zu kurz"), "The Test Book", "Max Muster", "en", 1910)
         self.assertEqual(e, "stopp")
+
+
+    def test_monitor_100(self):
+        from cockpit import werk_api as W
+        self.neu()
+        d = W._m100_daten("the-test-book")
+        self.assertEqual((d["quellsprache"], d["sprache_ok"], d["rohtext"]["start"]), ("en", True, 2))
+        self.assertTrue(d["personen"][0]["ok"])
+        argv = W._m100_argv("the-test-book", {"todesjahr": "1900", "quellsprache": "en",
+                                               "nachweis": {"art": "rechteinhaber", "rechte_art": "lizenz",
+                                                            "deckt": ["autor"]},
+                                               "rohtext": "neu " * 2000, "grund": "Test"}, "CK")
+        for x in ("--todesjahr=1900", "--quellsprache=en", "--rechteinhaber=lizenz", "--deckt=autor", "--grund=Test"):
+            self.assertIn(x, argv)
+        ed = [x for x in argv if x.startswith("--rohtext-aus=")][0].split("=", 1)[1]
+        self.assertTrue(open(ed, encoding="utf-8").read().startswith("neu "))
+        self.assertEqual(self.still(A.main, argv[2:]), 0)
+        with self.assertRaises(ValueError):
+            W._m100_argv("the-test-book", {"rohtext": "x"}, "CK")
+        with self.assertRaises(ValueError):
+            W._m100_argv("the-test-book", {"nachweis": {"art": "url", "url": "https://x", "deckt": []}}, "CK")
 
 
 if __name__ == "__main__":
