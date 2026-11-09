@@ -161,8 +161,14 @@ def run(werk, wer=None, quelle=None, gutenberg_id=None, versichern=None, bearbei
     g = gate.Gate(werk, STAGE, ruecksprung="090", wer=wer)
     q = pruefen(g, werk, ordner, b.roh, b, epub)
     e = g.entscheide()
-    if e == "auto" and not b.roh.get("quelle"):
-        bestellung.schreiben(werk, quelle=q)          # abgeleitete Eingangsart festschreiben
+    if e == "auto":
+        # abgeleitete Eingangsart und Rechte festschreiben (09.11.2026: Altwerke ohne rechte liefen sonst
+        # in die Schleife 190 "rechte abgeleitet" -> Ruecksprung 090 -> 090 frei, schreibt nichts)
+        fest = {} if b.roh.get("quelle") else {"quelle": q}
+        if "rechte" in b.abgeleitet:
+            fest["rechte"] = b.rechte
+        if fest:
+            bestellung.schreiben(werk, **fest)
     print(g.bericht())
     if e == "auto":
         print(f"[090] {q} -> weiter mit {WEITER[q]}")

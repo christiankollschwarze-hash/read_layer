@@ -64,6 +64,12 @@ class T(unittest.TestCase):
         self.assertEqual(self.lauf(), "stopp")
         self.assertEqual(self.lauf(gutenberg_id=215), "auto")
 
+    def test_altwerk_rechte_festgeschrieben(self):
+        # Altwerk mit quelle, aber ohne rechte: 090 schreibt die abgeleiteten Rechte fest (190 verlangt sie)
+        self.buch({"originalsprache": "en", "quelle": "gutenberg", "gutenberg_id": 132})
+        self.assertEqual(self.lauf(), "auto")
+        self.assertEqual(self.roh()["rechte"]["art"], "gemeinfrei")
+
     def test_fremd_audio_immer_stopp(self):
         self.buch({"originalsprache": "en", "quelle": "fremd_audio", "gutenberg_id": 215})
         self.assertEqual(self.lauf(), "stopp")
