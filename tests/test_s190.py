@@ -67,6 +67,15 @@ class T(unittest.TestCase):
         self.assertEqual(S.zustand("w", "190"), "frei")
         self.assertEqual(g.metriken["kapitel"], 2)
 
+    def test_monitor_trocken_schreibt_nichts(self):
+        from cockpit import werk_api as W
+        self.werk(frei=False)
+        vorher = S.zustand("w", "190")
+        d = W._m190_daten("w")
+        self.assertEqual(d["ergebnis"], "stopp")
+        self.assertIn("gate_120", {p["name"] for p in d["pruefungen"] if not p["ok"]})
+        self.assertEqual(S.zustand("w", "190"), vorher)
+
     def test_vorstufe_offen(self):
         self.werk(frei=False)
         e, f, g = self.lauf()

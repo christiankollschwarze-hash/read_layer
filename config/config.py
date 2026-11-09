@@ -203,7 +203,10 @@ def werk_rechte(book_id):
     """'eigene' | 'gemeinfrei' aus book.json des Werks."""
     try:
         with open(os.path.join(book_dir(book_id), "book.json"), encoding="utf-8") as f:
-            r = (_json.load(f).get("rechte") or "gemeinfrei").strip().lower()
+            r = _json.load(f).get("rechte") or "gemeinfrei"
+        if isinstance(r, dict):                     # Bestellung (Phase 2): {art: gemeinfrei|eigene|lizenz|verlag, ...}
+            r = r.get("art") or "gemeinfrei"
+        r = str(r).strip().lower()
     except (OSError, ValueError, KeyError):
         r = "gemeinfrei"
     return "eigene" if r.startswith("eigen") else "gemeinfrei"

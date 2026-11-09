@@ -1,58 +1,38 @@
 <!doctype html>
-<html lang="de"><head><meta charset="utf-8"><title>Cockpit – Einzeltitel</title>
+<html lang="de"><head><meta charset="utf-8"><title>TÆLLA Labs – Einzeltitel</title>
+<link rel="stylesheet" href="/vendor/taella.css"><script src="/vendor/marke.js" defer></script><script src="/vendor/hilfe.js"></script>
 <style>
-:root{--g:#2e7d32;--a:#b26a00;--r:#c62828;--b:#1565c0;--x:#9e9e9e;--l:#eceff1}
-body{font:14px/1.4 system-ui,Segoe UI,sans-serif;margin:0;color:#222;background:#fafafa}
-header{position:sticky;top:0;background:#263238;color:#fff;padding:8px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;z-index:2}
-header input,header select{font:inherit;padding:3px 6px}
-header a{color:#b0bec5}
-main{display:grid;grid-template-columns:minmax(560px,1.4fr) 1fr;gap:14px;padding:14px}
-.box{background:#fff;border:1px solid #ddd;border-radius:6px;padding:10px 12px;margin-bottom:12px}
-h2{font-size:15px;margin:0 0 8px}
-.st{border-bottom:1px solid #eee}
-.st>.kopf{display:grid;grid-template-columns:44px 1fr 90px 70px 70px;gap:6px;padding:4px 2px;cursor:pointer;align-items:center}
-.st>.kopf:hover{background:#f5f5f5}
-.st.weg>.kopf{color:var(--x)}
-.z{display:inline-block;padding:1px 7px;border-radius:9px;font-size:12px;color:#fff;background:var(--x)}
-.z.frei{background:var(--g)}.z.mensch{background:var(--a)}.z.stopp{background:var(--r)}.z.laeuft{background:var(--b)}.z.offen{background:#78909c}
-.flag{font-size:11px;color:var(--a);margin-left:6px}
-.detail{display:none;padding:6px 10px 10px 50px;background:#fcfcfc}
+main{display:grid;grid-template-columns:minmax(560px,1.4fr) 1fr;gap:16px}
+.st{border-bottom:1px solid var(--line)}
+.st>.kopf{display:grid;grid-template-columns:44px 1fr 100px 70px 70px;gap:8px;padding:8px 4px;cursor:pointer;align-items:center}
+.st>.kopf:hover{background:var(--tint)}
+.st.weg>.kopf{color:var(--ink-3)}
+.detail{display:none;padding:8px 10px 14px 52px}
 .st.auf .detail{display:block}
-table{border-collapse:collapse;font-size:12px}td{padding:1px 6px;vertical-align:top;border-bottom:1px solid #f0f0f0}
-.bef{color:var(--r)}.hin{color:#555}
-.teil{margin:4px 0;padding:4px 6px;border-left:3px solid var(--l)}
+.detail table{width:auto}
+.teil{margin:6px 0;padding:6px 10px;border-left:2px solid var(--line)}
 .teil summary{cursor:pointer}
-button{font:inherit;padding:3px 10px;cursor:pointer}
-.akt{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px}
-.akt input[type=text]{min-width:220px}
-pre{background:#111;color:#ddd;padding:8px;max-height:420px;overflow:auto;font-size:12px;white-space:pre-wrap}
-.klein{font-size:12px;color:#666}
-.regler label{display:block;margin:3px 0}.regler textarea{width:100%;height:46px}
-.err{color:var(--r)}
-.ampel{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:6px;font-weight:600;margin-bottom:12px;color:#fff}
-.ampel .dot{width:16px;height:16px;border-radius:50%;background:#fff;flex:none}
-.a-produktion,.a-stockt{background:var(--g)}.a-handlung{background:#ef6c00}
-.a-angehalten,.a-fehler{background:var(--r)}.a-ruhe{background:#78909c}
-.blink{animation:puls 1s infinite}
-@keyframes puls{0%,100%{opacity:1}50%{opacity:.2}}
-.z.laeuft{animation:puls 1s infinite}
+div.akt input[type=text]{min-width:220px}
+.regler label{display:block;margin:4px 0}.regler textarea{width:100%;height:50px}
 #global{display:flex;gap:6px;align-items:center}
-#global .g{padding:1px 8px;border-radius:9px;font-size:12px;cursor:pointer}
+#global .g{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;font-size:12px;cursor:pointer;border:1px solid var(--line);background:var(--paper)!important;color:var(--ink)}
+#global .g::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--c)}
+#global .g.blink{animation:none}#global .g.blink::before{animation:puls 1s infinite}
 </style></head><body>
 <header>
- <b>Einzeltitel</b>
+ <a class="marke" href="/"></a><span class="seitentitel">Einzeltitel</span>
  <input id="werk" list="werke" size="40" placeholder="Book-ID">
  <datalist id="werke"></datalist>
  <button onclick="laden()">Laden</button>
  Nutzer <select id="wer" onchange="laden()"></select>
  <label><input type="checkbox" id="weg"> entfallene zeigen</label>
- <span id="info" class="klein" style="color:#cfd8dc"></span>
+ <span id="info" class="klein"></span>
  <span id="global" style="margin-left:auto"></span>
  <a href="/">← Werkwahl</a>
 </header>
 <main>
  <section>
-  <div class="ampel a-bereit" id="ampel"><span class="dot"></span><span id="ampeltext">–</span></div>
+  <div class="ampel a-ruhe" id="ampel"><span class="dot"></span><span id="ampeltext">–</span></div>
   <div class="box" id="kopf"></div>
   <div class="box"><h2>Stages</h2><div id="stages"></div></div>
  </section>
@@ -100,7 +80,7 @@ function stageHtml(s){
   const nt=Object.keys(s.teile).length;
   const flags=(s.fehlende_teile.length?`<span class="flag">Teile offen</span>`:"")+(s.veraltet.length?`<span class="flag">veraltet</span>`:"")+(s.bedarf_abweichung?`<span class="flag">Bedarf ≠ Status</span>`:"")+(s.befunde.length?`<span class="flag" style="color:var(--r)">${s.befunde.length} Befund(e)</span>`:"");
   return `<div class="st ${s.bestellt?"":"weg"} ${offen.has(s.stage)?"auf":""}" id="st${s.stage}">
-   <div class="kopf" onclick="umschalten('${s.stage}')"><b>${s.stage}</b><span>${esc(s.name)}${flags}</span><span>${zb(s.zustand)}</span><span class="klein">${nt?nt+" Teile":""}</span><span class="klein">${usd(s.kosten)}</span></div>
+   <div class="kopf" onclick="umschalten('${s.stage}')"><b>${s.stage}</b><span>${esc(s.name)}${hilfeKnopf(s.stage)}${flags}</span><span>${zb(s.zustand)}</span><span class="klein">${nt?nt+" Teile":""}</span><span class="klein">${usd(s.kosten)}</span></div>
    <div class="detail">${offen.has(s.stage)?detailHtml(s):""}</div></div>`;
 }
 function umschalten(st){offen.has(st)?offen.delete(st):offen.add(st);zeichnen();}
@@ -193,12 +173,12 @@ function ampelZeigen(a){
 async function ampelPoll(){
   try{
     if(W)ampelZeigen(await api(`/api/werk/${encodeURIComponent(W.book_id)}/ampel`));
-    const g=await api("/api/ampel"),fb={fehler:"var(--r)",angehalten:"var(--r)",handlung:"#ef6c00",stockt:"var(--g)",produktion:"var(--g)"},
+    const g=await api("/api/ampel"),fb={fehler:"var(--s-stopp)",angehalten:"var(--s-stopp)",handlung:"var(--s-mensch)",stockt:"var(--s-frei)",produktion:"var(--s-frei)"},
       nm={fehler:"Fehler",angehalten:"angehalten",handlung:"Handlungsbedarf",stockt:"stockt",produktion:"läuft"},
       bl={fehler:1,handlung:1,stockt:1};
     $("global").innerHTML=Object.entries(g.anzahl).filter(([f,n])=>n).map(([f,n])=>
-      `<span class="g ${bl[f]?"blink":""}" style="background:${fb[f]}" title="${esc(g.werke.filter(w=>w.farbe==f).map(w=>w.book_id+": "+w.text).join("\n"))}"
-        onclick="springe('${f}')">${n} ${nm[f]}</span>`).join("")||`<span class="g" style="background:#78909c">nichts läuft, nichts offen</span>`;
+      `<span class="g ${bl[f]?"blink":""}" style="--c:${fb[f]}" title="${esc(g.werke.filter(w=>w.farbe==f).map(w=>w.book_id+": "+w.text).join("\n"))}"
+        onclick="springe('${f}')">${n} ${nm[f]}</span>`).join("")||`<span class="g" style="--c:var(--s-offen)">nichts läuft, nichts offen</span>`;
     window._g=g;
   }catch(e){}
   setTimeout(ampelPoll,4000);

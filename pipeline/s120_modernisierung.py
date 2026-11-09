@@ -22,6 +22,7 @@ Exit: 0 auto, 2 Stopp, 3 Mensch.
 """
 import argparse
 import datetime
+import difflib
 import json
 import os
 import re
@@ -43,6 +44,7 @@ AUSREISSER_MAX = 0.03
 AUSREISSER_MIN_ZEICHEN = 60
 EIGENNAMEN_MIN = 0.98
 TITEL_TREFFER_MIN = 0.8
+TITEL_AEHNLICH = 0.75          # Schreibvarianten im Verzeichnis ("Manœuvring" / "MANŒUVERING")
 KURZ_WOERTER = 100
 LIZENZ = re.compile(r"project gutenberg|gutenberg\.org|gutenberg-tm|full license", re.I)
 
@@ -176,7 +178,8 @@ def kapitel_nach_referenz(text, ref):
         if bn == n or (bn.startswith(n) and len(n) >= 4):
             return True
         a, e = kapitel_schluessel(x), schl[k]          # "CHAPTER IV." passt zu "Chapter IV. The Flight"
-        return bool(a and e and a[:2] == e[:2] and (not a[2] or not e[2] or a[2] == e[2]))
+        return bool(a and e and a[:2] == e[:2] and (not a[2] or not e[2] or a[2] == e[2]
+                                                     or difflib.SequenceMatcher(None, a[2], e[2]).ratio() >= TITEL_AEHNLICH))
 
     kand = [len(x) <= 120 and any(passt(x, k) for k in range(len(soll))) for x in blocks]
 
@@ -188,8 +191,17 @@ def kapitel_nach_referenz(text, ref):
                 return True
         return False
 
-    kap, pos, cur = [], 0, None
+    def naechster(i):
+        return next((j for j in range(i + 1, len(blocks)) if not ist_hr(blocks[j])), None)
+
+    kap, pos, cur, gliederung = [], 0, None, []
     for i, x in enumerate(blocks):
+        j = naechster(i)
+        if (pos + 1 < len(soll) and kand[i] and passt(x, pos) and not text_folgt(i) and j is not None
+                and passt(blocks[j], pos + 1) and text_folgt(j)):
+            gliederung.append(ohne_struktur(ref)[pos])       # Sammelueberschrift ohne eigenen Text
+            pos += 1                                          # ("INTRODUCTION" -> "Sun Wu and his Book")
+            continue
         if pos < len(soll) and kand[i] and passt(x, pos) and text_folgt(i):
             cur = (epub._titlecase(x), [])
             kap.append(cur)
@@ -200,7 +212,7 @@ def kapitel_nach_referenz(text, ref):
             cur[1].append(HR)
         else:
             cur[1].append(" ".join(z.strip() for z in x.split("\n")))
-    return kap if pos == len(soll) else None
+    return (kap, gliederung) if pos == len(soll) else None
 
 
 def original_kapitel(werk, b):
@@ -213,7 +225,10 @@ def original_kapitel(werk, b):
         kap = epub._split_chapters(flach)
         ref = inhaltsverzeichnis(text)
         if ref and len(ohne_struktur(ref)) != len(ohne_struktur([t for t, _p in kap])):
-            kap = kapitel_nach_referenz(flach, ref) or kap      # Heuristik weicht ab -> entlang Referenz
+            r = kapitel_nach_referenz(flach, ref)               # Heuristik weicht ab -> entlang Referenz
+            if r:
+                kap, gliederung = r
+                ref = [t for t in ref if t not in gliederung]    # Sammelueberschriften sind keine Kapitel
         return kap, ref, "raw.txt"          # Front-/Endmatter entfernt _write_marked_source (wie bisher)
     kap, i = [], 1
     while True:

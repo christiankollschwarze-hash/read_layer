@@ -68,9 +68,16 @@ def _modul(s):
     return os.path.splitext(os.path.basename(treffer[0]))[0] if treffer else None
 
 
+_HILFE_NAMEN = {}
+
+
 def name(s):
     if s in NAMEN:
         return NAMEN[s]
+    if not _HILFE_NAMEN:
+        _HILFE_NAMEN.update({k: v.get("name") for k, v in hilfe().items() if isinstance(v, dict)} or {"_": None})
+    if _HILFE_NAMEN.get(s):
+        return _HILFE_NAMEN[s]
     m = _modul(s)
     return m.split("_", 1)[1].replace("_", " ").capitalize() if m else s
 
@@ -607,6 +614,19 @@ def monitor(book_id, stage, wer=None):
             "stage": st, "monitor": stage in MONITOR_DATEN, "daten": daten, "daten_fehler": dfehler}
 
 
+MONITOR_TEIL = {}        # stage -> f(book_id, query) -> dict (nachgeladene Teile, z. B. ein Kapitel)
+
+
+def monitor_teil(book_id, stage, q):
+    try:
+        f = MONITOR_TEIL.get(status._norm(stage))
+        if not f:
+            raise ValueError(f"Stage {stage}: kein Teil-Abruf")
+        return f(book_id, q)
+    except (ValueError, OSError, RuntimeError) as e:
+        return {"fehler": str(e)}
+
+
 def _titel(book_id):
     try:
         return bestellung.lesen(book_id).roh.get("titel_original") or book_id
@@ -677,18 +697,10 @@ def _m100_daten(book_id):
             "rohtext": rt, "rohtext_url": f"/api/werk/{book_id}/rohtext"}
 
 
-def _m100_argv(book_id, e, wer):
-    import re as _re
-    argv = [PY, os.path.join("tools", "s100_anlegen.py"), book_id, "--wer", wer]
-    grund = (e.get("grund") or "").strip()
-    for k, flag in (("todesjahr", "--todesjahr"), ("uebersetzer_todesjahr", "--uebersetzer-todesjahr")):
-        if str(e.get(k) or "").strip():
-            argv.append(f"{flag}={int(e[k])}")
-    if e.get("quellsprache"):
-        if e["quellsprache"] not in bestellung.sprachliste():
-            raise ValueError("Quellsprache nicht in Sprachliste")
-        argv.append(f"--quellsprache={e['quellsprache']}")
-    n = e.get("nachweis") or {}
+def _nachweis_argv(n):
+    """Baustein PD-/Rechte-Nachweis (100 + 110) -> CLI-Flags des Stage-Moduls."""
+    argv = []
+    n = n or {}
     if n.get("art"):
         deckt = [p for p in (n.get("deckt") or []) if p in ("autor", "uebersetzer")]
         if not deckt:
@@ -707,6 +719,21 @@ def _m100_argv(book_id, e, wer):
         else:
             raise ValueError(f"Nachweis-Art {n['art']!r} unbekannt")
         argv.append(f"--deckt={','.join(deckt)}")
+    return argv
+
+
+def _m100_argv(book_id, e, wer):
+    import re as _re
+    argv = [PY, os.path.join("tools", "s100_anlegen.py"), book_id, "--wer", wer]
+    grund = (e.get("grund") or "").strip()
+    for k, flag in (("todesjahr", "--todesjahr"), ("uebersetzer_todesjahr", "--uebersetzer-todesjahr")):
+        if str(e.get(k) or "").strip():
+            argv.append(f"{flag}={int(e[k])}")
+    if e.get("quellsprache"):
+        if e["quellsprache"] not in bestellung.sprachliste():
+            raise ValueError("Quellsprache nicht in Sprachliste")
+        argv.append(f"--quellsprache={e['quellsprache']}")
+    argv += _nachweis_argv(e.get("nachweis"))
     url = (e.get("textquelle_url") or "").strip()
     if url:
         if not _re.match(r"^https?://", url):
@@ -717,7 +744,9 @@ def _m100_argv(book_id, e, wer):
             raise ValueError("Editor-Text und andere Quelle schließen sich aus")
         if not grund:
             raise ValueError("Grund ist Pflicht (Rohtext geändert)")
-        p = os.path.join(config.work_dir(book_id), "100_editor.txt")
+        ed = os.path.join(config.work_dir(book_id), "_editor")     # nicht work/100_* (kein Stage-Ergebnis)
+        os.makedirs(ed, exist_ok=True)
+        p = os.path.join(ed, "100_rohtext.txt")
         with open(p, "w", encoding="utf-8", newline="") as f:
             f.write(e["rohtext"])
         argv += [f"--rohtext-aus={p}", f"--grund={grund}"]
@@ -734,3 +763,520 @@ def rohtext(book_id):
 
 MONITOR_DATEN["100"] = _m100_daten
 MONITOR_SPEICHERN["100"] = _m100_argv
+
+
+# ---- 110 Wikidata
+def _m110_daten(book_id):
+    import datetime as _d
+    import json as _j
+    from tools import s100_anlegen as S
+    b = bestellung.lesen(book_id)
+    roh = b.roh
+    ordner = bestellung.werkordner(book_id)
+    jahr = _d.date.today().year
+    ap = S._author_pfad(roh, ordner)
+    aj = {}
+    if os.path.exists(ap):
+        with open(ap, encoding="utf-8") as f:
+            aj = _j.load(f)
+    kp = os.path.join(config.work_dir(book_id), "110_kandidaten.json")
+    kand = {}
+    if os.path.exists(kp):
+        with open(kp, encoding="utf-8") as f:
+            kand = _j.load(f)
+    tj = aj.get("todesjahr")
+    nw = [n for n in S.nachweise(roh) if "autor" in (n.get("deckt") or [])]
+    grenze = int(tj) + S.PD_JAHRE if tj not in (None, "") else None
+    fass = {f.get("sprache"): f for f in roh.get("fassungen", []) if isinstance(f, dict)}
+    titel = [{"sprache": lg, "titel": (fass.get(lg) or {}).get("titel") or "",
+              "quelle": (fass.get(lg) or {}).get("titel_quelle") if (fass.get(lg) or {}).get("titel") else None,
+              "ok": ((fass.get(lg) or {}).get("titel_quelle") in ("original", "wikidata", "manuell"))
+                    and bool((fass.get(lg) or {}).get("titel"))} for lg in b.sprachen]
+    titelei = []
+    raw = os.path.join(ordner, "raw.txt")
+    if os.path.exists(raw):
+        with open(raw, encoding="utf-8", errors="replace") as f:
+            for i, z in enumerate(f):
+                if i >= 60:
+                    break
+                titelei.append(z.rstrip("\r\n"))
+    gid = roh.get("gutenberg_id") or ""
+    return {"autor": {"name": aj.get("name_display") or "", "geburtsjahr": aj.get("geburtsjahr"), "todesjahr": tj,
+                      "qid": aj.get("wikidata_id") or "", "verified": bool(aj.get("verified")),
+                      "todesjahr_quelle": aj.get("todesjahr_quelle"), "wikipedia": aj.get("quelle_weich") or "",
+                      "geburtsort": aj.get("geburtsort") or ""},
+            "autor_kandidaten": kand.get("autor") or [], "autor_kandidaten_wann": kand.get("autor_wann"),
+            "werk_kandidaten": kand.get("werk") or [], "werk_kandidaten_wann": kand.get("werk_wann"),
+            "pd": {"jahr": jahr, "pd_jahre": S.PD_JAHRE, "grenze": grenze, "ok": bool(nw) or (grenze is not None and grenze < jahr),
+                   "per_nachweis": bool(nw) and not (grenze is not None and grenze < jahr),
+                   "nachweise": [S.nachweis_text(n) for n in nw]},
+            "werk": {"qid": roh.get("work_wikidata_id") or "", "titel_original": roh.get("titel_original") or "",
+                     "erscheinungsjahr": roh.get("erscheinungsjahr")},
+            "titel": titel, "quellsprache": b.quellsprache, "uebersetzer": roh.get("quell_uebersetzer") or "",
+            "gutenberg_id": gid, "gutenberg_link": f"https://www.gutenberg.org/ebooks/{gid}" if gid else None,
+            "titelei": titelei, "eigenes_werk": config.eigene_rechte(book_id)}
+
+
+def _m110_argv(book_id, e, wer):
+    import re as _re
+    argv = [PY, "-m", "pipeline.s110_wikidata", book_id, "--wer", wer]
+    for k, flag in (("autor_qid", "--autor-qid"), ("werk_qid", "--werk-qid")):
+        v = (e.get(k) or "").strip().upper()
+        if v:
+            if not _re.fullmatch(r"Q\d+", v):
+                raise ValueError(f"{flag}: {v!r} ist keine Q-ID")
+            argv.append(f"{flag}={v}")
+    for lg, t in (e.get("titel") or {}).items():
+        if lg not in bestellung.sprachliste():
+            raise ValueError(f"Titel: Sprache {lg!r} unbekannt")
+        if (t or "").strip():
+            argv.append(f"--titel={lg}={t.strip()}")
+    argv += _nachweis_argv(e.get("nachweis"))
+    if e.get("neu"):
+        argv.append("--neu")
+    return argv
+
+
+MONITOR_DATEN["110"] = _m110_daten
+MONITOR_SPEICHERN["110"] = _m110_argv
+
+
+# ---- 115 Fassungsweiche
+def _m115_daten(book_id):
+    from pipeline import s115_fassung as S, s095_produktwahl as P
+    b = bestellung.lesen(book_id)
+    ordner = bestellung.werkordner(book_id)
+    df, dh = S.default(b)
+    z = P.zeichen(book_id)
+    satz = getattr(config, "ANGEBOT_USD_100K", {}).get("modernisierung", 0)
+    probe = []
+    raw = os.path.join(ordner, "raw.txt")
+    if os.path.exists(raw):
+        with open(raw, encoding="utf-8", errors="replace", newline="") as f:
+            t = f.read().replace("\r\r\n", "\n").replace("\r\n", "\n").replace("\r", "\n")
+        abs_ = [a.strip() for a in t.split("\n\n") if len(a.strip()) > 200]
+        if abs_:
+            i = len(abs_) // 3
+            probe = [" ".join(a.split()) for a in abs_[i:i + 3]]
+        else:   # Absatzgrenzen nicht erkennbar (Leerzeile nach jeder Zeile): 3 Bloecke zu 8 Zeilen
+            zl = [x.strip() for x in t.split("\n") if x.strip()]
+            i = len(zl) // 3
+            probe = [" ".join(zl[i + k * 8:i + k * 8 + 8]) for k in range(3) if zl[i + k * 8:]]
+    return {"fassung": b.fassung if "fassung" not in b.abgeleitet else None,
+            "default": df, "default_herkunft": dh,
+            "mandant": b.mandant, "mandant_art": b.mandant_art, "quelle": b.roh.get("quelle"),
+            "quellsprache": b.quellsprache, "modern_sprachen": list(S.MODERN_SPRACHEN),
+            "bearbeitung": b.rechte.get("bearbeitung"), "zeichen": z,
+            "angebot_usd": round(satz * z / 100000, 2) if z else None,
+            "vermerk": S.VERMERK, "modernisiert_vorhanden": S._modernisiert_vorhanden(book_id),
+            "probe": probe}
+
+
+def _m115_argv(book_id, e, wer):
+    f = e.get("fassung")
+    if f not in ("modernisiert", "original"):
+        raise ValueError("Fassung: modernisiert oder original wählen")
+    return [PY, "-m", "pipeline.s115_fassung", book_id, "--wer", wer,
+            "--modernisieren", "ja" if f == "modernisiert" else "nein"]
+
+
+MONITOR_DATEN["115"] = _m115_daten
+MONITOR_SPEICHERN["115"] = _m115_argv
+
+
+# ---- 120 Modernisierung
+def _m120_kap(book_id):
+    """-> (b, S, kap_orig [(titel, absaetze)], ref, herkunft, fehler). Quelle wie Stage 120 (ohne LLM)."""
+    from pipeline import s120_modernisierung as S
+    b = bestellung.lesen(book_id)
+    try:
+        kap, ref, herkunft = S.original_kapitel(book_id, b)
+        return b, S, kap, ref, herkunft, None
+    except (FileNotFoundError, RuntimeError) as e:
+        return b, S, [], None, None, str(e)
+
+
+def _m120_neu(S, book_id, k):
+    p = os.path.join(S.mod_dir(book_id), f"chapter-{k}.json")
+    return S._lesen(p) if os.path.exists(p) else None
+
+
+def _m120_daten(book_id):
+    from pipeline import s115_fassung as F
+    b, S, kap, ref, herkunft, fehler = _m120_kap(book_id)
+    fassung = b.fassung or "original"
+    if fassung == "modernisiert" and b.quellsprache not in F.MODERN_SPRACHEN:
+        fassung = "original"
+    liste, param, z_ges = [], None, 0
+    for k, (t, po) in enumerate(kap, 1):
+        n = _m120_neu(S, book_id, k) or {}
+        pn = n.get("paragraphs") or []
+        zo, zn = S._zeichen(po), S._zeichen(pn) if pn else 0
+        z_ges += zo
+        aus = 0
+        for a, c in zip(po, pn):
+            if a != S.HR and len(a) >= S.AUSREISSER_MIN_ZEICHEN and not S.AUSREISSER[0] <= len(c) / len(a) <= S.AUSREISSER[1]:
+                aus += 1
+        param = param or n.get("param")
+        liste.append({"k": k, "titel": t, "absaetze": len(po), "woerter": S._woerter(po),
+                      "vorhanden": bool(pn), "aktuell": n.get("quelle_hash") == S.hash_obj({"t": t, "p": po}),
+                      "fassung": n.get("fassung"), "laenge": round(zn / zo, 2) if pn and zo else None,
+                      "ausreisser": aus, "fehlend": len(n.get("fehlend") or []), "manuell": len(n.get("manuell") or [])})
+    standard = S._param(None, None, None, None)
+    return {"fassung": fassung, "fassung_aus_115": "fassung" not in b.abgeleitet, "fehler": fehler,
+            "herkunft": herkunft, "referenz": ref, "kapitel": liste,
+            "bestaetigt": S.kapitel_bestaetigt(book_id, kap) if kap else False,
+            "titel_treffer": round(S.titel_treffer(kap, ref), 3) if ref else None,
+            "param": param if isinstance(param, dict) and "staerke" in param else None,
+            "standard": standard, "staerken": list(S.SYS), "kosten_usd": round(S._kosten(z_ges), 2),
+            "grenzen": {"laenge": S.LAENGE, "ausreisser": S.AUSREISSER, "min_zeichen": S.AUSREISSER_MIN_ZEICHEN},
+            "kurz_woerter": S.KURZ_WOERTER}
+
+
+def _m120_teil(book_id, q):
+    b, S, kap, _r, _h, fehler = _m120_kap(book_id)
+    if fehler:
+        raise ValueError(fehler)
+    k = int(q.get("k") or 1)
+    if not 1 <= k <= len(kap):
+        raise ValueError(f"Kapitel {k} gibt es nicht")
+    t, po = kap[k - 1]
+    n = _m120_neu(S, book_id, k) or {}
+    pn = n.get("paragraphs") or []
+    fehl, man = set(n.get("fehlend") or []), set(n.get("manuell") or [])
+    paare = []
+    for i, a in enumerate(po):
+        c = pn[i] if i < len(pn) else None
+        q_ = round(len(c) / len(a), 2) if c is not None and a and a != S.HR else None
+        paare.append({"n": i + 1, "original": a, "neu": c, "q": q_, "hr": a == S.HR,
+                      "ausreisser": bool(q_ is not None and len(a) >= S.AUSREISSER_MIN_ZEICHEN
+                                         and not S.AUSREISSER[0] <= q_ <= S.AUSREISSER[1]),
+                      "gleich": c == a, "fehlend": i in fehl, "manuell": i in man})
+    return {"k": k, "titel": t, "paare": paare, "fassung": n.get("fassung")}
+
+
+def _m120_argv(book_id, e, wer):
+    import re as _re
+    argv = [PY, "-m", "pipeline.s120_modernisierung", book_id, "--wer", wer]
+    if e.get("kapitel_ok"):
+        argv.append("--kapitel-ok")
+    if e.get("staerke"):
+        argv.append(f"--staerke={e['staerke']}")
+    if e.get("temperatur") not in (None, ""):
+        t = float(e["temperatur"])
+        if not 0 <= t <= 1.5:
+            raise ValueError("Temperatur 0-1,5")
+        argv.append(f"--temperatur={t}")
+    if e.get("stueck") not in (None, ""):
+        argv.append(f"--stueck={int(e['stueck'])}")
+    for k in e.get("kapitel") or []:
+        argv.append(f"--kapitel={int(k)}")
+    for s in e.get("absatz") or []:
+        if not _re.fullmatch(r"\d+:\d+", s):
+            raise ValueError(f"Absatz {s!r}: Form K:N")
+        argv.append(f"--absatz={s}")
+    for s, txt in (e.get("absatz_text") or {}).items():
+        if not _re.fullmatch(r"\d+:\d+", s):
+            raise ValueError(f"Absatz {s!r}: Form K:N")
+        txt = " ".join((txt or "").split())
+        if not txt:
+            raise ValueError(f"Absatz {s}: Text leer")
+        argv.append(f"--absatz-text={s}={txt}")
+    if e.get("force"):
+        argv.append("--force")
+    return argv
+
+
+MONITOR_DATEN["120"] = _m120_daten
+MONITOR_SPEICHERN["120"] = _m120_argv
+MONITOR_TEIL["120"] = _m120_teil
+
+
+# ---- 150 ePub-Import
+def _m150_epub(book_id):
+    from pipeline import s150_epub_import as E
+    b = bestellung.lesen(book_id)
+    ordner = bestellung.werkordner(book_id)
+    return b, E, ordner, E.epub_finden(ordner, b.roh)
+
+
+def _rel(p):
+    return os.path.relpath(p, BASE).replace(os.sep, "/") if p else None
+
+
+def _m150_daten(book_id):
+    import json as _j
+    b, E, ordner, ep = _m150_epub(book_id)
+    bp = os.path.join(ordner, "work", "ingest_bericht.json")
+    ber = {}
+    if os.path.exists(bp):
+        with open(bp, encoding="utf-8") as f:
+            ber = _j.load(f)
+    opt = dict(E.OPT_STANDARD, **(b.roh.get("epub_import") or {}))
+    zwang = opt.get("seiten") or {}
+    seiten = []
+    for art, liste in (("inhalt", ber.get("inhalt")), ("notizen", ber.get("notizseiten")), ("weg", ber.get("entfernt"))):
+        for x in liste or []:
+            seiten.append({"datei": x["datei"], "art": art, "grund": x.get("grund"), "zeichen": x.get("zeichen"),
+                           "zwang": zwang.get(x["datei"]) or zwang.get(os.path.basename(x["datei"]))})
+    if ep:                                            # Spine-Reihenfolge aus der Quelle
+        try:
+            z, opf_path = E.oeffnen(ep)
+            opf = E.opf_lesen(z, opf_path)
+            ordnung = [opf["items"][i]["href"] for i in opf["spine"] if i in opf["items"]]
+            seiten.sort(key=lambda x: ordnung.index(x["datei"]) if x["datei"] in ordnung else 9999)
+        except Exception:
+            pass
+    um = ber.get("umfang") or b.roh.get("umfang") or {}
+    cov = os.path.join(ordner, b.roh.get("cover")) if b.roh.get("cover") else None
+    kt = b.roh.get("klappentext") or {}
+    vorschlag = None
+    if not ep and ber.get("datei"):                   # Altwerke: Quelle liegt noch im Eingangsordner
+        v = os.path.join(BASE, "_epub_import", ber["datei"])
+        vorschlag = _rel(v) if os.path.exists(v) else None
+    return {"datei": ber.get("datei"), "zeit": ber.get("zeit"), "epub": _rel(ep), "epub_vorschlag": vorschlag,
+            "bericht": bool(ber),
+            "titel": ber.get("titel") or b.roh.get("titel_original") or "", "titel_kandidaten": ber.get("titel_kandidaten") or [],
+            "autor": ber.get("autor") or "", "sprache": b.quellsprache, "opf_sprache": ber.get("opf_sprache", ber.get("sprache")),
+            "sprachliste": list(bestellung.sprachliste()), "seiten": seiten, "kapitel": ber.get("kapitel") or [],
+            "umfang": um, "warnungen": ber.get("warnungen") or [], "opt": {k: opt.get(k) for k in ("bilder", "fussnoten", "cover")},
+            "cover": _rel(cov) if cov and os.path.exists(cov) else None, "cover_info": ber.get("cover") or {},
+            "klappentext": kt if isinstance(kt, dict) else {}, "mandant_art": b.mandant_art,
+            "grenzen": {"zeichen": E.MIN_ZEICHEN, "inhaltsanteil": E.MIN_INHALTSANTEIL}}
+
+
+def _m150_teil(book_id, q):
+    b, E, ordner, ep = _m150_epub(book_id)
+    if not ep:
+        v = _m150_daten(book_id).get("epub_vorschlag")
+        ep = os.path.join(BASE, v) if v else None
+    if not ep:
+        raise ValueError("Quell-ePub nicht im Werkordner (quelle/)")
+    z, opf_path = E.oeffnen(ep)
+    opf = E.opf_lesen(z, opf_path)
+    d = q.get("datei") or ""
+    it = next((i for i in opf["items"].values() if i.get("href") == d), None)
+    if not it:
+        raise ValueError(f"Seite {d!r} nicht im ePub")
+    s = z.read(it["path"]).decode("utf-8", "ignore")
+    body = s[s.find("<body"):] if "<body" in s else s
+    import re as _re
+    body = _re.sub(r"<(script|style)[^>]*>.*?</\1>", " ", body, flags=_re.S)
+    body = _re.sub(r"</(p|h\d|div|li|section)>", "\n", body)
+    t = "\n".join(" ".join(x.split()) for x in _re.sub(r"<[^>]+>", " ", body).split("\n") if x.strip())
+    import html as _h
+    t = _h.unescape(t)
+    return {"datei": d, "zeichen": len(t), "text": t[:4000]}
+
+
+def _m150_argv(book_id, e, wer):
+    b, E, ordner, ep = _m150_epub(book_id)
+    argv = [PY, "-m", "pipeline.s150_epub_import", book_id, "--wer", wer]
+    for k in ("titel", "autor"):
+        v = " ".join((e.get(k) or "").split())
+        if v:
+            argv.append(f"--{k}={v}")
+    if e.get("sprache"):
+        if e["sprache"] not in bestellung.sprachliste():
+            raise ValueError(f"Sprache {e['sprache']!r} nicht in der Sprachliste")
+        argv.append(f"--sprache={e['sprache']}")
+    bekannt = {x["datei"] for x in _m150_daten(book_id)["seiten"]}
+    for art in ("behalten", "entfernen"):
+        for d in e.get(art) or []:
+            if d not in bekannt:
+                raise ValueError(f"Seite {d!r} unbekannt")
+            argv.append(f"--{art}={d}")
+    for k in ("bilder", "fussnoten"):
+        if e.get(k) in ("ja", "nein"):
+            argv.append(f"--{k}={e[k]}")
+    if e.get("cover") in ("epub", "neu"):
+        argv.append(f"--cover={e['cover']}")
+    if e.get("force"):
+        argv.append("--force")
+    if e.get("epub"):
+        q = os.path.normpath(os.path.join(BASE, e["epub"]))
+        if not q.startswith(BASE) or not q.lower().endswith(".epub") or not os.path.isfile(q):
+            raise ValueError(f"ePub {e['epub']!r} nicht gefunden")
+        argv.append(f"--epub={q}")
+        ep = q
+    if len(argv) > 6 and not ep:
+        raise ValueError("Quell-ePub fehlt im Werkordner (quelle/) – Regler brauchen die Quelldatei")
+    return argv
+
+
+MONITOR_DATEN["150"] = _m150_daten
+MONITOR_SPEICHERN["150"] = _m150_argv
+MONITOR_TEIL["150"] = _m150_teil
+
+
+# ---- 190 Eingangsvertrag (keine Regler: Vertragsliste als Trockenlauf)
+def _m190_daten(book_id):
+    import contextlib as _c, io as _io
+    from pipeline import s190_vertrag as V
+    with _c.redirect_stdout(_io.StringIO()):
+        g = V.run(book_id, trocken=True)
+    return {"ergebnis": (g.ergebnis or {}).get("ergebnis"), "ruecksprung": (g.ergebnis or {}).get("ruecksprung"),
+            "pruefungen": [{"name": p["name"], "ok": bool(p["ok"]), "text": p["text"], "art": p["bei_fehler"],
+                            "wert": p["wert"] if isinstance(p["wert"], (int, float, str, bool, type(None))) else str(p["wert"]),
+                            "ruecksprung": p["ruecksprung"]} for p in g.pruefungen],
+            "metriken": {k: g.metriken.get(k) for k in ("quelle", "fassung", "zielsprachen", "mandant", "kapitel",
+                                                         "woerter", "zeichen") if k in g.metriken},
+            "max": V.TEXT_MAX}
+
+
+MONITOR_DATEN["190"] = _m190_daten
+
+
+# ---- 195 Teilung
+HOER_ZPH = 55_000   # Zeichen je Hoerstunde (Schaetzung)
+
+
+def _m195_grenze(book_id, roh=None):
+    import json as _j
+    from pipeline import s195_teilung as T
+    p = os.path.join(config.work_dir(book_id), "195_teilung.json")
+    alt = {}
+    if os.path.exists(p):
+        with open(p, encoding="utf-8") as f:
+            alt = _j.load(f)
+    return alt, alt.get("grenze") or T.GRENZE
+
+
+def _m195_daten(book_id):
+    from pipeline import s195_teilung as T
+    roh = bestellung.lesen(book_id).roh
+    alt, grenze = _m195_grenze(book_id)
+    kap = T.kapitel(book_id)
+    aktuell = bool(alt) and alt.get("quelle_hash") == T._quelle_hash(book_id)
+    if aktuell:
+        teile, herkunft = alt.get("teile") or [], alt.get("herkunft")
+    elif kap:
+        starts, herkunft = T.vorschlag(kap, grenze, alt.get("teile_soll") if aktuell else None)
+        teile = T._teile_liste(book_id, kap, starts or [0], {int(k): v for k, v in (alt.get("namen") or {}).items()})
+    else:
+        teile, herkunft = [], None
+    geteilt = []
+    for sl in roh.get("geteilt_in") or []:
+        try:
+            z = status.zustand(sl, "190")
+        except Exception:
+            z = "fehlt"
+        geteilt.append({"slug": sl, "zustand_190": z})
+    return {"grenze": grenze, "standard": T.GRENZE, "zph": HOER_ZPH,
+            "zeichen": sum(z for _n, _t, z, _s in kap),
+            "kapitel": [{"n": n, "titel": t, "zeichen": z, "gliederung": s} for n, t, z, s in kap],
+            "teile": teile, "herkunft": herkunft, "aktuell": aktuell,
+            "vorhanden": bool(alt), "entscheidung": alt.get("entscheidung") if aktuell else None,
+            "wer": alt.get("wer") if aktuell else None, "wann": alt.get("wann") if aktuell else None,
+            "teile_soll": alt.get("teile_soll") if aktuell else None, "geteilt_in": geteilt}
+
+
+def _m195_teil(book_id, q):
+    """Vorschlag fuer Grenze/Teilezahl berechnen, ohne zu schreiben -> Schnitte (Kapitelnummern)."""
+    from pipeline import s195_teilung as T
+    def z(k):
+        v = (q.get(k) or [""])[0] if isinstance(q.get(k), list) else q.get(k)
+        return int(v) if str(v or "").strip().isdigit() else None
+    _alt, g0 = _m195_grenze(book_id)
+    grenze, teile = z("grenze") or g0, z("teile")
+    if grenze < 10_000:
+        raise ValueError("Grenze mindestens 10.000 Zeichen")
+    kap = T.kapitel(book_id)
+    if not kap:
+        raise ValueError("keine Kapitel (190/120 fehlt)")
+    starts, herkunft = T.vorschlag(kap, grenze, teile)
+    if not starts:
+        raise ValueError(f"{teile} Teile bei {len(kap)} Kapiteln nicht moeglich")
+    return {"schnitte": [kap[s][0] for s in starts if s > 0], "herkunft": herkunft}
+
+
+def _m195_argv(book_id, e, wer):
+    from pipeline import s195_teilung as T
+    a = [PY, "-m", "pipeline.s195_teilung", book_id, "--wer", wer]
+    n = len(T.kapitel(book_id))
+    if e.get("grenze") not in (None, ""):
+        g = int(e["grenze"])
+        if g < 10_000:
+            raise ValueError("Grenze mindestens 10.000 Zeichen")
+        a.append(f"--grenze={g}")
+    if e.get("schnitte") is not None:
+        s = sorted({int(x) for x in e["schnitte"]})
+        if any(x < 2 or x > n for x in s):
+            raise ValueError(f"Schnitte nur an Kapitel 2…{n}")
+        if not s and e.get("entscheidung") == "annehmen":
+            raise ValueError("Annehmen ohne Schnitt: 1 Teil = keine Teilung (Ablehnen)")
+        a.append(f"--schnitte={','.join(map(str, s))}" if s else "--teile=1")
+    elif e.get("teile") not in (None, ""):
+        a.append(f"--teile={int(e['teile'])}")
+    for k, v in (e.get("namen") or {}).items():
+        v = " ".join(str(v).split())
+        if v:
+            a.append(f"--name={int(k)}={v}")
+    ent = e.get("entscheidung")
+    if ent == "annehmen":
+        a.append("--annehmen")
+    elif ent == "ablehnen":
+        a.append("--ablehnen")
+    elif ent:
+        raise ValueError(f"Entscheidung {ent!r}")
+    return a
+
+
+MONITOR_DATEN["195"] = _m195_daten
+MONITOR_SPEICHERN["195"] = _m195_argv
+MONITOR_TEIL["195"] = _m195_teil
+
+
+# ---- Stage-Ergebnis (Monitor-Abschnitt "Ergebnis", CK 04.11.2026: Ergebnis je Stage ansehen)
+ERGEBNIS_EXTRA = {"100": ["book.json", "raw.txt", "@author.json"], "110": ["book.json", "@author.json"], "115": ["book.json"], "120": ["raw_modernized.txt"],
+                  "150": ["book.json", "work/ingest_bericht.json", "raw_modernized.txt"], "195": ["book.json"]}
+
+
+def ergebnis(book_id, stage):
+    """Dateien, die eine Stage hinterlaesst: Manifeste work/<stage>_* (auch Unterordner work/<stage>_*/),
+    dazu je Stage feste Werkdateien (ERGEBNIS_EXTRA; '@' = Autorordner)."""
+    stage = status._norm(stage)
+    try:
+        ordner = bestellung.werkordner(book_id)
+        w = config.work_dir(book_id)
+    except Exception as e:
+        return {"fehler": str(e), "dateien": []}
+    pfade = sorted(glob.glob(os.path.join(w, f"{stage}_*")))
+    for x in ERGEBNIS_EXTRA.get(stage, []):
+        if x.startswith("@"):
+            try:
+                a = bestellung.lesen(book_id).roh.get("author_slug")
+                pfade.append(os.path.join(config.author_dir(a), x[1:]) if a
+                             else os.path.join(os.path.dirname(os.path.dirname(ordner)), x[1:]))
+            except Exception:
+                pass
+        else:
+            pfade.append(os.path.join(ordner, x))
+    out = []
+    for p in pfade:
+        for q in ([p] if os.path.isfile(p) else sorted(glob.glob(os.path.join(p, "**", "*"), recursive=True))
+                  if os.path.isdir(p) else []):
+            if not os.path.isfile(q):
+                continue
+            ext = os.path.splitext(q)[1].lower()
+            art = ("json" if ext in (".json", ".jsonl") else "text" if ext in (".txt", ".md", ".log", ".csv", ".srt", ".vtt")
+                   else "audio" if ext in (".wav", ".mp3", ".m4a", ".m4b", ".ogg") else "bild"
+                   if ext in (".png", ".jpg", ".jpeg", ".webp") else "datei")
+            out.append({"datei": os.path.relpath(q, BASE).replace("\\", "/"), "name": (os.path.relpath(q, w) if q.startswith(w) else os.path.relpath(q, ordner)
+                                 if q.startswith(ordner) else os.path.basename(q)).replace("\\", "/"),
+                        "art": art, "groesse": os.path.getsize(q),
+                        "wann": dt.datetime.fromtimestamp(os.path.getmtime(q)).isoformat(timespec="seconds")})
+            if len(out) >= 300:
+                return {"dateien": out, "gekappt": True}
+    return {"dateien": out}
+
+
+# ---- Hilfe je Stage (config/stage_hilfe.json; Popup im Cockpit, Texte auch fuer docs/STAGE_SKRIPT.md)
+def hilfe():
+    import json as _j
+    p = os.path.join(BASE, "config", "stage_hilfe.json")
+    try:
+        with open(p, encoding="utf-8") as f:
+            return {k: v for k, v in _j.load(f).items() if not k.startswith("_")}
+    except (OSError, ValueError):
+        return {}

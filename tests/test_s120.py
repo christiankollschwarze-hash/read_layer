@@ -191,6 +191,27 @@ class T(unittest.TestCase):
         self.assertEqual(self.gate()["metriken"]["altbestand_uebernommen"], 2)
         self.assertEqual(self.kap(1)["param"], M.ALT_PARAM)
 
+    def test_monitor_120(self):
+        from cockpit import werk_api as W
+        self.werk()
+        d = W._m120_daten("w")
+        self.assertEqual(len(d["kapitel"]), 2)
+        self.assertFalse(d["kapitel"][0]["vorhanden"])
+        self.lauf()
+        d = W._m120_daten("w")
+        self.assertTrue(d["kapitel"][0]["vorhanden"] and d["kapitel"][0]["aktuell"])
+        self.assertEqual(d["param"]["staerke"], "sanft")
+        t = W.monitor_teil("w", "120", {"k": "1"})
+        self.assertIn("slowly", t["paare"][0]["original"])
+        self.assertIn("slow along", t["paare"][0]["neu"])
+        self.assertIn("fehler", W.monitor_teil("w", "120", {"k": "9"}))
+        a = W._m120_argv("w", {"kapitel_ok": True, "kapitel": [2], "absatz": ["1:2"],
+                               "absatz_text": {"1:3": "Neu\n text"}, "staerke": "mittel"}, "CK")
+        self.assertEqual(a[6:], ["--kapitel-ok", "--staerke=mittel", "--kapitel=2", "--absatz=1:2",
+                                 "--absatz-text=1:3=Neu text"])
+        with self.assertRaises(ValueError):
+            W._m120_argv("w", {"absatz": ["x"]}, "CK")
+
     def test_absatz_manuell(self):
         self.werk()
         self.lauf()
@@ -209,6 +230,29 @@ class T(unittest.TestCase):
         self.assertEqual(self.lauf(force=True), "auto")
         self.assertFalse(open(p).read().endswith("ROSALIND.\n"))
 
+
+
+class Referenz(unittest.TestCase):
+    """Kapitel entlang des Inhaltsverzeichnisses (the-art-of-war, 04.11.2026)."""
+    ABS = textwrap.fill(SATZ * 2, 70)
+
+    def text(self):
+        t = ("CONTENTS\n\nINTRODUCTION\nSun Wu and his Book\nThe Commentators\nChapter I. Laying plans\n"
+             "Chapter II Manoeuvring\n\n\n\n")
+        t += "INTRODUCTION\n\nSun Wu and his Book\n\n" + self.ABS + "\n\nThe Commentators\n\n" + self.ABS
+        t += "\n\nChapter I. LAYING PLANS\n\n" + self.ABS + "\n\nChapter II. MANOEUVERING\n\n" + self.ABS + "\n"
+        return t
+
+    def test_sammelueberschrift_und_schreibvariante(self):
+        from pipeline import kapiteltext as E
+        t = self.text()
+        ref = M.inhaltsverzeichnis(t)
+        self.assertEqual(len(ref), 5)
+        kap, gl = M.kapitel_nach_referenz(E._rewrap(t), ref)
+        self.assertEqual(gl, ["INTRODUCTION"])
+        self.assertEqual(len(kap), 4)
+        self.assertTrue(kap[0][0].lower().startswith("sun wu"))
+        self.assertTrue(all(p for _t, p in kap))
 
 
 class Vorspann(unittest.TestCase):

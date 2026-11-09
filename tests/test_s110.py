@@ -132,5 +132,16 @@ class T(unittest.TestCase):
         self.assertEqual(self.lauf(), "auto")
 
 
+    def test_nachweis_hebt_pd_stopp_auf_und_kandidaten(self):
+        json.dump({"name_display": "Jack London", "todesjahr": 1990}, open(
+            os.path.join(config.author_dir("london-j"), "author.json"), "w"))
+        self.autoren = ["Q9", "Q1"]
+        self.assertEqual(self.lauf(), "stopp")
+        k = json.load(open(os.path.join(self.dir, "work", "110_kandidaten.json")))
+        self.assertEqual([c["wikidata_id"] for c in k["autor"]], ["Q9", "Q1"])
+        self.assertTrue(k["autor"][0]["treffer"])
+        self.assertEqual(self.lauf(nachweis={"art": "rechteinhaber", "rechte_art": "lizenz", "deckt": ["autor"]}), "auto")
+
+
 if __name__ == "__main__":
     unittest.main()

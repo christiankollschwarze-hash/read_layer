@@ -115,7 +115,8 @@ def kapitel_120(werk, d):
     return n
 
 
-def run(werk, wer=None):
+def run(werk, wer=None, trocken=False):
+    """trocken: nur pruefen, status.json bleibt unberuehrt (Cockpit-Monitor 190)."""
     wer = wer or "pipeline"
     g = gate.Gate(werk, STAGE, ruecksprung="120", wer=wer)
     d = status.laden(werk)
@@ -131,7 +132,7 @@ def run(werk, wer=None):
     ordner = config.book_dir(werk)
     bp = os.path.join(ordner, "book.json")
     if not g.pflicht("book_json", os.path.exists(bp), ruecksprung="090", text="book.json vorhanden"):
-        g.entscheide()
+        g.entscheide(schreiben=not trocken)
         return g
     b = bestellung.lesen(werk)
     art, art_abg = s090_eingang.eingangsart(b.roh)
@@ -156,7 +157,7 @@ def run(werk, wer=None):
     # raw_modernized.txt
     rp = os.path.join(ordner, "raw_modernized.txt")
     if not g.pflicht("raw_modernized", os.path.exists(rp), text="raw_modernized.txt vorhanden"):
-        g.entscheide()
+        g.entscheide(schreiben=not trocken)
         return g
     with open(rp, encoding="utf-8") as f:
         text = f.read()
@@ -199,7 +200,7 @@ def run(werk, wer=None):
     n_mock = text.count("[MOCK")
     g.mock(n_mock, ruecksprung="120")
 
-    g.entscheide()
+    g.entscheide(schreiben=not trocken)
     return g
 
 

@@ -22,5 +22,28 @@
   "bedeutung_werk": "",
   "fassungen": [],
   "librivox_geprueft": "keine",
-  "librivox_geprueft_am": "2026-10-10T20:30:56"
+  "librivox_geprueft_am": "2026-10-10T20:30:56",
+  "mandant": "somnio",
+  "besitzer": "somnio",
+  "quelle": "gutenberg",
+  "produkte": [
+    {
+      "sprache": "en",
+      "inhalt": "text",
+      "stufe": null,
+      "kanaele": [
+        "taella"
+      ],
+      "zusatz": []
+    },
+    {
+      "sprache": "de",
+      "inhalt": "text",
+      "stufe": null,
+      "kanaele": [
+        "taella"
+      ],
+      "zusatz": []
+    }
+  ]
 }

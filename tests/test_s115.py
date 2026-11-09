@@ -93,6 +93,20 @@ class T(unittest.TestCase):
         h = " ".join(S.laden("w")["stages"]["115"].get("hinweise") or [])
         self.assertIn("120 neu", h)
 
+    def test_monitor_115(self):
+        from cockpit import werk_api as W
+        self.book(rechte={"art": "lizenz", "bearbeitung": False})
+        d = W._m115_daten("w")
+        self.assertEqual(d["default"], "modernisiert")
+        self.assertIsNone(d["fassung"])
+        self.assertFalse(d["bearbeitung"])
+        self.assertEqual(d["angebot_usd"], 0.14)
+        self.assertEqual(len(d["probe"]), 1)
+        a = W._m115_argv("w", {"fassung": "original"}, "CK")
+        self.assertEqual(a[-2:], ["--modernisieren", "nein"])
+        with self.assertRaises(ValueError):
+            W._m115_argv("w", {}, "CK")
+
 
 if __name__ == "__main__":
     unittest.main()

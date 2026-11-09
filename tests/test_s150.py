@@ -81,6 +81,22 @@ class T(unittest.TestCase):
     def gruende(self):
         return " ".join(S.laden(self.BID)["stages"]["150"]["gate"]["gruende"])
 
+    def test_monitor_150(self):
+        from cockpit import werk_api as W
+        about = ("about-the-war.xhtml", seite("About the War", [SATZ * 2] * 40))
+        self.neu([kap(1), about, kap(2)])
+        d = W._m150_daten(self.BID)
+        self.assertTrue(d["epub"])
+        self.assertEqual([x["datei"] for x in d["seiten"]], ["k1.xhtml", "about-the-war.xhtml", "k2.xhtml"])
+        self.assertEqual(d["seiten"][1]["art"], "weg")
+        self.assertEqual(len(d["warnungen"]), 1)
+        t = W._m150_teil(self.BID, {"datei": "about-the-war.xhtml"})
+        self.assertIn("About the War", t["text"])
+        a = W._m150_argv(self.BID, {"behalten": ["about-the-war.xhtml"], "sprache": "en"}, "CK")
+        self.assertIn("--behalten=about-the-war.xhtml", a)
+        with self.assertRaises(ValueError):
+            W._m150_argv(self.BID, {"entfernen": ["gibtsnicht.xhtml"]}, "CK")
+
     def test_neuanlage_auto(self):
         bid, e = self.neu([("titel.xhtml", seite("Title", ["The Mirror Test"])), kap(1), kap(2)])
         self.assertEqual((bid, e), (self.BID, "auto"))

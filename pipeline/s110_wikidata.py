@@ -6,7 +6,9 @@ Gate:         Autor: Kandidaten mit Namens- und Todesjahr-Treffer (+-1 zu Gutend
               (Ruecksprung 100). Werk: Jaccard Titel >= Schwelle -> Wikidata-Titel auto; LLM-Titel oder kein
               Kandidat -> Mensch. Titel je Sprache = Quellsprache + bestellte Zielsprachen (book.json).
               Wikidata nicht erreichbar -> Stopp (neu abfragen).
-Regler:       --autor-qid Q, --werk-qid Q, --titel de="..." (mehrfach), --jaccard 0.5, --neu.
+Regler:       --autor-qid Q, --werk-qid Q, --titel de="..." (mehrfach), --jaccard 0.5, --neu,
+              PD-Nachweis --pd-url | --rechteinhaber [eigene|lizenz] | --pd-quelle (--deckt autor,uebersetzer)
+              (Monitor 110, 04.11.2026; Nachweis erfuellt pd_wikidata). Kandidaten -> work/110_kandidaten.json.
 Befunde 110:  Autor-Teil laeuft jetzt in der Kette (vorher nie vom Cockpit); Sanity-Pruefung Autor ueber
               Name + Todesjahr; Schreibvorgaenge atomar; Abgleich Todesjahr Wikidata <-> Gutendex (Hinweis);
               Fallback-Titel per DeepSeek (api_layer "translator"), nicht Gemini.
@@ -640,11 +642,39 @@ def autor_treffer(kandidaten, name, todesjahr):
     return out
 
 
+def kandidaten_merken(slug, art, liste):
+    """Kandidatenlisten fuer den Monitor 110 (work/110_kandidaten.json, je art autor|werk)."""
+    import datetime
+    try:
+        p = os.path.join(config.work_dir(slug), "110_kandidaten.json")
+        d = {}
+        if os.path.exists(p):
+            with open(p, encoding="utf-8") as f:
+                d = json.load(f)
+        d[art] = liste
+        d[art + "_wann"] = datetime.datetime.now().isoformat(timespec="seconds")
+        json_atomar(p, d, indent=2)
+    except Exception as e:                      # Monitor-Hilfe, nie Gate-relevant
+        print(f"    (Kandidatenliste nicht gespeichert: {e})")
+
+
+def _pd_nachweis(slug):
+    """PD-/Rechte-Nachweis, der den Autor deckt (Baustein 100+110, book.json rechte.nachweise)."""
+    try:
+        from pipeline import bestellung
+        from tools import s100_anlegen as S100
+        roh = bestellung.lesen(slug).roh
+        nw = [n for n in S100.nachweise(roh) if "autor" in (n.get("deckt") or [])]
+        return S100.nachweis_text(nw[-1]) if nw else None
+    except Exception:
+        return None
+
+
 def _autor_ohne_abfrage(aslug, aj):
     return aslug == "unbekannt" or (aj or {}).get("wikidata_abfrage") is False
 
 
-def autor_teil(g, aslug, autor_qid=None, neu=False, jahr=None):
+def autor_teil(g, aslug, autor_qid=None, neu=False, jahr=None, slug=None):
     """Autor verifizieren (auto bei genau 1 Treffer), PD mit Wikidata-Todesjahr pruefen."""
     import datetime
     jahr = jahr or datetime.date.today().year
@@ -666,6 +696,9 @@ def autor_teil(g, aslug, autor_qid=None, neu=False, jahr=None):
         treffer = autor_treffer(kand, aj.get("name_display"), tj_gutendex)
         g.metrik("autor_kandidaten", len(kand))
         g.metrik("autor_treffer", len(treffer))
+        if slug:
+            ids = {c["wikidata_id"] for c in treffer}
+            kandidaten_merken(slug, "autor", [dict(c, treffer=c["wikidata_id"] in ids) for c in kand])
         liste = "; ".join(f"{c['wikidata_id']} {c['label']} ({c.get('geburtsjahr') or '?'}–"
                           f"{c.get('todesjahr') or '?'})" for c in kand[:7]) or "keine"
         if len(treffer) != 1:
@@ -681,9 +714,13 @@ def autor_teil(g, aslug, autor_qid=None, neu=False, jahr=None):
     aj = _read_author(ap)
     g.metrik("autor_qid", aj.get("wikidata_id"))
     tj = aj.get("todesjahr")
-    if tj is None:
+    nw = _pd_nachweis(slug) if slug else None
+    if nw:
+        g.pflicht("pd_wikidata", True, wert=tj, text=f"PD Autor per Nachweis: {nw}"
+                  + (f" (Wikidata-Todesjahr {tj})" if tj is not None else " (Wikidata ohne Todesjahr)"))
+    elif tj is None:
         g.pflicht("pd_wikidata", False, bei_fehler="mensch", ruecksprung="110",
-                  text=f"Wikidata {aj.get('wikidata_id')}: kein Todesjahr (P570)")
+                  text=f"Wikidata {aj.get('wikidata_id')}: kein Todesjahr (P570) – PD-Nachweis im Monitor")
     else:
         g.pflicht("pd_wikidata", int(tj) + PD_JAHRE < jahr, wert=int(tj), ruecksprung="100",
                   text=f"EU-PD (Wikidata): Todesjahr {tj} + {PD_JAHRE} < {jahr}")
@@ -730,12 +767,16 @@ def werk_teil(g, book_slug, b, werk_qid=None, neu=False, titel=None, jaccard=JAC
             g.metrik("werk_quelle", "vorhanden")
         else:
             from tools import titel_auto
-            c = None
+            c, alle = None, {}
             for v in titel_auto._varianten(titel_original):
-                c = titel_auto.waehle(titel_auto._kandidaten(v, src), titel_original,
-                                      titel_auto._nachname(b.roh), schwelle=jaccard)
+                kl = titel_auto._kandidaten(v, src)
+                for k in kl:
+                    alle.setdefault(k["wikidata_id"], dict(k, jaccard=round(max(
+                        _title_overlap(k.get("label", ""), t) for t in titel_auto._varianten(titel_original)), 2)))
+                c = titel_auto.waehle(kl, titel_original, titel_auto._nachname(b.roh), schwelle=jaccard)
                 if c:
                     break
+            kandidaten_merken(book_slug, "werk", sorted(alle.values(), key=lambda k: -k["jaccard"]))
             if c:
                 ov = max(_title_overlap(c["label"], t) for t in titel_auto._varianten(titel_original))
                 g.metrik("werk_jaccard", round(ov, 2))
@@ -776,19 +817,25 @@ def werk_teil(g, book_slug, b, werk_qid=None, neu=False, titel=None, jaccard=JAC
 
 def pruefen(g, slug, b, autor_qid=None, werk_qid=None, titel=None, jaccard=JACCARD, neu=False, jahr=None):
     try:
-        autor_teil(g, b.roh.get("author_slug") or config.author_of(slug), autor_qid, neu, jahr)
+        autor_teil(g, b.roh.get("author_slug") or config.author_of(slug), autor_qid, neu, jahr, slug=slug)
         werk_teil(g, slug, b, werk_qid, neu, titel, jaccard)
     except (OSError, LookupError, ValueError) as e:
         g.pflicht("abfrage", False, wert=f"{type(e).__name__}: {e}", ruecksprung="110",
                   text=f"Wikidata-Abfrage fehlgeschlagen ({type(e).__name__}: {e}) – neu abfragen (--neu)")
 
 
-def run(werk, wer=None, autor_qid=None, werk_qid=None, titel=None, jaccard=JACCARD, neu=False, jahr=None):
-    """Gate 110 (nur Gutenberg). Rueckgabe auto | mensch | stopp."""
+def run(werk, wer=None, autor_qid=None, werk_qid=None, titel=None, jaccard=JACCARD, neu=False, jahr=None,
+        nachweis=None):
+    """Gate 110 (nur Gutenberg). nachweis = {art, url, quelle, deckt, rechte_art} (Monitor 110).
+    Rueckgabe auto | mensch | stopp."""
     from pipeline import bestellung, gate, s080_mandant
     wer = s080_mandant.nutzer(wer)
-    if autor_qid or werk_qid or titel or neu:
+    if autor_qid or werk_qid or titel or neu or nachweis:
         s080_mandant.darf(werk, "bestellen", wer)
+    if nachweis:
+        from tools import s100_anlegen as S100
+        S100.nachweis_setzen(werk, nachweis.get("art"), wer, nachweis.get("url"), nachweis.get("quelle"),
+                             nachweis.get("deckt") or ("autor",), nachweis.get("rechte_art"))
     ordner = bestellung.werkordner(werk)
     slug = os.path.basename(os.path.normpath(ordner))
     b = bestellung.lesen(werk)
@@ -891,6 +938,10 @@ def main(argv=None):
                     help="Titel je Sprache ueberschreiben, z. B. de=\"Der Ruf der Wildnis\"")
     ap.add_argument("--jaccard", type=float, default=JACCARD)
     ap.add_argument("--neu", action="store_true", help="Neu abfragen (auch bei verifiziertem Autor/Titeln)")
+    ap.add_argument("--pd-url", help="Nachweis: PD-Beleg-URL")
+    ap.add_argument("--rechteinhaber", nargs="?", const="eigene", choices=("eigene", "lizenz"))
+    ap.add_argument("--pd-quelle", help="Nachweis: PD ueber andere Quelle")
+    ap.add_argument("--deckt", default="autor", help="Nachweis deckt: autor,uebersetzer")
     ap.add_argument("--author", help="Altweg: autor-slug")
     ap.add_argument("--work", help="Altweg: book-slug")
     g = ap.add_mutually_exclusive_group()
@@ -910,8 +961,17 @@ def main(argv=None):
             if not v.strip():
                 ap.error(f"--titel {t!r}: Form LG=TITEL")
             titel[lg.strip().lower()] = v.strip()
-        return gate.EXIT[run(args.werk, args.wer, args.autor_qid, args.werk_qid, titel or None,
-                             args.jaccard, args.neu)]
+        nachweis = None
+        if args.rechteinhaber or args.pd_quelle or args.pd_url:
+            nachweis = {"art": "rechteinhaber" if args.rechteinhaber else ("andere_quelle" if args.pd_quelle else "url"),
+                        "url": args.pd_url, "quelle": args.pd_quelle, "rechte_art": args.rechteinhaber,
+                        "deckt": [x.strip() for x in (args.deckt or "").split(",") if x.strip()]}
+        try:
+            return gate.EXIT[run(args.werk, args.wer, args.autor_qid, args.werk_qid, titel or None,
+                                 args.jaccard, args.neu, nachweis=nachweis)]
+        except (ValueError, PermissionError) as e:
+            print(f"! {e}")
+            return 2
     if not (args.author or args.work) or not (args.propose or args.confirm):
         ap.error("werk oder --author/--work mit --propose/--confirm")
     if args.work and config.eigene_rechte(args.work):

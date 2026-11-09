@@ -1,52 +1,44 @@
 <!doctype html>
-<html lang="de"><head><meta charset="utf-8"><title>Cockpit – Gate-Monitor</title>
+<html lang="de"><head><meta charset="utf-8"><title>TÆLLA Labs – Gate-Monitor</title>
 <script src="/vendor/codemirror6.min.js"></script>
+<link rel="stylesheet" href="/vendor/taella.css"><script src="/vendor/marke.js" defer></script><script src="/vendor/hilfe.js"></script>
 <style>
-:root{--g:#2e7d32;--a:#b26a00;--r:#c62828;--b:#1565c0;--x:#9e9e9e;--l:#eceff1}
-body{font:14px/1.4 system-ui,Segoe UI,sans-serif;margin:0;color:#222;background:#fafafa}
-header{position:sticky;top:0;background:#263238;color:#fff;padding:8px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;z-index:5}
-header select,header input{font:inherit;padding:3px 6px}
-header a{color:#b0bec5}
-main{max-width:1200px;margin:0 auto;padding:14px}
-.box{background:#fff;border:1px solid #ddd;border-radius:6px;padding:10px 12px;margin-bottom:12px}
-h2{font-size:15px;margin:0 0 8px}h3{font-size:13px;margin:10px 0 6px;color:#455a64;text-transform:uppercase;letter-spacing:.04em}
-.z{display:inline-block;padding:1px 7px;border-radius:9px;font-size:12px;color:#fff;background:var(--x)}
-.z.frei{background:var(--g)}.z.mensch{background:var(--a)}.z.stopp{background:var(--r)}.z.laeuft{background:var(--b)}.z.offen{background:#78909c}
-table{border-collapse:collapse;font-size:13px;width:100%}td,th{padding:4px 8px;vertical-align:top;border-bottom:1px solid #eee;text-align:left}th{font-weight:600;color:#555;font-size:12px}
-.bef{color:var(--r)}.hin{color:#555}.klein{font-size:12px;color:#666}.err{color:var(--r)}.ok{color:var(--g)}
-button{font:inherit;padding:4px 12px;cursor:pointer}
-button.haupt{background:var(--b);color:#fff;border:0;border-radius:4px;padding:6px 16px;font-weight:600}
-.akt{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
-input[type=text],input[type=number]{font:inherit;padding:3px 6px}
-pre{background:#111;color:#ddd;padding:8px;max-height:260px;overflow:auto;font-size:12px;white-space:pre-wrap;margin:6px 0 0}
-.ampel{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:6px;font-weight:600;margin-bottom:12px;color:#fff}
-.ampel .dot{width:16px;height:16px;border-radius:50%;background:#fff;flex:none}
-.a-produktion,.a-stockt{background:var(--g)}.a-handlung{background:#ef6c00}.a-angehalten,.a-fehler{background:var(--r)}.a-ruhe{background:#78909c}
-.blink{animation:puls 1s infinite}@keyframes puls{0%,100%{opacity:1}50%{opacity:.2}}
-.pd{display:inline-block;width:11px;height:11px;border-radius:50%;vertical-align:middle;margin-right:4px}
-.pd.ja{background:var(--g)}.pd.nein{background:var(--r)}.pd.nw{background:#f9a825}
-.schritt{display:flex;gap:4px;flex-wrap:wrap}
-.schritt a{font-size:12px;padding:1px 7px;border-radius:9px;text-decoration:none;color:#fff;background:#78909c}
-.schritt a.frei{background:var(--g)}.schritt a.mensch{background:var(--a)}.schritt a.stopp{background:var(--r)}.schritt a.akt{outline:2px solid #fff}
-#editor{border:1px solid #ccc;height:460px;overflow:hidden}#editor .cm-editor{height:100%}
-.feld{display:grid;grid-template-columns:150px 1fr;gap:6px 10px;align-items:center}
-fieldset{border:1px solid #e0e0e0;border-radius:4px;margin:6px 0;padding:6px 10px}
-legend{font-size:12px;color:#555}
-.geaendert{color:var(--a);font-weight:600}
-details.ausnahme summary{cursor:pointer;color:#777;font-size:12px}
+main{max-width:1200px;margin:0 auto}
+.kettebar{position:sticky;top:57px;z-index:4;background:var(--paper);border-bottom:1px solid var(--line);padding:10px 24px}
+#editor{border:1px solid var(--line-2);border-radius:var(--r-s);height:460px;overflow:hidden}#editor .cm-editor{height:100%}
+#editor .cm-gutters{background:var(--tint);border-right:1px solid var(--line);color:var(--ink-3)}
+.feld{display:grid;grid-template-columns:150px 1fr;gap:8px 12px;align-items:center}
+.geaendert{color:var(--s-mensch);font-weight:600}
+details.ausnahme{margin-top:10px}details.ausnahme summary{cursor:pointer;color:var(--ink-3);font-size:12px}
+.dateien{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.dateien button.akt{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+#ansicht{max-height:640px;overflow:auto;border-top:1px solid var(--line);padding-top:10px}
+#ansicht img{max-width:100%;border-radius:var(--r-s)}
+.paar{display:grid;grid-template-columns:44px 1fr 1fr 92px;gap:6px 12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px;line-height:1.45}
+.paar.kopf{font-weight:600;font-size:12px;color:var(--ink-3)}
+.paar .neu{cursor:text}.paar .neu:hover{background:var(--tint)}
+.paar textarea{width:100%;min-height:90px}
+.paar.aus{background:color-mix(in srgb,var(--s-mensch) 7%,transparent)}
+.k195{display:grid;grid-template-columns:28px 38px 1fr 90px 1fr;gap:4px 10px;align-items:center;font-size:13px;padding:2px 0}
+.k195 .bal{height:10px;border-radius:3px;background:var(--tint)}
+.schnitt{cursor:pointer;font-size:11px;color:var(--ink-3);text-align:center;border-top:1px dashed transparent;padding:1px 0}
+.schnitt:hover{color:var(--ink);border-top-color:var(--line)}.schnitt.an{color:var(--s-mensch);border-top:2px solid var(--s-mensch);font-weight:600}
+.liste120{max-height:75vh;overflow:auto;border-top:1px solid var(--line)}
+.kapt td{padding:4px 6px}.kapt tr.sel{background:var(--tint)}
 </style></head><body>
 <header>
- <b>Gate-Monitor</b>
+ <a class="marke" href="/"></a><span class="seitentitel">Gate-Monitor</span>
  <span id="kopfwerk"></span>
- <span class="schritt" id="kette"></span>
  <span style="margin-left:auto"></span>
  Nutzer <select id="wer" onchange="sessionStorage.setItem('wer',this.value);laden()"></select>
  <a id="zurueck" href="/werk">← Werkansicht</a>
 </header>
+<nav class="kettebar"><span class="schritt" id="kette"></span></nav>
 <main>
- <div class="ampel ampel a-ruhe" id="ampel"><span class="dot"></span><span id="ampeltext">–</span></div>
+ <div class="ampel a-ruhe" id="ampel"><span class="dot"></span><span id="ampeltext">–</span></div>
  <div class="box" id="gate"></div>
  <div id="inhalt"></div>
+ <div class="box" id="ergebnis"><h2>Ergebnis</h2><div class="klein">lädt …</div></div>
  <div class="box" id="laufbox" style="display:none"><h2>Lauf</h2><div id="laufinfo" class="klein"></div><pre id="log">–</pre></div>
 </main>
 <script>
@@ -70,7 +62,7 @@ async function laden(){
   const d=await api(`/api/werk/${encodeURIComponent(z.id)}/monitor/${z.stage}?wer=${encodeURIComponent($("wer").value)}`);
   if(d.fehler){$("gate").innerHTML=`<span class="err">${esc(d.fehler)}</span>`;return;}
   M=d;$("zurueck").href="/werk#"+encodeURIComponent(d.book_id);
-  $("kopfwerk").innerHTML=`<b>${esc(d.titel)}</b> <span class="klein" style="color:#cfd8dc">${esc(d.book_id)}</span>`;
+  $("kopfwerk").innerHTML=`<b>${esc(d.titel)}</b> <span class="klein">${esc(d.book_id)}</span>`;
   $("kette").innerHTML=d.kette.map(k=>`<a class="${esc(k.zustand)} ${k.stage==d.stage.stage?"akt":""}" title="${esc(k.name)}: ${esc(k.zustand)}" href="#${esc(d.book_id)}/${k.stage}">${k.stage}</a>`).join("");
   document.title=`${d.stage.stage} ${d.stage.name} – ${d.book_id}`;
   ampelZeigen(d.ampel);gateZeigen();
@@ -78,13 +70,14 @@ async function laden(){
   if(d.daten_fehler)$("inhalt").innerHTML=`<div class="box err">Monitor-Daten: ${esc(d.daten_fehler)}</div>`;
   else if(mon&&d.daten){$("inhalt").innerHTML=mon.html(d.daten);mon.danach&&mon.danach(d.daten);}
   else $("inhalt").innerHTML=allgemein(d.stage);
+  ergebnisLaden();
   laufZeigen(d.lauf);
 }
 // ---------- Rahmen: Gate-Kopf (Zustand, Befunde, Rücksprung, Ausnahme)
 function gateZeigen(){
   const s=M.stage,r=M.rechte;
   const rs=s.ruecksprung_ziele||[];
-  let h=`<h2>${s.stage} ${esc(s.name)} ${zb(s.zustand)} <span class="klein">${esc(s.wer||"")} ${esc((s.wann||"").replace("T"," ").slice(0,16))}</span></h2>`;
+  let h=`<h2>${s.stage} ${esc(s.name)} ${hilfeKnopf(s.stage)} ${zb(s.zustand)} <span class="klein">${esc(s.wer||"")} ${esc((s.wann||"").replace("T"," ").slice(0,16))}</span></h2>`;
   if(s.befunde.length)h+=`<div class="bef"><b>Befunde:</b><br>${s.befunde.map(esc).join("<br>")}</div>`;
   else if(s.gruende.length)h+=`<div class="hin">${s.gruende.map(esc).join("<br>")}</div>`;
   else h+=`<div class="klein">keine Befunde</div>`;
@@ -106,10 +99,62 @@ async function entscheide(nach){
 }
 function allgemein(s){
   const m=Object.entries(s.metriken||{});
-  return `<div class="box"><h2>Daten des Gates</h2><div class="klein">Für diese Stage ist der Monitor noch nicht gebaut (GATE_MONITORE.md). Angezeigt: Metriken, Teile, Manifeste.</div>
+  return `<div class="box"><h2>Daten des Gates</h2><div class="klein">Für diese Stage ist der Monitor noch nicht gebaut (GATE_MONITORE.md). Angezeigt: Prüfwerte und Teile; die Dateien stehen unter „Ergebnis“.</div>
    ${m.length?"<table>"+m.map(([k,v])=>`<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join("")+"</table>":""}
    ${Object.entries(s.teile||{}).map(([sc,t])=>`<h3>${esc(sc)} ${zb(t.zustand)}</h3>${(t.gruende||[]).map(esc).join("<br>")}`).join("")}
-   ${s.manifeste.length?`<div class="klein" style="margin-top:6px">Manifeste: ${s.manifeste.map(x=>`<a target="_blank" href="/datei?p=${encodeURIComponent(x.datei)}">${esc(x.datei.split("/").pop())}</a>`).join(" · ")}</div>`:""}</div>`;
+   </div>`;
+}
+// ---------- Ergebnis der Stage (Dateien, JSON als aufklappbarer Baum)
+let ERG=[],ergWahl=null;
+async function ergebnisLaden(){
+  const r=await api(`/api/werk/${B()}/ergebnis/${M.stage.stage}`);ERG=r.dateien||[];
+  const gr=n=>n>1e6?(n/1e6).toFixed(1)+" MB":n>1e3?Math.round(n/1e3)+" kB":n+" B";
+  if(!ERG.length){$("ergebnis").innerHTML=`<h2>Ergebnis</h2><div class="klein">${r.fehler?esc(r.fehler):"Diese Stage hat (noch) keine Ergebnisdateien."}</div>`;return;}
+  if(!ERG.find(x=>x.datei==ergWahl))ergWahl=ERG[0].datei;
+  $("ergebnis").innerHTML=`<h2>Ergebnis <span class="klein">${ERG.length} Datei(en)${r.gekappt?" (gekappt)":""}</span></h2>
+   <div class="dateien">${ERG.map((x,i)=>`<button class="${x.datei==ergWahl?"akt":""}" title="${esc(x.datei)} · ${esc(x.wann.replace("T"," "))}" onclick="ergZeigen(${i})">${esc(x.name)} <span class="klein">${gr(x.groesse)}</span></button>`).join("")}</div>
+   <div id="ansicht"></div>`;
+  ergZeigen(ERG.findIndex(x=>x.datei==ergWahl));
+}
+async function ergZeigen(i){
+  const x=ERG[i];ergWahl=x.datei;
+  document.querySelectorAll("#ergebnis .dateien button").forEach((b,k)=>b.className=k==i?"akt":"");
+  const url="/datei?p="+encodeURIComponent(x.datei),a=$("ansicht");
+  const kopf=`<div class="klein" style="margin-bottom:8px">${esc(x.datei)} · ${esc(x.wann.replace("T"," "))} · <a target="_blank" href="${url}">roh öffnen</a></div>`;
+  if(x.art=="bild"){a.innerHTML=kopf+`<img src="${url}">`;return;}
+  if(x.art=="audio"){a.innerHTML=kopf+`<audio controls preload="none" src="${url}" style="width:100%"></audio>`;return;}
+  if(x.art=="datei"){a.innerHTML=kopf+`<div class="klein">Binärdatei – nur „roh öffnen“.</div>`;return;}
+  if(x.groesse>30e6){a.innerHTML=kopf+`<div class="klein">Zu groß für die Ansicht.</div>`;return;}
+  a.innerHTML=kopf+`<div class="klein">lädt …</div>`;
+  const t=await (await fetch(url)).text();
+  if(x.art=="json"){
+    let v=null;
+    try{v=x.datei.endsWith(".jsonl")?t.split(/\r?\n/).filter(Boolean).map(z=>JSON.parse(z)):JSON.parse(t);}catch(e){}
+    if(v!==null){a.innerHTML=kopf;const b=document.createElement("div");b.className="jb";b.appendChild(jsonKnoten(v,null,true));a.appendChild(b);return;}
+  }
+  const max=200000;a.innerHTML=kopf+`<pre style="max-height:600px">${esc(t.slice(0,max))}</pre>`+(t.length>max?`<div class="klein">… gekürzt (${t.length.toLocaleString("de")} Zeichen) – „roh öffnen“ zeigt alles.</div>`:"");
+}
+function jsonKnoten(v,k,offen){
+  const key=k===null?"":`<span class="k">${esc(k)}</span>: `;
+  if(v===null||typeof v!="object"){
+    const d=document.createElement("div");d.className="zeile";
+    d.innerHTML=key+(typeof v=="string"?`<span class="s">"${esc(v)}"</span>`:`<span class="zahl">${esc(String(v))}</span>`);return d;
+  }
+  const arr=Array.isArray(v),keys=arr?null:Object.keys(v),n=arr?v.length:keys.length;
+  const det=document.createElement("details");
+  const vor=arr?"[":"{",nach=arr?"]":"}";
+  let kurz="";if(!arr){kurz=keys.slice(0,4).join(", ")+(n>4?", …":"");}
+  det.innerHTML=`<summary>${key}${vor} <span class="n">${n} ${arr?"Einträge":"Felder"}${kurz?" · "+esc(kurz):""}</span> ${nach}</summary>`;
+  let gebaut=0;const SCHRITT=200;
+  const mehr=()=>{
+    const bis=Math.min(n,gebaut+SCHRITT);
+    for(let i=gebaut;i<bis;i++)det.appendChild(arr?jsonKnoten(v[i],i,false):jsonKnoten(v[keys[i]],keys[i],false));
+    gebaut=bis;det.querySelector(":scope>.mehr")?.remove();
+    if(gebaut<n){const b=document.createElement("button");b.className="mehr";b.style.margin="4px 0 4px 28px";b.textContent=`weitere ${Math.min(SCHRITT,n-gebaut)} von ${n-gebaut}`;b.onclick=mehr;det.appendChild(b);}
+  };
+  det.addEventListener("toggle",()=>{if(det.open&&!gebaut)mehr();});
+  if(offen&&n){det.open=true;mehr();}
+  return det;
 }
 // ---------- Lauf
 async function laufLos(modus,von){
@@ -124,7 +169,7 @@ async function speichern(eingabe){
   if(!v.ok){alert(v.fehler);return;}
   if(!confirm("Übernehmen und "+M.stage.stage+" neu prüfen?\n\n"+v.cmd.replace(/--rohtext-aus=\S+/,"--rohtext-aus=<Editor>")))return;
   const r=await api(`/api/werk/${B()}/monitor/${M.stage.stage}`,body);
-  if(!r.ok)alert(r.fehler);else{ED=null;laufZeigen(r.lauf);}
+  if(!r.ok)alert(r.fehler);else{ED=null;laufZeigen(r.lauf);return true;}
 }
 function laufZeigen(l){
   clearTimeout(poll);
@@ -150,11 +195,38 @@ async function editorAuf(el,url){
 function zuZeile(n){if(!ED||!n)return;const l=ED.state.doc.line(Math.min(n,ED.state.doc.lines));ED.dispatch({selection:{anchor:l.from},effects:CM.EditorView.scrollIntoView(l.from,{y:"center"})});ED.focus();}
 function dateiLaden(inp){const f=inp.files[0];if(!f||!ED)return;const r=new FileReader();r.onload=()=>{ED.dispatch({changes:{from:0,to:ED.state.doc.length,insert:r.result}});};r.readAsText(f,"utf-8");}
 
+// ---------- Baustein PD-/Rechte-Nachweis (100 + 110)
+function nwBaustein(mitUe){
+  const arten={url:"PD-Beleg-URL",rechteinhaber:"Ich bin Rechteinhaber",andere_quelle:"PD über andere Quelle"};
+  return `<fieldset><legend>PD-/Rechte-Nachweis hinzufügen (je Quelle)</legend>
+   <div class="akt">${Object.entries(arten).map(([k,v])=>`<label><input type="radio" name="nwart" value="${k}" onchange="nwFelder()"> ${v}</label>`).join("")}<label><input type="radio" name="nwart" value="" checked onchange="nwFelder()"> keiner</label></div>
+   <div id="nwfelder" style="display:none" class="feld">
+    <span id="nw_url_l">URL</span><input type="text" id="nw_url" size="60" placeholder="https://…">
+    <span id="nw_q_l">Quelle (Text)</span><input type="text" id="nw_quelle" size="60" placeholder="z. B. Verlagsvertrag, Nachlassverzeichnis …">
+    <span id="nw_ra_l">Rechte</span><span id="nw_ra"><label><input type="radio" name="nwra" value="eigene" checked> eigene</label> <label><input type="radio" name="nwra" value="lizenz"> Lizenz</label></span>
+    <span>deckt</span><span><label><input type="checkbox" id="nw_autor" checked> Autor</label> ${mitUe?`<label><input type="checkbox" id="nw_ue"> Übersetzer</label>`:""}</span>
+   </div></fieldset>`;
+}
+function nwFelder(){
+  const a=(document.querySelector("input[name=nwart]:checked")||{}).value;
+  $("nwfelder").style.display=a?"":"none";
+  const zeig=(id,on)=>{$(id).style.display=on?"":"none";};
+  zeig("nw_url",a=="url"||a=="andere_quelle");zeig("nw_url_l",a=="url"||a=="andere_quelle");
+  zeig("nw_quelle",a=="andere_quelle");zeig("nw_q_l",a=="andere_quelle");
+  zeig("nw_ra",a=="rechteinhaber");zeig("nw_ra_l",a=="rechteinhaber");
+  $("nw_url_l").textContent=a=="andere_quelle"?"URL (optional)":"URL";
+}
+function nwWert(){
+  const art=(document.querySelector("input[name=nwart]:checked")||{}).value;
+  if(!art)return null;
+  return {art,url:$("nw_url").value,quelle:$("nw_quelle").value,rechte_art:(document.querySelector("input[name=nwra]:checked")||{}).value,
+    deckt:[$("nw_autor").checked&&"autor",$("nw_ue")&&$("nw_ue").checked&&"uebersetzer"].filter(Boolean)};
+}
+
 // ---------- Monitore je Stage
 const MON={};
 MON["100"]={
   html(d){
-    const nwArten={url:"PD-Beleg-URL",rechteinhaber:"Ich bin Rechteinhaber",andere_quelle:"PD über andere Quelle"};
     const pers=d.personen.map(p=>`<tr><td>${p.person=="autor"?"Autor":"Übersetzer"}</td><td>${esc(p.name)||"<span class='err'>unbekannt</span>"}</td>
       <td><input type="number" id="tj_${p.person}" value="${esc(p.todesjahr??"")}" style="width:80px"> <span class="klein">${esc(p.todesjahr_quelle||"")}</span></td>
       <td>${p.grenze!=null?`${p.todesjahr} + ${d.pd_jahre} = ${p.grenze} ${p.grenze<d.jahr?"&lt;":"≥"} ${d.jahr}`:"<span class='err'>Todesjahr fehlt</span>"}</td>
@@ -168,14 +240,7 @@ MON["100"]={
       <span>Rechte</span><span>${esc(d.rechte_art||"–")}</span></div>
      <h3>Personen · PD-Ampel</h3>
      <table><tr><th>Person</th><th>Name</th><th>Todesjahr</th><th>EU-PD</th><th>Status</th></tr>${pers}</table>
-     <fieldset><legend>PD-/Rechte-Nachweis hinzufügen (je Quelle)</legend>
-      <div class="akt">${Object.entries(nwArten).map(([k,v])=>`<label><input type="radio" name="nwart" value="${k}" onchange="MON['100'].nwFelder()"> ${v}</label>`).join("")}<label><input type="radio" name="nwart" value="" checked onchange="MON['100'].nwFelder()"> keiner</label></div>
-      <div id="nwfelder" style="display:none" class="feld">
-       <span id="nw_url_l">URL</span><input type="text" id="nw_url" size="60" placeholder="https://…">
-       <span id="nw_q_l">Quelle (Text)</span><input type="text" id="nw_quelle" size="60" placeholder="z. B. Verlagsvertrag, Nachlassverzeichnis …">
-       <span id="nw_ra_l">Rechte</span><span id="nw_ra"><label><input type="radio" name="nwra" value="eigene" checked> eigene</label> <label><input type="radio" name="nwra" value="lizenz"> Lizenz</label></span>
-       <span>deckt</span><span><label><input type="checkbox" id="nw_autor" checked> Autor</label> ${d.personen.length>1?`<label><input type="checkbox" id="nw_ue"> Übersetzer</label>`:""}</span>
-      </div></fieldset>
+     ${nwBaustein(d.personen.length>1)}
      <h3>Sprache</h3>
      <div class="akt">Quellsprache <select id="lg">${d.sprachliste.map(l=>`<option ${l==d.quellsprache?"selected":""}>${l}</option>`).join("")}${d.sprache_ok?"":`<option selected value="">${esc(d.quellsprache)} (nicht freigeschaltet)</option>`}</select>
       ${d.sprache_ok?"":`<span class="err">Sprache „${esc(d.quellsprache)}“ nicht freigeschaltet – Stopp. Freischaltung nur über die Sprachliste in config.</span>`}</div>
@@ -195,28 +260,329 @@ MON["100"]={
     </div>`;
   },
   danach(d){if(d.rohtext.vorhanden)editorAuf($("editor"),d.rohtext_url);},
-  nwFelder(){
-    const a=(document.querySelector("input[name=nwart]:checked")||{}).value;
-    $("nwfelder").style.display=a?"":"none";
-    const zeig=(id,on)=>{$(id).style.display=on?"":"none";};
-    zeig("nw_url",a=="url"||a=="andere_quelle");zeig("nw_url_l",a=="url"||a=="andere_quelle");
-    zeig("nw_quelle",a=="andere_quelle");zeig("nw_q_l",a=="andere_quelle");
-    zeig("nw_ra",a=="rechteinhaber");zeig("nw_ra_l",a=="rechteinhaber");
-    $("nw_url_l").textContent=a=="andere_quelle"?"URL (optional)":"URL";
-  },
   los(){
     const d=M.daten,e={grund:$("grund").value.trim()};
     for(const p of d.personen){const v=$("tj_"+p.person).value.trim();if(v!==""&&v!=String(p.todesjahr??""))e[p.person=="autor"?"todesjahr":"uebersetzer_todesjahr"]=v;}
     const lg=$("lg").value;if(lg&&lg!=d.quellsprache)e.quellsprache=lg;
-    const art=(document.querySelector("input[name=nwart]:checked")||{}).value;
-    if(art)e.nachweis={art,url:$("nw_url").value,quelle:$("nw_quelle").value,
-      rechte_art:(document.querySelector("input[name=nwra]:checked")||{}).value,
-      deckt:[$("nw_autor").checked&&"autor",$("nw_ue")&&$("nw_ue").checked&&"uebersetzer"].filter(Boolean)};
+    const nw=nwWert();if(nw)e.nachweis=nw;
     if(ED&&edGeaendert)e.rohtext=ED.state.doc.toString();
     if($("tqurl").value.trim())e.textquelle_url=$("tqurl").value.trim();
     if($("neuladen").checked)e.neu_laden=true;
     if(e.rohtext!=null&&!e.grund){alert("Rohtext geändert: Grund ist Pflicht");return;}
     speichern(e);
+  }
+};
+MON["110"]={
+  html(d){
+    const a=d.autor,pd=d.pd,qlink=q=>q?`<a target="_blank" href="https://www.wikidata.org/wiki/${esc(q)}">${esc(q)}</a>`:"–";
+    const ak=d.autor_kandidaten,wk=d.werk_kandidaten;
+    return `<div class="box"><h2>1 Anzeigen · 2 Bearbeiten</h2>
+     ${d.eigenes_werk?`<div class="klein">Eigenes Werk (Rechte „eigene“) – keine Wikidata-Abfrage.</div>`:""}
+     <h3>Autor</h3><div class="feld">
+      <span>Name</span><b>${esc(a.name)||"–"}</b>
+      <span>Lebensdaten</span><span>${esc(a.geburtsjahr??"?")} – ${esc(a.todesjahr??"?")}${a.geburtsort?" · "+esc(a.geburtsort):""}</span>
+      <span>Wikidata</span><span>${qlink(a.qid)} ${a.verified?'<span class="z frei">verifiziert</span>':'<span class="z mensch">nicht verifiziert</span>'}${a.wikipedia?` · <a target="_blank" href="${esc(a.wikipedia)}">Wikipedia</a>`:""}</span></div>
+     ${ak.length?`<table style="margin-top:8px"><tr><th></th><th>Q-ID</th><th>Name</th><th>Beschreibung</th><th>Geburt – Tod</th><th>Treffer</th></tr>
+      ${ak.map(c=>`<tr><td><input type="radio" name="aq" value="${esc(c.wikidata_id)}" ${c.wikidata_id==a.qid?"checked":""}></td><td>${qlink(c.wikidata_id)}</td><td>${esc(c.label)}</td><td class="klein">${esc(c.beschreibung)}</td><td>${esc(c.geburtsjahr??"?")} – ${esc(c.todesjahr??"?")}</td><td>${c.treffer?'<span class="z frei">ja</span>':'<span class="klein">nein</span>'}</td></tr>`).join("")}</table>
+      <div class="klein">Kandidaten vom ${esc((d.autor_kandidaten_wann||"").replace("T"," ").slice(0,16))}</div>`:`<div class="klein" style="margin-top:6px">Keine Kandidatenliste gespeichert (entsteht beim nächsten Lauf mit Wikidata-Suche, z. B. „neu abfragen“).</div>`}
+     <div class="akt">Autor-Q-ID manuell <input type="text" id="aq_manuell" size="12" placeholder="Q…"></div>
+     <h3>PD-Ampel</h3>
+     <div><span class="pd ${pd.ok?(pd.per_nachweis?"nw":"ja"):"nein"}"></span>${pd.grenze!=null?`Todesjahr ${a.todesjahr} + ${pd.pd_jahre} = ${pd.grenze} ${pd.grenze<pd.jahr?"&lt;":"≥"} ${pd.jahr}`:"Todesjahr fehlt"} · ${pd.ok?(pd.per_nachweis?"frei per Nachweis":"gemeinfrei"):"nicht belegt"}
+      ${pd.nachweise.length?`<div class="klein">${pd.nachweise.map(esc).join("<br>")}</div>`:""}</div>
+     ${nwBaustein(!!d.uebersetzer)}
+     <h3>Werk</h3><div class="feld">
+      <span>Originaltitel</span><b>${esc(d.werk.titel_original)}</b>
+      <span>Wikidata</span><span>${qlink(d.werk.qid)}${d.werk.erscheinungsjahr?" · erschienen "+esc(d.werk.erscheinungsjahr):""}</span></div>
+     ${wk.length?`<table style="margin-top:8px"><tr><th></th><th>Q-ID</th><th>Titel</th><th>Beschreibung</th><th>Jaccard</th></tr>
+      ${wk.map(c=>`<tr><td><input type="radio" name="wq" value="${esc(c.wikidata_id)}" ${c.wikidata_id==d.werk.qid?"checked":""}></td><td>${qlink(c.wikidata_id)}</td><td>${esc(c.label)}</td><td class="klein">${esc(c.beschreibung)}</td><td>${esc(c.jaccard)}</td></tr>`).join("")}</table>`:""}
+     <div class="akt">Werk-Q-ID manuell <input type="text" id="wq_manuell" size="12" placeholder="Q…"></div>
+     <h3>Titel je Sprache</h3>
+     <table><tr><th>Sprache</th><th>Titel</th><th>Quelle</th></tr>
+      ${d.titel.map(t=>`<tr><td>${esc(t.sprache)}</td><td><input type="text" id="ti_${esc(t.sprache)}" value="${esc(t.titel)}" size="50" data-alt="${esc(t.titel)}"></td>
+       <td><span class="z ${t.ok?"frei":"mensch"}">${esc(t.quelle||"fehlt")}</span></td></tr>`).join("")}</table>
+     <h3>Kontext</h3>
+     <div class="klein">${d.gutenberg_link?`Gutenberg <a target="_blank" href="${esc(d.gutenberg_link)}">#${esc(d.gutenberg_id)}</a> · `:""}Titelei aus raw.txt (erste 60 Zeilen)</div>
+     <pre style="max-height:220px">${esc(d.titelei.join("\n"))}</pre>
+    </div>
+    <div class="box"><h2>3 Speichern · 4 Freigeben</h2>
+     <div class="akt"><label><input type="checkbox" id="neu110"> Wikidata neu abfragen</label>
+      <button class="haupt" onclick="MON['110'].los()">Übernehmen und 110 neu prüfen</button></div>
+     <div class="klein">Speichern läuft über Stage 110 (Regler); das Gate wird dabei neu geprüft. Manueller Titel gilt als geprüft (Quelle „manuell“).</div>
+    </div>`;
+  },
+  los(){
+    const d=M.daten,e={};
+    const aq=$("aq_manuell").value.trim()||((document.querySelector("input[name=aq]:checked")||{}).value||"");
+    if(aq&&aq!=d.autor.qid)e.autor_qid=aq;
+    const wq=$("wq_manuell").value.trim()||((document.querySelector("input[name=wq]:checked")||{}).value||"");
+    if(wq&&wq!=d.werk.qid)e.werk_qid=wq;
+    const ti={};for(const t of d.titel){const el=$("ti_"+t.sprache),v=el.value.trim();if(v&&(v!=el.dataset.alt||!t.ok))ti[t.sprache]=v;}
+    if(Object.keys(ti).length)e.titel=ti;
+    const nw=nwWert();if(nw)e.nachweis=nw;
+    if($("neu110").checked)e.neu=true;
+    speichern(e);
+  }
+};
+MON["115"]={
+  html(d){
+    const art={somnio:"Somnio",user:"User",verlag:"Verlag"}[d.mandant_art]||d.mandant_art;
+    const prompt=d.modern_sprachen.includes(d.quellsprache);
+    const akt=d.fassung||d.default;
+    const opt=(v,t,x)=>`<label class="schritt" style="display:block;margin:6px 0"><input type="radio" name="fa" value="${v}" ${akt==v?"checked":""} ${!prompt&&v=="modernisiert"?"disabled":""}> <b>${t}</b> <span class="klein">${x}</span></label>`;
+    return `<div class="box"><h2>1 Anzeigen · 2 Bearbeiten</h2>
+     <div class="feld">
+      <span>Aktuelle Fassung</span><b>${d.fassung?esc(d.fassung):"noch nicht festgelegt"}</b>
+      <span>Default</span><span>${esc(d.default)} <span class="klein">(${esc(d.default_herkunft)})</span></span>
+      <span>Mandant</span><span>${esc(d.mandant)} · ${esc(art)}${d.quelle?" · Quelle "+esc(d.quelle):""}</span>
+      <span>Quellsprache</span><span>${esc(d.quellsprache)} ${prompt?'<span class="z frei">Modernisierungs-Prompt vorhanden</span>':'<span class="z mensch">kein Prompt – nur original möglich</span>'}</span>
+      <span>Bearbeitungsrecht</span><span>${d.bearbeitung===true?'<span class="z frei">ja</span>':'<span class="z stopp">nein</span> <span class="klein">modernisiert braucht es – Rücksprung 090</span>'}</span>
+      <span>Umfang</span><span>${d.zeichen?d.zeichen.toLocaleString("de-DE")+" Zeichen":"unbekannt"}</span>
+      <span>Kosten Modernisierung</span><span>${d.angebot_usd!=null?"~"+d.angebot_usd.toFixed(2)+" $ (Stage 120)":"–"}</span>
+      <span>raw_modernized.txt</span><span>${d.modernisiert_vorhanden?"vorhanden":"–"}</span></div>
+     <h3>Fassung wählen</h3>
+     ${opt("modernisiert","Modernisiert","120 glättet veraltete Schreibweisen; Vermerk „"+esc(d.vermerk.modernisiert)+"“")}
+     ${opt("original","Original","Text bleibt wie die Quelle; 120 wird übersprungen")}
+     ${d.modernisiert_vorhanden?'<div class="klein">Bei Wechsel: 120 danach neu laufen lassen (--force).</div>':""}
+     <h3>Textprobe aus raw.txt</h3>
+     ${d.probe.length?d.probe.map(p=>`<p class="klein" style="max-width:70ch">${esc(p.slice(0,700))}${p.length>700?" …":""}</p>`).join(""):'<div class="klein">keine Textprobe (raw.txt fehlt)</div>'}
+    </div>
+    <div class="box"><h2>3 Speichern · 4 Freigeben</h2>
+     <div class="akt"><button class="haupt" onclick="MON['115'].los()">Übernehmen und 115 neu prüfen</button></div>
+     <div class="klein">Speichern läuft über Stage 115 (Regler --modernisieren); das Gate wird dabei neu geprüft.</div>
+    </div>`;
+  },
+  los(){const r=document.querySelector("input[name=fa]:checked");if(!r){alert("Fassung wählen");return;}speichern({fassung:r.value});}
+};
+MON["120"]={
+  E:{kapitel:new Set(),absatz:new Set(),texte:{},orig:{}},K:null,nurAuff:false,
+  html(d){
+    if(d.fehler)return `<div class="box"><span class="err">${esc(d.fehler)}</span></div>`;
+    const mod=d.fassung=="modernisiert",ref=d.referenz||[],g=d.grenzen;
+    const par=d.param||d.standard;
+    const n=Math.max(d.kapitel.length,ref.length);
+    let zeilen="";
+    for(let i=0;i<n;i++){
+      const k=d.kapitel[i],r=ref[i];
+      const lz=k&&k.laenge!=null?`<span class="z ${k.laenge<g.laenge[0]||k.laenge>g.laenge[1]?"mensch":"frei"}">${k.laenge}</span>`:"";
+      zeilen+=`<tr id="kz${k?k.k:"x"+i}">${k?`<td>${k.k}</td><td><a href="javascript:MON['120'].zeige(${k.k})">${esc(k.titel)||"<i>ohne Titel</i>"}</a></td>
+        <td>${k.absaetze}</td><td>${k.woerter<d.kurz_woerter?`<span class="z mensch">${k.woerter}</span>`:k.woerter}</td>
+        ${mod?`<td>${lz}</td><td>${k.ausreisser||""}</td><td>${k.fehlend?`<span class="z stopp">${k.fehlend}</span>`:""}</td><td>${k.manuell||""}</td>
+        <td><label class="klein"><input type="checkbox" ${this.E.kapitel.has(k.k)?"checked":""} onchange="MON['120'].kap(${k.k},this.checked)"> neu</label></td>`:""}`
+        :`<td></td><td class="klein">–</td><td></td><td></td>${mod?"<td></td><td></td><td></td><td></td><td></td>":""}`}
+        <td class="klein">${esc(r||"")}</td></tr>`;
+    }
+    return `<div class="box"><h2>1 Anzeigen · Kapitel-Gate</h2>
+     <div class="feld">
+      <span>Fassung</span><span><b>${esc(d.fassung)}</b>${d.fassung_aus_115?"":' <span class="klein">(abgeleitet, 115 nicht gelaufen)</span>'}${mod?"":' <span class="klein">– Text wird unverändert durchgereicht, nur Kapitel-Gate</span>'}</span>
+      <span>Kapitel</span><span>${d.kapitel.length} erkannt (${esc(d.herkunft)}) · Referenz ${ref.length||"keine"}${d.titel_treffer!=null?" · Titeltreffer "+Math.round(d.titel_treffer*100)+" %":""}</span>
+      <span>Struktur</span><span>${d.bestaetigt?'<span class="z frei">bestätigt</span>':'<span class="z mensch">nicht bestätigt</span>'}</span></div>
+     <table class="kapt" style="margin-top:10px"><tr><th>#</th><th>erkannt</th><th>Abs.</th><th>Wörter</th>${mod?"<th>Länge</th><th>Ausr.</th><th>Lücken</th><th>man.</th><th></th>":""}<th>Inhaltsverzeichnis</th></tr>${zeilen}</table>
+     <div class="akt"><label><input type="checkbox" id="kok120"> Kapitelstruktur bestätigen</label></div>
+     <div class="klein">Grenzen falsch? Dann Rücksprung 100 und dort den Rohtext korrigieren (Kapitelüberschriften); 120 erkennt danach neu. Länge ${g.laenge[0]}–${g.laenge[1]} je Kapitel, Absatz-Ausreißer außerhalb ${g.ausreisser[0]}–${g.ausreisser[1]}.</div>
+    </div>
+    <div class="box" id="paarbox"><h2>2 Bearbeiten · Gegenüberstellung</h2><div class="klein">Kapitel in der Liste anklicken.</div></div>
+    ${mod?`<div class="box"><h2>Regler</h2><div class="akt">
+      Stärke <select id="st120">${d.staerken.map(x=>`<option ${x==par.staerke?"selected":""}>${x}</option>`).join("")}</select>
+      Temperatur <input type="number" id="te120" step="0.05" min="0" max="1.5" value="${esc(par.temperatur)}" style="width:80px">
+      Zeichen je Anfrage <input type="number" id="sk120" step="500" min="500" value="${esc(par.stueck)}" style="width:90px">
+      <span class="klein">Modell ${esc(par.modell)}</span></div>
+      <div class="akt"><label><input type="checkbox" id="fo120"> alle Kapitel neu (--force)</label> <span class="klein">ganzes Werk ~${d.kosten_usd.toFixed(2)} $</span></div>
+      <div class="klein">Geänderte Regler erzeugen alle Kapitel neu (kostet im Live-Modus).</div></div>`:""}
+    <div class="box"><h2>3 Speichern · 4 Freigeben</h2>
+     <div class="akt"><button class="haupt" onclick="MON['120'].los()">Übernehmen und 120 neu prüfen</button> <span id="zf120" class="klein"></span></div>
+     <div class="klein">Speichern läuft über Stage 120 (Regler); das Gate wird dabei neu geprüft. Manuelle Absätze gelten als geprüft.</div>
+    </div>`;
+  },
+  danach(d){this.zf();if(this.K)this.zeige(this.K);},
+  kap(k,an){an?this.E.kapitel.add(k):this.E.kapitel.delete(k);this.zf();},
+  zf(){const e=this.E,t=[];if(e.kapitel.size)t.push(e.kapitel.size+" Kapitel neu");if(e.absatz.size)t.push(e.absatz.size+" Absätze neu");
+    const m=Object.keys(e.texte).length;if(m)t.push(m+" Absätze manuell");const el=$("zf120");if(el)el.textContent=t.join(" · ");},
+  async zeige(k){
+    this.K=k;document.querySelectorAll(".kapt tr").forEach(r=>r.classList.toggle("sel",r.id=="kz"+k));
+    const box=$("paarbox");box.innerHTML=`<h2>2 Bearbeiten · Kapitel ${k}</h2><div class="klein">lädt …</div>`;
+    const t=await api(`/api/werk/${B()}/monitor/120/teil?k=${k}`);
+    if(t.fehler){box.innerHTML+=`<div class="err">${esc(t.fehler)}</div>`;return;}
+    this.T=t;this.paare();
+  },
+  paare(){
+    const t=this.T,k=t.k,mod=M.daten.fassung=="modernisiert",E=this.E;
+    const auff=p=>p.ausreisser||p.fehlend||(p.gleich&&p.original.length>=M.daten.grenzen.min_zeichen&&!p.hr);
+    const liste=t.paare.filter(p=>!this.nurAuff||auff(p));
+    const zelle=p=>{const key=k+":"+p.n;
+      if(key in E.texte)return `<textarea oninput="MON['120'].E.texte['${key}']=this.value;MON['120'].zf()">${esc(E.texte[key])}</textarea>`;
+      if(p.neu==null)return '<span class="klein">noch nicht erzeugt</span>';
+      return `<div class="neu" title="klicken zum Bearbeiten" onclick="MON['120'].bearb('${key}',${p.n-1})">${esc(p.neu)}</div>`;};
+    const mark=p=>[p.q!=null?`<span class="z ${p.ausreisser?"mensch":"frei"}">${p.q}</span>`:"",p.fehlend?'<span class="z stopp">Lücke</span>':"",
+      p.manuell?'<span class="z frei">manuell</span>':"",p.gleich&&!p.hr&&p.neu!=null?'<span class="klein">= Original</span>':""].filter(Boolean).join("<br>");
+    $("paarbox").innerHTML=`<h2>2 Bearbeiten · Kapitel ${k}: ${esc(t.titel)}</h2>
+     <div class="akt"><label><input type="checkbox" ${this.nurAuff?"checked":""} onchange="MON['120'].nurAuff=this.checked;MON['120'].paare()"> nur auffällige Absätze</label>
+      <span class="klein">${liste.length} von ${t.paare.length} Absätzen${mod?" · Text rechts anklicken zum Bearbeiten":""}</span></div>
+     <div class="liste120"><div class="paar kopf" style="position:sticky;top:0;background:var(--paper)"><span>#</span><span>Original</span><span>${mod?"Modernisiert":""}</span><span></span></div>
+     ${liste.map(p=>`<div class="paar ${p.ausreisser||p.fehlend?"aus":""}"><span class="klein">${k}:${p.n}</span><span>${esc(p.original)}</span>
+       <span>${mod?zelle(p):""}</span><span class="klein">${mod?mark(p)+`<br><label><input type="checkbox" ${E.absatz.has(k+":"+p.n)?"checked":""} onchange="MON['120'].abs('${k}:${p.n}',this.checked)"> neu</label>`:""}</span></div>`).join("")}</div>`;
+  },
+  bearb(key,i){this.E.texte[key]=this.E.orig[key]=this.T.paare[i].neu;this.paare();this.zf();},
+  abs(key,an){an?this.E.absatz.add(key):this.E.absatz.delete(key);this.zf();},
+  los(){
+    const d=M.daten,E=this.E,e={};
+    if($("kok120").checked)e.kapitel_ok=true;
+    if(d.fassung=="modernisiert"){
+      const par=d.param||d.standard;
+      if($("st120").value!=par.staerke)e.staerke=$("st120").value;
+      if(+$("te120").value!=+par.temperatur)e.temperatur=$("te120").value;
+      if(+$("sk120").value!=+par.stueck)e.stueck=$("sk120").value;
+      if($("fo120").checked)e.force=true;
+      if(E.kapitel.size)e.kapitel=[...E.kapitel];
+      if(E.absatz.size)e.absatz=[...E.absatz];
+      const tx={};for(const[k,v]of Object.entries(E.texte))if(v.trim()&&v!==E.orig[k])tx[k]=v;
+      if(Object.keys(tx).length)e.absatz_text=tx;
+    }
+    if(!Object.keys(e).length&&!confirm("Nichts geändert – 120 nur neu prüfen?"))return;
+    speichern(e).then(ok=>{if(ok)this.E={kapitel:new Set(),absatz:new Set(),texte:{},orig:{}};});
+  }
+};
+MON["150"]={
+  html(d){
+    if(!d.bericht)return `<div class="box"><span class="err">ingest_bericht.json fehlt – ePub neu einlesen (unten „neu einlesen“).</span></div>`+this.speicherBox(d);
+    const um=d.umfang,gr=d.grenzen,ant=um.inhaltsanteil;
+    const chip=(ok,t)=>`<span class="z ${ok?"frei":"mensch"}">${t}</span>`;
+    const art={inhalt:'<span class="z frei">Inhalt</span>',notizen:'<span class="z">Anmerkungen</span>',weg:'<span class="klein">entfernt</span>'};
+    return `<div class="box"><h2>1 Anzeigen · 2 Bearbeiten</h2>
+     <div class="feld">
+      <span>ePub</span><span>${esc(d.datei)} <span class="klein">eingelesen ${esc((d.zeit||"").replace("T"," ").slice(0,16))}</span></span>
+      <span>Quelldatei</span><span>${d.epub?esc(d.epub):`<span class="z mensch">nicht im Werkordner</span> <input type="text" id="ep150" size="60" value="${esc(d.epub_vorschlag||"")}" placeholder="Pfad zur .epub (relativ zu read_layer)"><div class="klein">Regler brauchen die Quelldatei; beim Neueinlesen wird sie nach quelle/ gesichert.</div>`}</span>
+      <span>Umfang</span><span>${um.kapitel??"?"} Kapitel · ${chip((um.zeichen||0)>=gr.zeichen,(um.zeichen||0).toLocaleString("de-DE")+" Zeichen")} ·
+        Inhaltsanteil ${ant==null?'<span class="klein">unbekannt (Altbericht, Neueinlesen misst ihn)</span>':chip(ant>=gr.inhaltsanteil,Math.round(ant*100)+" %")} · ${um.bilder||0} Bilder · ${um.fussnoten||0} Fußnoten</span>
+      <span>Warnungen</span><span>${d.warnungen.length?d.warnungen.map(w=>`<div class="z mensch">${esc(w)}</div>`).join(""):chip(true,"keine")}</span></div>
+     <h3>Metadaten</h3><div class="feld">
+      <span>Titel</span><span><input type="text" id="ti150" size="50" value="${esc(d.titel)}" list="tk150"><datalist id="tk150">${d.titel_kandidaten.map(t=>`<option value="${esc(t)}">`).join("")}</datalist></span>
+      <span>Autor</span><span><input type="text" id="au150" size="40" value="${esc(d.autor)}"></span>
+      <span>Sprache</span><span><select id="sp150">${d.sprachliste.map(l=>`<option ${l==d.sprache?"selected":""}>${l}</option>`).join("")}${d.sprachliste.includes(d.sprache)?"":`<option selected>${esc(d.sprache)}</option>`}</select>
+        <span class="klein">OPF: ${d.opf_sprache?esc(d.opf_sprache):"fehlt"}</span></span></div>
+     <h3>Seiten (Spine)</h3>
+     <table><tr><th>Datei</th><th>Einordnung</th><th>Grund</th><th>Zeichen</th><th>Entscheidung</th><th></th></tr>
+      ${d.seiten.map((x,i)=>`<tr><td>${esc(x.datei)}</td><td>${art[x.art]||esc(x.art)}</td><td class="klein">${esc(x.grund)}</td><td>${x.zeichen??"–"}</td>
+       <td><select id="se150_${i}" data-alt="${esc(x.zwang||"")}"><option value="">automatisch</option><option value="behalten" ${x.zwang=="behalten"?"selected":""}>behalten</option><option value="entfernen" ${x.zwang=="entfernen"?"selected":""}>entfernen</option></select></td>
+       <td><a href="javascript:MON['150'].zeige(${i})">ansehen</a></td></tr>`).join("")}</table>
+     <div id="vs150"></div>
+     <h3>Kapitel (${d.kapitel.length})</h3>
+     <table><tr><th>#</th><th>Titel</th><th>Absätze</th><th>Quelle</th></tr>${d.kapitel.map(k=>`<tr><td>${k.nr}</td><td>${esc(k.titel)}</td><td>${k.absaetze}</td><td class="klein">${esc(k.quelle)}</td></tr>`).join("")}</table>
+     <h3>Cover · Klappentext · Anhang</h3>
+     <div style="display:flex;gap:20px;align-items:flex-start">
+      ${d.cover?`<img src="/datei?p=${encodeURIComponent(d.cover)}" style="width:140px;border:1px solid var(--line);border-radius:var(--r-s)">`:'<span class="klein">kein Cover</span>'}
+      <div><div class="klein">${d.cover_info.erzeugt?"TÆLLA-Cover erzeugt":"aus dem ePub ("+esc(d.cover_info.gefunden_ueber||"?")+")"}</div>
+       <div class="akt">Cover <select id="co150"><option value="epub" ${d.opt.cover=="epub"?"selected":""}>aus dem ePub</option><option value="neu" ${d.opt.cover=="neu"?"selected":""}>TÆLLA-Standard</option></select>
+        Bilder <select id="bi150"><option value="ja" ${d.opt.bilder?"selected":""}>ja</option><option value="nein" ${d.opt.bilder?"":"selected"}>nein</option></select>
+        Fußnoten <select id="fn150"><option value="ja" ${d.opt.fussnoten?"selected":""}>ja</option><option value="nein" ${d.opt.fussnoten?"":"selected"}>nein</option></select></div>
+       ${Object.entries(d.klappentext).map(([l,t])=>`<div class="klein"><b>Klappentext ${esc(l)}</b><br>${esc(String(t).slice(0,600))}</div>`).join("")||'<div class="klein">kein Klappentext im ePub (600 schreibt einen)</div>'}</div></div>
+    </div>`+this.speicherBox(d);
+  },
+  speicherBox(d){return `<div class="box"><h2>3 Speichern · 4 Freigeben</h2>
+     <div class="akt"><label><input type="checkbox" id="fo150"> neu einlesen (--force)</label>
+      <button class="haupt" onclick="MON['150'].los()">Übernehmen und 150 neu prüfen</button></div>
+     <div class="klein">Jede Änderung liest das ePub neu ein (kein LLM, 0 $); das Gate wird dabei neu geprüft. Folgestufen ab 190 danach neu.</div></div>`;},
+  async zeige(i){
+    const x=M.daten.seiten[i],el=$("vs150");el.innerHTML='<div class="klein">lädt …</div>';
+    const t=await api(`/api/werk/${B()}/monitor/150/teil?datei=${encodeURIComponent(x.datei)}`);
+    el.innerHTML=t.fehler?`<div class="err">${esc(t.fehler)}</div>`:`<div class="box" style="margin-top:10px"><b>${esc(t.datei)}</b> <span class="klein">${t.zeichen} Zeichen${t.zeichen>4000?" (Anfang)":""}</span>
+      <pre style="white-space:pre-wrap;max-height:320px">${esc(t.text)}</pre></div>`;
+    el.scrollIntoView({block:"nearest",behavior:"smooth"});
+  },
+  los(){
+    const d=M.daten,e={};
+    if(d.bericht){
+      const ti=$("ti150").value.trim(),au=$("au150").value.trim();
+      if(ti&&ti!=d.titel)e.titel=ti;if(au&&au!=d.autor)e.autor=au;
+      if($("sp150").value!=d.sprache)e.sprache=$("sp150").value;
+      d.seiten.forEach((x,i)=>{const v=$("se150_"+i).value;if(v&&v!=(x.zwang||""))(e[v]=e[v]||[]).push(x.datei);});
+      if($("co150").value!=d.opt.cover)e.cover=$("co150").value;
+      if(($("bi150").value=="ja")!=!!d.opt.bilder)e.bilder=$("bi150").value;
+      if(($("fn150").value=="ja")!=!!d.opt.fussnoten)e.fussnoten=$("fn150").value;
+    }
+    if($("fo150").checked)e.force=true;
+    const ep=$("ep150");if(ep&&ep.value.trim()&&(Object.keys(e).length))e.epub=ep.value.trim();
+    speichern(e);
+  }
+};
+MON["195"]={
+  S:null,
+  html(d){
+    if(!d.kapitel.length)return `<div class="box"><h2>1 Anzeigen</h2><div class="klein">Keine Kapitel (work/modernized fehlt) – erst 120/190.</div></div>`;
+    const sch=d.teile.slice(1).map(t=>t.kapitel_von),nm={};d.teile.forEach(t=>{if(t.titel)nm[t.teil]=t.titel;});
+    this.S={d,grenze:d.grenze,schnitte:sch,geaendert:false,teile:null,namen:nm,herkunft:d.herkunft};
+    const ent=d.entscheidung?`<span class="z ${d.entscheidung=="angenommen"?"frei":"mensch"}">${esc(d.entscheidung)}</span> <span class="klein">${esc(d.wer||"")} ${esc(d.wann||"")}</span>`:(d.vorhanden&&!d.aktuell?'<span class="z mensch">Text seit Vorschlag geändert – neuer Vorschlag</span>':"offen");
+    const gt=d.geteilt_in.length?d.geteilt_in.map(g=>`<a href="#${esc(g.slug)}/190">${esc(g.slug)}</a> <span class="z ${g.zustand_190=="frei"?"frei":g.zustand_190=="stopp"?"stopp":"mensch"}">${esc(g.zustand_190)}</span>`).join(" · ")+' <span class="klein">(neue Teilung nur nach Aufräumen außerhalb des Monitors)</span>':"–";
+    return `<div class="box"><h2>1 Anzeigen · 2 Bearbeiten</h2>
+     <div class="feld">
+      <span>Umfang</span><span>${d.zeichen.toLocaleString("de-DE")} Zeichen · ${d.kapitel.length} Kapitel · ~${(d.zeichen/d.zph).toFixed(1)} h Hörzeit</span>
+      <span>Grenze je Teil</span><span><input id="g195" type="number" step="10000" min="10000" value="${d.grenze}" style="width:110px"> Zeichen <span class="klein">(Standard ${d.standard.toLocaleString("de-DE")})</span></span>
+      <span>Teilezahl</span><span><input id="n195" type="number" min="1" max="${d.kapitel.length}" placeholder="auto" style="width:70px"> <button onclick="MON['195'].rechnen()">Vorschlag berechnen</button> <span class="klein" id="h195"></span></span>
+      <span>Entscheidung</span><span>${ent}</span>
+      <span>Bestehende Teile</span><span>${gt}</span></div>
+     <h3>Teile</h3><div id="t195"></div>
+     <h3>Kapitel <span class="klein">– Klick auf „✂“ setzt/entfernt einen Schnitt vor dem Kapitel</span></h3><div id="k195"></div>
+    </div>
+    <div class="box"><h2>3 Speichern · 4 Freigeben</h2>
+     <div class="akt"><button class="haupt" onclick="MON['195'].los('annehmen')">Annehmen und Teile anlegen</button>
+      <button onclick="MON['195'].los('ablehnen')">Ablehnen – weiter ohne Teilung</button>
+      <button onclick="MON['195'].los(null)">Nur Vorschlag speichern und 195 neu prüfen</button></div>
+     <div class="klein">Annehmen legt je Teil ein Werk <code>&lt;slug&gt;-K</code> an und prüft dort Gate 190. Ablehnen: Werk bleibt ganz, Gate mit Warnung frei. Einzelkapitel über der Grenze: Kapitel im Kapitelplan teilen (Rücksprung).</div></div>`;
+  },
+  danach(){this.zeichnen();},
+  teile(){
+    const S=this.S,K=S.d.kapitel,st=[0,...S.schnitte.map(c=>K.findIndex(k=>k.n==c))].sort((a,b)=>a-b),out=[];
+    st.forEach((s,i)=>{const e=i+1<st.length?st[i+1]:K.length,z=K.slice(s,e).reduce((a,k)=>a+k.zeichen,0);
+      out.push({teil:i+1,von:K[s].n,bis:K[e-1].n,zeichen:z,slug:`${M.book_id}-${i+1}`});});
+    return out;
+  },
+  zeichnen(){
+    const S=this.S,K=S.d.kapitel,T=this.teile(),g=+($("g195").value||S.grenze),mx=Math.max(...K.map(k=>k.zeichen));
+    const farbe=["var(--s-frei)","var(--b)","var(--s-mensch)","var(--ink-3)"];
+    $("h195").textContent=S.geaendert?"geändert (manuell)":"Herkunft: "+(S.herkunft||"–");
+    $("t195").innerHTML=`<table><tr><th>Teil</th><th>Kapitel</th><th>Zeichen</th><th>Hörzeit</th><th>Slug</th><th>Name</th></tr>${T.map(t=>`<tr>
+      <td>${t.teil}</td><td>${t.von}–${t.bis}</td><td>${t.zeichen.toLocaleString("de-DE")} ${t.zeichen>g?'<span class="z stopp">&gt; Grenze</span>':""}</td>
+      <td>~${(t.zeichen/S.d.zph).toFixed(1)} h</td><td class="klein">${T.length>1?esc(t.slug):"–"}</td>
+      <td>${T.length>1?`<input value="${esc(S.namen[t.teil]||"")}" oninput="MON['195'].S.namen[${t.teil}]=this.value" placeholder="optional" style="width:220px">`:""}</td></tr>`).join("")}</table>
+      ${T.length==1?'<div class="klein">Ein Teil = keine Teilung.</div>':""}`;
+    let teil=0;
+    $("k195").innerHTML=K.map((k,i)=>{const an=S.schnitte.includes(k.n);if(i==0||an)teil++;
+      return `${i>0?`<div class="schnitt ${an?"an":""}" onclick="MON['195'].kipp(${k.n})">✂ ${an?"Teil "+teil+" beginnt":""}</div>`:""}
+      <div class="k195"><span class="klein">T${teil}</span><span>${k.n}</span><span>${esc(k.titel||"")} ${k.gliederung?'<span class="z mensch">Gliederung</span>':""}</span>
+      <span class="klein">${k.zeichen.toLocaleString("de-DE")}${k.zeichen>g?' <span class="z stopp">&gt;G</span>':""}</span>
+      <div class="bal" style="width:${Math.max(2,100*k.zeichen/mx)}%;background:${farbe[(teil-1)%4]}"></div></div>`;}).join("");
+  },
+  kipp(n){const S=this.S;S.schnitte=S.schnitte.includes(n)?S.schnitte.filter(x=>x!=n):[...S.schnitte,n].sort((a,b)=>a-b);S.geaendert=true;S.teile=null;this.zeichnen();},
+  async rechnen(){
+    const S=this.S,g=$("g195").value,n=$("n195").value;
+    const r=await api(`/api/werk/${B()}/monitor/195/teil?grenze=${encodeURIComponent(g)}&teile=${encodeURIComponent(n)}`);
+    if(r.fehler){alert(r.fehler);return;}
+    S.schnitte=r.schnitte;S.herkunft=r.herkunft;S.geaendert=false;S.teile=n?+n:null;S.grenze=+g;this.zeichnen();
+  },
+  los(ent){
+    const S=this.S,e={entscheidung:ent,namen:S.namen},g=+$("g195").value;
+    if(g!=S.d.grenze)e.grenze=g;
+    if(S.geaendert)e.schnitte=S.schnitte;else if(S.teile)e.teile=S.teile;
+    if(ent=="annehmen"&&!S.schnitte.length){alert("Ein Teil = keine Teilung. Schnitt setzen oder Ablehnen.");return;}
+    speichern(e);
+  }
+};
+MON["190"]={
+  html(d){
+    const farbe={auto:"frei",mensch:"mensch",stopp:"stopp"}[d.ergebnis]||"";
+    const m=d.metriken,offen=d.pruefungen.filter(p=>!p.ok);
+    const zeile=p=>`<tr><td><span class="z ${p.ok?"frei":(p.art=="hinweis"?"mensch":"stopp")}"></span></td><td>${esc(p.text)}</td>
+      <td class="klein">${p.wert==null||p.wert===true||p.wert===false?"":esc(p.wert)}</td>
+      <td>${!p.ok&&(p.ruecksprung||d.ruecksprung)?`<a href="#${esc(M.book_id)}/${esc(p.ruecksprung||d.ruecksprung)}">→ ${esc(p.ruecksprung||d.ruecksprung)}</a>`:""}</td></tr>`;
+    return `<div class="box"><h2>1 Anzeigen · Vertragsliste <span class="klein">(Trockenlauf, schreibt nichts)</span></h2>
+     <div class="feld">
+      <span>Ergebnis jetzt</span><span><span class="z ${farbe}">${esc(d.ergebnis)}</span> ${offen.length?offen.length+" von "+d.pruefungen.length+" Prüfungen offen":"alle "+d.pruefungen.length+" Prüfungen erfüllt"}</span>
+      <span>Werk</span><span>${esc(m.quelle||"?")} · Fassung ${esc(m.fassung||"?")} · Mandant ${esc(m.mandant||"?")} · Ziel ${esc((m.zielsprachen||[]).join(", ")||"–")}</span>
+      <span>Text</span><span>${m.kapitel??"?"} Kapitel · ${m.woerter!=null?m.woerter.toLocaleString("de-DE")+" Wörter":"?"} · ${m.zeichen!=null?m.zeichen.toLocaleString("de-DE")+" Zeichen":"?"}</span></div>
+     <table style="margin-top:10px"><tr><th></th><th>Prüfung</th><th>Wert</th><th>korrigieren in</th></tr>
+      ${offen.map(zeile).join("")}${d.pruefungen.filter(p=>p.ok).map(zeile).join("")}</table>
+    </div>
+    <div class="box"><h2>3 Speichern · 4 Freigeben</h2>
+     <div class="klein">190 hat keine Regler: Fehler werden in der Stage behoben, deren Datei fehlt (Link „→“). Danach oben „190 neu prüfen“. Ein Stopp lässt sich nur per Admin-Ausnahme freigeben.</div></div>`;
   }
 };
 start();

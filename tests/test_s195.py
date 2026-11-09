@@ -156,6 +156,31 @@ class Teilung(unittest.TestCase):
         self.assertEqual(e, "mensch")
         self.assertIsNone(self.vorschlag()["entscheidung"])
 
+    def test_monitor_195(self):
+        from cockpit import werk_api as W
+        self.werk([10000] * 6, struktur=(4,))
+        d = W._m195_daten("w")
+        self.assertEqual((d["zeichen"], d["grenze"], len(d["kapitel"]), d["aktuell"]), (59999, T.GRENZE, 6, False))
+        self.assertEqual(len(d["teile"]), 1)
+        r = W._m195_teil("w", {"grenze": "25000", "teile": ""})
+        self.assertEqual(len(r["schnitte"]), 2)
+        self.assertEqual(W._m195_teil("w", {"grenze": "25000", "teile": "2"}), {"schnitte": [4], "herkunft": "gliederung"})
+        a = W._m195_argv("w", {"grenze": 25000, "schnitte": [3, 5], "namen": {"1": " Der  Anfang "},
+                                "entscheidung": "annehmen"}, "CK")
+        self.assertEqual(a[6:], ["--grenze=25000", "--schnitte=3,5", "--name=1=Der Anfang", "--annehmen"])
+        self.assertEqual(W._m195_argv("w", {"schnitte": [], "entscheidung": "ablehnen"}, "CK")[6:],
+                         ["--teile=1", "--ablehnen"])
+        with self.assertRaises(ValueError):
+            W._m195_argv("w", {"schnitte": [7]}, "CK")
+        with self.assertRaises(ValueError):
+            W._m195_argv("w", {"schnitte": [], "entscheidung": "annehmen"}, "CK")
+        with self.assertRaises(ValueError):
+            W._m195_teil("w", {"grenze": "500"})
+        self.lauf(grenze=25000, schnitte=[3, 5])           # Monitor liest gespeicherten Vorschlag
+        d = W._m195_daten("w")
+        self.assertTrue(d["aktuell"])
+        self.assertEqual(([t["kapitel_von"] for t in d["teile"]], d["herkunft"], d["grenze"]), ([1, 3, 5], "manuell", 25000))
+
 
 if __name__ == "__main__":
     unittest.main()
