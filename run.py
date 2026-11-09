@@ -420,7 +420,9 @@ def run_pipeline(book_id, start_from=None, stop_to=None, only=None, force=False,
             from pipeline import s095_produktwahl
             if s095_produktwahl.veraltet(book_id):
                 status.zuruecksetzen(book_id, s, wer=wer, grund="Bestellung seit Freigabe geaendert")
-        if not force and s not in IMMER and status.ist_frei(book_id, s):
+        # Zielstage von --only/--from laeuft immer (09.11.2026: Cockpit "neu pruefen"/"Ruecksprung" auf eine
+        # freie Stage wurde sonst nur uebersprungen); Folgestages wie bisher nur bei offen/veraltet/fehlenden Teilen
+        if not force and s not in IMMER and s != (only or start_from) and status.ist_frei(book_id, s):
             fehlt = fehlende_teile(book_id, s, b)
             alt = veraltet(book_id, s, laeuft)
             if not fehlt and not alt:
