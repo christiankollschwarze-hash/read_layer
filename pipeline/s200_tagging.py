@@ -265,11 +265,12 @@ def _tag_robust(chapter_num: int, title: str, text: str, tiefe: int = 0) -> dict
     return {"content": inhalt}
 
 
-def _satzweise(content: dict, abk=None) -> dict:
+def _satzweise(content: dict, abk=None, src=None) -> dict:
     """CK 01.11.2026: Ein Tag = ein Satz. Das LLM fasst gelegentlich ganze Absaetze zusammen
     (Befund Winnie-the-Pooh c007_00133_dl, 5 Saetze). Hier deterministisch nachtrennen nach der
-    Regel in tools/satzweise.py (.!? beenden; Ausnahme Redebegleitsatz / ankuendigender Satz)."""
-    src = config.SOURCE_LANGUAGE
+    Regel in tools/satzweise.py (.!? beenden; Ausnahme Redebegleitsatz / ankuendigender Satz).
+    src: Werksprache (09.11.2026: vorher immer config.SOURCE_LANGUAGE -> DE-Originale nicht nachgetrennt)."""
+    src = src or config.SOURCE_LANGUAGE
     out = {}
     for tid, e in content.items():
         typ = e.get("type", "s")
@@ -313,6 +314,28 @@ TREUE_MIN = 0.995
 LANG_MAX = 400
 OHNE_TEXT = {"p", "skip"}
 _W = re.compile(r"[\w’']+", re.UNICODE)
+PROMPT_ZEICHEN = 4000   # Tagger-Prompt ohne Kapiteltext (Schaetzung)
+AUS_FAKTOR = 1.6        # JSON-Ausgabe je Eingabe-Token (Schaetzung)
+
+
+def kosten_schaetzen(zeichen, modell=None):
+    """Schaetzung Neu-Taggen in $ (Peak-Preis, ohne Cache; Token ~ Zeichen/4)."""
+    p = getattr(config, "PREISE", {}).get(modell or config.MODELS.get("tagger")) or {}
+    return ((PROMPT_ZEICHEN + zeichen) / 4 * p.get("in", 0) + zeichen / 4 * AUS_FAKTOR * p.get("out", 0)) / 1e6
+
+
+def trennstelle(text, teil2):
+    """Kuerzester Anfang von teil2 (ganze Woerter, ab 8 Zeichen), dessen erstes Vorkommen in text
+    die Trennstelle ist -> Wert fuer --teilen ID@STELLE; None, wenn nicht eindeutig findbar."""
+    pos = text.find(teil2, 1)
+    if pos <= 0:
+        return None
+    for n in range(min(8, len(teil2)), len(teil2) + 1):
+        if n < len(teil2) and not teil2[n].isspace():
+            continue
+        if text.find(teil2[:n]) == pos:
+            return teil2[:n]
+    return None
 
 
 def _hash(o):
@@ -353,7 +376,7 @@ def treue(kaptext, knoten, src):
 
 def nachbearbeiten(n, titel, roh, src, abk):
     """LLM-Rohergebnis -> satzweise nachtrennen, Header setzen, IDs vergeben (deterministisch, kostenlos)."""
-    content = _satzweise(copy.deepcopy(roh), abk)
+    content = _satzweise(copy.deepcopy(roh), abk, src)
     return _renumber_chapter(n, titel, content)
 
 
@@ -494,6 +517,9 @@ def run(werk, wer=None, modell=None, kapitel=None, abk=None, abk_weg=None, lang_
                 [dict(op="typ", id=x.split("=", 1)[0], arg=x.split("=", 1)[1]) for x in typ or []]
     modell_eff = modell or config.MODELS.get("tagger")
     g.metrik("modell", modell_eff)
+    ids = [x["id"] for x in neue_korr]
+    if len(ids) != len(set(ids)):
+        raise ValueError("je Knoten nur eine Korrektur pro Lauf")
 
     alle, chapters_meta, pruef = {}, {}, {"kapitel": [], "mehrsatz": [], "ueberlang": [], "korrekturen_verworfen": []}
     n_llm = n_wdh = n_ck = n_bestand = 0
@@ -531,7 +557,10 @@ def run(werk, wer=None, modell=None, kapitel=None, abk=None, abk_weg=None, lang_
         elif herkunft == "checkpoint":
             n_ck += 1
         # Korrekturen (gespeicherte + neue) dieses Kapitels in Reihenfolge
-        for k in korr + [dict(x, kapitel=key, eingang=h, neu=1) for x in neue_korr if x["id"].startswith(key + "_")]:
+        # neue Korrekturen von hinten nach vorn: IDs davor bleiben gueltig (Monitor sammelt mehrere je Kapitel)
+        neu_kap = sorted((dict(x, kapitel=key, eingang=h, neu=1) for x in neue_korr if x["id"].startswith(key + "_")),
+                         key=lambda x: -int(x["id"].split("_")[1]))
+        for k in korr + neu_kap:
             if k.get("kapitel") != key:
                 continue
             if k.get("eingang") != h:
@@ -547,14 +576,15 @@ def run(werk, wer=None, modell=None, kapitel=None, abk=None, abk_weg=None, lang_
         if neue_korr:
             q, bsp = treue(ktext, knoten, src)
         pruef["kapitel"].append({"kapitel": n, "titel": ktitel, "treue": round(q, 5), "herkunft": herkunft,
-                                 "knoten": len(knoten), "abweichungen": bsp if q < TREUE_MIN else []})
+                                 "knoten": len(knoten), "zeichen": len(ktext),
+                                 "abweichungen": bsp if q < TREUE_MIN else []})
         if q < TREUE_MIN:
             treue_aus.append(f"{n} ({q:.2%})")
         for tid, e in knoten.items():
             t = e.get(src) or ""
             if e.get("type") in satzweise.TEILBARE_TYPEN and not e.get("_m") \
-                    and len(satzweise.teile_text(t, src, abkl)) > 1:
-                pruef["mehrsatz"].append({"id": tid, "text": t})
+                    and len(tt := satzweise.teile_text(t, src, abkl)) > 1:
+                pruef["mehrsatz"].append({"id": tid, "text": t, "saetze": len(tt), "vorschlag": trennstelle(t, tt[1])})
             if len(t) > lang_max:
                 pruef["ueberlang"].append({"id": tid, "zeichen": len(t)})
             e.pop("_m", None)

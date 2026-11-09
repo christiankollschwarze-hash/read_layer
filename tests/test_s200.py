@@ -198,6 +198,56 @@ class T200(unittest.TestCase):
         self.assertEqual(g.ergebnis["ergebnis"], "stopp")
         self.assertEqual(g.ergebnis["ruecksprung"], "195")
 
+    def test_trennstelle(self):
+        self.assertEqual(T.trennstelle("One. Two three four five.", "Two three four five."), "Two three")
+        self.assertEqual(T.trennstelle("He ran. He ran home.", "He ran home."), "He ran home.")
+        self.assertIsNone(T.trennstelle("abc", "x"))
+
+    def test_mehrere_korrekturen_ein_lauf(self):
+        self.lauf()
+        ids = [t for t, e in self.aus()["content"].items() if t.startswith("c001") and e["type"] in ("s", "dl")]
+        g = self.lauf(typ=[f"{ids[0]}=qt"], zusammen=[ids[1]])     # vorn Typ, dahinter zusammen: beide gueltig
+        self.assertEqual(g.ergebnis["ergebnis"], "auto", g.bericht())
+        c = self.aus()["content"]
+        self.assertEqual(c[ids[0][:-2] + "_qt"]["type"], "qt")
+        self.assertTrue(c[ids[1]]["en"].startswith("He thought of the letter. "))
+        with self.assertRaises(ValueError):
+            self.lauf(typ=[f"{ids[1]}=qt"], zusammen=[ids[1]])
+
+    def test_mehrsatz_vorschlag_und_monitor(self):
+        def fake(n, titel, text, tiefe=0):
+            return {"content": {"a": {"type": "vs", "en": text.split("\n\n")[0]}, "b": {"type": "s", "en": "x"}}}
+        T._tag_robust = fake
+        self.werk(kap=(("Chapter 1", "One small line. Two small lines."),))
+        self.lauf()
+        vs = next(t for t, e in self.aus()["content"].items() if e["type"] == "vs")
+        g = self.lauf(typ=[f"{vs}=s"])                    # Typ s -> zwei Saetze in einem Knoten
+        self.assertEqual(g.ergebnis["ergebnis"], "mensch")
+        s = vs[:-3] + "_s"
+        self.assertEqual(g.pruef["mehrsatz"], [{"id": s, "text": "One small line. Two small lines.", "saetze": 2,
+                                                "vorschlag": "Two small"}])
+        from cockpit import werk_api as W
+        d = W._m200_daten("w")
+        self.assertEqual((len(d["kapitel"]), d["mehrsatz"][0]["id"], d["modell"]), (1, s, config.MODELS["tagger"]))
+        self.assertGreater(d["kapitel"][0]["kosten"], 0)
+        t = W._m200_teil("w", {"k": ["1"]})
+        self.assertEqual(t["zusaetzlich"], 1)                       # "x" nur in den Knoten
+        self.assertTrue(any(n["mehrsatz"] and n["vorschlag"] == "Two small" for n in t["knoten"]))
+        self.assertTrue(any(g_["aus"] for n in t["knoten"] for g_ in n["seg"]))
+        a = W._m200_argv("w", {"teilen": [[s, "Two small"]], "abk": ["Mr."], "abk_weg": ["approx"], "lang": 300,
+                                "kapitel": [1], "trocken": True}, "CK")
+        self.assertEqual(a[6:], ["--kapitel=1", f"--teilen={s}@Two small", "--abk=Mr", "--abk-weg=approx",
+                                 "--lang=300", "--trocken"])
+        for e in ({"kapitel": [2]}, {"typ": {s: "h"}}, {"teilen": [[s, "x"]], "zusammen": [s]}, {"modell": "foo"}):
+            with self.assertRaises(ValueError):
+                W._m200_argv("w", e, "CK")
+        g = self.lauf(teilen=[f"{s}@Two small"])
+        self.assertEqual(g.pruef["mehrsatz"], [])                   # Rest-Mensch nur Treue (Zusatzknoten "x")
+
+    def test_satzweise_werksprache(self):
+        content = {"a": {"type": "s", "de": "Er kam. Sie ging."}}
+        self.assertEqual(len(T._satzweise(content, None, "de")), 2)
+
     def test_treue_funktion(self):
         q, _ = T.treue("A b c d.", {"c001_00002_s": {"type": "s", "en": "A b c d."}}, "en")
         self.assertEqual(q, 1.0)

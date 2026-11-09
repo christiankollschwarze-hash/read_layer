@@ -24,6 +24,13 @@ details.ausnahme{margin-top:10px}details.ausnahme summary{cursor:pointer;color:v
 .schnitt{cursor:pointer;font-size:11px;color:var(--ink-3);text-align:center;border-top:1px dashed transparent;padding:1px 0}
 .schnitt:hover{color:var(--ink);border-top-color:var(--line)}.schnitt.an{color:var(--s-mensch);border-top:2px solid var(--s-mensch);font-weight:600}
 .liste120{max-height:75vh;overflow:auto;border-top:1px solid var(--line)}
+.zw200{display:grid;grid-template-columns:1fr 1fr;gap:16px}.zw200>div{max-height:75vh;overflow:auto;border-top:1px solid var(--line);font-size:13px;line-height:1.5}
+.ab{background:color-mix(in srgb,var(--s-stopp) 18%,transparent);border-radius:2px}
+.kn{display:grid;grid-template-columns:120px 64px 1fr 30px;gap:4px 8px;padding:5px 0;border-bottom:1px solid var(--line);align-items:start}
+.kn.ms{background:color-mix(in srgb,var(--s-mensch) 8%,transparent)}.kn.h{font-weight:600}
+.kn .w{cursor:pointer}.kn .w:hover{text-decoration:underline}
+.trenn{color:var(--s-mensch);font-weight:700;padding:0 2px}.zs{color:var(--s-mensch);font-weight:700}
+.chip{display:inline-block;border:1px solid var(--line-2);border-radius:10px;padding:0 8px;margin:2px;font-size:12px;cursor:pointer}.chip.weg{text-decoration:line-through;color:var(--ink-3)}
 .kapt td{padding:4px 6px}.kapt tr.sel{background:var(--tint)}
 </style></head><body>
 <header>
@@ -564,6 +571,129 @@ MON["195"]={
     if(S.geaendert)e.schnitte=S.schnitte;else if(S.teile)e.teile=S.teile;
     if(ent=="annehmen"&&!S.schnitte.length){alert("Ein Teil = keine Teilung. Schnitt setzen oder Ablehnen.");return;}
     speichern(e);
+  }
+};
+MON["200"]={
+  E:null,K:null,T:null,
+  leer(){return {kapitel:new Set(),teilen:{},zusammen:new Set(),typ:{},abk:[],abk_weg:new Set(),alle:false};},
+  html(d){
+    if(!this.E)this.E=this.leer();
+    const E=this.E,tm=d.treue_min,ki=(M.stage.kosten||{}).usd;
+    const kn=d.kapitel.reduce((a,k)=>a+(k.knoten||0),0),aus=d.kapitel.filter(k=>k.treue!=null&&k.treue<tm).length;
+    const pct=x=>(x*100).toFixed(2).replace(".",",")+" %";
+    return `<div class="box"><h2>1 Anzeigen</h2>
+     ${d.vorhanden?"":'<div class="klein err">200 ist noch nicht gelaufen – keine Prüfdaten. Oben „200 neu prüfen“ (taggt, kostet im Live-Modus).</div>'}
+     <div class="feld">
+      <span>Werk</span><span>${d.kapitel.length} Kapitel · ${kn.toLocaleString("de-DE")} Knoten · Sprache ${esc(d.sprache)} · Modell ${esc(d.modell)}</span>
+      <span>Treue</span><span>${aus?`<span class="z mensch">${aus} Kapitel unter ${pct(tm)}</span>`:`<span class="z frei">alle ≥ ${pct(tm)}</span>`}</span>
+      <span>Mehrsatz</span><span>${d.mehrsatz.length?`<span class="z mensch">${d.mehrsatz.length} Knoten</span>`:'<span class="z frei">0</span>'} · überlang (&gt; ${d.lang_max} Z.) ${d.ueberlang.length}</span>
+      <span>Korrekturen</span><span>${d.korrekturen.length} gespeichert${d.verworfen.length?` · <span class="z mensch">${d.verworfen.length} verworfen</span> <span class="klein">(Kapitel geändert oder nicht anwendbar)</span>`:""}</span>
+      <span>Kosten</span><span>Ist ${ki!=null?ki.toFixed(4)+" $":"–"} · Neu-Taggen ganzes Werk ~${d.kosten_alle.toFixed(3)} $</span></div>
+     <table class="kapt" style="margin-top:10px"><tr><th>#</th><th>Kapitel</th><th>Knoten</th><th>Treue</th><th>Herkunft</th><th>Zeichen</th><th>~$ neu</th><th></th></tr>
+     ${d.kapitel.map(k=>`<tr id="kz${k.n}"><td>${k.n}</td><td><a href="javascript:MON['200'].zeige(${k.n})">${esc(k.titel)||"<i>ohne Titel</i>"}</a></td>
+       <td>${k.knoten??"–"}</td><td>${k.treue==null?"–":`<span class="z ${k.treue<tm?"mensch":"frei"}">${pct(k.treue)}</span>`}</td>
+       <td class="klein">${esc(k.herkunft||"")}</td><td class="klein">${k.zeichen.toLocaleString("de-DE")}</td><td class="klein">${k.kosten.toFixed(4)}</td>
+       <td><label class="klein"><input type="checkbox" ${E.kapitel.has(k.n)?"checked":""} onchange="MON['200'].kap(${k.n},this.checked)"> neu taggen</label></td></tr>`).join("")}</table>
+    </div>
+    ${d.mehrsatz.length?`<div class="box"><h2>Mehrsatz-Knoten <span class="klein">– ein Knoten = ein Satz</span></h2>
+     <div class="akt"><button onclick="MON['200'].alleVorschlaege()">Alle Vorschläge wählen</button>
+      <span class="klein">Trennstelle ‖ = Vorschlag. Falsch getrennt wegen Abkürzung (z. B. „Mr.“)? Dann unten Abkürzung je Werk ergänzen statt teilen.</span></div>
+     <table><tr><th>Knoten</th><th>Text</th><th></th></tr>${d.mehrsatz.map(m=>{const p=m.vorschlag?m.text.indexOf(m.vorschlag):-1,k=+m.id.slice(1,m.id.indexOf("_"));
+       return `<tr><td class="klein"><a href="javascript:MON['200'].zeige(${k})">${esc(m.id)}</a></td>
+       <td>${p>0?esc(m.text.slice(0,p))+'<span class="trenn">‖</span>'+esc(m.text.slice(p)):esc(m.text)}</td>
+       <td>${m.vorschlag?`<label class="klein"><input type="checkbox" id="ms_${esc(m.id)}" ${E.teilen[m.id]===m.vorschlag?"checked":""} onchange="MON['200'].ms('${esc(m.id)}',this.checked)"> teilen</label>`:'<span class="klein">im Kapitel teilen</span>'}</td></tr>`;}).join("")}</table></div>`:""}
+    <div class="box" id="paarbox"><h2>2 Bearbeiten · Kapitel</h2><div class="klein">Kapitel in der Liste anklicken. Wort im Knoten anklicken = vor diesem Wort teilen; ⊕ = mit folgendem Knoten zusammenführen; Typ per Auswahl. Knotentext selbst ist nicht editierbar – Textfehler nur über Neu-Taggen.</div></div>
+    <div class="box"><h2>Abkürzungen</h2>
+     <div class="feld"><span>je Werk</span><span id="abk200"></span>
+      <span>hinzufügen</span><span><input id="abkn200" placeholder="z. B. Mr" style="width:120px"> <button onclick="MON['200'].abkNeu()">+</button> <span class="klein">ohne Punkt; Klick auf eine Abkürzung entfernt sie</span></span>
+      <span>je Sprache (${esc(d.sprache)})</span><span class="klein">${d.abk_sprache.length?d.abk_sprache.map(esc).join(" · "):"keine (config/abk_"+esc(d.sprache)+".txt)"}</span></div></div>
+    <div class="box"><h2>Regler</h2><div class="akt">
+      Modell <select id="mo200">${d.modelle.map(m=>`<option ${m==d.modell?"selected":""}>${esc(m)}</option>`).join("")}</select>
+      <span class="klein">Standard ${esc(d.standard_modell)} – gilt für neu getaggte Kapitel</span>
+      Überlang ab <input type="number" id="la200" min="50" step="50" value="${d.lang_max}" style="width:80px"> Zeichen</div>
+      <div class="akt"><label><input type="checkbox" id="al200" ${E.alle?"checked":""} onchange="MON['200'].E.alle=this.checked;MON['200'].zf()"> alle Kapitel neu taggen</label> <span class="klein">~${d.kosten_alle.toFixed(3)} $ (Schätzung, Spitzenpreis)</span></div></div>
+    <div class="box"><h2>3 Speichern · 4 Freigeben</h2>
+     <div class="akt"><button class="haupt" onclick="MON['200'].los(false)">Übernehmen und 200 neu prüfen</button>
+      <button onclick="MON['200'].los(true)">Probe (schreibt nichts, kein LLM)</button> <span id="zf200" class="klein"></span></div>
+     <div class="klein">Teilen/Zusammenführen/Typ und Abkürzungen kosten nichts; Neu-Taggen kostet (Schätzung je Kapitel in der Tabelle). Rücksprung bei Fehlern im Ausgangstext: 120.</div></div>`;
+  },
+  danach(){this.abkZeigen();this.zf();if(this.K)this.zeige(this.K);},
+  kap(k,an){an?this.E.kapitel.add(k):this.E.kapitel.delete(k);this.zf();},
+  belegt(id,art){const E=this.E;return (art!="teilen"&&id in E.teilen)||(art!="zusammen"&&E.zusammen.has(id))||(art!="typ"&&id in E.typ);},
+  ms(id,an){const m=M.daten.mehrsatz.find(x=>x.id==id);
+    if(an){if(this.belegt(id,"teilen")){alert("Für diesen Knoten ist schon eine andere Korrektur vorgemerkt.");$("ms_"+id).checked=false;return;}this.E.teilen[id]=m.vorschlag;}
+    else delete this.E.teilen[id];this.zf();if(this.T)this.knoten();},
+  alleVorschlaege(){for(const m of M.daten.mehrsatz)if(m.vorschlag&&!this.belegt(m.id,"teilen")){this.E.teilen[m.id]=m.vorschlag;const c=$("ms_"+m.id);if(c)c.checked=true;}this.zf();if(this.T)this.knoten();},
+  abkZeigen(){const d=M.daten,E=this.E;
+    $("abk200").innerHTML=[...d.abk_werk.map(a=>`<span class="chip ${E.abk_weg.has(a)?"weg":""}" onclick="MON['200'].abkKipp('${esc(a)}')">${esc(a)}.</span>`),
+      ...E.abk.map((a,i)=>`<span class="chip" style="border-color:var(--s-mensch)" onclick="MON['200'].E.abk.splice(${i},1);MON['200'].abkZeigen();MON['200'].zf()">+ ${esc(a)}.</span>`)].join("")||'<span class="klein">keine</span>';},
+  abkKipp(a){const w=this.E.abk_weg;w.has(a)?w.delete(a):w.add(a);this.abkZeigen();this.zf();},
+  abkNeu(){const v=$("abkn200").value.trim().replace(/\.+$/,"");if(!v||/\s/.test(v)){alert("Ein Wort ohne Punkt.");return;}
+    if(!this.E.abk.includes(v)&&!M.daten.abk_werk.includes(v.toLowerCase()))this.E.abk.push(v);$("abkn200").value="";this.abkZeigen();this.zf();},
+  zf(){const E=this.E,t=[];if(E.alle)t.push("alle Kapitel neu");else if(E.kapitel.size)t.push(E.kapitel.size+" Kapitel neu");
+    const n=Object.keys(E.teilen).length;if(n)t.push(n+"× teilen");if(E.zusammen.size)t.push(E.zusammen.size+"× zusammen");
+    const y=Object.keys(E.typ).length;if(y)t.push(y+"× Typ");if(E.abk.length||E.abk_weg.size)t.push("Abkürzungen ±"+(E.abk.length+E.abk_weg.size));
+    const el=$("zf200");if(el)el.textContent=t.join(" · ");},
+  async zeige(k){
+    this.K=k;document.querySelectorAll(".kapt tr").forEach(r=>r.classList.toggle("sel",r.id=="kz"+k));
+    const box=$("paarbox");box.innerHTML=`<h2>2 Bearbeiten · Kapitel ${k}</h2><div class="klein">lädt …</div>`;
+    const t=await api(`/api/werk/${B()}/monitor/200/teil?k=${k}`);
+    if(t.fehler){box.innerHTML+=`<div class="err">${esc(t.fehler)}</div>`;return;}
+    this.T=t;
+    box.innerHTML=`<h2>2 Bearbeiten · Kapitel ${k}: ${esc(t.titel)}</h2>
+     <div class="klein">Abweichungen markiert: ${t.fehlend} Wörter nur im Original, ${t.zusaetzlich} nur in den Knoten. ${t.knoten.length?"":"Keine Knoten – Kapitel noch nicht getaggt."}</div>
+     <div class="zw200"><div><h3>Original (raw_modernized)</h3>${t.original.map(g=>g.aus?`<span class="ab">${esc(g.t)}</span>`:esc(g.t)).join("").replace(/\n/g,"<br>")}</div>
+     <div><h3>Knoten</h3><div id="kn200"></div></div></div>`;
+    this.knoten();
+  },
+  knoten(){
+    const t=this.T,E=this.E,typen=M.daten.typen;
+    $("kn200").innerHTML=t.knoten.map((n,i)=>{
+      if(n.typ=="h")return `<div class="kn h"><span class="klein">${esc(n.id)}</span><span>h</span><span>${esc(n.text)}</span><span></span></div>`;
+      const sp=n.id in E.teilen?n.text.indexOf(E.teilen[n.id]):-1;let pos=0,h="";
+      for(const g of n.seg){let x="";for(const w of g.t.split(/(\s+)/)){if(!w)continue;
+        if(pos==sp&&sp>0)x+='<span class="trenn">‖</span>';
+        x+=/\s/.test(w)?esc(w):`<span class="w" onclick="MON['200'].tl(${i},${pos})">${esc(w)}</span>`;pos+=w.length;}
+        h+=g.aus?`<span class="ab">${x}</span>`:x;}
+      const ty=E.typ[n.id]||n.typ,zs=E.zusammen.has(n.id);
+      return `<div class="kn ${n.mehrsatz?"ms":""}"><span class="klein">${esc(n.id)}${n.mehrsatz?'<br><span class="z mensch">Mehrsatz</span>':""}</span>
+        <span><select onchange="MON['200'].ty(${i},this.value)" ${ty!=n.typ?'class="geaendert"':""}>${typen.map(x=>`<option ${x==ty?"selected":""}>${x}</option>`).join("")}</select></span>
+        <span>${h||'<span class="klein">–</span>'}${zs?' <span class="zs">⊕ + folgender</span>':""}</span>
+        <span>${n.text?`<button title="mit folgendem Knoten zusammenführen" onclick="MON['200'].zu(${i})">⊕</button>`:""}</span></div>`;}).join("");
+  },
+  tl(i,pos){
+    const n=this.T.knoten[i],E=this.E;
+    if(pos==0){alert("Am Knotenanfang wird nicht geteilt.");return;}
+    if(n.id in E.teilen&&n.text.indexOf(E.teilen[n.id])==pos){delete E.teilen[n.id];}
+    else{if(this.belegt(n.id,"teilen")){alert("Für diesen Knoten ist schon eine andere Korrektur vorgemerkt.");return;}
+      const r=n.text.slice(pos);let st=null;
+      for(let k=Math.min(8,r.length);k<=r.length;k++){if(k<r.length&&!/\s/.test(r[k]))continue;if(n.text.indexOf(r.slice(0,k))==pos){st=r.slice(0,k);break;}}
+      if(!st){alert("Stelle nicht eindeutig.");return;}E.teilen[n.id]=st;}
+    const c=$("ms_"+n.id);if(c)c.checked=E.teilen[n.id]===(M.daten.mehrsatz.find(m=>m.id==n.id)||{}).vorschlag;
+    this.knoten();this.zf();
+  },
+  zu(i){const n=this.T.knoten[i],E=this.E;
+    if(E.zusammen.has(n.id))E.zusammen.delete(n.id);
+    else{if(this.belegt(n.id,"zusammen")){alert("Für diesen Knoten ist schon eine andere Korrektur vorgemerkt.");return;}E.zusammen.add(n.id);}
+    this.knoten();this.zf();},
+  ty(i,v){const n=this.T.knoten[i],E=this.E;
+    if(v==n.typ){delete E.typ[n.id];}
+    else{if(this.belegt(n.id,"typ")){alert("Für diesen Knoten ist schon eine andere Korrektur vorgemerkt.");this.knoten();return;}E.typ[n.id]=v;}
+    this.knoten();this.zf();},
+  los(trocken){
+    const d=M.daten,E=this.E,e={};
+    if($("mo200").value!=d.modell)e.modell=$("mo200").value;
+    if(+$("la200").value!=d.lang_max)e.lang=$("la200").value;
+    if(E.alle)e.kapitel=["alle"];else if(E.kapitel.size)e.kapitel=[...E.kapitel];
+    if(Object.keys(E.teilen).length)e.teilen=Object.entries(E.teilen);
+    if(E.zusammen.size)e.zusammen=[...E.zusammen];
+    if(Object.keys(E.typ).length)e.typ=E.typ;
+    if(E.abk.length)e.abk=E.abk;
+    if(E.abk_weg.size)e.abk_weg=[...E.abk_weg];
+    if(trocken)e.trocken=true;
+    if(!trocken&&!Object.keys(e).length&&!confirm("Nichts geändert – 200 nur neu prüfen?"))return;
+    if(!trocken&&e.kapitel&&!confirm(`Neu-Taggen kostet im Live-Modus (Schätzung ${E.alle?d.kosten_alle.toFixed(3):d.kapitel.filter(k=>E.kapitel.has(k.n)).reduce((a,k)=>a+k.kosten,0).toFixed(4)} $). Weiter?`))return;
+    speichern(e).then(ok=>{if(ok&&!trocken){this.E=this.leer();this.K=null;}});
   }
 };
 MON["190"]={

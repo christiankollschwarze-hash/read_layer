@@ -1227,6 +1227,175 @@ MONITOR_SPEICHERN["195"] = _m195_argv
 MONITOR_TEIL["195"] = _m195_teil
 
 
+# ---- 200 Tagging (Steckbrief GATE_MONITORE 200: Knotentext nicht editierbar, nur teilen/zusammen/Typ/Neu-Taggen)
+def _m200_lesen(book_id, name):
+    import json as _j
+    p = os.path.join(config.work_dir(book_id), name)
+    if not os.path.exists(p):
+        return None
+    with open(p, encoding="utf-8") as f:
+        return _j.load(f)
+
+
+def _m200_kap(book_id):
+    """Kapitel aus raw_modernized.txt wie Stage 200 -> [(titel, text)]."""
+    from pipeline import s190_vertrag
+    p = os.path.join(config.book_dir(book_id), "raw_modernized.txt")
+    if not os.path.exists(p):
+        raise FileNotFoundError("raw_modernized.txt fehlt (120 nicht gelaufen)")
+    with open(p, encoding="utf-8") as f:
+        _t, _a, kap = s190_vertrag.marken_lesen(f.read())
+    return [(t, k.strip()) for t, k in kap]
+
+
+def _m200_daten(book_id):
+    from pipeline import s200_tagging as T
+    b = bestellung.lesen(book_id)
+    src = b.quellsprache or config.SOURCE_LANGUAGE
+    pr = _m200_lesen(book_id, "200_pruefung.json") or {}
+    tg = _m200_lesen(book_id, "200_tagging.json") or {}
+    standard = config.MODELS.get("tagger")
+    modell = ((tg.get("meta") or {}).get("tagging") or {}).get("modell") or standard
+    kap = _m200_kap(book_id)
+    pk = {k["kapitel"]: k for k in pr.get("kapitel") or []}
+    liste = []
+    for n, (t, txt) in enumerate(kap, 1):
+        k = pk.get(n) or {}
+        liste.append({"n": n, "titel": t, "zeichen": len(txt), "treue": k.get("treue"), "herkunft": k.get("herkunft"),
+                      "knoten": k.get("knoten"), "abweichungen": k.get("abweichungen") or [],
+                      "kosten": round(T.kosten_schaetzen(len(txt), modell), 4)})
+    werk_abk = sorted(str(a) for a in b.roh.get("abkuerzungen") or [])
+    korr = T.korrekturen_lesen(book_id)
+    return {"sprache": src, "vorhanden": bool(pr), "kapitel": liste,
+            "mehrsatz": pr.get("mehrsatz") or [], "ueberlang": pr.get("ueberlang") or [],
+            "korrekturen": korr, "verworfen": pr.get("korrekturen_verworfen") or [],
+            "abk_werk": werk_abk,
+            "abk_sprache": sorted(set(T.abk_liste(book_id, b, src)) - {a.lower().rstrip(".") for a in werk_abk}),
+            "modell": modell, "standard_modell": standard,
+            "modelle": [m for m in getattr(config, "PREISE", {}) if m.startswith("deepseek")],
+            "typen": [t for t in config.TAG_TYPES if t != "h"], "treue_min": T.TREUE_MIN, "lang_max": T.LANG_MAX,
+            "kosten_alle": round(sum(k["kosten"] for k in liste), 4)}
+
+
+def _m200_segmente(text, marken):
+    """text + markierte Zeichenspannen -> [{t, aus}]; Spannen mit nur Leer-/Satzzeichen dazwischen zusammengefasst."""
+    import re as _re
+    zus = []
+    for a, e in marken:
+        if zus and not _re.search(r"\w", text[zus[-1][1]:a]):
+            zus[-1][1] = e
+        else:
+            zus.append([a, e])
+    out, pos = [], 0
+    for a, e in zus:
+        if a > pos:
+            out.append({"t": text[pos:a], "aus": False})
+        out.append({"t": text[a:e], "aus": True})
+        pos = e
+    if pos < len(text):
+        out.append({"t": text[pos:], "aus": False})
+    return out
+
+
+def _m200_teil(book_id, q):
+    """Kapitel k: Original | Knoten, Wortabweichungen (wie Treue in Stage 200) markiert."""
+    import difflib
+    from pipeline import s200_tagging as T
+    v = q.get("k")
+    k = int((v[0] if isinstance(v, list) else v) or 1)
+    kap = _m200_kap(book_id)
+    if not 1 <= k <= len(kap):
+        raise ValueError(f"Kapitel {k} gibt es nicht")
+    titel, txt = kap[k - 1]
+    src = bestellung.lesen(book_id).quellsprache or config.SOURCE_LANGUAGE
+    tg = _m200_lesen(book_id, "200_tagging.json") or {}
+    pre = f"c{k:0{config.CHAPTER_DIGITS}d}_"
+    knoten = [(tid, e) for tid, e in (tg.get("content") or {}).items() if tid.startswith(pre)]
+
+    def tok(s):
+        s2 = (s or "").replace(config.VERS_MARKE, " " * len(config.VERS_MARKE))
+        for m in T._W.finditer(s2):
+            w = m.group().lower().replace("’", "'").strip("'")
+            if w:
+                yield m.start(), m.end(), w
+    ta = list(tok(txt))
+    tb = [(i, a, e, w) for i, (_tid, n) in enumerate(knoten) if n.get("type") != "h" for a, e, w in tok(n.get(src))]
+    sm = difflib.SequenceMatcher(None, [x[2] for x in ta], [x[3] for x in tb], autojunk=False)
+    aus_a, aus_b = set(), set()
+    for op, i1, i2, j1, j2 in sm.get_opcodes():
+        if op != "equal":
+            aus_a.update(range(i1, i2))
+            aus_b.update(range(j1, j2))
+    mb = {}
+    for j in sorted(aus_b):
+        i, a, e, _w = tb[j]
+        mb.setdefault(i, []).append((a, e))
+    mehr = {m["id"]: m for m in ((_m200_lesen(book_id, "200_pruefung.json") or {}).get("mehrsatz") or [])}
+    return {"k": k, "titel": titel,
+            "original": _m200_segmente(txt, [ta[i][:2] for i in sorted(aus_a)]),
+            "fehlend": len(aus_a), "zusaetzlich": len(aus_b),
+            "knoten": [{"id": tid, "typ": n.get("type"), "text": n.get(src) or "",
+                        "seg": _m200_segmente(n.get(src) or "", mb.get(i, [])), "aus": i in mb,
+                        "mehrsatz": tid in mehr, "vorschlag": (mehr.get(tid) or {}).get("vorschlag")}
+                       for i, (tid, n) in enumerate(knoten)]}
+
+
+def _m200_argv(book_id, e, wer):
+    import re as _re
+    a = [PY, "-m", "pipeline.s200_tagging", book_id, "--wer", wer]
+    ID = _re.compile(r"c\d+_\d+_[a-z]+")
+    n_kap = len(_m200_kap(book_id))
+    if e.get("modell"):
+        if e["modell"] not in getattr(config, "PREISE", {}):
+            raise ValueError(f"Modell {e['modell']!r} unbekannt")
+        a.append(f"--modell={e['modell']}")
+    kap = e.get("kapitel") or []
+    if "alle" in [str(x) for x in kap]:
+        a.append("--kapitel=alle")
+    else:
+        for k in sorted({int(x) for x in kap}):
+            if not 1 <= k <= n_kap:
+                raise ValueError(f"Kapitel {k} gibt es nicht")
+            a.append(f"--kapitel={k}")
+    ids = []
+    for i, stelle in e.get("teilen") or []:
+        if not ID.fullmatch(i) or not str(stelle).strip():
+            raise ValueError(f"Teilen {i!r}: Knoten-ID und Stelle noetig")
+        ids.append(i)
+        a.append(f"--teilen={i}@{stelle}")
+    for i in e.get("zusammen") or []:
+        if not ID.fullmatch(i):
+            raise ValueError(f"Zusammenfuehren {i!r}: Knoten-ID")
+        ids.append(i)
+        a.append(f"--zusammen={i}")
+    for i, t in (e.get("typ") or {}).items():
+        if not ID.fullmatch(i) or t not in config.TAG_TYPES or t == "h":
+            raise ValueError(f"Typ {i!r}={t!r} ungueltig")
+        ids.append(i)
+        a.append(f"--typ={i}={t}")
+    if len(ids) != len(set(ids)):
+        raise ValueError("je Knoten nur eine Korrektur pro Lauf")
+    for art in ("abk", "abk_weg"):
+        for w in e.get(art) or []:
+            w = str(w).strip().rstrip(".")
+            if not w or " " in w:
+                raise ValueError(f"Abkuerzung {w!r}: ein Wort ohne Punkt")
+            a.append(f"--{art.replace('_', '-')}={w}")
+    if e.get("lang") not in (None, ""):
+        n = int(e["lang"])
+        if n < 50:
+            raise ValueError("Grenze ueberlang mindestens 50 Zeichen")
+        a.append(f"--lang={n}")
+    if e.get("trocken"):
+        a.append("--trocken")
+    return a
+
+
+MONITOR_DATEN["200"] = _m200_daten
+MONITOR_SPEICHERN["200"] = _m200_argv
+MONITOR_TEIL["200"] = _m200_teil
+
+
 # ---- Stage-Ergebnis (Monitor-Abschnitt "Ergebnis", CK 04.11.2026: Ergebnis je Stage ansehen)
 ERGEBNIS_EXTRA = {"100": ["book.json", "raw.txt", "@author.json"], "110": ["book.json", "@author.json"], "115": ["book.json"], "120": ["raw_modernized.txt"],
                   "150": ["book.json", "work/ingest_bericht.json", "raw_modernized.txt"], "195": ["book.json"]}
