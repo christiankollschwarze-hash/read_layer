@@ -713,8 +713,8 @@ MON["210"]={
      <div class="feld">
       <span>Profil</span><span>${esc(d.herkunft_profil||"–")} · Modell ${esc(d.modell)} · Quelle ${esc(d.sprache)} → ${esc(Z.join(", ")||"–")} · Text ${d.zeichen.toLocaleString("de-DE")} Zeichen${d.hoerspiel?' · <span class="z mensch">Hörspiel: Figurenliste immer prüfen</span>':""}</span>
       <span>Kosten</span><span>Ist ${ki!=null?ki.toFixed(4)+" $":"–"} · Neu erzeugen ~${d.kosten_neu.toFixed(3)} $</span>
-      <span>Listen</span><span>${Object.keys(d.grenzen).map(k=>`${name[k]} ${d.anzahl[k]}/<input type="number" min="5" max="500" value="${E.grenze[k]??d.grenzen[k]}" style="width:64px" onchange="MON['210'].gr('${k}',this.value)">${d.voll[k]?` <span class="z mensch">voll (${d.voll[k]})</span>`:""}`).join(" · ")}
-       <br><span class="klein">Liste „voll“ = Grenze erreicht, das Modell hat womöglich gekappt. Höhere Grenze erzeugt das Profil neu (kostet). Grenzen gelten je Werk.</span></span></div></div>
+      <span>Listen</span><span>${Object.keys(d.grenzen).map(k=>`${name[k]} ${d.anzahl[k]}/<input type="number" min="5" max="500" value="${E.grenze[k]??d.grenzen[k]}" style="width:64px" onchange="MON['210'].gr('${k}',this.value)">${d.voll[k]?` <span class="z mensch">gekappt (${d.voll[k]})</span>`:""}`).join(" · ")}
+       <br><span class="klein">„gekappt“ = das Modell lieferte mehr als die Grenze. Gekappte Figurenliste hält nur bei bestelltem Hörspiel an, sonst nur Hinweis. Höhere Grenze erzeugt das Profil neu (kostet). Grenzen gelten je Werk.</span></span></div></div>
     <div class="box"><h2>Stil</h2><div class="feld">
       ${["tone","register","setting","notes"].filter(k=>st[k]).map(k=>`<span>${k}</span><span class="klein">${esc(st[k])}</span>`).join("")}
       <span>voice_note${d.voice_note_fest?' <span class="z frei">fest</span>':""}</span><span><textarea id="vn210" style="width:100%;min-height:54px" oninput="MON['210'].E.voice=this.value;MON['210'].zf()">${esc(E.voice??st.voice_note??"")}</textarea>

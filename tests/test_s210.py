@@ -155,10 +155,23 @@ class T210(unittest.TestCase):
             with self.assertRaises(ValueError):
                 W._m210_argv("w", e, "CK")
 
-    def test_kappung_mensch(self):
+    def test_kappung_regel(self):
+        # Grenze genau erreicht = nicht gekappt; Glossar gekappt = Hinweis; Figuren ohne Hoerspiel = Hinweis
         g = self.lauf(grenze={"glossary": "1"})
-        self.assertEqual(g.ergebnis["ergebnis"], "mensch")
-        self.assertIn("kappung", [p["name"] for p in g.fehler()])
+        self.assertEqual(g.ergebnis["ergebnis"], "auto", g.bericht())
+        self.assertEqual(g.pruef["voll"], {})
+        self.antworten = [profil(glossary={"door": {"de": "Tür"}, "road": {"de": "Weg"}})]
+        g = self.lauf(grenze={"glossary": "1", "characters": "1"}, neu=True)
+        self.assertEqual(g.ergebnis["ergebnis"], "auto", g.bericht())
+        self.assertEqual(g.pruef["voll"], {"glossary": 2, "characters": 2})
+        self.assertEqual(len(self.aus()["meta"]["profile"]["characters"]), 1)
+
+    def test_kappung_figuren_hoerspiel_mensch(self):
+        self.werk("w", produkte=[{"sprache": "en", "inhalt": "hoerspiel", "stufe": "premium", "kanaele": ["taella"]},
+                                 {"sprache": "de", "inhalt": "text", "kanaele": ["taella"]}])
+        g = self.lauf(grenze={"characters": "1"})
+        p = next(p for p in g.pruefungen if p["name"] == "kappung")
+        self.assertEqual((p["ok"], p["bei_fehler"]), (False, "mensch"))
 
     def test_hoerspiel_immer_mensch(self):
         self.werk("w", produkte=[{"sprache": "en", "inhalt": "hoerspiel", "stufe": "premium", "kanaele": ["taella"]},

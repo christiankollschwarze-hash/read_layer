@@ -10,7 +10,8 @@ Eingang:      work/200_tagging.json; book.json (zielsprachen aus Bestellung, rei
 Ausgabe:      work/210_profil.json (Format unveraendert fuer 300 ff.), work/210_pruefung.json (Figuren-Treffer,
               Kappung, Namensvarianten), reihen/<reihe>/reihe_profil.json (nach Freigabe: Teil 1 ganz, ab Teil 2 Neuzugaenge).
 Gate:         5 Bereiche vorhanden, Glossar je bestellter Zielsprache (Stopp); Antwort nur gerettet -> 1x automatisch neu,
-              dann Mensch; Figur < 2x im Text, Liste voll (Kappung), Werk > Grenzwert 195 (nicht abgelehnt) -> Mensch;
+              dann Mensch; Figur < 2x im Text, Werk > Grenzwert 195 (nicht abgelehnt) -> Mensch; Kappung (Modell liefert
+              mehr als Grenze, angefragt Grenze + 1): Figurenliste -> Mensch nur bei Hoerspiel, sonst Hinweis; uebrige Listen Hinweis;
               Teil >= 2: Namensvariante (Aehnlichkeit >= 0,8 zu bekannter Figur) -> Mensch; Hoerspiel bestellt -> immer Mensch;
               Figuren ohne Aussprache -> Hinweis (an 400); Mock im Live-Lauf -> Stopp.
               Mensch-Freigabe bleibt bei unveraenderter Ausgabe (ausgabe_hash) gueltig.
@@ -122,9 +123,9 @@ Rules:
 - Only include entries that genuinely occur in the text. Empty categories stay as {{}}.
 - Character keys must be spelled exactly as they appear in the text (so they can be found again).
 - Give an IPA pronunciation for every character.
-- HARD LIMITS (the whole JSON must stay short): characters max {grenzen['characters']} (named, recurring figures only),
-  untranslated max {grenzen['untranslated']}, glossary max {grenzen['glossary']} (only terms whose translation must stay
-  consistent), idioms max {grenzen['idioms']}.
+- HARD LIMITS (the whole JSON must stay short): characters max {grenzen['characters'] + 1} (named, recurring figures only),
+  untranslated max {grenzen['untranslated'] + 1}, glossary max {grenzen['glossary'] + 1} (only terms whose translation must stay
+  consistent), idioms max {grenzen['idioms'] + 1}.
   Each key appears ONCE. Never repeat an entry, never list ordinary words. Stop when the limits are reached.
 - For idioms, prefer an idiomatic equivalent; if none exists, give a neutral paraphrase.
 - Decide per character whether the name is translated or kept; reflect that in the entry.
@@ -207,11 +208,12 @@ def build_profile(data: dict) -> dict:
 
 
 def _kappen(prof: dict, grenzen) -> tuple:
-    """Obergrenzen durchsetzen -> (profil, {bereich: anzahl vor Kappung} fuer volle Listen)."""
+    """Obergrenzen durchsetzen -> (profil, {bereich: anzahl vor Kappung} fuer gekappte Listen).
+    Das Modell wird um Grenze + 1 gebeten (09.11.2026, CK): erst mehr als die Grenze heisst wirklich gekappt."""
     voll = {}
     for k, n in grenzen.items():
         v = prof.get(k)
-        if isinstance(v, dict) and len(v) >= n:
+        if isinstance(v, dict) and len(v) > n:
             voll[k] = len(v)
             prof[k] = dict(list(v.items())[:n])
     return prof, voll
@@ -502,8 +504,20 @@ def run(werk, wer=None, modell=None, neu=False, glossar=None, glossar_weg=None, 
     selten = {n: t for n, t in treffer.items() if t < FIGUR_MIN}
     g.pruefe("figuren_im_text", not selten, wert=len(selten), schwelle=f">= {FIGUR_MIN}x", bei_fehler="mensch",
              text=f"Figuren im Text >= {FIGUR_MIN}x" + (f"; seltener: {list(selten.items())[:8]}" if selten else ""))
-    g.pruefe("kappung", not voll, wert=voll or None, schwelle="keine Liste voll", bei_fehler="mensch",
-             text="Listen unter Grenze" if not voll else f"Liste voll (gekappt): {voll} -> --grenze")
+    # Kappung (CK 09.11.2026): Figurenliste steuert das Casting -> Mensch nur bei bestelltem Hoerspiel;
+    # Glossar/Unuebersetztes/Redewendungen nur Hinweis (Luecken fallen in 310/400 auf)
+    hoerspiel = bool(b.produkte_fuer(inhalt="hoerspiel"))
+    fig_voll = {k: v for k, v in voll.items() if k == "characters"}
+    rest_voll = {k: v for k, v in voll.items() if k != "characters"}
+    if hoerspiel:
+        g.pruefe("kappung", not fig_voll, wert=fig_voll or None, schwelle="Figurenliste nicht gekappt", bei_fehler="mensch",
+                 text="Figurenliste unter Grenze" if not fig_voll else
+                 f"Figurenliste gekappt ({fig_voll['characters']} > Grenze), Hoerspiel bestellt -> Grenze erhoehen")
+    else:
+        g.hinweis("kappung", not fig_voll, wert=fig_voll or None,
+                  text=f"Figurenliste gekappt: {fig_voll}" if fig_voll else "Figurenliste unter Grenze")
+    g.hinweis("kappung_listen", not rest_voll, wert=rest_voll or None,
+              text=f"Listen gekappt: {rest_voll} (Grenze im Monitor 210)" if rest_voll else "Listen unter Grenze")
     ohne_ausspr = [n for n, v in figuren.items() if not (isinstance(v, dict) and (v.get("pronunciation") or "").strip())]
     g.hinweis("aussprache", not ohne_ausspr, wert=len(ohne_ausspr),
               text=f"Figuren ohne Aussprache: {len(ohne_ausspr)}" + (f" {ohne_ausspr[:5]}" if ohne_ausspr else "") + " (an 400)")
@@ -521,7 +535,6 @@ def run(werk, wer=None, modell=None, neu=False, glossar=None, glossar_weg=None, 
                   if varianten else "keine"))
         g.hinweis("neue_figuren", True, wert=len(neue_fig), text=f"neue Figuren ggue. Reihe: {neue_fig[:8]}")
     g.mock(1 if mock.ist_obj(roh) else 0, ruecksprung="210")
-    hoerspiel = bool(b.produkte_fuer(inhalt="hoerspiel"))
     g.metrik("figuren", len(figuren))
     for k in BEREICHE[1:]:
         g.metrik(k, len(prof.get(k) or {}))
