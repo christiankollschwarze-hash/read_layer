@@ -1396,6 +1396,113 @@ MONITOR_SPEICHERN["200"] = _m200_argv
 MONITOR_TEIL["200"] = _m200_teil
 
 
+# ---- 210 Profil (Steckbrief GATE_MONITORE 210)
+def _m210_text(book_id):
+    from pipeline import s210_profil as P
+    tg = _m200_lesen(book_id, "200_tagging.json")
+    if not tg:
+        raise FileNotFoundError("200_tagging.json fehlt (200 nicht gelaufen)")
+    src = bestellung.lesen(book_id).quellsprache or config.SOURCE_LANGUAGE
+    return P._collect_source_text(tg, src)
+
+
+def _m210_daten(book_id):
+    from pipeline import s210_profil as P
+    b = bestellung.lesen(book_id)
+    src = b.quellsprache or config.SOURCE_LANGUAGE
+    ziele = [z for z in (b.zielsprachen or []) if z != src]
+    d = _m200_lesen(book_id, "210_profil.json") or {}
+    prof = (d.get("meta") or {}).get("profile") or {}
+    info = (d.get("meta") or {}).get("profil_info") or {}
+    pr = _m200_lesen(book_id, "210_pruefung.json") or {}
+    roh = b.roh
+    text = _m210_text(book_id)
+    reihe, teil = roh.get("reihe"), int(roh.get("teil") or 0)
+    rp = (P.reihe_lesen(reihe) or {}) if reihe else {}
+    grenzen = {**P.GRENZEN, **{k: int(v) for k, v in (roh.get("profil_grenzen") or {}).items()}}
+    ff, gf = roh.get("figuren_fest") or {}, roh.get("glossar_fest") or {}
+
+    def herkunft(name, fest, bereich):
+        return "fest" if fest.get(name) else "reihe" if name in (rp.get(bereich) or {}) and teil >= 2 else "llm"
+    figuren = [{"name": n, "werte": v if isinstance(v, dict) else {}, "treffer": P.figur_treffer(n, text),
+                "herkunft": herkunft(n, ff, "characters")} for n, v in (prof.get("characters") or {}).items()]
+    glossar = [{"begriff": k, "werte": v if isinstance(v, dict) else {}, "herkunft": herkunft(k, gf, "glossary"),
+                "luecke": not isinstance(v, dict) or any(not (v.get(z) or "").strip() for z in ziele)}
+               for k, v in (prof.get("glossary") or {}).items()]
+    modell = info.get("modell") or config.MODELS.get("profiler")
+    return {"sprache": src, "ziele": ziele, "vorhanden": bool(prof), "herkunft_profil": info.get("herkunft"),
+            "modell": modell, "standard_modell": config.MODELS.get("profiler"),
+            "modelle": [m for m in getattr(config, "PREISE", {}) if m.startswith("deepseek")],
+            "zeichen": len(text), "kosten_neu": round(P.kosten_schaetzen(len(text), modell), 3),
+            "style": prof.get("style") or {}, "voice_note_fest": roh.get("voice_note_fest"),
+            "figuren": figuren, "figur_min": P.FIGUR_MIN, "glossar": glossar,
+            "untranslated": prof.get("untranslated") or {}, "idioms": prof.get("idioms") or {},
+            "grenzen": grenzen, "standard_grenzen": P.GRENZEN,
+            "anzahl": {k: len(prof.get(k) or {}) for k in P.GRENZEN}, "voll": pr.get("voll") or {},
+            "fest_entfernt": {"figuren": [k for k, v in ff.items() if v is None],
+                              "glossar": [k for k, v in gf.items() if v is None]},
+            "reihe": reihe, "teil": teil, "reihe_erbe": roh.get("reihe_erbe", True) is not False,
+            "varianten": pr.get("varianten") or [], "neue_figuren": pr.get("neue_figuren") or [],
+            "hoerspiel": bool(b.produkte_fuer(inhalt="hoerspiel"))}
+
+
+def _m210_teil(book_id, q):
+    from pipeline import s210_profil as P
+    v = q.get("name")
+    name = (v[0] if isinstance(v, list) else v) or ""
+    if not name.strip():
+        raise ValueError("Name fehlt")
+    text = _m210_text(book_id)
+    return {"name": name, "treffer": P.figur_treffer(name, text), "stellen": P.fundstellen(name, text, n=12)}
+
+
+def _m210_argv(book_id, e, wer):
+    from pipeline import s210_profil as P
+    a = [PY, "-m", "pipeline.s210_profil", book_id, "--wer", wer]
+
+    def sauber(x, was):
+        x = " ".join(str(x or "").split())
+        if not x:
+            raise ValueError(f"{was} leer")
+        return x
+    if e.get("modell"):
+        if e["modell"] not in getattr(config, "PREISE", {}):
+            raise ValueError(f"Modell {e['modell']!r} unbekannt")
+        a.append(f"--modell={e['modell']}")
+    for art, opt in (("figur", "--figur"), ("glossar", "--glossar")):
+        for name, felder in (e.get(art) or {}).items():
+            name = sauber(name, "Name")
+            if ":" in name:
+                raise ValueError(f"{name!r}: Doppelpunkt im Namen nicht moeglich")
+            for f, w in (felder or {}).items():
+                if not __import__("re").fullmatch(r"[A-Za-z_][\w-]*", f):
+                    raise ValueError(f"Feld {f!r} ungueltig")
+                a.append(f"{opt}={name}:{f}={sauber(w, name + ' ' + f)}")
+    for art, opt in (("figur_weg", "--figur-weg"), ("glossar_weg", "--glossar-weg")):
+        for name in e.get(art) or []:
+            a.append(f"{opt}={sauber(name, 'Name')}")
+    if e.get("voice_note") is not None:
+        a.append(f"--voice-note={' '.join(str(e['voice_note']).split())}")
+    for k, n in (e.get("grenze") or {}).items():
+        if k not in P.GRENZEN or not 5 <= int(n) <= 500:
+            raise ValueError(f"Grenze {k}={n}: Bereich {list(P.GRENZEN)}, 5–500")
+        a.append(f"--grenze={k}={int(n)}")
+    if e.get("reihe") == "mit":
+        a.append("--mit-reihe")
+    elif e.get("reihe") == "ohne":
+        a.append("--ohne-reihe")
+    if e.get("neu"):
+        a.append("--neu")
+    if e.get("trocken"):
+        a.append("--trocken")
+    return a
+
+
+MONITOR_DATEN["210"] = _m210_daten
+MONITOR_SPEICHERN["210"] = _m210_argv
+MONITOR_TEIL["210"] = _m210_teil
+
+
 # ---- Stage-Ergebnis (Monitor-Abschnitt "Ergebnis", CK 04.11.2026: Ergebnis je Stage ansehen)
 ERGEBNIS_EXTRA = {"100": ["book.json", "raw.txt", "@author.json"], "110": ["book.json", "@author.json"], "115": ["book.json"], "120": ["raw_modernized.txt"],
                   "150": ["book.json", "work/ingest_bericht.json", "raw_modernized.txt"], "195": ["book.json"]}

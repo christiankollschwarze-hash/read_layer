@@ -308,13 +308,44 @@ def _varianten(name):
     return list(dict.fromkeys(v for v in out if v))
 
 
+_APO = str.maketrans({"\u2019": "'", "\u2018": "'", "\u02bc": "'", "\u00b4": "'", "`": "'"})
+
+
+def _apo(s):
+    """Apostroph-Formen vereinheitlichen (09.11.2026: Profil "Fu Ch'ai" vs. Text "Fu Ch\u2019ai" -> 0 Treffer)."""
+    return (s or "").translate(_APO)
+
+
+def _muster(v):
+    return re.compile(r"(?<!\w)" + re.escape(_apo(v)) + r"(?!\w)", re.I if v.isupper() else 0)
+
+
 def figur_treffer(name, text):
-    """Vorkommen im Text (Varianten; Grossschreibung egal bei Rollennamen in Versalien)."""
-    best = 0
-    for v in _varianten(name):
-        flags = re.I if v.isupper() else 0
-        best = max(best, len(re.findall(r"(?<!\w)" + re.escape(v) + r"(?!\w)", text, flags)))
-    return best
+    """Vorkommen im Text (Varianten; Grossschreibung egal bei Rollennamen in Versalien; Apostroph-Formen egal)."""
+    t = _apo(text)
+    return max((len(_muster(v).findall(t)) for v in _varianten(name)), default=0)
+
+
+def fundstellen(name, text, n=10, breite=90):
+    """Textstellen einer Figur (Variante mit den meisten Treffern) -> [{vor, wort, nach}] (Monitor 210)."""
+    t = _apo(text)
+    best = max(_varianten(name), key=lambda v: len(_muster(v).findall(t)), default=name)
+    out = []
+    for m in _muster(best).finditer(t):
+        out.append({"vor": text[max(0, m.start() - breite):m.start()], "wort": text[m.start():m.end()],
+                    "nach": text[m.end():m.end() + breite]})
+        if len(out) >= n:
+            break
+    return out
+
+
+AUS_TOKEN = 9000   # Schaetzung Antwort-Token Profil
+
+
+def kosten_schaetzen(zeichen, modell=None):
+    """Schaetzung Neu-Erzeugen in $ (Peak-Preis, ohne Cache; Token ~ Zeichen/4)."""
+    p = getattr(config, "PREISE", {}).get(modell or config.MODELS.get("profiler")) or {}
+    return ((zeichen + 6000) / 4 * p.get("in", 0) + AUS_TOKEN * p.get("out", 0)) / 1e6
 
 
 def _teilung_abgelehnt(werk):
@@ -331,9 +362,9 @@ def _teilung_abgelehnt(werk):
 # ============================================================
 
 def _parse_kv(s):
-    """'de=Peter,pronunciation=x' -> dict"""
+    """'de=Peter,pronunciation=x' -> dict (Komma im Wert erlaubt, getrennt wird nur vor 'feld=')."""
     out = {}
-    for teil in s.split(","):
+    for teil in re.split(r",(?=\s*[A-Za-z_][\w-]*=)", s):
         if "=" not in teil:
             raise ValueError(f"Feld ohne '=': {teil!r}")
         k, v = teil.split("=", 1)
@@ -342,8 +373,13 @@ def _parse_kv(s):
 
 
 def regler_schreiben(werk, b, glossar=None, glossar_weg=None, figur=None, figur_weg=None, voice_note=None,
-                     reihe_erbe=None):
+                     reihe_erbe=None, grenze=None):
     felder = {}
+    if grenze:                  # Listengrenzen je Werk (CK 03.11.2026), bleiben fuer Folgelaeufe gesetzt
+        falsch = [k for k in grenze if k not in GRENZEN]
+        if falsch:
+            raise ValueError(f"--grenze {falsch}: erlaubt {list(GRENZEN)}")
+        felder["profil_grenzen"] = dict(b.roh.get("profil_grenzen") or {}, **{k: int(v) for k, v in grenze.items()})
     if glossar or glossar_weg:
         g = dict(b.roh.get("glossar_fest") or {})
         for x in glossar or []:
@@ -375,11 +411,14 @@ def run(werk, wer=None, modell=None, neu=False, glossar=None, glossar_weg=None, 
     g = gate.Gate(werk, STAGE, ruecksprung="210", wer=wer)
     d = status.laden(werk)
     if not trocken:
-        regler_schreiben(werk, bestellung.lesen(werk), glossar, glossar_weg, figur, figur_weg, voice_note, reihe_erbe)
+        regler_schreiben(werk, bestellung.lesen(werk), glossar, glossar_weg, figur, figur_weg, voice_note, reihe_erbe,
+                         grenze)
     b = bestellung.lesen(werk)
     src = b.quellsprache or config.SOURCE_LANGUAGE
     ziele = [z for z in (b.zielsprachen or []) if z != src]
-    grenzen = dict(GRENZEN, **{k: int(v) for k, v in (grenze or {}).items()})
+    grenzen = {**GRENZEN, **{k: int(v) for k, v in (b.roh.get("profil_grenzen") or {}).items()},
+               **{k: int(v) for k, v in (grenze or {}).items()}}
+    g.metrik("grenzen", grenzen)
     g.metrik("zielsprachen", ziele)
 
     ip = config.work_path(werk, "200_tagging")

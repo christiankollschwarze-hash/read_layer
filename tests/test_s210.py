@@ -119,6 +119,42 @@ class T210(unittest.TestCase):
         self.assertEqual(len(self.aufrufe), 1)
         self.assertEqual(g.ergebnis["ergebnis"], "auto")
 
+    def test_apostroph_und_fundstellen(self):
+        self.werk("w", saetze=["Fu Ch\u2019ai came.", "Then Fu Ch\u2019ai left."])
+        self.assertEqual(P.figur_treffer("Fu Ch'ai", "Fu Ch\u2019ai came. Then Fu Ch\u2019ai left."), 2)
+        st = P.fundstellen("Fu Ch'ai", "Then Fu Ch\u2019ai left.")
+        self.assertEqual(st, [{"vor": "Then ", "wort": "Fu Ch\u2019ai", "nach": " left."}])
+
+    def test_parse_kv_komma_im_wert(self):
+        self.assertEqual(P._parse_kv("de=Wu Qi, der Feldherr,pronunciation=x"),
+                         {"de": "Wu Qi, der Feldherr", "pronunciation": "x"})
+
+    def test_grenze_je_werk_bleibt(self):
+        self.lauf(grenze={"glossary": "1"})
+        with open(os.path.join(self.dirs["w"], "book.json"), encoding="utf-8") as f:
+            self.assertEqual(json.load(f)["profil_grenzen"], {"glossary": 1})
+        g = self.lauf()                                   # ohne Regler: Grenze aus book.json
+        self.assertEqual(g.metriken["grenzen"]["glossary"], 1)
+        with self.assertRaises(ValueError):
+            self.lauf(grenze={"foo": "3"})
+
+    def test_monitor_210(self):
+        from cockpit import werk_api as W
+        self.lauf(figur=["Margaret:de=Grete"])
+        d = W._m210_daten("w")
+        self.assertEqual((d["ziele"], d["anzahl"]["characters"], d["vorhanden"]), (["de"], 2, True))
+        f = {x["name"]: x for x in d["figuren"]}
+        self.assertEqual((f["Margaret"]["herkunft"], f["Mr. Holloway"]["herkunft"], f["Margaret"]["treffer"]), ("fest", "llm", 2))
+        self.assertGreater(d["kosten_neu"], 0)
+        self.assertEqual(W._m210_teil("w", {"name": ["Margaret"]})["treffer"], 2)
+        a = W._m210_argv("w", {"figur": {"Margaret": {"de": "Grete, die Kluge"}}, "glossar_weg": ["door"],
+                               "grenze": {"idioms": 50}, "voice_note": "", "neu": True}, "CK")
+        self.assertEqual(a[6:], ["--figur=Margaret:de=Grete, die Kluge", "--glossar-weg=door", "--voice-note=",
+                                 "--grenze=idioms=50", "--neu"])
+        for e in ({"grenze": {"idioms": 1}}, {"figur": {"A:B": {"de": "x"}}}, {"figur": {"A": {"de": " "}}}, {"modell": "x"}):
+            with self.assertRaises(ValueError):
+                W._m210_argv("w", e, "CK")
+
     def test_kappung_mensch(self):
         g = self.lauf(grenze={"glossary": "1"})
         self.assertEqual(g.ergebnis["ergebnis"], "mensch")
