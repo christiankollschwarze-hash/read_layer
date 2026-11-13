@@ -27,6 +27,13 @@ Regler:       --modell, --batch, --kapitel N|alle, --satz ID (neu alignen), --an
               --inhalt-min 0.95, --unresolved-max 0.03, --verschoben-max 0.01, --doppelt-max 0.01, --lang,
               --uebernehmen (vorhandene 340_wortalignment.json + 345_pruefaligner.json als Rohergebnis; nur Saetze mit
               unveraendertem Zielsatz und gueltigen Spans, Rest wird neu aligned), --trocken (Probe ohne LLM/Schreiben).
+              Regler --pruefaligner/--kette/--ankerverlust/--inhalt-min/--unresolved-max/--verschoben-max/--doppelt-max
+              gelten je Werk (book.json align_*), Monitor 340 (13.11.2026). --lang wirkt nur auf Regler/Neulauf dieser
+              Sprache; andere Sprachen laufen ueber den Checkpoint unveraendert mit. Pruefaligner nicht erreichbar ->
+              1x automatisch nach PRUEFALIGNER_WARTE s erneut (Steckbrief 340, CK 03.11.), danach Mensch.
+              Tempo/Abbruch (13.11.2026): Kapitel parallel (ALIGN_PARALLEL, Standard 5), Checkpoint je Kapitel
+              sofort nach dem Alignment -> Abbruch kostet keinen zweiten Lauf; Nachlaeufe ebenfalls parallel.
+              340_pruefung.json: zusaetzlich Befund "ohne_anker" (Inhaltswort ohne Anker), Pruefanker "p", Ketten.
 Aufruf:       python -m pipeline.s340_wortalignment <werk> [Regler] [--wer CK]
 Exit: 0 auto, 2 Stopp, 3 Mensch, 1 Fehler.
 
@@ -39,6 +46,9 @@ import json
 import os
 import re
 import sys
+import threading
+import time
+from concurrent.futures import ThreadPoolExecutor
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import config
@@ -54,6 +64,19 @@ INHALT_MIN = 0.95
 UNRESOLVED_MAX = 0.03
 VERSCHOBEN_MAX = 0.01
 DOPPELT_MAX = 0.01
+PARALLEL = 5                 # gleichzeitige DeepSeek-Aufrufe (Kapitel bzw. Nachlauf-Gruppen), config.ALIGN_PARALLEL
+PRUEFALIGNER_WARTE = 60      # s bis zur automatischen Wiederholung des Pruefaligners
+KOSTEN_EIN = 1.6             # Eingabe-Token je (Quelle+Ziel)-Token: nummerierte Woerter + Zielsatz + Prompt
+KOSTEN_AUS_WORT = 7          # Ausgabe-Token je Quellwort (Index + Fragment als JSON)
+KOSTEN_NACH = 0.15           # Anteil Nachlaeufe (unresolved/verschoben/doppelt)
+PA_JE_SATZ = 0.00004         # Pruefaligner Modal-T4 je Satz (Live-Probe 02.11.: 0,0061 $ / 150 Saetze)
+
+
+def kosten_schaetzen(zeichen, woerter, saetze=0, modell=None, pruefaligner=True):
+    """Schaetzung Neu-Alignen in $ (Peak-Preis, ohne Cache): zeichen = Quelle+Ziel, woerter = Quellwoerter."""
+    p = getattr(config, "PREISE", {}).get(modell or config.MODELS.get("aligner")) or {}
+    d = (zeichen / 4 * KOSTEN_EIN * p.get("in", 0) + woerter * KOSTEN_AUS_WORT * p.get("out", 0)) / 1e6
+    return d * (1 + KOSTEN_NACH) + (saetze * PA_JE_SATZ if pruefaligner else 0)
 SPRACHNAME = {"en": "English", "de": "German", "es": "Spanish", "fr": "French", "it": "Italian"}
 
 # Funktionswoerter je Ausgangssprache (Inhaltswort = Buchstabenwort, nicht in der Liste)
@@ -626,6 +649,20 @@ def _rolle(modell, fn):
         config.MODELS["aligner"] = alt
 
 
+def parallel(fn, aufgaben, n=None):
+    """fn(aufgabe) fuer alle Aufgaben mit n Threads; Ergebnisse in Aufgabenreihenfolge, Fehler werden weitergereicht."""
+    n = max(1, int(n or getattr(config, "ALIGN_PARALLEL", PARALLEL)))
+    if n == 1 or len(aufgaben) <= 1:
+        return [fn(a) for a in aufgaben]
+    with ThreadPoolExecutor(max_workers=min(n, len(aufgaben))) as ex:
+        return list(ex.map(fn, aufgaben))
+
+
+def _mit_modell(modell, fn):
+    """Modell fuer einen ganzen Parallelblock setzen (nicht je Aufruf: Threads teilen config.MODELS)."""
+    return _rolle(modell, fn)
+
+
 def llm(werk, items, src, lg, modell=None, hinweise=None):
     """items [(id, quelle, ziel)] -> {id: {index: fragment|None}} (nur Saetze mit Antwort)."""
     if not items:
@@ -775,22 +812,30 @@ def run(werk, wer=None, modell=None, batch=None, kapitel=None, saetze_neu=None, 
         kette=None, ankerverlust=None, inhalt_min=None, unresolved_max=None, verschoben_max=None, doppelt_max=None,
         nur_lang=None, uebernehmen=False, trocken=False):
     wer = wer or "pipeline"
+    werte = {"pruefaligner": pruefaligner, "kette": kette, "ankerverlust": ankerverlust, "inhalt_min": inhalt_min,
+             "unresolved_max": unresolved_max, "verschoben_max": verschoben_max, "doppelt_max": doppelt_max}
+    if not trocken:                              # Regler je Werk (Monitor 340)
+        fe = {f"align_{k}": v for k, v in werte.items() if v is not None}
+        if fe:
+            bestellung.feld_setzen(werk, **fe)
     g = gate.Gate(werk, STAGE, ruecksprung="340", wer=wer)
     b = bestellung.lesen(werk)
     src = b.quellsprache or config.SOURCE_LANGUAGE
     ziele = [lg for lg in (b.zielsprachen or []) if lg != src and b.hat(sprache=lg, kanal="taella")]
-    if nur_lang:
-        ziele = [lg for lg in ziele if lg == nur_lang]
+    if nur_lang and nur_lang not in ziele:
+        raise ValueError(f"--lang {nur_lang}: keine bestellte TAELLA-Zielsprache {ziele}")
     roh = b.roh or {}
     modell_eff = modell or config.MODELS.get("aligner")
     batch = int(batch or getattr(config, "ALIGN_BATCH_SIZE", BATCH))
-    pa = pruefaligner or roh.get("align_pruefaligner") or "an"
-    kette = int(kette or KETTE)
-    ankerverlust = float(ankerverlust if ankerverlust is not None else ANKERVERLUST)
-    inhalt_min = float(inhalt_min if inhalt_min is not None else INHALT_MIN)
-    unresolved_max = float(unresolved_max if unresolved_max is not None else UNRESOLVED_MAX)
-    verschoben_max = float(verschoben_max if verschoben_max is not None else VERSCHOBEN_MAX)
-    doppelt_max = float(doppelt_max if doppelt_max is not None else DOPPELT_MAX)
+    w_ = lambda k, std: werte[k] if werte[k] is not None else (roh.get(f"align_{k}") if roh.get(f"align_{k}")
+                                                                is not None else std)
+    pa = w_("pruefaligner", "an")
+    kette = int(w_("kette", KETTE))
+    ankerverlust = float(w_("ankerverlust", ANKERVERLUST))
+    inhalt_min = float(w_("inhalt_min", INHALT_MIN))
+    unresolved_max = float(w_("unresolved_max", UNRESOLVED_MAX))
+    verschoben_max = float(w_("verschoben_max", VERSCHOBEN_MAX))
+    doppelt_max = float(w_("doppelt_max", DOPPELT_MAX))
     for k, v in (("zielsprachen", ziele), ("modell", modell_eff), ("batch", batch), ("pruefaligner", pa),
                  ("kette", kette), ("ankerverlust", ankerverlust)):
         g.metrik(k, v)
@@ -835,24 +880,32 @@ def run(werk, wer=None, modell=None, batch=None, kapitel=None, saetze_neu=None, 
     neu_ids = set(saetze_neu or [])
     ck = manifest.Checkpoint(werk, STAGE)
     zz = {"llm": 0, "neu_aligned": 0, "nachgefordert": 0, "unresolved_repariert": 0, "verschoben_versucht": 0,
-          "verschoben_uebernommen": 0, "pruefaligner_saetze": 0, "manuell": 0, "altbestand": 0}
+          "verschoben_uebernommen": 0, "pruefaligner_saetze": 0, "pruefaligner_wiederholt": 0, "manuell": 0, "altbestand": 0}
     pruef, je_sprache, ck_soll = {}, {}, []
     n_mock = 0
     erste = ziele[0]
+    zl = threading.Lock()
+
+    def _zaehl(k, n=1):
+        with zl:
+            zz[k] += n
 
     for lg in ziele:
         kap = saetze(data, src, lg)
+        mit_lg = not nur_lang or lg == nur_lang          # --lang: Neulauf nur dieser Sprache
+        neu_lg = neu_ids if mit_lg else set()
         alt = _alt340(werk, src, lg) if (uebernehmen or trocken) else None
         if trocken and alt is None:
             g.pflicht(f"bestand_{lg}", False, text=f"{lg}: 340_wortalignment.json fehlt (Probe ohne LLM)")
             continue
         kontext = manifest.hash_obj([PROMPT_V, src, lg, modell_eff])
         res_lg = {}                      # cid -> {tid: eintrag}
+        arbeit = []                      # (cid, res, offen)
         for cid, liste in kap.items():
             if not liste:
                 continue
             ck_soll.append((cid, lg))
-            frisch = neu_k is None or cid in neu_k
+            frisch = mit_lg and (neu_k is None or cid in neu_k)
             altck = {} if (trocken or frisch) else ((ck.lesen(cid, lg, kontext) or {}).get("saetze") or {})
             res, offen = {}, []
             for t, q, zt in liste:
@@ -860,48 +913,57 @@ def run(werk, wer=None, modell=None, batch=None, kapitel=None, saetze_neu=None, 
                     n_mock += 1
                 h = satz_hash(q, zt)
                 e = altck.get(t)
-                if e and e.get("h") == h and t not in neu_ids:
+                if e and e.get("h") == h and t not in neu_lg:
                     res[t] = e
                     continue
                 a = (alt or {}).get(t)
-                if a and a[0] == zt and t not in neu_ids and \
+                if a and a[0] == zt and t not in neu_lg and \
                         _ausgabe_pruefen(normieren(json.loads(json.dumps(a[1])), q, zt, src, lg), q, zt, src, lg) == (True, 0):
                     res[t] = {"h": h, "a": a[1], "p": a[2], "alt": True, "v": 1, "vv": 1}
                     zz["altbestand"] += 1
                     continue
                 offen.append((t, q, zt))
-            if offen and not trocken:
-                got = {}
-                for i in range(0, len(offen), batch):
-                    got.update(llm(werk, offen[i:i + batch], src, lg, modell_eff))
-                    zz["llm"] += 1
-                zz["neu_aligned"] += len(offen)
-                for t, q, zt in offen:
-                    res[t] = {"h": satz_hash(q, zt), "v": 0, "vv": 0,
-                              "a": resolve_alignment(q, zt, got[t], src, lg) if t in got else None}
-                # fehlt / unresolved -> 1x neu (kleine Gruppen)
-                nach = [(t, q, zt) for t, q, zt in offen if res[t]["a"] is None or _satz_unresolved(res[t]["a"])]
-                for i in range(0, len(nach), BATCH_NACH):
-                    teil = nach[i:i + BATCH_NACH]
-                    hw = [f"CHECK for ID {json.dumps(t)}: a previous attempt left words unmatched or gave no answer. "
-                          f"Copy each counterpart verbatim from the given sentence, or answer null." for t, _, _ in teil]
-                    got2 = llm(werk, teil, src, lg, modell_eff, hinweise=hw)
-                    zz["llm"] += 1
-                    zz["nachgefordert"] += len(teil)
-                    for t, q, zt in teil:
-                        e = res[t]
-                        e["v"] = 1
-                        if t not in got2:
-                            continue
-                        neu = resolve_alignment(q, zt, got2[t], src, lg)
-                        if e["a"] is None:
-                            e["a"] = neu
-                            zz["unresolved_repariert"] += 1
-                        elif _unaufgeloest(neu) < _unaufgeloest(e["a"]) and \
-                                anker(neu, lg) >= anker(e["a"], lg) - max(1, int(ankerverlust * anker(e["a"], lg))):
-                            e["a"] = neu
-                            zz["unresolved_repariert"] += 1
             res_lg[cid] = res
+            if offen and not trocken:
+                arbeit.append((cid, res, offen))
+
+        def _kapitel(job):
+            """Ein Kapitel alignen (+ 1x Nachforderung), danach sofort Checkpoint (Abbruch kostet nichts doppelt)."""
+            cid, res, offen = job
+            got = {}
+            for i in range(0, len(offen), batch):
+                got.update(llm(werk, offen[i:i + batch], src, lg, None))
+                _zaehl("llm")
+            _zaehl("neu_aligned", len(offen))
+            for t, q, zt in offen:
+                res[t] = {"h": satz_hash(q, zt), "v": 0, "vv": 0,
+                          "a": resolve_alignment(q, zt, got[t], src, lg) if t in got else None}
+            # fehlt / unresolved -> 1x neu (kleine Gruppen)
+            nach = [(t, q, zt) for t, q, zt in offen if res[t]["a"] is None or _satz_unresolved(res[t]["a"])]
+            for i in range(0, len(nach), BATCH_NACH):
+                teil = nach[i:i + BATCH_NACH]
+                hw = [f"CHECK for ID {json.dumps(t)}: a previous attempt left words unmatched or gave no answer. "
+                      f"Copy each counterpart verbatim from the given sentence, or answer null." for t, _, _ in teil]
+                got2 = llm(werk, teil, src, lg, None, hinweise=hw)
+                _zaehl("llm")
+                _zaehl("nachgefordert", len(teil))
+                for t, q, zt in teil:
+                    e = res[t]
+                    e["v"] = 1
+                    if t not in got2:
+                        continue
+                    neu = resolve_alignment(q, zt, got2[t], src, lg)
+                    if e["a"] is None:
+                        e["a"] = neu
+                        _zaehl("unresolved_repariert")
+                    elif _unaufgeloest(neu) < _unaufgeloest(e["a"]) and \
+                            anker(neu, lg) >= anker(e["a"], lg) - max(1, int(ankerverlust * anker(e["a"], lg))):
+                        e["a"] = neu
+                        _zaehl("unresolved_repariert")
+            ck.schreiben(cid, lg, kontext, {"saetze": res})
+
+        if arbeit:
+            _mit_modell(modell_eff, lambda: parallel(_kapitel, arbeit))
 
         # Pruefaligner fuer Saetze ohne Pruefergebnis (je Sprache ein Modal-Lauf)
         pa_fehler = None
@@ -910,7 +972,14 @@ def run(werk, wer=None, modell=None, batch=None, kapitel=None, saetze_neu=None, 
                      if (res_lg.get(cid, {}).get(t) or {}).get("a") and res_lg[cid][t].get("p") is None]
             if paare:
                 try:
-                    pw = PRUEFALIGNER(werk, lg, paare)
+                    try:
+                        pw = PRUEFALIGNER(werk, lg, paare)
+                    except Exception as ex1:
+                        print(f"      ! Pruefaligner nicht erreichbar ({lg}): {str(ex1)[:120]} – "
+                              f"neuer Versuch in {PRUEFALIGNER_WARTE} s")
+                        zz["pruefaligner_wiederholt"] += 1
+                        time.sleep(PRUEFALIGNER_WARTE)
+                        pw = PRUEFALIGNER(werk, lg, paare)
                     zz["pruefaligner_saetze"] += len(paare)
                     gesendet = {p["id"] for p in paare}
                     for cid, liste in kap.items():
@@ -923,6 +992,9 @@ def run(werk, wer=None, modell=None, batch=None, kapitel=None, saetze_neu=None, 
                 except Exception as ex:
                     pa_fehler = f"{type(ex).__name__}: {str(ex)[:160]}"
 
+        if pa == "an" and not trocken and paare and pa_fehler is None:     # Pruefanker sichern (Modal nicht doppelt)
+            for cid, res in res_lg.items():
+                ck.schreiben(cid, lg, kontext, {"saetze": res})
         # Verschiebung / doppelt belegte Anker -> 1x Nachlauf mit Hinweis
         if not trocken:
             def _last(e_a, zt, p, q):
@@ -937,8 +1009,7 @@ def run(werk, wer=None, modell=None, batch=None, kapitel=None, saetze_neu=None, 
                         k, dp, _s = _last(e["a"], zt, e.get("p"), q)
                         if k or dp:
                             kand.append((cid, t, q, zt, k, dp))
-            for i in range(0, len(kand), BATCH_NACH):
-                teil = kand[i:i + BATCH_NACH]
+            def _nachlauf(teil):
                 hw = []
                 for cid, t, q, zt, k, dp in teil:
                     al = res_lg[cid][t]["a"]
@@ -953,12 +1024,12 @@ def run(werk, wer=None, modell=None, batch=None, kapitel=None, saetze_neu=None, 
                         hw.append(f"CHECK for ID {json.dumps(t)}: a previous attempt anchored these words to the same "
                                   f"{SPRACHNAME.get(lg, lg)} word as an earlier, non-adjacent word: {woerter}. If the "
                                   f"word occurs again in the sentence use that occurrence, otherwise answer null.")
-                got = llm(werk, [(t, q, zt) for _c, t, q, zt, _k, _d in teil], src, lg, modell_eff, hinweise=hw)
-                zz["llm"] += 1
+                got = llm(werk, [(t, q, zt) for _c, t, q, zt, _k, _d in teil], src, lg, None, hinweise=hw)
+                _zaehl("llm")
                 for cid, t, q, zt, k, dp in teil:
                     e = res_lg[cid][t]
                     e["vv"] = 1
-                    zz["verschoben_versucht"] += 1
+                    _zaehl("verschoben_versucht")
                     if t not in got:
                         e["nl"] = "keine_antwort"
                         continue
@@ -971,7 +1042,10 @@ def run(werk, wer=None, modell=None, batch=None, kapitel=None, saetze_neu=None, 
                                "anker": [a_alt, a_neu]}
                     if ok:
                         e["a"] = neu
-                        zz["verschoben_uebernommen"] += 1
+                        _zaehl("verschoben_uebernommen")
+            gruppen = [kand[i:i + BATCH_NACH] for i in range(0, len(kand), BATCH_NACH)]
+            if gruppen:
+                _mit_modell(modell_eff, lambda: parallel(_nachlauf, gruppen))
             for cid, res in res_lg.items():
                 ck.schreiben(cid, lg, kontext, {"saetze": res})
 
@@ -1029,10 +1103,14 @@ def run(werk, wer=None, modell=None, batch=None, kapitel=None, saetze_neu=None, 
                     bef.append("verschoben")
                 if dp:
                     bef.append("doppelt")
+                if ohne:
+                    bef.append("ohne_anker")
                 if bef:
                     pruef[lg].append({"id": t, "quelle": q, "ziel": zt, "befund": bef, "unresolved": ur,
                                       "verschoben": vs, "doppelt": dp, "ohne_anker": ohne,
-                                      "nachlauf": e.get("nl")})
+                                      "nachlauf": e.get("nl"), "p": e.get("p"), "ketten": k,
+                                      "manuell": sorted(int(i) for i in (kx or {}).get("anker", {}))
+                                      if kx and kx.get("h") == h else []})
         a_inh = round(n_inh_a / n_inh, 4) if n_inh else 1.0
         a_ur = round(n_unres / n_w, 4) if n_w else 0.0
         a_vs = round(n_versch / n_w, 4) if n_w else 0.0
@@ -1086,8 +1164,7 @@ def run(werk, wer=None, modell=None, batch=None, kapitel=None, saetze_neu=None, 
     if not trocken:
         manifest.json_atomar(config.work_path(werk, "340_wortalignment"), data, indent=2)
         manifest.json_atomar(os.path.join(config.work_dir(werk), "340_pruefung.json"), pruef, indent=1)
-        if not nur_lang:
-            ck.aufraeumen(ck_soll)
+        ck.aufraeumen(ck_soll)
     g.entscheide(schreiben=not trocken)
     g.pruef = pruef
     return g

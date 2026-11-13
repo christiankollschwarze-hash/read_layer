@@ -1503,6 +1503,404 @@ MONITOR_SPEICHERN["210"] = _m210_argv
 MONITOR_TEIL["210"] = _m210_teil
 
 
+# ---- 310 Uebersetzung (Steckbrief GATE_MONITORE 310: nur Befundliste je Zielsprache)
+def _m310_daten(book_id):
+    from pipeline import s310_uebersetzung as P
+    b = bestellung.lesen(book_id)
+    roh = b.roh
+    src = b.quellsprache or config.SOURCE_LANGUAGE
+    ziele = [z for z in (b.zielsprachen or []) if z != src]
+    vu = _m200_lesen(book_id, "300_voruebersetzung.json") or {}
+    kap = P.saetze(vu, src) if vu else {}
+    ids = [t for l in kap.values() for t, _q, _y in l]
+    zeichen = sum(len(q) for l in kap.values() for _t, q, _y in l)
+    ue = (_m200_lesen(book_id, "310_uebersetzung.json") or {})
+    inh = ue.get("content") or {}
+    meta = ue.get("meta") or {}
+    pr = _m200_lesen(book_id, "310_pruefung.json") or {}
+    korr = P.korrekturen_lesen(book_id)
+    standard = config.MODELS.get("translator")
+    modell = roh.get("uebersetzung_modell") or (meta.get("uebersetzung") or {}).get("modell") or standard
+    laenge = list(roh.get("uebersetzung_laenge") or P.LAENGE)
+    batch = int(roh.get("uebersetzung_batch") or getattr(config, "TRANSLATE_BATCH_SIZE", P.BATCH))
+    n = max(1, len(ids))
+    arten = ("sprache", "kopie", "verschmelzung", "schema", "laenge", "glossar")
+    fass = {f.get("sprache"): f for f in roh.get("fassungen") or [] if isinstance(f, dict)}
+    ohne = ((vu.get("meta") or {}).get("voruebersetzung") or {}).get("ohne_anker") or {}
+    sprachen = {}
+    for lg in ziele:
+        bf = [dict(x, kapitel=x["id"].split("_")[0], arten=sorted({y.split(":")[0] for y in x.get("befund") or []}))
+              for x in pr.get(lg) or []]
+        zaehl = {a: sum(1 for x in bf if a in x["arten"]) for a in arten}
+        fehlt = [t for t in ids if not ((inh.get(t) or {}).get(lg) or "").strip()]
+        pruef = []
+        for a in arten:
+            if a == "laenge":
+                pruef.append({"art": a, "wert": zaehl[a], "anteil": round(zaehl[a] / n, 4), "schwelle": f"≤ {P.AUSREISSER_MAX:.0%}",
+                              "ok": zaehl[a] / n <= P.AUSREISSER_MAX})
+            elif a == "glossar":
+                q = 1 - zaehl[a] / n
+                pruef.append({"art": a, "wert": zaehl[a], "anteil": round(q, 4), "schwelle": f"≥ {P.GLOSSAR_MIN:.0%} eingehalten",
+                              "ok": q >= P.GLOSSAR_MIN, "ruecksprung": "210"})
+            else:
+                pruef.append({"art": a, "wert": zaehl[a], "schwelle": "0", "ok": zaehl[a] == 0})
+        k = korr.get(lg) or {}
+        sprachen[lg] = {"befunde": bf, "pruef": pruef, "abdeckung": round(1 - len(fehlt) / n, 4) if ids else None, "luecken": fehlt[:50],
+                        "n_luecken": len(fehlt), "titel": (fass.get(lg) or {}).get("titel"),
+                        "titel_pruefen": bool((fass.get(lg) or {}).get("titel_pruefen")),
+                        "ohne_anker": len(ohne.get(lg) or []),
+                        "manuell": sum(1 for v in k.values() if v.get("text")),
+                        "angenommen": sum(1 for v in k.values() if v.get("angenommen"))}
+    return {"sprache": src, "ziele": ziele, "vorhanden": bool(inh), "vu_fehlt": not vu, "saetze": len(ids), "kapitel": sorted(kap),
+            "zeichen": zeichen, "titel_original": roh.get("titel_original"), "sprachen": sprachen,
+            "modell": modell, "standard_modell": standard,
+            "modelle": [m for m in getattr(config, "PREISE", {}) if m.startswith("deepseek")],
+            "batch": batch, "standard_batch": P.BATCH, "laenge": laenge, "standard_laenge": list(P.LAENGE),
+            "anker": roh.get("uebersetzung_anker", True) is not False,
+            "kosten_neu": round(P.kosten_schaetzen(zeichen, modell, len(ziele)), 3),
+            "kosten_satz": round(P.kosten_schaetzen(zeichen / n, modell) + 0.0005, 4)}
+
+
+def _m310_argv(book_id, e, wer):
+    import re as _re
+    from pipeline import s310_uebersetzung as P
+    a = [PY, "-m", "pipeline.s310_uebersetzung", book_id, "--wer", wer]
+    b = bestellung.lesen(book_id)
+    src = b.quellsprache or config.SOURCE_LANGUAGE
+    ziele = [z for z in (b.zielsprachen or []) if z != src]
+    ID = _re.compile(r"c\d+_\d+_[a-z]+")
+    lg = e.get("lang")
+    satz = {k: str(v).strip() for k, v in (e.get("satz_text") or {}).items()}
+    neu, ann = list(e.get("satz") or []), list(e.get("annehmen") or [])
+    if satz or neu or ann:
+        if lg not in ziele:
+            raise ValueError(f"Zielsprache {lg!r} nicht bestellt {ziele}")
+        alle = satz.keys() | set(neu) | set(ann)
+        if len(alle) != len(satz) + len(neu) + len(ann):
+            raise ValueError("je Satz nur eine Aktion pro Lauf")
+        for i in alle:
+            if not ID.fullmatch(i):
+                raise ValueError(f"Satz-ID {i!r} ungueltig")
+        a.append(f"--lang={lg}")
+        for i, t in satz.items():
+            if not t:
+                raise ValueError(f"{i}: Text leer")
+            a.append(f"--satz-text={i}={t}")
+        a += [f"--satz={i}" for i in neu] + [f"--annehmen={i}" for i in ann]
+    if e.get("modell"):
+        if e["modell"] not in getattr(config, "PREISE", {}):
+            raise ValueError(f"Modell {e['modell']!r} unbekannt")
+        a.append(f"--modell={e['modell']}")
+    if e.get("batch") not in (None, ""):
+        n = int(e["batch"])
+        if not 1 <= n <= 100:
+            raise ValueError("Batch 1–100 Saetze")
+        a.append(f"--batch={n}")
+    if e.get("laenge"):
+        lo, hi = (float(x) for x in e["laenge"])
+        if not 0.1 <= lo < 1 < hi <= 5:
+            raise ValueError("Laengengrenze: unten 0,1–1, oben 1–5")
+        a.append(f"--laenge={lo}-{hi}")
+    if e.get("anker") in ("an", "aus"):
+        a.append(f"--anker={e['anker']}")
+    if e.get("alle"):
+        a.append("--kapitel=alle")
+    if e.get("trocken"):
+        a.append("--trocken")
+    return a
+
+
+MONITOR_DATEN["310"] = _m310_daten
+MONITOR_SPEICHERN["310"] = _m310_argv
+
+
+# ---- 330 Rueckuebersetzung (Steckbrief GATE_MONITORE 330: nur Befundliste; Regler Schwelle/Flag-Quote/Umfang)
+def _m330_daten(book_id):
+    from pipeline import s330_rueckuebersetzung as P
+    b = bestellung.lesen(book_id)
+    roh = b.roh
+    src = b.quellsprache or config.SOURCE_LANGUAGE
+    ziele = [z for z in (b.zielsprachen or []) if z != src]
+    ein = _m200_lesen(book_id, "320_integritaet.json") or {}
+    aus = _m200_lesen(book_id, "330_rueckuebersetzung.json") or {}
+    meta = aus.get("meta") or {}
+    qr = meta.get("quality_report") or {}
+    rm = meta.get("rueckuebersetzung") or {}
+    pr = _m200_lesen(book_id, "330_pruefung.json") or {}
+    korr = P.korrekturen_lesen(book_id)
+    schwelle = int(roh.get("rueck_schwelle") or getattr(config, "VALIDATION_THRESHOLD", P.SCHWELLE))
+    flag_max = float(roh.get("rueck_flag_max") or getattr(config, "FLAG_MAX_ANTEIL", P.FLAG_MAX))
+    flag_ab = int(getattr(config, "FLAG_ANTEIL_AB_SAETZEN", P.FLAG_AB))
+    flag_klein = int(getattr(config, "FLAG_MAX_KLEIN", P.FLAG_KLEIN))
+    m_rueck = rm.get("modell_rueck") or config.MODELS.get("backtranslator") or config.MODELS.get("translator")
+    m_bew = rm.get("modell_bewertung") or config.MODELS.get("validator")
+    kap, zeichen, n_saetze = set(), {}, {}
+    for lg in ziele:
+        k = P.saetze(ein, src, lg) if ein else {}
+        kap |= {c for c, l in k.items() if l}
+        zeichen[lg] = sum(len(zt) for l in k.values() for _t, _q, zt in l)
+        n_saetze[lg] = sum(len(l) for l in k.values())
+    sprachen = {}
+    for lg in ziele:
+        js = (qr.get("je_sprache") or {}).get(lg) or {}
+        bf = [dict(x, kapitel=x["id"].split("_")[0]) for x in pr.get(lg) or [] if isinstance(x, dict) and x.get("id")]
+        bew = js.get("bewertet") or 0
+        nfl = sum(1 for x in bf if x["befund"] == "flag")
+        nns = sum(1 for x in bf if x["befund"] == "nicht_bewertbar")
+        nb = max(1, bew - nns)
+        if bew - nns >= flag_ab:
+            fq = {"wert": nfl, "anteil": round(nfl / nb, 4), "schwelle": f"≤ {flag_max:.0%}", "ok": nfl / nb <= flag_max}
+        else:
+            fq = {"wert": nfl, "anteil": round(nfl / nb, 4), "schwelle": f"≤ {flag_klein} (unter {flag_ab} Sätzen)",
+                  "ok": nfl <= flag_klein}
+        ans = nns / max(1, bew)
+        k = korr.get(lg) or {}
+        sprachen[lg] = {"befunde": bf, "flag": fq,
+                        "nicht_bewertbar": {"wert": nns, "anteil": round(ans, 4), "schwelle": f"≤ {P.NICHT_BEWERTBAR_MAX:.0%}",
+                                            "ok": ans <= P.NICHT_BEWERTBAR_MAX},
+                        "schnitt": js.get("durchschnitt"),
+                        "schnitt_ok": js.get("durchschnitt") is None or js["durchschnitt"] >= P.SCHNITT_HINWEIS,
+                        "bewertet": bew, "ungeprueft": js.get("ungeprueft") or 0,
+                        "repariert": sum(1 for x in bf if x["befund"] == "repariert"),
+                        "saetze": n_saetze[lg], "zeichen": zeichen[lg],
+                        "manuell": sum(1 for v in k.values() if v.get("text")),
+                        "angenommen": sum(1 for v in k.values() if v.get("angenommen")),
+                        "erledigt": [{"id": t, "text": v.get("text"), "angenommen": bool(v.get("angenommen")),
+                                      "wer": v.get("wer"), "wann": v.get("wann")} for t, v in sorted(k.items())]}
+    z_alle = sum(zeichen.values())
+    je = z_alle / max(1, sum(n_saetze.values()))
+    return {"sprache": src, "ziele": ziele, "vorhanden": bool(aus), "ein_fehlt": not ein, "kapitel": sorted(kap),
+            "sprachen": sprachen, "schwelle": schwelle, "flag_max": flag_max, "flag_ab": flag_ab, "flag_klein": flag_klein,
+            "umfang": roh.get("rueck_umfang") or "alle", "stichprobe": float(roh.get("rueck_stichprobe") or 10),
+            "schnitt_soll": P.SCHNITT_HINWEIS,
+            "standard": {"schwelle": getattr(config, "VALIDATION_THRESHOLD", P.SCHWELLE),
+                         "flag_max": getattr(config, "FLAG_MAX_ANTEIL", P.FLAG_MAX)},
+            "modell_rueck": m_rueck, "modell_bewertung": m_bew, "geprueft": qr.get("geprueft"),
+            "kosten_neu": round(P.kosten_schaetzen(z_alle, m_rueck, m_bew), 3),
+            "kosten_satz": round(P.kosten_schaetzen(je, m_rueck, m_bew, reparatur=0) + P.s310.kosten_schaetzen(je)
+                                 + 0.0005, 4)}
+
+
+def _m330_argv(book_id, e, wer):
+    import re as _re
+    a = [PY, "-m", "pipeline.s330_rueckuebersetzung", book_id, "--wer", wer]
+    b = bestellung.lesen(book_id)
+    src = b.quellsprache or config.SOURCE_LANGUAGE
+    ziele = [z for z in (b.zielsprachen or []) if z != src]
+    ID = _re.compile(r"c\d+_\d+_[a-z]+")
+    lg = e.get("lang")
+    satz = {k: str(v).strip() for k, v in (e.get("satz_text") or {}).items()}
+    neu, ann, kap = list(e.get("satz") or []), list(e.get("annehmen") or []), list(e.get("kapitel") or [])
+    if satz or neu or ann or kap:
+        if lg not in ziele:
+            raise ValueError(f"Zielsprache {lg!r} nicht bestellt {ziele}")
+        alle = satz.keys() | set(neu) | set(ann)
+        if len(alle) != len(satz) + len(neu) + len(ann):
+            raise ValueError("je Satz nur eine Aktion pro Lauf")
+        for i in alle:
+            if not ID.fullmatch(i):
+                raise ValueError(f"Satz-ID {i!r} ungueltig")
+        a.append(f"--lang={lg}")
+        for i, t in satz.items():
+            if not t:
+                raise ValueError(f"{i}: Text leer")
+            a.append(f"--satz-text={i}={t}")
+        a += [f"--satz={i}" for i in neu] + [f"--annehmen={i}" for i in ann]
+        for k in kap:
+            m = _re.fullmatch(r"c?0*(\d+)", str(k).strip())
+            if not m or int(m.group(1)) < 1:
+                raise ValueError(f"Kapitel {k!r} ungueltig")
+            a.append(f"--kapitel={int(m.group(1))}")
+    if e.get("schwelle") not in (None, ""):
+        n = int(e["schwelle"])
+        if not 50 <= n <= 100:
+            raise ValueError("Score-Schwelle 50–100")
+        a.append(f"--schwelle={n}")
+    if e.get("flag_max") not in (None, ""):
+        x = float(e["flag_max"])
+        if not 0 < x <= 0.5:
+            raise ValueError("Flag-Quote 0–50 %")
+        a.append(f"--flag-max={x:g}")
+    if e.get("umfang"):
+        if e["umfang"] not in ("alle", "ausreisser"):
+            raise ValueError("Umfang alle|ausreisser")
+        a.append(f"--umfang={e['umfang']}")
+    if e.get("stichprobe") not in (None, ""):
+        x = float(e["stichprobe"])
+        if not 0 <= x <= 100:
+            raise ValueError("Stichprobe 0–100 %")
+        a.append(f"--stichprobe={x:g}")
+    if e.get("alle"):
+        a.append("--kapitel=alle")
+    if e.get("trocken"):
+        a.append("--trocken")
+    return a
+
+
+MONITOR_DATEN["330"] = _m330_daten
+MONITOR_SPEICHERN["330"] = _m330_argv
+
+
+# ---- 340 Wort-Alignment (Steckbrief GATE_MONITORE 340: Befundliste + Wortpaare, Anker per Klick)
+def _m340_regler(roh, P):
+    w = lambda k, std: roh.get(f"align_{k}") if roh.get(f"align_{k}") is not None else std
+    return {"pruefaligner": w("pruefaligner", "an"), "kette": int(w("kette", P.KETTE)),
+            "ankerverlust": float(w("ankerverlust", P.ANKERVERLUST)), "inhalt_min": float(w("inhalt_min", P.INHALT_MIN)),
+            "unresolved_max": float(w("unresolved_max", P.UNRESOLVED_MAX)),
+            "verschoben_max": float(w("verschoben_max", P.VERSCHOBEN_MAX)),
+            "doppelt_max": float(w("doppelt_max", P.DOPPELT_MAX))}
+
+
+def _m340_daten(book_id):
+    from pipeline import s340_wortalignment as P
+    b = bestellung.lesen(book_id)
+    roh = b.roh or {}
+    src = b.quellsprache or config.SOURCE_LANGUAGE
+    ziele = [lg for lg in (b.zielsprachen or []) if lg != src and b.hat(sprache=lg, kanal="taella")]
+    ein = _m200_lesen(book_id, "330_rueckuebersetzung.json") or {}
+    aus = _m200_lesen(book_id, "340_wortalignment.json") or {}
+    wa = (aus.get("meta") or {}).get("wortalignment") or {}
+    pr = _m200_lesen(book_id, "340_pruefung.json") or {}
+    korr = P.korrekturen_lesen(book_id)
+    r = _m340_regler(roh, P)
+    modell = wa.get("modell") or config.MODELS.get("aligner")
+    kap, zeichen, woerter, n = set(), 0, 0, 0
+    sprachen = {}
+    for lg in ziele:
+        k = P.saetze(ein, src, lg) if ein else {}
+        kap |= {c for c, l in k.items() if l}
+        for l in k.values():
+            for _t, q, zt in l:
+                zeichen, woerter, n = zeichen + len(q) + len(zt), woerter + len(P.tokenize_en(q)), n + 1
+        js = (wa.get("je_sprache") or {}).get(lg) or {}
+        bf = [{"id": x["id"], "kapitel": x["id"].split("_")[0], "befund": x.get("befund") or [],
+               "n": {a: len(x.get(a) or []) for a in ("unresolved", "verschoben", "doppelt", "ohne_anker")},
+               "nachlauf": (x.get("nachlauf") or {}).get("ergebnis") if isinstance(x.get("nachlauf"), dict)
+               else x.get("nachlauf")} for x in pr.get(lg) or [] if isinstance(x, dict) and x.get("id")]
+        pruef = []
+        for art, soll, ist_ok in (("inhalt_mit_anker", r["inhalt_min"], lambda v, s: v >= s),
+                                  ("unresolved", r["unresolved_max"], lambda v, s: v <= s),
+                                  ("verschoben", r["verschoben_max"], lambda v, s: v <= s),
+                                  ("doppelt", r["doppelt_max"], lambda v, s: v <= s)):
+            v = js.get(art)
+            pruef.append({"art": art, "wert": v, "schwelle": ("≥ " if art == "inhalt_mit_anker" else "≤ ") + f"{soll:.0%}",
+                          "ok": v is None or ist_ok(v, soll)})
+        kk = korr.get(lg) or {}
+        sprachen[lg] = {"befunde": bf, "pruef": pruef, "saetze": js.get("saetze"), "woerter": js.get("woerter"),
+                        "fehlt": js.get("fehlt") or 0, "ohne_pruefung": js.get("ohne_pruefung") or 0,
+                        "manuell": [{"id": t, "n": len(v.get("anker") or {}), "wer": v.get("wer"), "wann": v.get("wann")}
+                                    for t, v in sorted(kk.items())]}
+    n = max(1, n)
+    return {"sprache": src, "ziele": ziele, "vorhanden": bool(aus), "ein_fehlt": not ein, "kapitel": sorted(kap),
+            "sprachen": sprachen, "regler": r, "modell": modell, "geprueft": wa.get("geprueft"),
+            "standard": {"pruefaligner": "an", "kette": P.KETTE, "ankerverlust": P.ANKERVERLUST,
+                         "inhalt_min": P.INHALT_MIN, "unresolved_max": P.UNRESOLVED_MAX,
+                         "verschoben_max": P.VERSCHOBEN_MAX, "doppelt_max": P.DOPPELT_MAX},
+            "kosten_neu": round(P.kosten_schaetzen(zeichen, woerter, n, modell, r["pruefaligner"] == "an"), 3),
+            "kosten_satz": round(P.kosten_schaetzen(zeichen / n, woerter / n, 1, modell, r["pruefaligner"] == "an")
+                                 + 0.0003, 4)}
+
+
+def _m340_teil(book_id, q):
+    """?lang=LG&ids=a,b,c -> je Satz Quellwoerter, Zieltokens, Anker (Ziel-Spans), Pruefanker, Ketten, Befunde."""
+    from pipeline import s340_wortalignment as P
+    b = bestellung.lesen(book_id)
+    src = b.quellsprache or config.SOURCE_LANGUAGE
+    lg = q.get("lang") or ""
+    ids = [x for x in (q.get("ids") or "").split(",") if x][:60]
+    aus = _m200_lesen(book_id, "340_wortalignment.json") or {}
+    inh = aus.get("content") or {}
+    pr = {x["id"]: x for x in (_m200_lesen(book_id, "340_pruefung.json") or {}).get(lg) or []
+          if isinstance(x, dict) and x.get("id")}
+    out = []
+    for t in ids:
+        e = inh.get(t) or {}
+        qt, zt = (e.get(src) or "").strip(), (e.get(lg) or "").strip()
+        al = e.get(f"align_{lg}") or []
+        x = pr.get(t) or {}
+        sp = P.ziel_spans(al, zt, reparatur=True, lg=lg) if al else []
+        ztok = P._ztok(zt)
+        woerter = []
+        for k, tok in enumerate(P.tokenize_en(qt)):
+            w = al[k] if k < len(al) else {}
+            spans = [list(s) for s in (sp[k][0] if k < len(sp) else [])]
+            woerter.append({"i": tok["i"], "w": tok["word"], "z": sorted(P._tokset(spans, ztok)),
+                            "frag": w.get(lg), "source": w.get("source"),
+                            "inhalt": P.ist_inhaltswort(tok["word"], src)})
+        pa = {i: sorted(P._tokset(s, ztok)) for i, s in (x.get("p") or [])}
+        out.append({"id": t, "quelle": qt, "ziel": zt, "ztok": [zt[a:b_] for a, b_ in ztok],
+                    "zsp": [[a, b_] for a, b_ in ztok], "woerter": woerter,
+                    "p": pa, "ketten": x.get("ketten") or [], "befund": x.get("befund") or [],
+                    "unresolved": x.get("unresolved") or [], "verschoben": x.get("verschoben") or [],
+                    "doppelt": x.get("doppelt") or [], "ohne_anker": x.get("ohne_anker") or [],
+                    "manuell": x.get("manuell") or [], "nachlauf": x.get("nachlauf")})
+    return {"saetze": out}
+
+
+def _m340_argv(book_id, e, wer):
+    import re as _re
+    a = [PY, "-m", "pipeline.s340_wortalignment", book_id, "--wer", wer]
+    b = bestellung.lesen(book_id)
+    src = b.quellsprache or config.SOURCE_LANGUAGE
+    ziele = [lg for lg in (b.zielsprachen or []) if lg != src and b.hat(sprache=lg, kanal="taella")]
+    ID = _re.compile(r"c\d+_\d+_[a-z]+")
+    lg = e.get("lang")
+    anker = e.get("anker") or {}
+    neu, kap = list(e.get("satz") or []), list(e.get("kapitel") or [])
+    if anker or neu or kap:
+        if lg not in ziele:
+            raise ValueError(f"Zielsprache {lg!r} nicht bestellt {ziele}")
+        if set(anker) & set(neu):
+            raise ValueError("je Satz nur eine Aktion pro Lauf (Anker oder neu alignen)")
+        a.append(f"--lang={lg}")
+        for t, m in anker.items():
+            if not ID.fullmatch(t):
+                raise ValueError(f"Satz-ID {t!r} ungueltig")
+            for i, f in (m or {}).items():
+                if not str(i).isdigit():
+                    raise ValueError(f"{t}: Wortindex {i!r} ungueltig")
+                f = "-" if f is None else str(f).strip()
+                if not f:
+                    raise ValueError(f"{t}:{i}: Fragment leer")
+                a.append(f"--anker={t}:{int(i)}={f}")
+        for t in neu:
+            if not ID.fullmatch(t):
+                raise ValueError(f"Satz-ID {t!r} ungueltig")
+            a.append(f"--satz={t}")
+        for k in kap:
+            m = _re.fullmatch(r"c?0*(\d+)", str(k).strip())
+            if not m or int(m.group(1)) < 1:
+                raise ValueError(f"Kapitel {k!r} ungueltig")
+            a.append(f"--kapitel={int(m.group(1))}")
+    for k, flag, lo, hi in (("inhalt_min", "--inhalt-min", 0.5, 1), ("unresolved_max", "--unresolved-max", 0, 0.5),
+                            ("verschoben_max", "--verschoben-max", 0, 0.5), ("doppelt_max", "--doppelt-max", 0, 0.5),
+                            ("ankerverlust", "--ankerverlust", 0, 1)):
+        if e.get(k) not in (None, ""):
+            x = float(e[k])
+            if not lo <= x <= hi:
+                raise ValueError(f"{k} {lo}–{hi}")
+            a.append(f"{flag}={x:g}")
+    if e.get("kette") not in (None, ""):
+        n = int(e["kette"])
+        if not 2 <= n <= 10:
+            raise ValueError("Kette 2–10")
+        a.append(f"--kette={n}")
+    if e.get("pruefaligner") in ("an", "aus"):
+        a.append(f"--pruefaligner={e['pruefaligner']}")
+    elif e.get("pruefaligner"):
+        raise ValueError("Pruefaligner an|aus")
+    if e.get("alle"):
+        a.append("--kapitel=alle")
+    if e.get("trocken"):
+        a.append("--trocken")
+    return a
+
+
+MONITOR_DATEN["340"] = _m340_daten
+MONITOR_SPEICHERN["340"] = _m340_argv
+MONITOR_TEIL["340"] = _m340_teil
+
+
 # ---- Stage-Ergebnis (Monitor-Abschnitt "Ergebnis", CK 04.11.2026: Ergebnis je Stage ansehen)
 ERGEBNIS_EXTRA = {"100": ["book.json", "raw.txt", "@author.json"], "110": ["book.json", "@author.json"], "115": ["book.json"], "120": ["raw_modernized.txt"],
                   "150": ["book.json", "work/ingest_bericht.json", "raw_modernized.txt"], "195": ["book.json"]}

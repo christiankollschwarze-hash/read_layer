@@ -20,6 +20,12 @@ DE = {"c001_00001_h": "Kapitel IV",
       "c002_00001_h": "Kapitel V",
       "c002_00002_s": "Sie klopfte zweimal an die Tür, aber niemand kam, um sie zu öffnen."}
 
+FR = {"c001_00001_h": "Chapitre IV",
+      "c001_00002_s": "Margaret marcha lentement vers la vieille maison au bord de la rivière.",
+      "c001_00003_s": "La porte était ouverte, et le vent était très froid cette nuit-là.",
+      "c001_00004_dl": "« Qui est là ? » demanda-t-elle.",
+      "c002_00001_h": "Chapitre V",
+      "c002_00002_s": "Elle frappa deux fois à la porte, mais personne ne vint lui ouvrir."}
 
 class T310(unittest.TestCase):
     def setUp(self):
@@ -45,7 +51,7 @@ class T310(unittest.TestCase):
                     self.weglassen.discard(i)
                     continue
                 l = self.ersatz.get(i)
-                out[i] = l.pop(0) if l else DE[i]
+                out[i] = l.pop(0) if l else (FR if "into fr" in prompt else DE)[i]
             return json.dumps(out, ensure_ascii=False)
         api_layer.call_model = fake
         self.werk()
@@ -184,6 +190,57 @@ class T310(unittest.TestCase):
         t = P.anker_ausschnitt(a, q, len(q) // 2, len(q))
         self.assertIn("Zwei", t)
         self.assertLess(len(t), len(a))
+
+    def test_regler_je_werk(self):
+        g = self.lauf(modell="deepseek-v4-flash", batch=2, laenge=(0.6, 1.8), anker=False)
+        self.assertEqual(g.ergebnis["ergebnis"], "auto", g.bericht())
+        with open(os.path.join(self.d, "book.json"), encoding="utf-8") as f:
+            b = json.load(f)
+        self.assertEqual((b["uebersetzung_modell"], b["uebersetzung_batch"], b["uebersetzung_laenge"], b["uebersetzung_anker"]),
+                         ("deepseek-v4-flash", 2, [0.6, 1.8], False))
+        g = self.lauf(trocken=True)
+        self.assertEqual((g.metriken["modell"], g.metriken["batch"], g.metriken["laenge"]), ("deepseek-v4-flash", 2, [0.6, 1.8]))
+        self.assertGreater(P.kosten_schaetzen(10000, "deepseek-v4-pro", 2), P.kosten_schaetzen(10000, "deepseek-v4-flash", 2))
+
+    def test_lang_andere_sprachen_unveraendert(self):
+        self.werk(ziele=("de", "fr"))
+        g = self.lauf()
+        self.assertEqual(g.ergebnis["ergebnis"], "auto", g.bericht())
+        n = len(self.aufrufe)
+        g = self.lauf(nur_lang="de", saetze_neu=["c001_00002_s"],
+                      satz_text=["c001_00003_s=Die Tür stand offen, und der Wind war in jener Nacht sehr kalt."])
+        self.assertEqual(g.ergebnis["ergebnis"], "auto", g.bericht())
+        neu = self.aufrufe[n:]
+        self.assertEqual(len(neu), 1)
+        self.assertIn("into de", neu[0])
+        self.assertTrue(any(p["name"] == "abdeckung_fr" for p in g.pruefungen))
+        self.assertEqual(self.aus()["c001_00002_s"]["fr"], FR["c001_00002_s"])
+        with open(os.path.join(self.d, "work", "310_pruefung.json"), encoding="utf-8") as f:
+            self.assertEqual(sorted(json.load(f)), ["de", "fr"])
+        with self.assertRaises(ValueError):
+            self.lauf(nur_lang="es")
+
+    def test_monitor_310(self):
+        from cockpit import werk_api as W
+        kopie = Q["c001_00003_s"][1]
+        self.ersatz = {"c001_00003_s": [kopie, kopie]}
+        self.lauf()
+        d = W._m310_daten("w")
+        sp = d["sprachen"]["de"]
+        self.assertEqual((d["ziele"], d["saetze"], sp["abdeckung"], len(sp["befunde"])), (["de"], 6, 1.0, 1))
+        self.assertEqual((sp["befunde"][0]["kapitel"], sp["befunde"][0]["arten"]), ("c001", ["glossar", "kopie", "sprache"]))
+        self.assertFalse(next(p for p in sp["pruef"] if p["art"] == "kopie")["ok"])
+        self.assertGreater(d["kosten_satz"], 0)
+        a = W._m310_argv("w", {"lang": "de", "satz_text": {"c001_00003_s": " Die Tür war offen. "}, "satz": ["c001_00002_s"],
+                               "batch": 10, "laenge": [0.6, 1.8], "anker": "aus"}, "CK")
+        self.assertEqual(a[6:], ["--lang=de", "--satz-text=c001_00003_s=Die Tür war offen.", "--satz=c001_00002_s",
+                                 "--batch=10", "--laenge=0.6-1.8", "--anker=aus"])
+        for e in ({"lang": "fr", "satz": ["c001_00002_s"]}, {"lang": "de", "satz": ["x"]}, {"batch": 0},
+                  {"laenge": [1.2, 1.5]}, {"modell": "x"},
+                  {"lang": "de", "satz": ["c001_00002_s"], "annehmen": ["c001_00002_s"]}):
+            with self.assertRaises(ValueError):
+                W._m310_argv("w", e, "CK")
+
 
 
 if __name__ == "__main__":

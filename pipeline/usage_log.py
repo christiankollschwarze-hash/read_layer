@@ -27,6 +27,7 @@ import re
 import sys
 import json
 import contextlib
+import threading
 import datetime as dt
 
 _ctx = {"book": None, "stage": None, "extra": {}}
@@ -161,9 +162,12 @@ def _kontext(book=None, stage=None, task=None):
     return book, neu, zus
 
 
+_lock = threading.Lock()          # parallele Aufrufe (z. B. 340) schreiben nicht ineinander
+
+
 def _schreiben(book, row):
     path = os.path.join(_config().work_dir(book), "kosten.jsonl")
-    with open(path, "a", encoding="utf-8") as f:
+    with _lock, open(path, "a", encoding="utf-8") as f:
         f.write(json.dumps(row, ensure_ascii=False) + "\n")
 
 

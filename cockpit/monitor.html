@@ -33,7 +33,21 @@ details.ausnahme{margin-top:10px}details.ausnahme summary{cursor:pointer;color:v
 .t210 td{padding:3px 5px;vertical-align:top}.t210 input{width:100%;min-width:90px}.t210 tr.weg td{opacity:.45;text-decoration:line-through}
 .t210 tr.sel{background:var(--tint)}.fs210{font-size:13px;line-height:1.5;border-top:1px solid var(--line);padding:6px 0}.fs210 b{background:color-mix(in srgb,var(--s-mensch) 20%,transparent)}
 .chip{display:inline-block;border:1px solid var(--line-2);border-radius:10px;padding:0 8px;margin:2px;font-size:12px;cursor:pointer}.chip.weg{text-decoration:line-through;color:var(--ink-3)}
+.b310{display:grid;grid-template-columns:110px 1fr 1fr 230px;gap:6px 12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px;line-height:1.45}
+.b310.kopf{font-weight:600;font-size:12px;color:var(--ink-3)}.b310.geaendert{background:color-mix(in srgb,var(--s-mensch) 7%,transparent);font-weight:400}
+.b310 .neu{cursor:text}.b310 .neu:hover{background:var(--tint)}.b310 textarea{width:100%;min-height:80px}
 .kapt td{padding:4px 6px}.kapt tr.sel{background:var(--tint)}
+.b330{display:grid;grid-template-columns:110px 1fr 1fr 1fr 230px;gap:6px 12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px;line-height:1.45}
+.b330.kopf{font-weight:600;font-size:12px;color:var(--ink-3)}.b330.geaendert{background:color-mix(in srgb,var(--s-mensch) 7%,transparent);font-weight:400}
+.b330 .neu{cursor:text}.b330 .neu:hover{background:var(--tint)}.b330 textarea{width:100%;min-height:80px}
+.s340{border-bottom:1px solid var(--line);padding:10px 0}.kopf340{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
+.q340,.z340{font-size:14px;line-height:2;margin:2px 0}.z340{color:var(--ink-2)}
+.qw,.zw{cursor:pointer;border-radius:3px;padding:1px 2px;border-bottom:2px solid transparent}
+.qw.ur{border-bottom-color:var(--s-stopp)}.qw.vs{border-bottom-color:var(--s-mensch);border-bottom-style:double;border-bottom-width:3px}
+.qw.dp{border-bottom-color:#8a4fd0}.qw.oa{border-bottom:2px dashed var(--s-stopp)}.qw.ma{font-weight:700}
+.qw.ge{outline:2px solid var(--s-mensch)}.qw.sel{outline:2px solid var(--ink)}
+.zw.hla{outline:2px solid var(--ink)}.zw.hlp{box-shadow:inset 0 0 0 2px var(--s-mensch);border-bottom:2px dashed var(--s-mensch)}
+.l340 .qw{cursor:default;margin-left:6px}
 </style></head><body>
 <header>
  <a class="marke" href="/"></a><span class="seitentitel">Gate-Monitor</span>
@@ -795,6 +809,311 @@ MON["210"]={
     if(!trocken&&!Object.keys(e).length&&!confirm("Nichts geändert – 210 nur neu prüfen?"))return;
     if(!trocken&&(e.neu||e.grenze||e.modell)&&!confirm(`Das Profil wird neu erzeugt (Live-Modus, ~${d.kosten_neu.toFixed(3)} $). Weiter?`))return;
     speichern(e).then(ok=>{if(ok&&!trocken)this.E=this.leer();});
+  }
+};
+MON["310"]={
+  E:null,lg:null,fa:"",fk:"",
+  leer(){return {spr:{},modell:null,batch:null,laenge:null,anker:null,alle:false};},
+  S(lg){return this.E.spr[lg]=this.E.spr[lg]||{text:{},aktion:{}};},
+  html(d){
+    if(!this.E)this.E=this.leer();
+    if(!this.lg||!d.ziele.includes(this.lg))this.lg=d.ziele[0];
+    const E=this.E,ki=(M.stage.kosten||{}).usd,lg=this.lg,sp=d.sprachen[lg]||{befunde:[],pruef:[]};
+    const name={sprache:"Sprache",kopie:"Kopie",verschmelzung:"Verschmelzung",schema:"Schema",laenge:"Länge",glossar:"Glossar/Namen"};
+    const lo=E.laenge?E.laenge[0]:d.laenge[0],hi=E.laenge?E.laenge[1]:d.laenge[1];
+    return `<div class="box"><h2>1 Anzeigen</h2>
+     ${d.vu_fehlt?'<div class="klein err">300_voruebersetzung.json fehlt – erst 300, dann 310 laufen lassen.</div>':d.vorhanden?"":'<div class="klein err">Keine Übersetzung vorhanden – 310 erst laufen lassen.</div>'}
+     <div class="feld">
+      <span>Werk</span><span>${esc(d.sprache)} → ${esc(d.ziele.join(", ")||"–")} · ${d.saetze.toLocaleString("de-DE")} Sätze · ${d.kapitel.length} Kapitel · ${d.zeichen.toLocaleString("de-DE")} Zeichen · Modell ${esc(d.modell)} · Batch ${d.batch} · Anker ${d.anker?"an":'<span class="z mensch">aus</span>'}</span>
+      <span>Kosten</span><span>Ist ${ki!=null?ki.toFixed(4)+" $":"–"} · alles neu übersetzen ~${d.kosten_neu.toFixed(3)} $ · je Satz ~${d.kosten_satz.toFixed(4)} $</span>
+      <span>Zielsprache</span><span>${d.ziele.map(z=>{const n=Object.keys(this.S(z).text).length+Object.keys(this.S(z).aktion).length;
+        return `<button class="${z==lg?"haupt":""}" onclick="MON['310'].wechsel('${z}')">${esc(z)} · ${(d.sprachen[z]||{befunde:[]}).befunde.length} Befunde${n?" · "+n+" geändert":""}</button>`;}).join(" ")}</span></div></div>
+    <div class="box"><h2>Zielsprache ${esc(lg)}</h2><div class="feld">
+      <span>Abdeckung</span><span>${sp.abdeckung==null?"–":sp.n_luecken?`<span class="z stopp">${(sp.abdeckung*100).toFixed(1)} %</span> Lücken ${sp.n_luecken}: ${sp.luecken.map(esc).join(", ")} <span class="klein">→ 310 neu (Neulauf fordert fehlende Sätze nach)</span>`:"100 %"}</span>
+      <span>Werktitel</span><span>${esc(d.titel_original||"–")} → ${sp.titel?esc(sp.titel):"<i>–</i>"}${sp.titel_pruefen?' <span class="z mensch">von 310 übersetzt, Prüfung am Cover-Gate 615</span>':""}</span>
+      <span>Prüfungen</span><span><table class="kapt">${sp.pruef.map(p=>`<tr><td><span class="dot" style="background:var(--s-${p.ok?"frei":"mensch"})"></span></td><td>${name[p.art]}</td><td>${p.wert}${p.anteil!=null?` <span class="klein">(${(p.anteil*100).toFixed(1)} %)</span>`:""}</td><td class="klein">Schwelle ${esc(p.schwelle)}</td>
+        <td>${p.ruecksprung&&!p.ok?`<a href="#${esc(M.book_id)}/210">in 210 ändern</a>`:""}</td></tr>`).join("")}</table></span>
+      <span>Erledigt</span><span class="klein">manuell ersetzt ${sp.manuell} · Befund angenommen ${sp.angenommen}${sp.ohne_anker?` · <span class="z mensch">${sp.ohne_anker} Kapitel ohne Anker aus 300</span>`:""}</span></div></div>
+    <div class="box"><h2>2 Bearbeiten · Befundliste ${esc(lg)} <span class="klein" id="n310"></span></h2>
+     <div class="akt">Befundart <select onchange="MON['310'].fa=this.value;MON['310'].liste()"><option value="">alle</option>${Object.keys(name).map(a=>`<option value="${a}" ${this.fa==a?"selected":""}>${name[a]}</option>`).join("")}</select>
+      Kapitel <select onchange="MON['310'].fk=this.value;MON['310'].liste()"><option value="">alle</option>${[...new Set(sp.befunde.map(x=>x.kapitel))].sort().map(k=>`<option ${this.fk==k?"selected":""}>${k}</option>`).join("")}</select>
+      <span class="klein">Zieltext anklicken = manuell ersetzen (kostet nichts). Glossar/Namen grundsätzlich falsch → in 210 ändern, dann betroffene Sätze neu.</span></div>
+     <div id="bl310"></div></div>
+    <div class="box"><h2>Regler je Werk</h2><div class="akt">
+      Modell <select id="mo310" onchange="MON['310'].E.modell=this.value==M.daten.modell?null:this.value;MON['310'].zf()">${d.modelle.map(m=>`<option ${m==(E.modell||d.modell)?"selected":""}>${esc(m)}</option>`).join("")}</select>
+      Batch <input type="number" min="1" max="100" value="${E.batch??d.batch}" style="width:64px" onchange="MON['310'].E.batch=+this.value==M.daten.batch?null:+this.value;MON['310'].zf()">
+      Länge Ziel/Quelle <input id="lo310" type="number" step="0.05" min="0.1" max="1" value="${lo}" style="width:64px" onchange="MON['310'].lae()"> – <input id="hi310" type="number" step="0.05" min="1" max="5" value="${hi}" style="width:64px" onchange="MON['310'].lae()">
+      <label><input type="checkbox" ${(E.anker??(d.anker?"an":"aus"))=="an"?"checked":""} onchange="MON['310'].E.anker=(this.checked?'an':'aus')==(M.daten.anker?'an':'aus')?null:(this.checked?'an':'aus');MON['310'].zf()"> Anker (Vorübersetzung 300)</label>
+      <label><input type="checkbox" ${E.alle?"checked":""} onchange="MON['310'].E.alle=this.checked;MON['310'].zf()"> alle Kapitel neu übersetzen</label> <span class="klein">~${d.kosten_neu.toFixed(3)} $</span></div>
+      <div class="klein">Standard: Modell ${esc(d.standard_modell)}, Batch ${d.standard_batch}, Länge ${d.standard_laenge.join("–")}. Modell- oder Anker-Wechsel übersetzt alle Kapitel neu (kostet); Batch wirkt nur auf offene Sätze; Länge ändert nur die Prüfung.</div></div>
+    <div class="box"><h2>3 Speichern · 4 Freigeben</h2>
+     <div class="akt"><button class="haupt" onclick="MON['310'].los(false)">Übernehmen und 310 neu prüfen</button>
+      <button onclick="MON['310'].los(true)">Probe (schreibt nichts, kein LLM)</button> <span id="zf310" class="klein"></span></div>
+     <div class="klein">Neu geprüft werden nur geänderte Sätze (Checkpoint). Eine Mensch-Freigabe gilt, solange die Ausgabe (ausgabe_hash) gleich bleibt. Rücksprung: Glossar/Namen → 210; Abdeckung/Mock → 310.</div></div>`;
+  },
+  danach(){this.liste();this.zf();},
+  wechsel(lg){this.lg=lg;this.fa="";this.fk="";$("inhalt").innerHTML=this.html(M.daten);this.danach();},
+  lae(){const lo=+$("lo310").value,hi=+$("hi310").value,d=M.daten;this.E.laenge=(lo==d.laenge[0]&&hi==d.laenge[1])?null:[lo,hi];this.zf();},
+  liste(){
+    const d=M.daten,lg=this.lg,sp=d.sprachen[lg]||{befunde:[]},S=this.S(lg);
+    const l=sp.befunde.filter(x=>(!this.fa||x.arten.includes(this.fa))&&(!this.fk||x.kapitel==this.fk));
+    $("n310").textContent=`(${l.length} von ${sp.befunde.length})`;
+    if(!l.length){$("bl310").innerHTML='<div class="klein">keine Befunde</div>';return;}
+    $("bl310").innerHTML=`<div class="b310 kopf"><span>Satz</span><span>Quelle</span><span>Ziel</span><span>Befund · Aktion</span></div>`+l.map(x=>{
+      const i=sp.befunde.indexOf(x),ak=S.aktion[x.id]||"",t=S.text[x.id];
+      const ziel=t!=null?`<textarea oninput="MON['310'].tx(${i},this.value)">${esc(t)}</textarea>`
+        :`<div class="neu" title="klicken zum Bearbeiten" onclick="MON['310'].bearb(${i})">${esc(x.ziel)}</div>`;
+      return `<div class="b310 ${ak||t!=null?"geaendert":""}"><span class="klein">${esc(x.id)}</span><span>${esc(x.quelle)}</span><span>${ziel}</span>
+        <span>${x.befund.map(b=>`<span class="chip">${esc(b)}</span>`).join("")}${x.arten.includes("glossar")?` <a class="klein" href="#${esc(M.book_id)}/210">210</a>`:""}<br>
+        <select onchange="MON['310'].ak(${i},this.value)" ${t!=null?"disabled":""}><option value="">–</option><option value="neu" ${ak=="neu"?"selected":""}>neu übersetzen (~${d.kosten_satz.toFixed(4)} $)</option><option value="annehmen" ${ak=="annehmen"?"selected":""}>Befund annehmen</option></select>
+        ${t!=null?`<button onclick="MON['310'].tx(${i},null)">verwerfen</button>`:""}</span></div>`;}).join("");
+  },
+  bearb(i){const x=M.daten.sprachen[this.lg].befunde[i],S=this.S(this.lg);S.text[x.id]=x.ziel;delete S.aktion[x.id];this.liste();this.zf();},
+  tx(i,v){const x=M.daten.sprachen[this.lg].befunde[i],S=this.S(this.lg);if(v==null){delete S.text[x.id];this.liste();}else S.text[x.id]=v;this.zf();},
+  ak(i,v){const x=M.daten.sprachen[this.lg].befunde[i],S=this.S(this.lg);if(v)S.aktion[x.id]=v;else delete S.aktion[x.id];this.liste();this.zf();},
+  zf(){const E=this.E,t=[];
+    for(const [lg,S] of Object.entries(E.spr)){const m=Object.keys(S.text).length,a=Object.values(S.aktion);
+      const n=a.filter(v=>v=="neu").length,an=a.filter(v=>v=="annehmen").length;
+      if(m||n||an)t.push(`${lg}: `+[m&&m+" manuell",n&&n+" neu",an&&an+" angenommen"].filter(Boolean).join(", "));}
+    if(E.modell)t.push("Modell "+E.modell+" (alles neu, kostet)");if(E.batch)t.push("Batch "+E.batch);if(E.laenge)t.push("Länge "+E.laenge.join("–"));
+    if(E.anker)t.push("Anker "+E.anker+" (alles neu, kostet)");if(E.alle)t.push("alle Kapitel neu (kostet)");
+    const el=$("zf310");if(el)el.textContent=t.join(" · ");},
+  los(trocken){
+    const d=M.daten,E=this.E,e={};
+    const mit=Object.entries(E.spr).filter(([,S])=>Object.keys(S.text).length||Object.keys(S.aktion).length).map(([lg])=>lg);
+    if(mit.length>1){alert("Änderungen in mehreren Zielsprachen ("+mit.join(", ")+"): bitte je Sprache einzeln übernehmen.");return;}
+    if(mit.length){const lg=mit[0],S=E.spr[lg];e.lang=lg;
+      const txt=Object.fromEntries(Object.entries(S.text).filter(([id,t])=>t.trim()&&t.trim()!=(d.sprachen[lg].befunde.find(x=>x.id==id)||{}).ziel));
+      if(Object.keys(txt).length)e.satz_text=txt;
+      const a=Object.entries(S.aktion);e.satz=a.filter(([,v])=>v=="neu").map(([k])=>k);e.annehmen=a.filter(([,v])=>v=="annehmen").map(([k])=>k);}
+    if(E.modell)e.modell=E.modell;if(E.batch)e.batch=E.batch;if(E.laenge)e.laenge=E.laenge;if(E.anker)e.anker=E.anker;if(E.alle)e.alle=true;
+    if(trocken)e.trocken=true;
+    const teuer=E.modell||E.anker||E.alle,n=(e.satz||[]).length;
+    if(!trocken&&!Object.keys(e).length&&!confirm("Nichts geändert – 310 nur neu prüfen?"))return;
+    if(!trocken&&teuer&&!confirm(`Alle Kapitel werden neu übersetzt (Live-Modus, ~${d.kosten_neu.toFixed(3)} $). Weiter?`))return;
+    if(!trocken&&!teuer&&n&&!confirm(`${n} Sätze neu übersetzen (~${(n*d.kosten_satz).toFixed(4)} $)?`))return;
+    speichern(e).then(ok=>{if(ok&&!trocken)this.E=this.leer();});
+  }
+};
+MON["330"]={
+  E:null,lg:null,fb:"",fk:"",
+  BN:{flag:"geflaggt",nicht_bewertbar:"nicht bewertbar",repariert:"repariert"},
+  leer(){return {spr:{},schwelle:null,flag_max:null,umfang:null,stichprobe:null,alle:false};},
+  S(lg){return this.E.spr[lg]=this.E.spr[lg]||{text:{},aktion:{},kapitel:new Set()};},
+  html(d){
+    if(!this.E)this.E=this.leer();
+    if(!this.lg||!d.ziele.includes(this.lg))this.lg=d.ziele[0];
+    const E=this.E,ki=(M.stage.kosten||{}).usd,lg=this.lg,sp=d.sprachen[lg]||{befunde:[],erledigt:[]};
+    const pz=x=>(x*100).toFixed(1)+" %",dot=ok=>`<span class="dot" style="background:var(--s-${ok?"frei":"mensch"})"></span>`;
+    const um=E.umfang??d.umfang;
+    return `<div class="box"><h2>1 Anzeigen</h2>
+     ${d.ein_fehlt?'<div class="klein err">320_integritaet.json fehlt – erst 320, dann 330 laufen lassen.</div>':d.vorhanden?"":'<div class="klein err">Noch keine Rückübersetzung – 330 erst laufen lassen.</div>'}
+     <div class="feld">
+      <span>Werk</span><span>${esc(d.sprache)} → ${esc(d.ziele.join(", ")||"–")} · ${d.kapitel.length} Kapitel · Rück ${esc(d.modell_rueck)} · Bewertung ${esc(d.modell_bewertung)} · Umfang ${d.umfang=="alle"?"alle Sätze":`<span class="z mensch">Ausreißer + ${d.stichprobe} % Stichprobe</span>`}${d.geprueft?` · geprüft ${esc(d.geprueft.slice(0,16).replace("T"," "))}`:""}</span>
+      <span>Kosten</span><span>Ist ${ki!=null?ki.toFixed(4)+" $":"–"} · alles neu bewerten ~${d.kosten_neu.toFixed(3)} $ (inkl. ~5 % Reparatur) · je Satz neu übersetzen + bewerten ~${d.kosten_satz.toFixed(4)} $</span>
+      <span>Zielsprache</span><span>${d.ziele.map(z=>{const s=this.S(z),n=Object.keys(s.text).length+Object.keys(s.aktion).length+s.kapitel.size,b=(d.sprachen[z]||{befunde:[]}).befunde;
+        return `<button class="${z==lg?"haupt":""}" onclick="MON['330'].wechsel('${z}')">${esc(z)} · ${b.filter(x=>x.befund!="repariert").length} offen${n?" · "+n+" geändert":""}</button>`;}).join(" ")}</span></div></div>
+    <div class="box"><h2>Zielsprache ${esc(lg)}</h2><div class="feld">
+      <span>Score-Schnitt</span><span>${sp.schnitt==null?"–":`${dot(sp.schnitt_ok)} ${String(sp.schnitt).replace(".",",")}`} <span class="klein">Anzeige, Soll ≥ ${d.schnitt_soll} · Schwelle je Satz ${d.schwelle}</span></span>
+      <span>Prüfungen</span><span><table class="kapt">
+        <tr><td>${dot(sp.flag?.ok)}</td><td>Flags nach Reparatur</td><td>${sp.flag?.wert??"–"} <span class="klein">(${sp.flag?pz(sp.flag.anteil):"–"})</span></td><td class="klein">Schwelle ${esc(sp.flag?.schwelle||"")}</td></tr>
+        <tr><td>${dot(sp.nicht_bewertbar?.ok)}</td><td>nicht bewertbar</td><td>${sp.nicht_bewertbar?.wert??"–"} <span class="klein">(${sp.nicht_bewertbar?pz(sp.nicht_bewertbar.anteil):"–"})</span></td><td class="klein">Schwelle ${esc(sp.nicht_bewertbar?.schwelle||"")}</td></tr></table></span>
+      <span>Umfang</span><span class="klein">${sp.bewertet??0} von ${sp.saetze??0} Sätzen bewertet${sp.ungeprueft?` · <span class="z mensch">${sp.ungeprueft} nicht geprüft (Umfang Ausreißer)</span>`:""}</span>
+      <span>Erledigt</span><span class="klein">automatisch repariert ${sp.repariert??0} · manuell ersetzt ${sp.manuell??0} · Flag angenommen ${sp.angenommen??0}
+        ${sp.erledigt&&sp.erledigt.length?`<details><summary>Vermerke (wer/wann)</summary><table class="kapt">${sp.erledigt.map(x=>`<tr><td>${esc(x.id)}</td><td>${x.text?"manuell: "+esc(x.text):"angenommen"}</td><td>${esc(x.wer||"")}</td><td>${esc((x.wann||"").slice(0,16).replace("T"," "))}</td></tr>`).join("")}</table></details>`:""}</span></div></div>
+    <div class="box"><h2>2 Bearbeiten · Befundliste ${esc(lg)} <span class="klein" id="n330"></span></h2>
+     <div class="akt">Befund <select onchange="MON['330'].fb=this.value;MON['330'].liste()"><option value="">alle</option>${Object.entries(this.BN).map(([k,v])=>`<option value="${k}" ${this.fb==k?"selected":""}>${v}</option>`).join("")}</select>
+      Kapitel <select onchange="MON['330'].fk=this.value;MON['330'].liste()"><option value="">alle</option>${[...new Set(sp.befunde.map(x=>x.kapitel))].sort().map(k=>`<option ${this.fk==k?"selected":""}>${k}</option>`).join("")}</select>
+      <span class="klein">Zieltext anklicken = manuell ersetzen (gilt als geprüft, keine Neubewertung). Gehäufte Namen/Glossar → in 210 ändern.</span></div>
+     <div id="bl330"></div>
+     <h3>Kapitel neu bewerten</h3><div class="klein" id="kap330"></div></div>
+    <div class="box"><h2>Regler je Werk</h2><div class="akt">
+      Score-Schwelle <input type="number" min="50" max="100" value="${E.schwelle??d.schwelle}" style="width:64px" onchange="MON['330'].E.schwelle=+this.value==M.daten.schwelle?null:+this.value;MON['330'].zf()">
+      Flag-Quote ≤ <input type="number" step="0.5" min="0.5" max="50" value="${((E.flag_max??d.flag_max)*100).toFixed(1)}" style="width:64px" onchange="const v=+this.value/100;MON['330'].E.flag_max=Math.abs(v-M.daten.flag_max)<1e-9?null:v;MON['330'].zf()"> %
+      Umfang <select onchange="MON['330'].E.umfang=this.value==M.daten.umfang?null:this.value;MON['330'].neuZeichnen()"><option value="alle" ${um=="alle"?"selected":""}>alle Sätze</option><option value="ausreisser" ${um=="ausreisser"?"selected":""}>Ausreißer aus 310 + Stichprobe</option></select>
+      ${um=="ausreisser"?`Stichprobe <input type="number" min="0" max="100" value="${E.stichprobe??d.stichprobe}" style="width:64px" onchange="MON['330'].E.stichprobe=+this.value==M.daten.stichprobe?null:+this.value;MON['330'].zf()"> %`:""}
+      <label><input type="checkbox" ${E.alle?"checked":""} onchange="MON['330'].E.alle=this.checked;MON['330'].zf()"> alle Kapitel neu bewerten</label> <span class="klein">~${d.kosten_neu.toFixed(3)} $</span></div>
+      <div class="klein">Standard: Schwelle ${d.standard.schwelle}, Flag-Quote ${(d.standard.flag_max*100).toFixed(0)} % (ab ${d.flag_ab} Sätzen, darunter ≤ ${d.flag_klein} Flags), Umfang alle. Höhere Schwelle repariert neu geflaggte Sätze (kostet); Flag-Quote ändert nur die Prüfung. Modelle werden nicht im Monitor gewählt.</div></div>
+    <div class="box"><h2>3 Speichern · 4 Freigeben</h2>
+     <div class="akt"><button class="haupt" onclick="MON['330'].los(false)">Übernehmen und 330 neu prüfen</button>
+      <button onclick="MON['330'].los(true)">Probe (schreibt nichts, kein LLM)</button> <span id="zf330" class="klein"></span></div>
+     <div class="klein">Neu bewertet werden nur geänderte Sätze (Checkpoint). Eine Mensch-Freigabe gilt, solange die Ausgabe (ausgabe_hash) gleich bleibt. Mandant Verlag: immer Mensch. Rücksprung: Namen/Glossar → <a href="#${esc(M.book_id)}/210">210</a>; Übersetzung grundsätzlich → <a href="#${esc(M.book_id)}/310">310</a>.</div></div>`;
+  },
+  danach(){this.liste();this.kap();this.zf();},
+  neuZeichnen(){$("inhalt").innerHTML=this.html(M.daten);this.danach();},
+  wechsel(lg){this.lg=lg;this.fb="";this.fk="";this.neuZeichnen();},
+  kap(){const S=this.S(this.lg);
+    $("kap330").innerHTML=M.daten.kapitel.map(k=>`<span class="chip" style="${S.kapitel.has(k)?"border-color:var(--s-mensch);font-weight:600":""}" onclick="MON['330'].kk('${k}')">${S.kapitel.has(k)?"✓ ":""}${k}</span>`).join("")+' <span class="klein">anklicken = Kapitel in dieser Sprache neu rückübersetzen und bewerten (kostet)</span>';},
+  kk(k){const S=this.S(this.lg);S.kapitel.has(k)?S.kapitel.delete(k):S.kapitel.add(k);this.kap();this.zf();},
+  liste(){
+    const d=M.daten,lg=this.lg,sp=d.sprachen[lg]||{befunde:[]},S=this.S(lg);
+    const l=sp.befunde.filter(x=>(!this.fb||x.befund==this.fb)&&(!this.fk||x.kapitel==this.fk));
+    $("n330").textContent=`(${l.length} von ${sp.befunde.length})`;
+    if(!l.length){$("bl330").innerHTML='<div class="klein">keine Befunde</div>';return;}
+    const sc=x=>x.score==null?"–":`<b style="color:var(--s-${x.score>=d.schwelle?"frei":"mensch"})">${x.score}</b>`+(x.score_vorher!=null?` <span class="klein">(vorher ${x.score_vorher})</span>`:"");
+    $("bl330").innerHTML=`<div class="b330 kopf"><span>Satz</span><span>Quelle</span><span>Ziel</span><span>Rückübersetzung</span><span>Score · Befund · Aktion</span></div>`+l.map(x=>{
+      const i=sp.befunde.indexOf(x),ak=S.aktion[x.id]||"",t=S.text[x.id];
+      const ziel=t!=null?`<textarea oninput="MON['330'].tx(${i},this.value)">${esc(t)}</textarea>`
+        :`<div class="neu" title="klicken zum Bearbeiten" onclick="MON['330'].bearb(${i})">${esc(x.ziel)}</div>${x.ziel_vorher?`<div class="klein" style="text-decoration:line-through" title="vor der Reparatur">${esc(x.ziel_vorher)}</div>`:""}`;
+      return `<div class="b330 ${ak||t!=null?"geaendert":""}"><span class="klein">${esc(x.id)}</span><span>${esc(x.quelle)}</span><span>${ziel}</span><span class="klein">${esc(x.rueck||"–")}</span>
+        <span>${sc(x)} <span class="chip">${esc(this.BN[x.befund]||x.befund)}</span><br>
+        <select onchange="MON['330'].ak(${i},this.value)" ${t!=null?"disabled":""}><option value="">–</option><option value="neu" ${ak=="neu"?"selected":""}>neu übersetzen + bewerten (~${d.kosten_satz.toFixed(4)} $)</option>${x.befund=="flag"?`<option value="annehmen" ${ak=="annehmen"?"selected":""}>Flag annehmen</option>`:""}</select>
+        ${t!=null?`<button onclick="MON['330'].tx(${i},null)">verwerfen</button>`:""}</span></div>`;}).join("");
+  },
+  bearb(i){const x=M.daten.sprachen[this.lg].befunde[i],S=this.S(this.lg);S.text[x.id]=x.ziel;delete S.aktion[x.id];this.liste();this.zf();},
+  tx(i,v){const x=M.daten.sprachen[this.lg].befunde[i],S=this.S(this.lg);if(v==null){delete S.text[x.id];this.liste();}else S.text[x.id]=v;this.zf();},
+  ak(i,v){const x=M.daten.sprachen[this.lg].befunde[i],S=this.S(this.lg);if(v)S.aktion[x.id]=v;else delete S.aktion[x.id];this.liste();this.zf();},
+  zf(){const E=this.E,t=[];
+    for(const [lg,S] of Object.entries(E.spr)){const m=Object.keys(S.text).length,a=Object.values(S.aktion);
+      const n=a.filter(v=>v=="neu").length,an=a.filter(v=>v=="annehmen").length,k=S.kapitel.size;
+      if(m||n||an||k)t.push(`${lg}: `+[m&&m+" manuell",n&&n+" neu",an&&an+" angenommen",k&&k+" Kapitel neu"].filter(Boolean).join(", "));}
+    if(E.schwelle)t.push("Schwelle "+E.schwelle);if(E.flag_max)t.push("Flag-Quote "+(E.flag_max*100).toFixed(1)+" %");
+    if(E.umfang)t.push("Umfang "+E.umfang);if(E.stichprobe!=null)t.push("Stichprobe "+E.stichprobe+" %");if(E.alle)t.push("alle Kapitel neu (kostet)");
+    const el=$("zf330");if(el)el.textContent=t.join(" · ");},
+  los(trocken){
+    const d=M.daten,E=this.E,e={};
+    const mit=Object.entries(E.spr).filter(([,S])=>Object.keys(S.text).length||Object.keys(S.aktion).length||S.kapitel.size).map(([lg])=>lg);
+    if(mit.length>1){alert("Änderungen in mehreren Zielsprachen ("+mit.join(", ")+"): bitte je Sprache einzeln übernehmen.");return;}
+    if(mit.length){const lg=mit[0],S=E.spr[lg];e.lang=lg;
+      const txt=Object.fromEntries(Object.entries(S.text).filter(([id,t])=>t.trim()&&t.trim()!=(d.sprachen[lg].befunde.find(x=>x.id==id)||{}).ziel));
+      if(Object.keys(txt).length)e.satz_text=txt;
+      const a=Object.entries(S.aktion);e.satz=a.filter(([,v])=>v=="neu").map(([k])=>k);e.annehmen=a.filter(([,v])=>v=="annehmen").map(([k])=>k);
+      if(S.kapitel.size)e.kapitel=[...S.kapitel];}
+    if(E.schwelle)e.schwelle=E.schwelle;if(E.flag_max)e.flag_max=E.flag_max;if(E.umfang)e.umfang=E.umfang;if(E.stichprobe!=null)e.stichprobe=E.stichprobe;if(E.alle)e.alle=true;
+    if(trocken)e.trocken=true;
+    const n=(e.satz||[]).length,nk=(e.kapitel||[]).length;
+    if(!trocken&&!Object.keys(e).length&&!confirm("Nichts geändert – 330 nur neu prüfen?"))return;
+    if(!trocken&&E.alle&&!confirm(`Alle Kapitel werden neu rückübersetzt und bewertet (Live-Modus, ~${d.kosten_neu.toFixed(3)} $). Weiter?`))return;
+    if(!trocken&&!E.alle&&(n||nk)&&!confirm([n&&`${n} Sätze neu übersetzen + bewerten (~${(n*d.kosten_satz).toFixed(4)} $)`,nk&&`${nk} Kapitel neu bewerten`].filter(Boolean).join(" und ")+"?"))return;
+    speichern(e).then(ok=>{if(ok&&!trocken)this.E=this.leer();});
+  }
+};
+MON["340"]={
+  E:null,lg:null,fb:"",fk:"",seite:0,N:20,sel:null,T:{},
+  BN:{fehlt:"fehlt",abdeckung_span:"Abdeckung/Span",unresolved:"unresolved",verschoben:"verschoben",doppelt:"doppelt",ohne_anker:"Inhaltswort ohne Anker"},
+  PN:{inhalt_mit_anker:"Inhaltswörter mit Anker",unresolved:"unresolved",verschoben:"verschoben",doppelt:"doppelt belegt"},
+  leer(){return {spr:{},regler:{},alle:false};},
+  S(lg){return this.E.spr[lg]=this.E.spr[lg]||{anker:{},neu:new Set(),kapitel:new Set()};},
+  html(d){
+    if(!this.E)this.E=this.leer();
+    if(!this.lg||!d.ziele.includes(this.lg))this.lg=d.ziele[0];
+    const E=this.E,R=d.regler,ki=(M.stage.kosten||{}).usd,lg=this.lg,sp=d.sprachen[lg]||{befunde:[],pruef:[],manuell:[]};
+    const pz=x=>x==null?"–":(x*100).toFixed(2).replace(".",",")+" %",dot=ok=>`<span class="dot" style="background:var(--s-${ok?"frei":"mensch"})"></span>`;
+    const rv=k=>E.regler[k]??R[k];
+    const zahl=(k,txt,step,min,max,proz)=>`${txt} <input type="number" step="${step}" min="${min}" max="${max}" value="${proz?+(rv(k)*100).toFixed(2):rv(k)}" style="width:66px" onchange="MON['340'].rg('${k}',${proz?"+this.value/100":"+this.value"})">${proz?" %":""}`;
+    return `<div class="box"><h2>1 Anzeigen</h2>
+     ${d.ein_fehlt?'<div class="klein err">330_rueckuebersetzung.json fehlt – erst 330, dann 340 laufen lassen.</div>':d.vorhanden?"":'<div class="klein err">Noch kein Wort-Alignment – 340 erst laufen lassen.</div>'}
+     <div class="feld">
+      <span>Werk</span><span>${esc(d.sprache)} → ${esc(d.ziele.join(", ")||"– (kein TÆLLA-Produkt)")} · ${d.kapitel.length} Kapitel · Modell ${esc(d.modell)} · Prüfaligner ${R.pruefaligner=="an"?"an":'<span class="z mensch">aus</span>'} · Kette ≥ ${R.kette} · Ankerverlust ≤ ${(R.ankerverlust*100).toFixed(0)} %${d.geprueft?` · geprüft ${esc(d.geprueft.slice(0,16).replace("T"," "))}`:""}</span>
+      <span>Kosten</span><span>Ist ${ki!=null?ki.toFixed(4)+" $":"–"} · alles neu alignen ~${d.kosten_neu.toFixed(3)} $ (inkl. Nachläufe${R.pruefaligner=="an"?" + Prüfaligner":""}) · je Satz ~${d.kosten_satz.toFixed(4)} $</span>
+      <span>Zielsprache</span><span>${d.ziele.map(z=>{const s=this.S(z),n=Object.keys(s.anker).length+s.neu.size+s.kapitel.size;
+        return `<button class="${z==lg?"haupt":""}" onclick="MON['340'].wechsel('${z}')">${esc(z)} · ${(d.sprachen[z]||{befunde:[]}).befunde.length} Sätze auffällig${n?" · "+n+" geändert":""}</button>`;}).join(" ")}</span></div></div>
+    <div class="box"><h2>Zielsprache ${esc(lg)}</h2><div class="feld">
+      <span>Prüfungen</span><span><table class="kapt">${sp.pruef.map(p=>`<tr><td>${dot(p.ok)}</td><td>${this.PN[p.art]}</td><td>${pz(p.wert)}</td><td class="klein">Schwelle ${esc(p.schwelle)}</td></tr>`).join("")}</table></span>
+      <span>Umfang</span><span class="klein">${sp.saetze??"–"} Sätze · ${sp.woerter!=null?sp.woerter.toLocaleString("de-DE"):"–"} Quellwörter${sp.fehlt?` · <span class="z stopp">${sp.fehlt} ohne Alignment</span>`:""}${sp.ohne_pruefung&&R.pruefaligner=="an"?` · <span class="z mensch">${sp.ohne_pruefung} ohne Prüfaligner-Ergebnis</span>`:""}</span>
+      <span>Manuell</span><span class="klein">${sp.manuell.length?`<details><summary>${sp.manuell.length} Sätze mit manuellen Ankern</summary><table class="kapt">${sp.manuell.map(x=>`<tr><td>${esc(x.id)}</td><td>${x.n} Anker</td><td>${esc(x.wer||"")}</td><td>${esc((x.wann||"").slice(0,16).replace("T"," "))}</td></tr>`).join("")}</table></details>`:"keine"}</span></div></div>
+    <div class="box"><h2>2 Bearbeiten · Befundliste ${esc(lg)} <span class="klein" id="n340"></span></h2>
+     <div class="akt">Befund <select onchange="MON['340'].fb=this.value;MON['340'].seite=0;MON['340'].liste()"><option value="">alle</option>${Object.entries(this.BN).map(([k,v])=>`<option value="${k}" ${this.fb==k?"selected":""}>${v}</option>`).join("")}</select>
+      Kapitel <select onchange="MON['340'].fk=this.value;MON['340'].seite=0;MON['340'].liste()"><option value="">alle</option>${[...new Set(sp.befunde.map(x=>x.kapitel))].sort().map(k=>`<option ${this.fk==k?"selected":""}>${k}</option>`).join("")}</select>
+      <span id="seiten340"></span></div>
+     <div class="klein">Quellwort anklicken, dann Zielwort anklicken = Anker (Umschalt-Klick erweitert auf mehrere Zielwörter); Rechtsklick auf ein Quellwort löscht seinen Anker. Maus über einem Quellwort zeigt Anker (Fläche) und Prüfaligner (gestrichelt).
+      <span class="l340"><span class="qw ur">unresolved</span> <span class="qw vs">verschoben</span> <span class="qw dp">doppelt</span> <span class="qw oa">Inhaltswort ohne Anker</span> <span class="qw ma">manuell</span> <span class="qw ge">geändert</span></span></div>
+     <div id="bl340"></div>
+     <h3>Kapitel neu alignen</h3><div class="klein" id="kap340"></div></div>
+    <div class="box"><h2>Regler je Werk</h2><div class="akt">
+      ${zahl("inhalt_min","Inhaltswörter mit Anker ≥",0.5,50,100,true)} ${zahl("unresolved_max","unresolved ≤",0.1,0,50,true)}
+      ${zahl("verschoben_max","verschoben ≤",0.1,0,50,true)} ${zahl("doppelt_max","doppelt ≤",0.1,0,50,true)}</div>
+     <div class="akt">${zahl("kette","Kette ≥",1,2,10,false)} Treffer · ${zahl("ankerverlust","Ankerverlust im Nachlauf ≤",1,0,100,true)}
+      <label><input type="checkbox" ${rv("pruefaligner")=="an"?"checked":""} onchange="MON['340'].rg('pruefaligner',this.checked?'an':'aus')"> Prüfaligner (awesome-align, Modal T4)</label>
+      <label><input type="checkbox" ${E.alle?"checked":""} onchange="MON['340'].E.alle=this.checked;MON['340'].zf()"> alle Kapitel neu alignen</label> <span class="klein">~${d.kosten_neu.toFixed(3)} $</span></div>
+      <div class="klein">Standard: Inhalt ≥ ${(d.standard.inhalt_min*100).toFixed(0)} %, unresolved ≤ ${(d.standard.unresolved_max*100).toFixed(0)} %, verschoben ≤ ${(d.standard.verschoben_max*100).toFixed(0)} %, doppelt ≤ ${(d.standard.doppelt_max*100).toFixed(0)} %, Kette ${d.standard.kette}, Ankerverlust ${(d.standard.ankerverlust*100).toFixed(0)} %, Prüfaligner an. Schwellen ändern nur die Prüfung; Kette/Ankerverlust wirken auf künftige Nachläufe; Prüfaligner an holt fehlende Prüfungen nach (Modal). Modell/Batch nicht im Monitor.</div></div>
+    <div class="box"><h2>3 Speichern · 4 Freigeben</h2>
+     <div class="akt"><button class="haupt" onclick="MON['340'].los(false)">Übernehmen und 340 neu prüfen</button>
+      <button onclick="MON['340'].los(true)">Probe (schreibt nichts, kein LLM)</button> <span id="zf340" class="klein"></span></div>
+     <div class="klein">Neu aligned werden nur geänderte Sätze (Checkpoint). Eine Mensch-Freigabe gilt, solange die Ausgabe (ausgabe_hash) gleich bleibt. Prüfaligner nicht erreichbar: 1× automatisch nach Wartezeit erneut, dann Mensch. Rücksprung: Zielsatz falsch → <a href="#${esc(M.book_id)}/330">330</a> (Satz dort ersetzen).</div></div>`;
+  },
+  danach(){this.T={};this.liste();this.kap();this.zf();},
+  neuZeichnen(){$("inhalt").innerHTML=this.html(M.daten);this.danach();},
+  wechsel(lg){this.lg=lg;this.fb="";this.fk="";this.seite=0;this.sel=null;this.neuZeichnen();},
+  rg(k,v){const R=M.daten.regler;if(typeof v=="number"&&typeof R[k]=="number"?Math.abs(v-R[k])<1e-9:v==R[k])delete this.E.regler[k];else this.E.regler[k]=v;this.zf();},
+  kap(){const S=this.S(this.lg);
+    $("kap340").innerHTML=M.daten.kapitel.map(k=>`<span class="chip" style="${S.kapitel.has(k)?"border-color:var(--s-mensch);font-weight:600":""}" onclick="MON['340'].kk('${k}')">${S.kapitel.has(k)?"✓ ":""}${k}</span>`).join("")+' <span class="klein">anklicken = Kapitel in dieser Sprache neu alignen (kostet)</span>';},
+  kk(k){const S=this.S(this.lg);S.kapitel.has(k)?S.kapitel.delete(k):S.kapitel.add(k);this.kap();this.zf();},
+  gefiltert(){const sp=M.daten.sprachen[this.lg]||{befunde:[]};return sp.befunde.filter(x=>(!this.fb||x.befund.includes(this.fb))&&(!this.fk||x.kapitel==this.fk));},
+  async liste(){
+    const sp=M.daten.sprachen[this.lg]||{befunde:[]},l=this.gefiltert(),N=this.N,ns=Math.max(1,Math.ceil(l.length/N));
+    if(this.seite>=ns)this.seite=ns-1;
+    $("n340").textContent=`(${l.length} von ${sp.befunde.length} Sätzen)`;
+    $("seiten340").innerHTML=ns>1?`<button onclick="MON['340'].blaettern(-1)" ${this.seite?"":"disabled"}>‹</button> Seite ${this.seite+1}/${ns} <button onclick="MON['340'].blaettern(1)" ${this.seite<ns-1?"":"disabled"}>›</button>`:"";
+    if(!l.length){$("bl340").innerHTML='<div class="klein">keine Befunde</div>';return;}
+    const ids=l.slice(this.seite*N,this.seite*N+N).map(x=>x.id),fehlen=ids.filter(i=>!this.T[i]);
+    if(fehlen.length){$("bl340").innerHTML='<div class="klein">lädt …</div>';
+      const r=await api(`/api/werk/${B()}/monitor/340/teil?lang=${encodeURIComponent(this.lg)}&ids=${encodeURIComponent(fehlen.join(","))}`);
+      if(r.fehler){$("bl340").innerHTML=`<span class="err">${esc(r.fehler)}</span>`;return;}
+      for(const s of r.saetze)this.T[s.id]=s;}
+    $("bl340").innerHTML=ids.map(i=>`<div class="s340" id="s340_${esc(i)}">${this.satz(this.T[i])}</div>`).join("");
+  },
+  blaettern(d){this.seite+=d;this.sel=null;this.liste();},
+  farbe(i){return `hsla(${(i*67)%360},70%,55%,.25)`;},
+  wirk(s){/* Anker je Quellwort inkl. offener Änderungen -> {i: [zieltoken]} */
+    const A=(this.S(this.lg).anker[s.id])||{},out={};
+    for(const w of s.woerter){if(String(w.i) in A){const f=A[w.i];out[w.i]=f==null?[]:f.tok;}else out[w.i]=w.z;}
+    return out;},
+  satz(s){
+    if(!s)return "";
+    const d=M.daten,S=this.S(this.lg),A=S.anker[s.id]||{},W=this.wirk(s),sel=this.sel&&this.sel.id==s.id?this.sel.i:null;
+    const zf={};for(const w of s.woerter)for(const k of W[w.i])if(!(k in zf))zf[k]=w.i;
+    const set=a=>new Set(a||[]),UR=set(s.unresolved),VS=set(s.verschoben),DP=set(s.doppelt),OA=set(s.ohne_anker),MA=set(s.manuell);
+    const q=s.woerter.map(w=>{const c=["qw"];if(UR.has(w.i))c.push("ur");if(VS.has(w.i))c.push("vs");if(DP.has(w.i))c.push("dp");
+      if(OA.has(w.i)&&!(String(w.i) in A))c.push("oa");if(MA.has(w.i))c.push("ma");if(String(w.i) in A)c.push("ge");if(sel===w.i)c.push("sel");
+      const bg=W[w.i].length?`background:${this.farbe(w.i)}`:"";
+      const tip=`[${w.i}] ${w.w} → ${W[w.i].map(k=>s.ztok[k]).join(" ")||"–"} (${String(w.i) in A?"geändert":w.source||"–"})${s.p&&s.p[w.i]?" · Prüfaligner: "+s.p[w.i].map(k=>s.ztok[k]).join(" "):""}`;
+      return `<span class="${c.join(" ")}" style="${bg}" title="${esc(tip)}" onclick="MON['340'].q('${esc(s.id)}',${w.i})" oncontextmenu="event.preventDefault();MON['340'].weg('${esc(s.id)}',${w.i})" onmouseenter="MON['340'].hl('${esc(s.id)}',${w.i})" onmouseleave="MON['340'].hl('${esc(s.id)}',null)">${esc(w.w)}</span>`;}).join(" ");
+    const z=s.ztok.map((t,k)=>`<span class="zw" data-k="${k}" style="${k in zf?`background:${this.farbe(zf[k])}`:""}" onclick="MON['340'].z('${esc(s.id)}',${k},event.shiftKey)">${esc(t)}</span>`).join(" ");
+    const kt=(s.ketten||[]).map(k=>`Kette ${k.von}–${k.bis} (${k.richtung>0?"→":"←"} Nachbar, ${k.treffer.length} Treffer)`).join(" · ");
+    const nl=s.nachlauf&&typeof s.nachlauf=="object"?s.nachlauf.ergebnis:s.nachlauf;
+    return `<div class="kopf340"><span class="klein">${esc(s.id)}</span> ${s.befund.map(b=>`<span class="chip">${esc(this.BN[b]||b)}</span>`).join("")}
+       ${kt?`<span class="klein">${esc(kt)}</span>`:""}${nl?` <span class="klein">Nachlauf: ${esc(nl)}</span>`:""}
+       <label class="klein" style="margin-left:auto"><input type="checkbox" ${S.neu.has(s.id)?"checked":""} ${Object.keys(A).length?"disabled":""} onchange="MON['340'].neu('${esc(s.id)}',this.checked)"> neu alignen (~${d.kosten_satz.toFixed(4)} $)</label>
+       ${Object.keys(A).length?`<button onclick="MON['340'].verwerfen('${esc(s.id)}')">Änderungen verwerfen</button>`:""}</div>
+     <div class="q340">${q}</div><div class="z340">${z}</div>`;
+  },
+  neuSatz(id){const el=$("s340_"+id);if(el)el.innerHTML=this.satz(this.T[id]);this.zf();},
+  q(id,i){this.sel=this.sel&&this.sel.id==id&&this.sel.i==i?null:{id,i,von:null};const alt=this.altSel;this.altSel=id;if(alt&&alt!=id)this.neuSatz(alt);this.neuSatz(id);},
+  z(id,k,erw){
+    const s=this.T[id];if(!this.sel||this.sel.id!=id){this.hinweis(id);return;}
+    const S=this.S(this.lg),i=this.sel.i;let a=k,b=k;
+    if(erw&&this.sel.von!=null){a=Math.min(this.sel.von,k);b=Math.max(this.sel.von,k);}else this.sel.von=k;
+    const tok=[];for(let x=a;x<=b;x++)tok.push(x);
+    const roh=s.ziel.slice(s.zsp[a][0],s.zsp[b][1]).replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu,"");
+    if(!roh){alert("Nur Satzzeichen – bitte ein Wort wählen.");return;}
+    (S.anker[id]=S.anker[id]||{})[i]={frag:roh,tok};S.neu.delete(id);this.neuSatz(id);},
+  hinweis(id){const el=$("s340_"+id);if(el&&!el.querySelector(".hw340"))el.insertAdjacentHTML("beforeend",'<div class="klein hw340">Erst ein Quellwort anklicken, dann das Zielwort.</div>');},
+  weg(id,i){const S=this.S(this.lg);(S.anker[id]=S.anker[id]||{})[i]=null;S.neu.delete(id);this.neuSatz(id);},
+  verwerfen(id){delete this.S(this.lg).anker[id];if(this.sel&&this.sel.id==id)this.sel=null;this.neuSatz(id);},
+  neu(id,an){const S=this.S(this.lg);an?S.neu.add(id):S.neu.delete(id);this.zf();},
+  hl(id,i){const s=this.T[id],el=$("s340_"+id);if(!s||!el)return;
+    const W=i==null?[]:this.wirk(s)[i],P=i==null?[]:((s.p||{})[i]||[]);
+    el.querySelectorAll(".zw").forEach(x=>{const k=+x.dataset.k;x.classList.toggle("hla",W.includes(k));x.classList.toggle("hlp",P.includes(k));});},
+  zf(){const E=this.E,t=[],nm={inhalt_min:"Inhalt",unresolved_max:"unresolved",verschoben_max:"verschoben",doppelt_max:"doppelt",ankerverlust:"Ankerverlust"};
+    for(const [lg,S] of Object.entries(E.spr)){const a=Object.values(S.anker).reduce((n,m)=>n+Object.keys(m).length,0);
+      if(a||S.neu.size||S.kapitel.size)t.push(`${lg}: `+[a&&a+" Anker",S.neu.size&&S.neu.size+" Sätze neu",S.kapitel.size&&S.kapitel.size+" Kapitel neu"].filter(Boolean).join(", "));}
+    for(const [k,v] of Object.entries(E.regler))t.push(k=="pruefaligner"?"Prüfaligner "+v:k=="kette"?"Kette "+v:(nm[k]||k)+" "+(v*100).toFixed(2)+" %");
+    if(E.alle)t.push("alle Kapitel neu (kostet)");
+    const el=$("zf340");if(el)el.textContent=t.join(" · ");},
+  los(trocken){
+    const d=M.daten,E=this.E,e={};
+    const mit=Object.entries(E.spr).filter(([,S])=>Object.keys(S.anker).length||S.neu.size||S.kapitel.size).map(([lg])=>lg);
+    if(mit.length>1){alert("Änderungen in mehreren Zielsprachen ("+mit.join(", ")+"): bitte je Sprache einzeln übernehmen.");return;}
+    if(mit.length){const lg=mit[0],S=E.spr[lg];e.lang=lg;
+      const an={};for(const [id,m] of Object.entries(S.anker)){const x={};for(const [i,v] of Object.entries(m))x[i]=v==null?null:v.frag;if(Object.keys(x).length)an[id]=x;}
+      if(Object.keys(an).length)e.anker=an;if(S.neu.size)e.satz=[...S.neu];if(S.kapitel.size)e.kapitel=[...S.kapitel];}
+    Object.assign(e,E.regler);if(E.alle)e.alle=true;if(trocken)e.trocken=true;
+    const n=(e.satz||[]).length,nk=(e.kapitel||[]).length;
+    if(!trocken&&!Object.keys(e).length&&!confirm("Nichts geändert – 340 nur neu prüfen?"))return;
+    if(!trocken&&E.alle&&!confirm(`Alle Kapitel werden neu aligned (Live-Modus, ~${d.kosten_neu.toFixed(3)} $). Weiter?`))return;
+    if(!trocken&&!E.alle&&(n||nk)&&!confirm([n&&`${n} Sätze neu alignen (~${(n*d.kosten_satz).toFixed(4)} $)`,nk&&`${nk} Kapitel neu alignen`].filter(Boolean).join(" und ")+"?"))return;
+    speichern(e).then(ok=>{if(ok&&!trocken){this.E=this.leer();this.sel=null;}});
   }
 };
 MON["190"]={

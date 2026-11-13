@@ -18,8 +18,10 @@ Gate:         Abdeckung 100 % (nach 2 Nachforderungen Luecke -> Stopp); je Satz:
 Kosten:       deepseek-v4-pro (config.MODELS translator); usage_log Stage 310 mit Sprache.
 Regler:       --ziel de,fr (wie 300), --modell, --batch N, --kapitel N|alle, --satz ID (neu uebersetzen, mehrfach),
               --satz-text ID=TEXT (manuell, Sprache mit --lang), --annehmen ID (Befund annehmen), --anker an|aus,
-              --laenge 0.5-2.0, --lang LG (nur diese Zielsprache), --uebernehmen (vorhandene 310_uebersetzung.json als
+              --laenge 0.5-2.0, --lang LG (Regler/Neulauf nur fuer diese Zielsprache; andere Sprachen unveraendert aus
+              310_uebersetzung.json, Gate bleibt vollstaendig), --uebernehmen (vorhandene 310_uebersetzung.json als
               Rohergebnis, ohne LLM), --trocken (Probe, schreibt nichts). Glossar/Namen: Regler in 210 (--glossar/--figur).
+              --modell/--batch/--laenge/--anker gelten je Werk (book.json uebersetzung_*), Monitor 310 (09.11.2026).
 Aufruf:
   python -m pipeline.s310_uebersetzung <werk> [Regler] [--wer CK]
 Exit: 0 auto, 2 Stopp, 3 Mensch, 1 Fehler.
@@ -47,6 +49,15 @@ GLOSSAR_MIN = 0.98
 VERSCHMELZ_LAENGE = 1.6
 SPRACHE_MIN_WOERTER = 8
 ANKER_RAND = 400
+KOSTEN_EIN = 2.2      # Eingabe-Token je Quell-Token (Satz + Anker-Ausschnitt + Profil/Prompt), Schaetzung
+KOSTEN_AUS = 1.3      # Ausgabe-Token je Quell-Token (JSON + laengere Zielsprache)
+
+
+def kosten_schaetzen(zeichen, modell=None, n_ziele=1):
+    """Schaetzung Neu-Uebersetzen in $ (Peak-Preis, ohne Cache; Token ~ Zeichen/4)."""
+    p = getattr(config, "PREISE", {}).get(modell or config.MODELS.get("translator")) or {}
+    tok = zeichen / 4
+    return n_ziele * (tok * KOSTEN_EIN * p.get("in", 0) + tok * KOSTEN_AUS * p.get("out", 0)) / 1e6
 
 
 # ============================================================
@@ -366,22 +377,34 @@ def run(werk, wer=None, modell=None, batch=None, kapitel=None, saetze_neu=None, 
         from pipeline import s080_mandant
         s080_mandant.darf(werk, "bestellen", wer)
         print(f"[310] {s300.ziel_setzen(werk, ziel, wer)}")
-    if anker is not None and not trocken:
-        bestellung.feld_setzen(werk, uebersetzung_anker=bool(anker))
+    if not trocken:                              # Regler je Werk (Monitor 310)
+        fe = {}
+        if anker is not None:
+            fe["uebersetzung_anker"] = bool(anker)
+        if modell:
+            fe["uebersetzung_modell"] = modell
+        if batch:
+            fe["uebersetzung_batch"] = int(batch)
+        if laenge:
+            fe["uebersetzung_laenge"] = [float(laenge[0]), float(laenge[1])]
+        if fe:
+            bestellung.feld_setzen(werk, **fe)
     g = gate.Gate(werk, STAGE, ruecksprung="310", wer=wer)
     b = bestellung.lesen(werk)
     src = b.quellsprache or config.SOURCE_LANGUAGE
     ziele = [z for z in (b.zielsprachen or []) if z != src]
-    if nur_lang:
-        ziele = [z for z in ziele if z == nur_lang]
+    if nur_lang and nur_lang not in ziele:
+        raise ValueError(f"--lang {nur_lang}: keine bestellte Zielsprache {ziele}")
     batch = int(batch or b.roh.get("uebersetzung_batch") or getattr(config, "TRANSLATE_BATCH_SIZE", BATCH))
-    laenge = laenge or LAENGE
+    laenge = tuple(laenge or b.roh.get("uebersetzung_laenge") or LAENGE)
+    modell = modell or b.roh.get("uebersetzung_modell")
     modell_eff = modell or config.MODELS.get("translator")
     mit_anker = b.roh.get("uebersetzung_anker", True) is not False
     g.metrik("zielsprachen", ziele)
     g.metrik("modell", modell_eff)
     g.metrik("batch", batch)
     g.metrik("anker", mit_anker)
+    g.metrik("laenge", list(laenge))
 
     ip = config.work_path(werk, "300_voruebersetzung")
     if not g.pflicht("voruebersetzung", os.path.exists(ip), ruecksprung="300", text="300_voruebersetzung.json vorhanden"):
@@ -416,7 +439,7 @@ def run(werk, wer=None, modell=None, batch=None, kapitel=None, saetze_neu=None, 
 
     alt310 = {}
     op = config.work_path(werk, "310_uebersetzung")
-    if (uebernehmen or trocken) and os.path.exists(op):
+    if (uebernehmen or trocken or nur_lang) and os.path.exists(op):
         with open(op, encoding="utf-8") as f:
             alt310 = json.load(f).get("content") or {}
     if trocken and not alt310:
@@ -444,7 +467,7 @@ def run(werk, wer=None, modell=None, batch=None, kapitel=None, saetze_neu=None, 
             kontext = manifest.hash_obj([PROMPT_V, src, lg, aus, modell_eff])
             hq = {t: manifest.hash_text(q) for t, q, _y in liste}
             anker_txt = (pt.get(cid) or {}).get(lg, "") if mit_anker else ""
-            if trocken:
+            if trocken or (nur_lang and lg != nur_lang):      # andere Sprachen unveraendert, kein LLM
                 res = {t: {"q": hq[t], "t": (alt310.get(t) or {}).get(lg, ""), "v": 1} for t, _q, _y in liste
                        if (alt310.get(t) or {}).get(lg)}
             else:

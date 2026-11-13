@@ -194,6 +194,75 @@ class T330(unittest.TestCase):
         self.assertEqual(g.ergebnis["ergebnis"], "auto", g.bericht())
         self.assertEqual(os.path.getmtime(os.path.join(self.d, "work", "330_rueckuebersetzung.json")), mt)
 
+    def test_regler_je_werk(self):
+        g = self.lauf(schwelle=85, flag_max=0.05, umfang="alle", stichprobe=20)
+        self.assertEqual(g.ergebnis["ergebnis"], "auto", g.bericht())
+        with open(os.path.join(self.d, "book.json"), encoding="utf-8") as f:
+            b = json.load(f)
+        self.assertEqual((b["rueck_schwelle"], b["rueck_flag_max"], b["rueck_umfang"], b["rueck_stichprobe"]),
+                         (85, 0.05, "alle", 20.0))
+        g = self.lauf(trocken=True)
+        self.assertEqual(g.metriken["schwelle"], 85)
+        self.assertGreater(P.kosten_schaetzen(10000), P.kosten_schaetzen(10000, reparatur=0))
+        self.assertGreater(P.kosten_schaetzen(10000, reparatur=0), 0)
+
+    def test_repariert_in_pruefliste(self):
+        self.scores = {DE["c001_00003_s"]: 40}
+        self.lauf()
+        with open(os.path.join(self.d, "work", "330_pruefung.json"), encoding="utf-8") as f:
+            pr = json.load(f)["de"]
+        self.assertEqual([(x["id"], x["befund"], x["score_vorher"], x["ziel_vorher"]) for x in pr],
+                         [("c001_00003_s", "repariert", 40, DE["c001_00003_s"])])
+
+    def test_lang_andere_sprachen_bleiben(self):
+        b = os.path.join(self.d, "book.json")
+        with open(b, encoding="utf-8") as f:
+            j = json.load(f)
+        j["produkte"].append({"sprache": "fr", "inhalt": "text", "kanaele": ["taella"]})
+        with open(b, "w", encoding="utf-8") as f:
+            json.dump(j, f)
+        p = os.path.join(self.d, "work", "320_integritaet.json")
+        with open(p, encoding="utf-8") as f:
+            d = json.load(f)
+        for e in d["content"].values():
+            e["fr"] = "FR " + e["en"]
+        with open(p, "w", encoding="utf-8") as f:
+            json.dump(d, f)
+        self.lauf()
+        n = len(self.aufrufe)
+        g = self.lauf(nur_lang="de", saetze_neu=["c002_00002_s"])
+        self.assertEqual(g.ergebnis["ergebnis"], "auto", g.bericht())
+        self.assertEqual(sorted(self.aus()["meta"]["quality_report"]["je_sprache"]), ["de", "fr"])
+        self.assertTrue(self.aufrufe[n:] and all(x[2] == ["c002_00002_s"] for x in self.aufrufe[n:]))
+        with open(os.path.join(self.d, "work", "330_pruefung.json"), encoding="utf-8") as f:
+            self.assertEqual(sorted(json.load(f)), ["de", "fr"])
+        with self.assertRaises(ValueError):
+            self.lauf(nur_lang="es")
+
+    def test_monitor_330(self):
+        from cockpit import werk_api as W
+        config.FLAG_MAX_KLEIN = 0
+        self.scores = {DE["c001_00003_s"]: 40, BESSER: 30}
+        self.lauf(satz_text=["c001_00002_s=Margarete schritt langsam zum alten Haus am Fluss."])
+        d = W._m330_daten("w")
+        sp = d["sprachen"]["de"]
+        self.assertEqual((d["ziele"], d["kapitel"], d["schwelle"]), (["de"], ["c001", "c002"], 90))
+        self.assertEqual([(x["id"], x["befund"], x["kapitel"]) for x in sp["befunde"]], [("c001_00003_s", "flag", "c001")])
+        self.assertFalse(sp["flag"]["ok"])
+        self.assertEqual((sp["manuell"], sp["erledigt"][0]["wer"]), (1, "test"))
+        self.assertGreater(d["kosten_satz"], 0)
+        a = W._m330_argv("w", {"lang": "de", "satz_text": {"c001_00004_dl": " Wer da? "}, "annehmen": ["c001_00003_s"],
+                               "kapitel": ["c002"], "schwelle": 85, "flag_max": 0.05, "umfang": "ausreisser",
+                               "stichprobe": 15}, "CK")
+        self.assertEqual(a[6:], ["--lang=de", "--satz-text=c001_00004_dl=Wer da?", "--annehmen=c001_00003_s",
+                                 "--kapitel=2", "--schwelle=85", "--flag-max=0.05", "--umfang=ausreisser",
+                                 "--stichprobe=15"])
+        for e in ({"lang": "fr", "satz": ["c001_00002_s"]}, {"lang": "de", "satz": ["x"]}, {"schwelle": 30},
+                  {"flag_max": 0.9}, {"umfang": "x"}, {"lang": "de", "kapitel": ["x"]},
+                  {"lang": "de", "satz": ["c001_00002_s"], "annehmen": ["c001_00002_s"]}):
+            with self.assertRaises(ValueError):
+                W._m330_argv("w", e, "CK")
+
 
 if __name__ == "__main__":
     unittest.main()

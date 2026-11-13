@@ -38,7 +38,8 @@ class T340(unittest.TestCase):
         self.d = os.path.join(r, "w")
         os.makedirs(os.path.join(self.d, "work"))
         self.alt = (config.book_dir, config.work_dir, config.RUN_MODE, api_layer.call_model, config.BASE_DIR,
-                    P.PRUEFALIGNER)
+                    P.PRUEFALIGNER, P.PRUEFALIGNER_WARTE)
+        P.PRUEFALIGNER_WARTE = 0
         config.book_dir = lambda b: self.d
         config.work_dir = lambda b: os.path.join(self.d, "work")
         config.BASE_DIR = r
@@ -72,7 +73,7 @@ class T340(unittest.TestCase):
 
     def tearDown(self):
         (config.book_dir, config.work_dir, config.RUN_MODE, api_layer.call_model, config.BASE_DIR,
-         P.PRUEFALIGNER) = self.alt
+         P.PRUEFALIGNER, P.PRUEFALIGNER_WARTE) = self.alt
         self.tmp.cleanup()
 
     def werk(self, de=None, gate330=True):
@@ -189,7 +190,7 @@ class T340(unittest.TestCase):
         g = self.lauf(pruefaligner="aus")
         self.assertEqual(g.ergebnis["ergebnis"], "auto", g.bericht())
         self.pa_fehler = False
-        g = self.lauf()                                                      # holt Pruefung nach, ohne LLM
+        g = self.lauf(pruefaligner="an")                                     # holt Pruefung nach, ohne LLM
         self.assertEqual(g.ergebnis["ergebnis"], "auto", g.bericht())
 
     def test_gate_330_stopp(self):
@@ -235,6 +236,125 @@ class T340(unittest.TestCase):
         e = self.aus()["content"]["c001_00003_s"]
         config.SOURCE_LANGUAGE, config.TARGET_LANGUAGES = "en", ["de"]
         self.assertEqual(s525.ziel_spans(e["align"], e["de"]), P.ziel_spans(e["align_de"], e["de"], lg="de"))
+
+    def test_regler_je_werk(self):
+        g = self.lauf(inhalt_min=0.9, unresolved_max=0.05, verschoben_max=0.02, doppelt_max=0.02, kette=4,
+                      ankerverlust=0.2, pruefaligner="aus")
+        self.assertEqual(g.ergebnis["ergebnis"], "auto", g.bericht())
+        with open(os.path.join(self.d, "book.json"), encoding="utf-8") as f:
+            b = json.load(f)
+        self.assertEqual((b["align_inhalt_min"], b["align_kette"], b["align_pruefaligner"], b["align_doppelt_max"]),
+                         (0.9, 4, "aus", 0.02))
+        g = self.lauf(trocken=True)
+        self.assertEqual((g.metriken["kette"], g.metriken["pruefaligner"]), (4, "aus"))
+        self.assertGreater(P.kosten_schaetzen(10000, 1000, 100), P.kosten_schaetzen(10000, 1000, 100, pruefaligner=False))
+
+    def test_pruefaligner_wiederholung(self):
+        P.PRUEFALIGNER_WARTE = 0
+        alt = P.PRUEFALIGNER
+        n = {"x": 0}
+
+        def einmal_weg(werk, lg, paare):
+            n["x"] += 1
+            if n["x"] == 1:
+                raise RuntimeError("modal kurz weg")
+            return alt(werk, lg, paare)
+        P.PRUEFALIGNER = einmal_weg
+        g = self.lauf()
+        self.assertEqual(g.ergebnis["ergebnis"], "auto", g.bericht())
+        self.assertEqual((n["x"], g.metriken["pruefaligner_wiederholt"]), (2, 1))
+
+    def test_pruefliste_ohne_anker_und_p(self):
+        self.antworten = {"c002_00002_s": [["Sie", None, "zweimal", "an", "die", "Tür"]]}
+        self.lauf()
+        with open(os.path.join(self.d, "work", "340_pruefung.json"), encoding="utf-8") as f:
+            pr = json.load(f)["de"]
+        x = next(x for x in pr if x["id"] == "c002_00002_s")
+        self.assertIn("ohne_anker", x["befund"])
+        self.assertEqual(x["ohne_anker"], [1])
+        self.assertTrue(x["p"])
+
+    def test_lang_andere_sprachen_bleiben(self):
+        b = os.path.join(self.d, "book.json")
+        with open(b, encoding="utf-8") as f:
+            j = json.load(f)
+        j["produkte"].append({"sprache": "fr", "inhalt": "text", "kanaele": ["taella"]})
+        with open(b, "w", encoding="utf-8") as f:
+            json.dump(j, f)
+        p = os.path.join(self.d, "work", "330_rueckuebersetzung.json")
+        with open(p, encoding="utf-8") as f:
+            d = json.load(f)
+        for e in d["content"].values():
+            e["fr"] = e["de"]
+        with open(p, "w", encoding="utf-8") as f:
+            json.dump(d, f, ensure_ascii=False)
+        self.lauf(pruefaligner="aus")
+        n = len(self.aufrufe)
+        g = self.lauf(nur_lang="de", saetze_neu=["c002_00002_s"])
+        self.assertEqual(g.ergebnis["ergebnis"], "auto", g.bericht())
+        self.assertEqual([x[0] for x in self.aufrufe[n:]], [["c002_00002_s"]])
+        self.assertEqual(sorted(g.metriken["je_sprache"]), ["de", "fr"])
+        self.assertIn("align_fr", self.aus()["content"]["c002_00002_s"])
+        with self.assertRaises(ValueError):
+            self.lauf(nur_lang="es")
+
+    def test_monitor_340(self):
+        from cockpit import werk_api as W
+        self.antworten = {"c002_00002_s": [["Sie", None, "zweimal", "an", "die", "Tür"]]}
+        self.lauf()
+        d = W._m340_daten("w")
+        sp = d["sprachen"]["de"]
+        self.assertEqual((d["ziele"], d["kapitel"], d["regler"]["kette"]), (["de"], ["c001", "c002"], 3))
+        self.assertEqual([(x["id"], x["n"]["ohne_anker"]) for x in sp["befunde"]], [("c002_00002_s", 1)])
+        self.assertEqual([p["art"] for p in sp["pruef"]], ["inhalt_mit_anker", "unresolved", "verschoben", "doppelt"])
+        self.assertGreater(d["kosten_satz"], 0)
+        t = W._m340_teil("w", {"lang": "de", "ids": "c002_00002_s"})["saetze"][0]
+        self.assertEqual(t["ztok"], ["Sie", "klopfte", "zweimal", "an", "die", "Tür."])
+        self.assertEqual([w["z"] for w in t["woerter"]][:3], [[0], [], [2]])
+        self.assertEqual(t["p"][1], [1])
+        a = W._m340_argv("w", {"lang": "de", "anker": {"c002_00002_s": {"1": "klopfte", "4": None}},
+                               "satz": ["c001_00002_s"], "kapitel": ["c002"], "inhalt_min": 0.9, "kette": 4,
+                               "pruefaligner": "aus"}, "CK")
+        self.assertEqual(a[6:], ["--lang=de", "--anker=c002_00002_s:1=klopfte", "--anker=c002_00002_s:4=-",
+                                 "--satz=c001_00002_s", "--kapitel=2", "--inhalt-min=0.9", "--kette=4",
+                                 "--pruefaligner=aus"])
+        for e in ({"lang": "fr", "satz": ["c001_00002_s"]}, {"lang": "de", "satz": ["x"]}, {"kette": 1},
+                  {"inhalt_min": 2}, {"pruefaligner": "x"}, {"lang": "de", "anker": {"c002_00002_s": {"1": " "}}},
+                  {"lang": "de", "anker": {"c001_00002_s": {"1": "x"}}, "satz": ["c001_00002_s"]}):
+            with self.assertRaises(ValueError):
+                W._m340_argv("w", e, "CK")
+        g = self.lauf(anker_regler=["c002_00002_s:1=klopfte"])                # Monitor-Weg: Anker setzen
+        self.assertEqual(g.ergebnis["ergebnis"], "auto", g.bericht())
+
+    def test_abbruch_kapitel_checkpoint(self):
+        alt = api_layer.call_model
+
+        def bricht(task, prompt, **kw):
+            if '"c002_00002_s"' in prompt:
+                raise KeyboardInterrupt("Server-Neustart")
+            return alt(task, prompt, **kw)
+        api_layer.call_model = bricht
+        config.ALIGN_PARALLEL = 1
+        try:
+            with self.assertRaises(KeyboardInterrupt):
+                self.lauf()
+        finally:
+            del config.ALIGN_PARALLEL
+            api_layer.call_model = alt
+        n = len(self.aufrufe)
+        g = self.lauf()
+        self.assertEqual(g.ergebnis["ergebnis"], "auto", g.bericht())
+        self.assertEqual([x[0] for x in self.aufrufe[n:]], [["c002_00001_h", "c002_00002_s"]])   # c001 aus Checkpoint
+
+    def test_parallel_gleiches_ergebnis(self):
+        config.ALIGN_PARALLEL = 1
+        try:
+            self.lauf(kapitel=["alle"])
+            a1 = self.aus()["content"]
+        finally:
+            del config.ALIGN_PARALLEL
+        self.lauf(kapitel=["alle"])
+        self.assertEqual(self.aus()["content"], a1)
 
 
 if __name__ == "__main__":

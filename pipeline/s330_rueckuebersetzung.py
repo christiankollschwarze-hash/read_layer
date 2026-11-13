@@ -17,11 +17,15 @@ Gate:         je Zielsprache: Flags nach Reparatur <= 3 % (ab 300 bewerteten Sae
               nicht bewertbar <= 1 % -> sonst Mensch; Durchschnitt >= 92 nur Hinweis; gehaeufte Namens-/Glossarbegriffe
               in Flags -> Hinweis (Ruecksprung 210); Mandant verlag -> immer Mensch; Gate 320 nicht frei -> Stopp;
               Mock im Live-Lauf -> Stopp. Mensch-Freigabe gilt bei gleichem ausgabe_hash.
-Kosten:       usage_log Stage 330 mit Sprache.
+Kosten:       usage_log Stage 330 mit Sprache; kosten_schaetzen() fuer den Monitor.
 Regler:       --schwelle 90, --flag-max 0.03, --modell-rueck, --modell-bewertung, --umfang alle|ausreisser
               (--stichprobe P %), --kapitel N|alle (neu bewerten), --satz ID (neu uebersetzen + bewerten),
               --satz-text ID=TEXT (manuell), --annehmen ID (Flag annehmen; beide mit --lang bei mehreren Zielsprachen),
               --lang LG, --uebernehmen (vorhandene 330_rueckuebersetzung.json als Rohergebnis), --trocken (Probe).
+              --schwelle/--flag-max/--umfang/--stichprobe gelten je Werk (book.json rueck_*), Monitor 330 (09.11.2026).
+              --lang wirkt nur auf Regler/Neubewertung dieser Sprache; andere Sprachen laufen ueber den Checkpoint
+              unveraendert mit (vorher fielen sie aus Ausgabe und 330_pruefung.json heraus).
+              330_pruefung.json fuehrt auch reparierte Saetze (befund "repariert", score_vorher, ziel_vorher).
 Aufruf:       python -m pipeline.s330_rueckuebersetzung <werk> [Regler] [--wer CK]
 Exit: 0 auto, 2 Stopp, 3 Mensch, 1 Fehler.
 """
@@ -47,6 +51,21 @@ FLAG_KLEIN = 10
 NICHT_BEWERTBAR_MAX = 0.01
 SCHNITT_HINWEIS = 92
 HAEUFUNG = 3
+KOSTEN_RUECK = (1.5, 1.2)    # (Eingabe, Ausgabe) Token je Ziel-Token: Rueckuebersetzung
+KOSTEN_BEW = (2.6, 0.05)     # je Ziel-Token: Original + Rueck rein, nur Score raus
+REPARATUR_ANTEIL = 0.05      # geschaetzter Anteil geflaggter Saetze (Reparatur wie 310 + Neubewertung)
+
+
+def kosten_schaetzen(zeichen, m_rueck=None, m_bew=None, n_ziele=1, reparatur=REPARATUR_ANTEIL):
+    """Schaetzung Rueckuebersetzen + Bewerten in $ (Peak-Preis, ohne Cache; Token ~ Zeichen/4)."""
+    pr = getattr(config, "PREISE", {})
+    r = pr.get(m_rueck or config.MODELS.get("backtranslator") or config.MODELS.get("translator")) or {}
+    b = pr.get(m_bew or config.MODELS.get("validator")) or {}
+    tok = zeichen / 4
+    einmal = (tok * KOSTEN_RUECK[0] * r.get("in", 0) + tok * KOSTEN_RUECK[1] * r.get("out", 0)
+              + tok * KOSTEN_BEW[0] * b.get("in", 0) + tok * KOSTEN_BEW[1] * b.get("out", 0)) / 1e6
+    rep = reparatur * (s310.kosten_schaetzen(zeichen) + einmal) if reparatur else 0
+    return n_ziele * (einmal + rep)
 
 
 # ============================================================
@@ -261,15 +280,28 @@ def run(werk, wer=None, schwelle=None, flag_max=None, m_rueck=None, m_bew=None, 
         kapitel=None, saetze_neu=None, satz_text=None, annehmen=None, nur_lang=None, uebernehmen=False, trocken=False,
         batch=None):
     wer = wer or "pipeline"
+    if not trocken:                              # Regler je Werk (Monitor 330)
+        fe = {}
+        if schwelle is not None:
+            fe["rueck_schwelle"] = int(schwelle)
+        if flag_max is not None:
+            fe["rueck_flag_max"] = float(flag_max)
+        if umfang:
+            fe["rueck_umfang"] = umfang
+        if stichprobe is not None:
+            fe["rueck_stichprobe"] = float(stichprobe)
+        if fe:
+            bestellung.feld_setzen(werk, **fe)
     g = gate.Gate(werk, STAGE, ruecksprung="310", wer=wer)
     b = bestellung.lesen(werk)
     src = b.quellsprache or config.SOURCE_LANGUAGE
     ziele = [z for z in (b.zielsprachen or []) if z != src]
-    if nur_lang:
-        ziele = [z for z in ziele if z == nur_lang]
+    if nur_lang and nur_lang not in ziele:
+        raise ValueError(f"--lang {nur_lang}: keine bestellte Zielsprache {ziele}")
     schwelle = int(schwelle if schwelle is not None else b.roh.get("rueck_schwelle") or
                    getattr(config, "VALIDATION_THRESHOLD", SCHWELLE))
-    flag_max = float(flag_max if flag_max is not None else getattr(config, "FLAG_MAX_ANTEIL", FLAG_MAX))
+    flag_max = float(flag_max if flag_max is not None else b.roh.get("rueck_flag_max")
+                     or getattr(config, "FLAG_MAX_ANTEIL", FLAG_MAX))
     flag_ab = int(getattr(config, "FLAG_ANTEIL_AB_SAETZEN", FLAG_AB))
     flag_klein = int(getattr(config, "FLAG_MAX_KLEIN", FLAG_KLEIN))
     umfang = umfang or b.roh.get("rueck_umfang") or "alle"
@@ -338,6 +370,8 @@ def run(werk, wer=None, schwelle=None, flag_max=None, m_rueck=None, m_bew=None, 
     haeufung = {}
     for lg in ziele:
         kap = saetze(data, src, lg)
+        mit_lg = not nur_lang or lg == nur_lang          # --lang: Neubewertung nur dieser Sprache
+        neu_lg = neu_ids if mit_lg else set()
         flags_lg, ns_lg, sc_lg, pruef[lg] = [], [], [], []
         n_lg, n_ungeprueft = 0, 0
         kontext = manifest.hash_obj([PROMPT_V, src, lg, m_rueck_eff, m_bew_eff])
@@ -347,7 +381,7 @@ def run(werk, wer=None, schwelle=None, flag_max=None, m_rueck=None, m_bew=None, 
             ck_soll.append((cid, lg))
             quelle = " ".join(q for _t, q, _z in liste)
             aus = s310.profil_ausschnitt(profil, quelle, lg)
-            frisch = neu_k is None or cid in neu_k
+            frisch = mit_lg and (neu_k is None or cid in neu_k)
             if trocken:
                 altck = {}
             else:
@@ -357,14 +391,14 @@ def run(werk, wer=None, schwelle=None, flag_max=None, m_rueck=None, m_bew=None, 
             for t, q, zt in liste:
                 h = satz_hash(q, zt)
                 if umfang == "ausreisser" and t not in aus_310.get(lg, set()) and not _stichprobe(t, stichprobe) \
-                        and t not in neu_ids:
+                        and t not in neu_lg:
                     res[t] = {"h": h, "ungeprueft": True}
                     continue
                 e = altck.get(t)
-                if e and e.get("h") == h and t not in neu_ids:
+                if e and e.get("h") == h and t not in neu_lg:
                     res[t] = e
                     continue
-                e = _vom_bestand(alt, t, lg, q, zt, schwelle) if (uebernehmen or trocken) and t not in neu_ids else None
+                e = _vom_bestand(alt, t, lg, q, zt, schwelle) if (uebernehmen or trocken) and t not in neu_lg else None
                 if e:
                     res[t] = e
                     continue
@@ -389,7 +423,7 @@ def run(werk, wer=None, schwelle=None, flag_max=None, m_rueck=None, m_bew=None, 
                     e = res.get(t) or {}
                     if e.get("ungeprueft") or e.get("s") is None:
                         continue
-                    erzwungen = t in neu_ids
+                    erzwungen = t in neu_lg
                     if not erzwungen and (e.get("v", 0) >= 1 or e["s"] >= schwelle):
                         continue
                     nb = s310._nachbarn(liste, i, {x: {"t": y} for x, _q, y in liste})
@@ -436,13 +470,18 @@ def run(werk, wer=None, schwelle=None, flag_max=None, m_rueck=None, m_bew=None, 
                     continue
                 if not e.get("alt") or e.get("t2"):
                     sc_lg.append(sc)
+                if sc >= schwelle and e.get("t2"):
+                    pruef[lg].append({"id": t, "quelle": q, "ziel": ziel, "ziel_vorher": zt, "rueck": rr, "score": sc,
+                                      "score_vorher": e.get("s"), "befund": "repariert"})
+                    continue
                 if sc < schwelle:
                     if k and k.get("angenommen"):
                         n_angenommen += 1
                         continue
                     flags_lg.append((t, sc))
                     pruef[lg].append({"id": t, "quelle": q, "ziel": ziel, "ziel_vorher": zt if e.get("t2") else None,
-                                      "rueck": rr, "score": sc, "befund": "flag"})
+                                      "rueck": rr, "score": sc, "score_vorher": e.get("s") if e.get("t2") else None,
+                                      "befund": "flag"})
                     ql = q.lower()
                     for begriff, _v in s300.erwartet(s310.profil_ausschnitt_satz(aus, q)):
                         if s300._kommt_vor(begriff, ql):
@@ -509,8 +548,7 @@ def run(werk, wer=None, schwelle=None, flag_max=None, m_rueck=None, m_bew=None, 
     if not trocken:
         manifest.json_atomar(config.work_path(werk, "330_rueckuebersetzung"), data, indent=2)
         manifest.json_atomar(os.path.join(config.work_dir(werk), "330_pruefung.json"), pruef, indent=1)
-        if not nur_lang:
-            ck.aufraeumen(ck_soll)
+        ck.aufraeumen(ck_soll)
     g.entscheide(mensch_immer=verlag, mensch_grund="Mandant verlag: Freigabe Uebersetzungsqualitaet" if verlag else None,
                  schreiben=not trocken)
     g.pruef = pruef
