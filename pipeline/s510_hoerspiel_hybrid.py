@@ -25,7 +25,7 @@ Regler:       book.json hoerspiel_regler: --schnitt modal|cpu, --ueberblend MS, 
               --auffaellig-max, --naht-db, --stueck-min, --dauer-min/--dauer-max, --fa-min, --versuche; dazu
               --behalten LG/TID (Erzaehlerfassung behalten), --bauen LG/TID (Behalten aufheben), --grenze LG/TID:K=A-B
               (Schnittgrenze Segment K in s, 'weg' = aufheben), --korrektur FIGUR:LG=F[,HT] --grund TEXT (an 410),
-              --satz ID (neu bauen inkl. Takes), --kapitel, --lang, --neu, --probe N, --kosten-freigeben USD, --trocken.
+              --satz ID (neu bauen inkl. Takes), --kapitel, --lang, --neu, --probe N, --kosten-freigeben [LG=]USD (je Sprache), --trocken.
 Aufruf:       py -3.11 -m pipeline.s510_hoerspiel_hybrid <werk> [Regler] [--wer CK]
 Exit: 0 auto, 2 Stopp, 3 Mensch, 1 Fehler.
 """
@@ -513,29 +513,47 @@ def run(werk, wer=None, regler=None, saetze=None, kapitel=None, nur_lang=None, n
         g.entscheide(schreiben=not trocken)
         return g
 
-    # ---- Kostenfreigabe / Schnitt-Werkzeuge vor dem Lauf
+    # ---- Kostenfreigabe je Sprache (CK 03.11.) / Schnitt-Werkzeuge vor dem Lauf
+    g.metrik("kosten_je_sprache", {lg: {"saetze": len(p["offen"]), "takes": sum(len(v) for v in p["take_neu"].values()),
+                                        "zeichen": p["zeichen"], "usd": p["usd"]} for lg, p in plan.items()})
     if n_offen and not mock.aktiv() and not trocken:
         if n_takes:
-            frei_k = kosten_freigeben is not None and usd <= float(kosten_freigeben)
+            kf = kosten_freigeben if isinstance(kosten_freigeben, dict) else (
+                {"*": kosten_freigeben} if kosten_freigeben is not None else {})
             im_budget = b.mandant_art == "somnio" and usd <= float(rg["budget"])
+            frei_lg = set(plan) if im_budget else s500._freigabe_je_sprache(kf, plan)
+            mit_kosten = {lg for lg, p in plan.items() if p["take_neu"]}
+            gesperrt = mit_kosten - frei_lg
             txt = (f"Kostenschaetzung {usd:.2f} $ fuer {n_takes} Figuren-Takes ("
                    + ", ".join(f"{lg} {sum(len(v) for v in p['take_neu'].values())} Takes/{p['zeichen']} Z. "
                                f"~{p['usd']:.2f} $" for lg, p in plan.items() if p["take_neu"]) + ")")
-            if not (frei_k or im_budget):
+            for lg in sorted(gesperrt):
+                p = plan[lg]
+                g.pruefe(f"kosten_{lg}", False, wert=p["usd"], bei_fehler="mensch", ruecksprung="510",
+                         text=f"{lg}: Kosten ~{p['usd']:.2f} $ fuer {sum(len(v) for v in p['take_neu'].values())} "
+                              f"Figuren-Takes nicht freigegeben"
+                              + (f" (ueber Budget {float(rg['budget']):.2f} $)" if b.mandant_art == "somnio"
+                                 else f" – Mandant {b.mandant_art}")
+                              + f" – Freigabe im Cockpit (Monitor 510) bzw. --kosten-freigeben {lg}={p['usd']:.2f}"
+                              + (" (Freigabe reicht nicht)" if lg in kf or "*" in kf else ""))
+            if gesperrt == mit_kosten:
                 g.pruefe("kosten", False, wert=usd, bei_fehler="mensch", ruecksprung="510",
-                         text=txt + (f" ueber Budget {float(rg['budget']):.2f} $" if b.mandant_art == "somnio"
-                                     else f" – Mandant {b.mandant_art}")
-                         + f" – Freigabe: py -3.11 -m pipeline.s510_hoerspiel_hybrid {werk} --kosten-freigeben "
-                           f"{usd:.2f} --wer CK" + (f" (Freigabe {float(kosten_freigeben):.2f} $ reicht nicht)"
-                                                     if kosten_freigeben is not None else ""))
+                         text=txt + " – Kostenfreigabe je Sprache noetig")
                 g.entscheide(schreiben=True)
                 return g
-            g.hinweis("kosten", True, wert=usd, text=txt + (" – freigegeben" if frei_k else " – im Budget"))
-            if frei_k:
+            for lg in gesperrt:                               # nicht freigegebene Sprachen warten
+                plan[lg]["offen"], plan[lg]["take_neu"], plan[lg]["gesperrt"] = [], {}, True
+            n_offen = sum(len(p["offen"]) for p in plan.values())
+            g.hinweis("kosten", True, wert=usd, text=txt + (" – im Budget" if im_budget else
+                      f" – freigegeben: {', '.join(sorted(mit_kosten - gesperrt))}"))
+            if not im_budget:
                 p_ = os.path.join(config.work_dir(werk), "510_kosten.json")
                 d = _json(p_, {"freigaben": []}) or {"freigaben": []}
-                d["freigaben"].append({"wann": status.jetzt(), "wer": wer, "usd": usd,
-                                       "grenze": float(kosten_freigeben), "takes": n_takes})
+                for lg in sorted(mit_kosten - gesperrt):
+                    d["freigaben"].append({"wann": status.jetzt(), "wer": wer, "sprache": lg, "usd": plan[lg]["usd"],
+                                           "grenze": float(kf.get(lg, kf.get("*", 0))),
+                                           "takes": sum(len(v) for v in plan[lg]["take_neu"].values()),
+                                           "saetze": len(plan[lg]["offen"])})
                 manifest.json_atomar(p_, d, indent=1)
         braucht_korr = any(_korr_aktiv(k) for p in plan.values() for k in p["korr"].values())
         fe = aligner_pruefen(rg["schnitt"], braucht_korr)
@@ -713,7 +731,7 @@ def _gate_sprache(g, m, lg, p, rg, trocken, probe, kap, nur_lang):
             if e["pruefung"] == "policy":
                 policy.append(tid)
     n = len(sel) or 1
-    teil = bool(probe or kap or (nur_lang and nur_lang != lg) or trocken)
+    teil = bool(probe or kap or (nur_lang and nur_lang != lg) or trocken or p.get("gesperrt"))
     if p["ohne500"]:
         _pf(g, trocken, f"satz500_{lg}", False, wert=len(p["ohne500"]), ruecksprung="500",
                   text=f"{lg}: {len(p['ohne500'])} Saetze ohne aktuelle Hoerbuch-WAV 500 – "
@@ -721,7 +739,7 @@ def _gate_sprache(g, m, lg, p, rg, trocken, probe, kap, nur_lang):
     if teil:
         g.hinweis(f"abdeckung_{lg}", not fehlt and not veraltet, wert=len(fehlt) + len(veraltet),
                   text=f"{lg}: {len(fehlt) + len(veraltet)} von {len(sel)} Hoerspiel-Saetzen ohne aktuelles Audio "
-                       f"({'Probe' if probe else 'Teillauf' if not trocken else 'Probe trocken'})")
+                       f"({'Kosten nicht freigegeben' if p.get('gesperrt') else 'Probe' if probe else 'Teillauf' if not trocken else 'Probe trocken'})")
     else:
         g.pflicht(f"abdeckung_{lg}", not fehlt, wert=round(1 - len(fehlt) / n, 4), ruecksprung="510",
                   text=f"{lg}: Abdeckung Hoerspiel-WAV je Satz mit Figurenanteil {len(sel) - len(fehlt)}/{len(sel)}"
@@ -772,7 +790,7 @@ def main(argv=None):
     ap.add_argument("--kapitel")
     ap.add_argument("--lang")
     ap.add_argument("--neu", action="store_true")
-    ap.add_argument("--kosten-freigeben", type=float, metavar="USD")
+    ap.add_argument("--kosten-freigeben", action="append", metavar="[LG=]USD")
     ap.add_argument("--trocken", action="store_true")
     a = ap.parse_args(argv)
     wer = a.wer or "pipeline"
@@ -780,9 +798,15 @@ def main(argv=None):
               "budget": a.budget, "auffaellig_max": a.auffaellig_max, "naht_db": a.naht_db,
               "stueck_min": a.stueck_min, "dauer_min": a.dauer_min, "dauer_max": a.dauer_max, "fa_min": a.fa_min,
               "versuche": a.versuche}
+    kf = None
+    if a.kosten_freigeben:
+        kf = {}
+        for x in a.kosten_freigeben:
+            k, v = x.split("=", 1) if "=" in x else ("*", x)
+            kf[k] = float(v)
     try:
         aend = a.behalten or a.bauen or a.grenze or a.korrektur
-        if (a.kosten_freigeben is not None or aend or any(v is not None for v in regler.values())) and not a.trocken:
+        if (kf or aend or any(v is not None for v in regler.values())) and not a.trocken:
             from pipeline import s080_mandant
             s080_mandant.darf(a.werk, "entscheiden", wer)
         if a.korrektur:
@@ -804,7 +828,7 @@ def main(argv=None):
                     gr[k] = dict(alt, **{seg: [a0, b0]})
             entscheidung_setzen(a.werk, wer, a.behalten or (), a.bauen or (), gr)
         g = run(a.werk, wer, regler=regler, saetze=a.satz, kapitel=a.kapitel.split(",") if a.kapitel else None,
-                nur_lang=a.lang, neu=a.neu, probe=a.probe, kosten_freigeben=a.kosten_freigeben, trocken=a.trocken)
+                nur_lang=a.lang, neu=a.neu, probe=a.probe, kosten_freigeben=kf, trocken=a.trocken)
     except gate.GateHalt as e:
         print(e)
         return e.exit_code

@@ -267,6 +267,51 @@ class T530(unittest.TestCase):
         self.assertEqual(g.ergebnis["ergebnis"], "auto", g.bericht())
         self.assertTrue(any("Mensch-Freigabe gilt" in h for h in g.ergebnis["hinweise"]))
 
+    def test_annehmen_und_monitor(self):
+        from cockpit import werk_api as W
+        self.kippt = {"c002_00003_s": True}
+        g = self.lauf(regler={"nachvertonen": False})
+        self.assertEqual(g.ergebnis["ergebnis"], "mensch", g.bericht())
+        alt = W.BASE
+        W.BASE = self.tmp.name
+        try:
+            d = W._m530_daten("w")
+        finally:
+            W.BASE = alt
+        s = d["spuren"]["de/hoerbuch"]
+        x = s["liste"][0]
+        self.assertEqual((x["id"], x["art"]), ("c002_00003_s", "gekippt"))
+        self.assertTrue(x["roh"].endswith("audio/c002_00003_s.wav") and x["audio"].endswith("audio_final/c002_00003_s.wav"))
+        self.assertEqual({k["kapitel"] for k in s["kapitel"]}, {"c001", "c002"})
+        self.assertEqual(d["spuren"]["de/hoerspiel"]["quelle"], "510")
+        with self.assertRaises(ValueError):
+            P.annehmen("w", "de", "hoerbuch", ["c002_00003_s"], "CK", " ")
+        with contextlib.redirect_stdout(io.StringIO()):
+            rc = P.main(["w", "--lang=de", "--spur=hoerbuch", "--annehmen=c002_00003_s", "--grund=klingt deutsch",
+                         "--wer", "CK"])
+        self.assertEqual(rc, 0)
+        with open(P.hoerliste_pfad("w"), encoding="utf-8") as f:
+            h = json.load(f)["de"]["hoerbuch"]
+        self.assertEqual((h["gekippt"], h["angenommen"][0]["grund"]), ([], "klingt deutsch"))
+        a = W._m530_argv("w", {"lang": "de", "spur": "hoerbuch", "annehmen": ["c002_00003_s"], "grund": "ok",
+                               "satz": ["c001_00002_s"], "tempo": {"de": 0.95}, "lufs": -19, "verdacht_max": 0.03,
+                               "nachvertonen": True}, "CK")
+        self.assertEqual(a[6:], ["--lang=de", "--spur=hoerbuch", "--annehmen=c002_00003_s", "--grund=ok",
+                                 "--satz=c001_00002_s", "--tempo=de=0.95", "--lufs=-19", "--verdacht-max=0.03",
+                                 "--nachvertonen=an"])
+        for e in ({"annehmen": ["c002_00003_s"], "grund": "x"}, {"lang": "de", "spur": "hoerbuch",
+                  "annehmen": ["c002_00003_s"]}, {"tempo": {"fr": 1}}, {"tempo": {"de": 3}}, {"lufs": -40},
+                  {"lang": "de", "spur": "hoerbuch", "satz": ["c009_x"]},
+                  {"lang": "de", "spur": "hoerbuch", "annehmen": ["c002_00003_s"], "grund": "x", "trocken": True}):
+            with self.assertRaises(ValueError, msg=e):
+                W._m530_argv("w", e, "CK")
+        wav(self.a("c002_00003_s"), 1.4, seed=77)                               # neue Roh-WAV -> Annahme verfaellt
+        m = manifest.Manifest("w", "500_vertonung", stage="500")
+        m.setzen("de/c002_00003_s", "n2", datei=self.a("c002_00003_s"), q="neu")
+        m.speichern()
+        g = self.lauf()
+        self.assertEqual(g.ergebnis["ergebnis"], "mensch", g.bericht())
+
     def test_ohne_fa_mensch(self):
         self.fa_leer = {"c001_00002_s"}
         g = self.lauf()

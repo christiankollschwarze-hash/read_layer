@@ -212,6 +212,59 @@ class T510(unittest.TestCase):
         self.assertEqual(len(self.calls), 2)
         self.assertEqual(self.lesen("510_kosten.json")["freigaben"][0]["takes"], 2)
 
+    def test_kosten_je_sprache(self):
+        self.werk(budget=0.0)
+        g = self.lauf(kosten_freigeben={"de": 0.00001})
+        self.assertEqual(g.ergebnis["ergebnis"], "mensch")
+        self.assertIn("kosten_de", {x["name"] for x in g.pruefungen if not x["ok"]})
+        self.assertEqual(self.calls, [])
+        g = self.lauf(kosten_freigeben={"de": 1.0})
+        self.assertEqual(len(self.calls), 2)
+        f = self.lesen("510_kosten.json")["freigaben"][0]
+        self.assertEqual((f["sprache"], f["takes"], f["grenze"]), ("de", 2, 1.0))
+        self.assertEqual(g.metriken["kosten_je_sprache"]["de"]["takes"], 2)
+
+    def test_cli_kosten_je_sprache(self):
+        self.werk(budget=0.0)
+        with contextlib.redirect_stdout(io.StringIO()):
+            P.main(["w", "--kosten-freigeben", "de=1", "--wer", "CK"])
+        self.assertEqual(len(self.calls), 2)
+
+    def test_monitor_daten_und_argv(self):
+        from cockpit import werk_api as W
+        alt = W.BASE
+        W.BASE = self.tmp.name
+        try:
+            self.policy = {"Wer bist du?"}
+            self.lauf()
+            d = W._m510_daten("w")
+        finally:
+            W.BASE = alt
+        sp = d["sprachen"]["de"]
+        self.assertEqual((sp["stufe"], sp["erzaehler"], sp["im_manifest"]), ("premium", "herr_a", 2))
+        x = next(x for x in sp["hoerliste"] if x["id"] == "c001_00003_dl")
+        self.assertEqual((x["art"], x["grund"], x["q"]), ("auffaellig", "policy", "erzaehler"))
+        self.assertEqual([s_["q"] for s_ in x["seg"]], ["Hutmacher", "erz"])
+        self.assertTrue(x["quellen"]["erz"]["audio"].endswith("c001_00003_dl.wav"))
+        self.assertIn("Alice", sp["stichprobe"])
+        self.assertEqual({f["figur"] for f in sp["figuren"]}, {"Hutmacher", "Alice"})
+        self.assertEqual(d["regler"]["naht_db"], 3.0)
+        a = W._m510_argv("w", {"lang": "de", "satz": ["c001_00003_dl"], "behalten": ["c001_00004_dl"],
+                               "grenze": {"c002_00002_dl": {"1": [0.2, 0.9]}, "c001_00004_dl": "weg"},
+                               "kosten_freigeben": {"de": 0.5}, "naht_db": 4, "ueberblend_ms": 20, "probe": 3}, "CK")
+        self.assertEqual(a[6:], ["--lang=de", "--satz=c001_00003_dl", "--behalten=de/c001_00004_dl",
+                                 "--grenze=de/c002_00002_dl:1=0.2-0.9", "--grenze=de/c001_00004_dl:0=weg",
+                                 "--kosten-freigeben=de=0.5", "--probe=3", "--naht-db=4", "--ueberblend=20"])
+        for e in ({"satz": ["c001_00003_dl"]}, {"lang": "fr"}, {"lang": "de", "satz": ["c009_00001_s"]},
+                  {"naht_db": 50}, {"kosten_freigeben": {"fr": 1}}, {"probe": 0},
+                  {"lang": "de", "grenze": {"c002_00002_dl": {"1": [0.9, 0.2]}}},
+                  {"lang": "de", "behalten": ["c001_00004_dl"], "trocken": True}):
+            with self.assertRaises(ValueError, msg=e):
+                W._m510_argv("w", e, "CK")
+        with contextlib.redirect_stdout(io.StringIO()):
+            P.main(["w", "--lang=de", "--grenze=de/c002_00002_dl:1=0.2-0.9", "--wer", "CK"])
+        self.assertEqual(P.entscheidungen("w")["grenzen"]["de/c002_00002_dl"], {"1": [0.2, 0.9]})
+
     def test_casting_nicht_frei_stopp(self):
         self.werk(frei=False)
         self.assertEqual(self.lauf().ergebnis["ergebnis"], "stopp")

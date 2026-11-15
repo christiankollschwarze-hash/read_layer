@@ -50,6 +50,7 @@ details.ausnahme{margin-top:10px}
 .qw.ge{outline:2px solid var(--s-mensch)}.qw.sel{outline:2px solid var(--ink)}
 .zw.hla{outline:2px solid var(--ink)}.zw.hlp{box-shadow:inset 0 0 0 2px var(--s-mensch);border-bottom:2px dashed var(--s-mensch)}
 .l340 .qw{cursor:default;margin-left:6px}
+.qw.hla{background:color-mix(in srgb,var(--s-frei) 35%,transparent);outline:2px solid var(--s-frei)}
 .t095 td{padding:6px 8px;vertical-align:top}.t095 select{margin-right:6px}
 .b400{display:grid;grid-template-columns:110px 1fr 1fr 190px;gap:6px 12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px;line-height:1.45}
 .b400.kopf{font-weight:600;font-size:12px;color:var(--ink-3)}.b400.geaendert{background:color-mix(in srgb,var(--s-mensch) 7%,transparent)}
@@ -100,7 +101,7 @@ async function laden(){
   $("kopfwerk").innerHTML=`<b>${esc(d.titel)}</b> <span class="klein">${esc(d.book_id)}</span>`;
   $("kette").innerHTML=d.kette.map(k=>`<a class="${esc(k.zustand)} ${k.stage==d.stage.stage?"akt":""}" title="${esc(k.name)}: ${esc(k.zustand)}" href="#${esc(d.book_id)}/${k.stage}">${k.stage}</a>`).join("");
   document.title=`${d.stage.stage} ${d.stage.name} – ${d.book_id}`;
-  ampelZeigen(d.ampel);gateZeigen();
+  LAUF=d.lauf||null;ampelZeigen(d.ampel);gateZeigen();
   const mon=MON[d.stage.stage];
   if(d.daten_fehler)$("inhalt").innerHTML=`<div class="box err">Monitor-Daten: ${esc(d.daten_fehler)}</div>`;
   else if(mon&&d.daten){$("inhalt").innerHTML=mon.html(d.daten);mon.danach&&mon.danach(d.daten);}
@@ -109,9 +110,17 @@ async function laden(){
   laufZeigen(d.lauf);
 }
 // ---------- Rahmen: Gate-Kopf (Zustand, Befunde, Rücksprung, Ausnahme)
+let LAUF=null;   // aktiver Lauf des Werks (Gate-Kopf zeigt dann "läuft" statt alter Befunde)
+function laufCmd(l){const c=Array.isArray(l.cmd)?l.cmd.join(" "):String(l.cmd||"");const m=c.match(/pipeline\.s(\d{3})_\w+|run\.py\s+\S+(.*)$/);return m?(m[1]?"Stage "+m[1]:"run.py"+(m[2]||"")):c.slice(0,80);}
 function gateZeigen(){
   const s=M.stage,r=M.rechte;
   const rs=s.ruecksprung_ziele||[];
+  if(LAUF&&LAUF.laeuft){
+    $("gate").innerHTML=`<h2>${s.stage} ${esc(s.name)} ${hilfeKnopf(s.stage)} <span class="z laeuft">läuft</span> <span class="klein">seit ${esc(String(LAUF.start||"").replace("T"," ").slice(0,16))}</span></h2>
+     <div class="hin">Ein Lauf ist aktiv (${esc(LAUF.art||"")} · ${esc(laufCmd(LAUF))}). Befunde und Entscheidung erscheinen, sobald der Lauf fertig ist – Fortschritt unten im Kasten „Lauf“.</div>
+     <div class="klein" style="margin-top:4px">Letzter Stand vor dem Lauf: ${esc(s.zustand)}${s.wann?" · "+esc(s.wann.replace("T"," ").slice(0,16)):""}</div>`;
+    const f2=$("freigabe2");if(f2)f2.innerHTML="";return;
+  }
   let h=`<h2>${s.stage} ${esc(s.name)} ${hilfeKnopf(s.stage)} ${zb(s.zustand)} <span class="klein">${esc(s.wer||"")} ${esc((s.wann||"").replace("T"," ").slice(0,16))}</span></h2>`;
   if(s.befunde.length)h+=`<div class="bef"><b>Befunde:</b><br>${s.befunde.map(esc).join("<br>")}</div>`;
   else if(s.gruende.length)h+=`<div class="hin">${s.gruende.map(esc).join("<br>")}</div>`;
@@ -215,6 +224,8 @@ async function speichern(eingabe){
 }
 function laufZeigen(l){
   clearTimeout(poll);
+  const vorher=!!(LAUF&&LAUF.laeuft);LAUF=l||null;
+  if(M&&vorher!=!!(l&&l.laeuft))gateZeigen();
   if(!l){$("laufbox").style.display="none";return;}
   $("laufbox").style.display="";
   const farbe={frei:"var(--g)",mensch:"var(--a)",stopp:"var(--r)",fehler:"var(--r)"}[l.deutung]||"var(--b)";
@@ -1712,6 +1723,417 @@ MON["500"]={
     const kost=Object.values(E.kf).reduce((s,v)=>s+(+v),0);
     if(!trocken&&kost&&!confirm(`Vertonung startet mit Kostenfreigabe bis ${kost.toFixed(2)} $ (${Object.keys(E.kf).join(", ")}). Weiter?`))return;
     if(!trocken&&!Object.keys(e).length&&!confirm("Nichts geändert – 500 nur neu prüfen?"))return;
+    speichern(e).then(ok=>{if(ok&&!trocken)this.E=this.leer();});
+  }
+};
+MON["510"]={
+  E:null,lg:null,fa:"",ed:null,
+  ART:{auffaellig:["mensch","auffällig"],probe:["","Probe"],behalten:["frei","Erzählerfassung behalten"],grenze:["frei","Grenze von Hand"],stichprobe:["","Stichprobe"]},
+  BEF:{naht:"Nahtsprung",dauer:"Dauer",fa:"FA-Wörter",kein_schnitt:"kein Schnitt",policy:"Policy",fehlt:"fehlt"},
+  FARBEN:["#c0392b","#2471a3","#7d3c98","#1e8449","#b9770e","#a04000","#117a65","#6c3483","#2e4053","#922b21"],
+  leer(){return {neu:{},beh:{},bau:{},gr:{},kf:{},regler:{},probe:5,probeLg:""};},
+  set(o,lg){return o[lg]=o[lg]||new Set();},
+  pl(p,w){return p?`<audio controls preload="none" src="/datei?p=${encodeURIComponent(p)}" style="width:${w||210}px;height:30px"></audio>`:'<span class="klein">–</span>';},
+  farbe(f){const sp=M.daten.sprachen[this.lg];const i=(sp.figuren||[]).findIndex(x=>x.figur==f);return i<0?"var(--ink-3)":this.FARBEN[i%this.FARBEN.length];},
+  segHtml(x,edit){const G=(this.E.gr[this.lg]||{})[x.id]||{};
+    return x.seg.map(s=>{const erz=s.q=="erz",c=erz?"var(--ink-3)":this.farbe(s.q),m=(x.grenzen||{})[String(s.k)],g=G[s.k];
+      const ab=s.a!=null?`${(+s.a).toFixed(2)}–${(+s.b).toFixed(2)} s`:"";
+      return `<div class="dz"><span class="dsp" style="color:${c}">${esc(s.sprecher=="Erzaehler"?"Erzähler":s.sprecher)}${!erz||s.sprecher=="Erzaehler"?"":" → Erzähler"}</span><span>${esc(s.t)}
+       <span class="klein">· ${erz?"aus 500":"Take"} ${ab}${m?` <b>(von Hand ${m[0]}–${m[1]})</b>`:""}</span>
+       ${edit?`<br><span class="klein">Grenze in der Quelle <input type="number" step="0.01" min="0" style="width:70px" value="${g?g[0]:(m?m[0]:(s.a??""))}" onchange="MON['510'].grenze('${x.id}',${s.k},0,this.value)"> – <input type="number" step="0.01" min="0" style="width:70px" value="${g?g[1]:(m?m[1]:(s.b??""))}" onchange="MON['510'].grenze('${x.id}',${s.k},1,this.value)"> s${g?' <span class="geaendert">geändert</span>':""}</span>`:""}</span></div>`;}).join("");},
+  quellen(x){return `<div class="klein">${Object.entries(x.quellen||{}).map(([q,v])=>`<div>${q=="erz"?"Erzähler 500":esc(q)+" (Take)"} ${v.dauer!=null?v.dauer.toFixed(2)+" s":""}<br>${this.pl(v.audio,190)}</div>`).join("")}</div>`;},
+  werte(x){const w=x.werte||{};const t=[];if(w.naht_db!=null)t.push("Naht "+w.naht_db+" dB");if(w.fa_min!=null)t.push("FA "+Math.round(100*w.fa_min)+" %");if(w.fa!=null)t.push("FA Seg "+w.segment+": "+Math.round(100*w.fa)+" %");
+    if(w.stueck_s!=null)t.push("Stück "+w.stueck_s+" s");if(w.dauer_q!=null)t.push("Dauer ×"+w.dauer_q);return t.join(" · ");},
+  html(d){
+    if(!this.E)this.E=this.leer();
+    const E=this.E,L=Object.keys(d.sprachen),ki=(M.stage.kosten||{}).usd;
+    if(!this.lg||!L.includes(this.lg))this.lg=L[0];
+    const rg=k=>E.regler[k]??d.regler[k];
+    let h=`<div class="box"><h2>1 Anzeigen</h2>
+     ${d.plan_fehler?`<div class="klein err">Planung (Probe) nicht möglich: ${esc(d.plan_fehler)}</div>`:""}
+     ${!L.length?'<div class="klein err">Kein Hörspiel bestellt oder Eingang fehlt – siehe Befunde oben.</div>':""}
+     <div class="feld">
+      <span>Kosten</span><span>Ist ${ki!=null?ki.toFixed(4)+" $":"–"} · offen (Schätzung) ${d.kosten_offen!=null?(+d.kosten_offen).toFixed(2)+" $":"–"} · Mandant ${esc(d.mandant)}${d.mandant=="somnio"?` · Budget ${d.budget.toFixed(2)} $ (darunter ohne Freigabe)`:" · Freigabe immer nötig"} · Kosten entstehen nur für neue Figuren-Takes; Schnitt, Korrektur und Behalten 0 $</span>
+      ${d.gruende_probe.length||d.hinweise_probe.length?`<span>Lauf jetzt</span><span class="klein">${d.gruende_probe.map(esc).join("<br>")}${d.hinweise_probe.length?"<br>"+d.hinweise_probe.map(esc).join("<br>"):""}</span>`:""}
+     </div>
+     ${L.length?`<table class="kapt" style="margin-top:8px"><tr><th>Sprache</th><th>Erzähler (500)</th><th>Hörspiel-Sätze</th><th>Herkunft</th><th>offen</th><th>Kosten freigeben</th></tr>
+      ${L.map(lg=>{const s=d.sprachen[lg],o=s.offen||{},fr=E.kf[lg]!=null;
+        return `<tr><td><b>${esc(lg)}</b><br><span class="klein">${esc(s.stufe||"")}</span></td><td>${esc(s.erzaehler||"–")}<br>${this.pl(s.erzaehler_probe)}</td>
+        <td>${s.im_manifest}/${s.saetze??"?"} mit Figurenanteil${s.fehlt?` · <span class="err">${s.fehlt} fehlen</span>`:""}${s.veraltet?` · <span class="err">${s.veraltet} veraltet</span>`:""}</td>
+        <td class="klein">${Object.entries(s.herkunft).map(([k,v])=>esc(k)+" "+v).join(" · ")||"–"}</td>
+        <td>${o.saetze?`${o.saetze} Sätze · ${o.takes} Takes · ${(o.zeichen||0).toLocaleString("de-DE")} Z. · ~${(+o.usd).toFixed(2)} $`:'<span class="klein">nichts offen</span>'}</td>
+        <td>${o.takes?`<label><input type="checkbox" ${fr?"checked":""} onchange="MON['510'].kfr('${lg}',this.checked)"> bis</label> <input type="number" step="0.01" min="0" style="width:70px" value="${fr?E.kf[lg]:(Math.ceil(o.usd*100+1)/100).toFixed(2)}" onchange="MON['510'].E.kf['${lg}']=+this.value;MON['510'].zf()"> $`:""}</td></tr>`;}).join("")}</table>
+     <div class="akt">Probe vor dem Volllauf: <input type="number" min="1" max="20" value="${E.probe}" style="width:50px" onchange="MON['510'].E.probe=+this.value"> Sätze
+      <select onchange="MON['510'].E.probeLg=this.value">${L.map(lg=>`<option ${E.probeLg==lg?"selected":""}>${lg}</option>`).join("")}</select>
+      <button onclick="MON['510'].probeLos()">Probe bauen</button> <span class="klein">wenige Cent; danach Hörliste prüfen und freigeben</span></div>`:""}</div>`;
+    const sp=d.sprachen[this.lg];
+    if(!sp)return h+this.unten(d,rg);
+    h+=`<div class="box"><h2>Ensemble ${esc(this.lg)}</h2>
+     <div class="akt">${L.map(z=>`<button class="${z==this.lg?"haupt":""}" onclick="MON['510'].wechsel('${z}')">${esc(z)} · ${d.sprachen[z].hoerliste.filter(x=>x.art=="auffaellig").length} auffällig</button>`).join(" ")}</div>
+     ${sp.figuren.length?`<table class="kapt"><tr><th>Figur</th><th>Stimme</th><th>Hörprobe</th><th>Korrektur</th><th>Sätze</th></tr>
+      ${sp.figuren.map(f=>{const k=f.korrektur||{};return `<tr><td><b style="color:${this.farbe(f.figur)}">${esc(f.figur)}</b></td><td>${esc(f.stimme||"–")} <span class="klein">${esc(f.gemini_id||"")}</span></td><td>${this.pl(f.probe)}</td>
+       <td class="klein">${f.korrektur?`Formant ${k.formant_faktor??1} · ${k.tonhoehe_ht??0} HT`:"–"} <a href="#${esc(M.book_id)}/410">→ 410</a></td><td>${f.saetze}</td></tr>`;}).join("")}</table>`:'<div class="klein">Noch keine Figuren im Hörspiel.</div>'}</div>`;
+    const st=Object.entries(sp.stichprobe||{});
+    h+=`<div class="box"><h2>Ensemble-Stichprobe ${esc(this.lg)} <span class="klein">(bis 3 Sätze je Figur – Pflicht vor der Hörspiel-Freigabe)</span></h2>
+     ${st.length?st.map(([f,l])=>`<h3 style="color:${this.farbe(f)}">${esc(f)}</h3><table class="kapt"><tr><th>Satz</th><th>Drehbuch</th><th>Hörspiel</th><th>Erzählerfassung 500</th></tr>
+      ${l.map(x=>`<tr><td class="klein">${esc(x.id)}</td><td style="max-width:460px">${this.segHtml(x,false)}</td><td>${this.pl(x.audio)}</td><td>${this.pl((x.quellen.erz||{}).audio)}</td></tr>`).join("")}</table>`).join("")
+      :'<div class="klein">Noch keine sauber gebauten Hörspiel-Sätze – erst Probe oder Volllauf.</div>'}</div>`;
+    const n=this.set(E.neu,this.lg),be=this.set(E.beh,this.lg),ba=this.set(E.bau,this.lg),G=E.gr[this.lg]||{};
+    const l=sp.hoerliste.filter(x=>!this.fa||x.art==this.fa);
+    h+=`<div class="box"><h2>2 Bearbeiten · Hörliste ${esc(this.lg)} <span class="klein">(${l.length} von ${sp.hoerliste.length})</span></h2>
+     <div class="akt">Art <select onchange="MON['510'].fa=this.value;MON['510'].neuZeichnen()"><option value="">alle</option>${["auffaellig","probe","behalten","grenze"].map(k=>`<option value="${k}" ${this.fa==k?"selected":""}>${this.ART[k][1]}</option>`).join("")}</select>
+      <span class="klein">Auffällig = Naht/FA/Stück/Dauer/Policy; dort ist bis zur Korrektur die Erzählerfassung 500 eingesetzt. „neu bauen“ erzeugt neue Takes (kostet); Behalten und Grenzen kosten nichts.</span></div>
+     ${l.length?`<table class="kapt"><tr><th>Satz</th><th>Befund</th><th>Drehbuch · Schnitt</th><th>Hörspiel</th><th>Quellen</th><th></th></tr>
+      ${l.map(x=>{const ed=this.ed==x.id,geaendert=n.has(x.id)||be.has(x.id)||ba.has(x.id)||G[x.id];
+        return `<tr class="${geaendert?"sel":""}" style="vertical-align:top"><td class="klein">${esc(x.id)}<br>${esc(x.q||"")}</td>
+         <td><span class="z ${this.ART[x.art][0]}">${this.ART[x.art][1]}</span>${x.grund?`<br><b>${esc(this.BEF[x.grund]||x.grund)}</b>`:""}<br><span class="klein">${esc(this.werte(x))}${x.versuche?" · "+x.versuche+" Versuche":""}</span>
+          ${x.behalten?`<br><span class="klein">behalten: ${esc(x.behalten.wer||"")} ${esc((x.behalten.wann||"").slice(0,16).replace("T"," "))}</span>`:""}</td>
+         <td style="max-width:440px">${this.segHtml(x,ed)}</td>
+         <td>${this.pl(x.audio)}<br><span class="klein">${x.dauer!=null?(+x.dauer).toFixed(1)+" s":""}</span></td>
+         <td>${this.quellen(x)}</td>
+         <td class="klein" style="min-width:170px"><label><input type="checkbox" ${n.has(x.id)?"checked":""} onchange="MON['510'].tg('neu','${x.id}',this.checked)"> neu bauen (~${(+x.usd_neu).toFixed(3)} $)</label>
+          ${x.behalten?`<br><label><input type="checkbox" ${ba.has(x.id)?"checked":""} onchange="MON['510'].tg('bau','${x.id}',this.checked)"> wieder Hörspiel bauen</label>`
+           :`<br><label><input type="checkbox" ${be.has(x.id)?"checked":""} onchange="MON['510'].tg('beh','${x.id}',this.checked)"> Erzählerfassung behalten</label>`}
+          <br><button onclick="MON['510'].ed=${ed?"null":`'${x.id}'`};MON['510'].neuZeichnen()">${ed?"Grenzen zu":"Schnittgrenzen"}</button>
+          ${x.grenzen?`<br><label><input type="checkbox" ${G[x.id]=="weg"?"checked":""} onchange="MON['510'].grWeg('${x.id}',this.checked)"> Grenzen von Hand aufheben</label>`:""}</td></tr>`;}).join("")}</table>`:'<div class="klein">keine Einträge</div>'}
+     <div class="klein">Schnittgrenze = Anfang–Ende des Stücks in seiner Quelle (Take bzw. Erzählerfassung 500), in Sekunden; die Quellen oben anhören, Grenze setzen, übernehmen. Sprechtext → <a href="#${esc(M.book_id)}/400">400</a>; Stimme/Korrektur → <a href="#${esc(M.book_id)}/410">410</a>; Segmente → <a href="#${esc(M.book_id)}/420">420</a>.</div></div>`;
+    return h+this.unten(d,rg);
+  },
+  unten(d,rg){
+    const R=(k,lab,min,max,st,w,f,inv)=>`${lab} <input type="number" min="${min}" max="${max}" step="${st}" value="${f?f(rg(k)):rg(k)}" style="width:${w||60}px" onchange="MON['510'].rg('${k}',${inv?inv:"+this.value"})">`;
+    return `<div class="box"><h2>Regler je Werk</h2>
+     <div class="akt">${R("budget","Budget (Somnio)",0,500,0.5,70)} $ · ${R("auffaellig_max","auffällig ≤",0,100,0.5,60,v=>+(100*v).toFixed(2),"+this.value/100")} %
+      · ${R("dauer_min","Dauer",0.1,1,0.05)} – ${R("dauer_max","",1,5,0.1)} × Satz 500 · ${R("versuche","Wiederholungen",0,3,1,50)}</div>
+     <div class="akt">${R("naht_db","Naht ≤",0.5,20,0.5)} dB · ${R("ueberblend_ms","Überblendung",0,100,1)} ms · ${R("fa_min","FA-Wörter ≥",10,100,1,60,v=>Math.round(100*v),"+this.value/100")} % · ${R("stueck_min","Stück ≥",0.01,2,0.01)} s</div>
+     <div class="klein">Standard: Budget ${d.standard.budget} $, auffällig ${100*d.standard.auffaellig_max} %, Dauer ${d.standard.dauer_min}–${d.standard.dauer_max}, ${d.standard.versuche} Wiederholungen, Naht ${d.standard.naht_db} dB, Überblendung ${d.standard.ueberblend_ms} ms, FA ${100*d.standard.fa_min} %, Stück ${d.standard.stueck_min} s. Technik (Schnitt Modal/CPU, Lautheit, Stil) nicht im Monitor. Neue Schwellen wirken auf die nächste Prüfung; Naht/Überblendung bauen betroffene Sätze neu (0 $).</div></div>
+    <div class="box"><h2>3 Speichern · 4 Freigeben</h2>
+     <div class="akt"><button class="haupt" onclick="MON['510'].los(false)">Übernehmen und 510 starten</button>
+      <button onclick="MON['510'].los(true)">Probe (schreibt nichts)</button> <span id="zf510" class="klein"></span></div>
+     <div class="klein">Ohne Kostenfreigabe entstehen keine neuen Takes (außer Somnio im Budget); nicht freigegebene Sprachen warten. Nach dem Lauf: Stichprobe je Figur anhören und oben „Freigeben“ – die Hörspiel-Freigabe ist immer Mensch und gilt, solange sich das Hörspiel nicht ändert.</div>
+     ${d.freigaben.length?`<details style="margin-top:8px"><summary class="klein">Kostenfreigaben (${d.freigaben.length})</summary><table class="kapt">${d.freigaben.slice().reverse().map(f=>`<tr><td class="klein">${esc((f.wann||"").slice(0,16).replace("T"," "))}</td><td class="klein">${esc(f.wer||"")}</td><td>${esc(f.sprache||"alle")}</td><td>${(+f.usd).toFixed(2)} $ (bis ${(+f.grenze).toFixed(2)})</td><td class="klein">${f.takes} Takes</td></tr>`).join("")}</table></details>`:""}</div>`;
+  },
+  danach(){this.zf();},
+  neuZeichnen(){$("inhalt").innerHTML=this.html(M.daten);this.danach();},
+  wechsel(lg){this.lg=lg;this.fa="";this.ed=null;this.neuZeichnen();},
+  kfr(lg,an){const o=M.daten.sprachen[lg].offen;if(an)this.E.kf[lg]=Math.ceil(o.usd*100+1)/100;else delete this.E.kf[lg];this.neuZeichnen();},
+  tg(was,id,an){const s=this.set(this.E[was],this.lg);an?s.add(id):s.delete(id);
+    if(an&&was=="beh")this.set(this.E.neu,this.lg).delete(id);if(an&&was=="neu")this.set(this.E.beh,this.lg).delete(id);this.neuZeichnen();},
+  grenze(id,k,i,v){const G=this.E.gr[this.lg]=this.E.gr[this.lg]||{};if(G[id]=="weg"||!G[id])G[id]={};
+    const x=M.daten.sprachen[this.lg].hoerliste.find(y=>y.id==id),s=x.seg.find(y=>y.k==k),m=(x.grenzen||{})[String(k)];
+    const g=G[id][k]=G[id][k]||[m?m[0]:s.a,m?m[1]:s.b];g[i]=+v;this.zf();},
+  grWeg(id,an){const G=this.E.gr[this.lg]=this.E.gr[this.lg]||{};if(an)G[id]="weg";else delete G[id];this.neuZeichnen();},
+  rg(k,v){if(Math.abs(v-M.daten.regler[k])<1e-9)delete this.E.regler[k];else this.E.regler[k]=+(+v).toFixed(4);this.zf();},
+  zf(){const E=this.E,t=[];
+    for(const [w,lab] of [["neu","neu bauen"],["beh","behalten"],["bau","wieder bauen"]])for(const [lg,s] of Object.entries(E[w]))if(s.size)t.push(`${lg}: ${s.size} ${lab}`);
+    for(const [lg,G] of Object.entries(E.gr))if(Object.keys(G).length)t.push(`${lg}: Grenzen ${Object.keys(G).length} Sätze`);
+    for(const [lg,v] of Object.entries(E.kf))t.push(`Kosten ${lg} bis ${(+v).toFixed(2)} $`);
+    for(const [k,v] of Object.entries(E.regler))t.push(k+" "+v);
+    const el=$("zf510");if(el)el.textContent=t.join(" · ");},
+  probeLos(){const lg=this.E.probeLg||Object.keys(M.daten.sprachen)[0],o=M.daten.sprachen[lg].offen||{};
+    const usd=o.saetze?Math.ceil((o.usd/o.saetze*this.E.probe*1.5)*100+1)/100:0.05;
+    if(!confirm(`Probe ${this.E.probe} Hörspiel-Sätze ${lg} bauen (Freigabe bis ${usd.toFixed(2)} $)?`))return;
+    speichern({lang:lg,probe:this.E.probe,kosten_freigeben:{[lg]:usd}});},
+  los(trocken){
+    const E=this.E,d=M.daten,e={};
+    const lgs=[...new Set(["neu","beh","bau"].flatMap(w=>Object.entries(E[w]).filter(([,s])=>s.size).map(([lg])=>lg)).concat(Object.keys(E.gr).filter(lg=>Object.keys(E.gr[lg]).length)))];
+    if(lgs.length>1){alert("Hörliste in mehreren Sprachen geändert: bitte je Sprache einzeln übernehmen.");return;}
+    if(lgs.length){const lg=lgs[0];e.lang=lg;
+      const n=[...(E.neu[lg]||[])],be=[...(E.beh[lg]||[])],ba=[...(E.bau[lg]||[])],G=E.gr[lg]||{};
+      if(be.length)e.behalten=be;if(ba.length)e.bauen=ba;if(Object.keys(G).length)e.grenze=G;
+      for(const [id,g] of Object.entries(G))if(g!="weg")for(const [k,v] of Object.entries(g))if(!(v[0]>=0&&v[1]>v[0])){alert(`Grenze ${id} Segment ${k}: Anfang < Ende nötig`);return;}
+      if(n.length){e.satz=n;const usd=d.sprachen[lg].hoerliste.filter(x=>n.includes(x.id)).reduce((s,x)=>s+(+x.usd_neu),0);
+        if(E.kf[lg]==null&&!(d.mandant=="somnio"&&usd<=(E.regler.budget??d.budget)))E.kf[lg]=Math.ceil(usd*150+1)/100;}}
+    if(Object.keys(E.kf).length)e.kosten_freigeben=E.kf;Object.assign(e,E.regler);
+    if(trocken){delete e.behalten;delete e.bauen;delete e.grenze;e.trocken=true;}
+    const kost=Object.values(E.kf).reduce((s,v)=>s+(+v),0);
+    if(!trocken&&kost&&!confirm(`Hörspiel-Bau startet mit Kostenfreigabe bis ${kost.toFixed(2)} $ (${Object.keys(E.kf).join(", ")}). Weiter?`))return;
+    if(!trocken&&!Object.keys(e).length&&!confirm("Nichts geändert – 510 nur neu prüfen?"))return;
+    speichern(e).then(ok=>{if(ok&&!trocken){this.E=this.leer();this.ed=null;}});
+  }
+};
+MON["520"]={
+  E:null,sel:null,fa:"",T:{},auf:null,raf:null,wahl:null,
+  BEF:{ohne_zeiten:"ohne Zeiten",lautwoerter:"Lautwörter fehlen",dauer:"außerhalb Dauer",monoton:"nicht monoton"},
+  leer(){return {satz:{},zeit:{},regler:{},interp:null};},
+  K(){return this.sel;},
+  set(o){return o[this.sel]=o[this.sel]||new Set();},
+  pct:v=>v==null?"–":(100*v).toFixed(1)+" %",
+  html(d){
+    if(!this.E)this.E=this.leer();
+    const E=this.E,S=Object.keys(d.spuren);
+    if(!this.sel||!S.includes(this.sel))this.sel=S[0];
+    const rg=k=>E.regler[k]??d.regler[k];
+    let h=`<div class="box"><h2>1 Anzeigen</h2>
+     ${d.plan_fehler?`<div class="klein err">Planung (Probe) nicht möglich: ${esc(d.plan_fehler)}</div>`:""}
+     ${!S.length?'<div class="klein err">Kein TAELLA-Audioprodukt bestellt.</div>':""}
+     ${d.gruende_probe.length||d.hinweise_probe.length?`<div class="klein">${d.gruende_probe.map(esc).join("<br>")}${d.hinweise_probe.length?"<br>"+d.hinweise_probe.map(esc).join("<br>"):""}</div>`:""}
+     ${S.length?`<table class="kapt" style="margin-top:8px"><tr><th>Sprache · Spur</th><th>Sätze</th><th>gemessen</th><th>zu messen</th><th>Lautwörter mit Zeit</th><th>unplausible Wortdauer</th><th>Befunde</th><th>von Hand</th></tr>
+      ${S.map(k=>{const s=d.spuren[k],lw=s.lautwoerter,up=s.unplausibel;
+        return `<tr class="${k==this.sel?"sel":""}"><td><button class="${k==this.sel?"haupt":""}" onclick="MON['520'].wechsel('${k}')">${esc(s.sprache)} · ${esc(s.spur)}</button>${s.altformat?'<br><span class="klein err">Altformat – wird neu gemessen</span>':""}</td>
+         <td>${s.saetze??"?"}${s.fehlt?` <span class="err">(${s.fehlt} ohne Endfassung 530)</span>`:""}</td><td>${s.gemessen}</td><td>${s.offen??"–"}</td>
+         <td>${lw==null?"–":`<span class="${lw<rg("lautwoerter_min")?"err":""}">${this.pct(lw)}</span>`} <span class="klein">≥ ${this.pct(rg("lautwoerter_min"))}</span></td>
+         <td>${up==null?"–":`<span class="${up>rg("unplausibel_max")?"err":""}">${this.pct(up)}</span>`} <span class="klein">≤ ${this.pct(rg("unplausibel_max"))}</span></td>
+         <td class="klein">${Object.entries(s.befunde).map(([b,n])=>esc(this.BEF[b]||b)+" "+n).join(" · ")||"–"}${s.abweich?`<br><span class="err">Lesetext ≠ 340: ${s.abweich}</span>`:""}</td><td>${s.manuell}</td></tr>`;}).join("")}</table>`:""}
+     ${Object.keys(d.bruecke).length?`<div class="feld" style="margin-top:8px"><span>Wortbrücke 525</span><span>${Object.entries(d.bruecke).map(([lg,x])=>`${esc(lg)}: Anker mit Zeit <b class="${x.anker_quote<rg("anker_min")?"err":""}">${this.pct(x.anker_quote)}</b> (≥ ${this.pct(rg("anker_min"))}${x.anker_quote<rg("anker_min")?` → Anker fehlen: <a href="#${esc(M.book_id)}/340">340</a>`:""})`).join(" · ")}</span></div>`:""}
+    </div>`;
+    const s=d.spuren[this.sel];
+    if(s){const n=this.set(E.satz),Z=E.zeit[this.sel]||{};
+      const l=s.liste.filter(x=>!this.fa||x.art==this.fa||(x.befund||[]).includes(this.fa));
+      h+=`<div class="box"><h2>2 Korrigieren · Prüfliste ${esc(s.sprache)} · ${esc(s.spur)} <span class="klein">(${l.length} von ${s.liste.length})</span></h2>
+       <div class="akt">Filter <select onchange="MON['520'].fa=this.value;MON['520'].neuZeichnen()"><option value="">alle</option>${Object.entries(this.BEF).map(([k,v])=>`<option value="${k}" ${this.fa==k?"selected":""}>${v}</option>`).join("")}<option value="manuell" ${this.fa=="manuell"?"selected":""}>von Hand</option></select>
+        · Satz öffnen <input type="text" id="t520" size="16" placeholder="c001_00002_s"> <button onclick="MON['520'].oeffne($('t520').value.trim())">Karaoke</button>
+        <span class="klein">Klick auf „Karaoke“ spielt den Satz mit mitlaufender Markierung; Wort anklicken = Wortgrenze setzen.</span></div>
+       ${l.length?`<table class="kapt"><tr><th>Satz</th><th>Befund</th><th>Text</th><th></th></tr>
+        ${l.map(x=>`<tr class="${n.has(x.id)||Z[x.id]?"sel":""}"><td class="klein">${esc(x.id)}</td>
+         <td class="klein">${(x.befund||[]).map(b=>`<span class="z mensch">${esc(this.BEF[b]||b)}</span>`).join(" ")||(x.art=="manuell"?'<span class="z frei">von Hand</span>':"")}${x.versuch==2?"<br>2. Messung (CPU)":""}${x.unplausibel?"<br>"+x.unplausibel+" Wörter unplausibel":""}</td>
+         <td style="max-width:520px">${esc(x.text||"")}</td>
+         <td class="klein"><button onclick="MON['520'].oeffne('${x.id}')">Karaoke</button><br><label><input type="checkbox" ${n.has(x.id)?"checked":""} onchange="MON['520'].tg('${x.id}',this.checked)"> neu messen</label></td></tr>`).join("")}</table>`:'<div class="klein">keine Einträge</div>'}
+       <div id="kar520"></div>
+       <div class="klein">Audio falsch (Schnitt, Pause, Tempo) → <a href="#${esc(M.book_id)}/530">530</a>; Text/Aussprache falsch → <a href="#${esc(M.book_id)}/400">400</a>; Anker fehlen → <a href="#${esc(M.book_id)}/340">340</a>.</div></div>`;}
+    const R=(k,lab,min,max,st,f,inv)=>`${lab} <input type="number" min="${min}" max="${max}" step="${st}" value="${f?f(rg(k)):rg(k)}" style="width:62px" onchange="MON['520'].rg('${k}',${inv||"+this.value"})">`;
+    const P=v=>+(100*v).toFixed(2);
+    h+=`<div class="box"><h2>Regler je Werk</h2>
+     <div class="akt">${R("lautwoerter_min","Lautwörter ≥",50,100,0.5,P,"+this.value/100")} % · ${R("anker_min","Anker mit Zeit ≥",50,100,0.5,P,"+this.value/100")} %
+      · Wortdauer ${R("wortdauer_min","",0,1,0.01)} – ${R("wortdauer_max","",0.5,10,0.1)} s · ${R("unplausibel_max","unplausibel ≤",0,100,0.1,P,"+this.value/100")} % · ${R("toleranz_s","Toleranz",0,1,0.01)} s
+      · <label><input type="checkbox" ${(E.interp??d.regler.interpolation)?"checked":""} onchange="MON['520'].E.interp=this.checked==M.daten.regler.interpolation?null:this.checked;MON['520'].zf()"> Interpolation (525)</label></div>
+     <div class="klein">Standard: Lautwörter ${100*d.standard.lautwoerter_min} %, Anker ${100*d.standard.anker_min} %, Wortdauer ${d.standard.wortdauer_min}–${d.standard.wortdauer_max} s, unplausibel ${100*d.standard.unplausibel_max} %, Toleranz ${d.standard.toleranz_s} s, Interpolation ${d.standard.interpolation?"an":"aus"}. FA Modal/CPU und Wiederholung nicht im Monitor.</div></div>
+    <div class="box"><h2>3 Speichern · 4 Freigeben</h2>
+     <div class="akt"><button class="haupt" onclick="MON['520'].los(false)">Übernehmen und 520 starten</button>
+      <button onclick="MON['520'].los(true)">Probe (schreibt nichts)</button> <span id="zf520" class="klein"></span></div>
+     <div class="klein">Gesetzte Wortzeiten gelten, solange Satz und Endfassung gleich bleiben (neue WAV → verworfen). Neu messen kostet nur Modal-Sekunden (Cent-Bereich). ${d.korrekturen?d.korrekturen+" Sätze mit Wortzeiten von Hand.":""}</div></div>`;
+    return h;
+  },
+  danach(){this.zf();if(this.auf)this.zeigen(this.auf);},
+  neuZeichnen(){this.stopp();$("inhalt").innerHTML=this.html(M.daten);this.danach();},
+  wechsel(k){this.sel=k;this.fa="";this.auf=null;this.wahl=null;this.neuZeichnen();},
+  tg(id,an){const s=this.set(this.E.satz);an?s.add(id):s.delete(id);this.neuZeichnen();},
+  rg(k,v){if(Math.abs(v-M.daten.regler[k])<1e-9)delete this.E.regler[k];else this.E.regler[k]=+(+v).toFixed(4);this.zf();},
+  async oeffne(id){if(!id)return;const s=M.daten.spuren[this.sel],key=this.sel+"/"+id;
+    if(!this.T[key]){const r=await api(`/api/werk/${B()}/monitor/520/teil?lang=${encodeURIComponent(s.sprache)}&spur=${s.spur}&ids=${encodeURIComponent(id)}`);
+      if(r.fehler){alert(r.fehler);return;}const x=(r.saetze||[])[0];if(!x||!x.bekannt){alert("Satz "+id+" unbekannt");return;}this.T[key]=x;}
+    this.auf=id;this.wahl=null;this.zeigen(id);},
+  zeit(x,i){const Z=((this.E.zeit[this.sel]||{})[x.id]||{})[i];if(Z)return {t0:Z[0],t1:Z[1],neu:true};const t=x.tags.find(y=>y.i==i);return t?{t0:t.t0,t1:t.t1}:null;},
+  zeigen(id){
+    const x=this.T[this.sel+"/"+id],el=$("kar520");if(!x||!el)return;
+    const w=this.wahl,zw=w!=null?this.zeit(x,w):null;
+    el.innerHTML=`<div class="s340" style="margin-top:10px"><div class="kopf340"><b>${esc(x.id)}</b> ${x.befund.map(b=>`<span class="z mensch">${esc(this.BEF[b]||b)}</span>`).join(" ")}
+      <span class="klein">${x.dauer!=null?(+x.dauer).toFixed(2)+" s":""} · ${x.tags.length}/${x.tokens.length} Wörter mit Zeit${x.manuell.length?" · von Hand: "+x.manuell.length:""}</span>
+      <button onclick="MON['520'].auf=null;MON['520'].stopp();$('kar520').innerHTML=''">schließen</button></div>
+     ${x.audio?`<audio id="au520" controls src="/datei?p=${encodeURIComponent(x.audio)}" style="width:100%" onplay="MON['520'].lauf()" onpause="MON['520'].stopp()" onseeked="MON['520'].mark()"></audio>`:'<div class="klein err">Keine Endfassung 530.</div>'}
+     <div class="q340" style="font-size:17px;line-height:2.2">${x.tokens.map((t,i)=>{const z=this.zeit(x,i);
+       return `<span class="qw ${z?"":"ur"} ${z&&z.neu?"ge":""} ${x.manuell.includes(i)?"ma":""} ${i===w?"sel":""}" id="kw520_${i}" title="${z?z.t0.toFixed(2)+"–"+z.t1.toFixed(2)+" s":"ohne Zeit"}" onclick="MON['520'].wort(${i})">${esc(t)}</span>`;}).join(" ")}</div>
+     <div class="klein">Gesprochen: ${esc(x.sprechtext)}</div>
+     ${w!=null?`<div class="akt">Wort <b>${esc(x.tokens[w])}</b> von <input type="number" id="w0" step="0.01" min="0" style="width:72px" value="${zw?zw.t0:""}"> bis <input type="number" id="w1" step="0.01" min="0" style="width:72px" value="${zw?zw.t1:""}"> s
+       <button onclick="$('w0').value=($('au520').currentTime).toFixed(2)">Anfang = Position</button> <button onclick="$('w1').value=($('au520').currentTime).toFixed(2)">Ende = Position</button>
+       <button onclick="MON['520'].wortHoeren()">anhören</button> <button class="haupt" onclick="MON['520'].wortSetzen()">Wortzeit merken</button>
+       ${zw&&zw.neu?`<button onclick="MON['520'].wortWeg()">verwerfen</button>`:""}</div>`:""}</div>`;
+  },
+  wort(i){this.wahl=i;this.zeigen(this.auf);const z=this.zeit(this.T[this.sel+"/"+this.auf],i),a=$("au520");if(z&&a){a.currentTime=z.t0;this.mark();}},
+  wortHoeren(){const a=$("au520"),t0=+$("w0").value,t1=+$("w1").value;if(!a||!(t1>t0))return;a.currentTime=t0;a.play();const ende=()=>{if(a.currentTime>=t1){a.pause();a.removeEventListener("timeupdate",ende);}};a.addEventListener("timeupdate",ende);},
+  wortSetzen(){const t0=+$("w0").value,t1=+$("w1").value,x=this.T[this.sel+"/"+this.auf];
+    if(!(t0>=0&&t1>t0)){alert("Anfang < Ende nötig");return;}if(x.dauer&&t1>x.dauer+0.05){alert("Ende liegt hinter dem Satzende");return;}
+    const Z=this.E.zeit[this.sel]=this.E.zeit[this.sel]||{};(Z[x.id]=Z[x.id]||{})[this.wahl]=[+t0.toFixed(3),+t1.toFixed(3)];this.zeigen(this.auf);this.zf();},
+  wortWeg(){const Z=(this.E.zeit[this.sel]||{})[this.auf];if(Z){delete Z[this.wahl];if(!Object.keys(Z).length)delete this.E.zeit[this.sel][this.auf];}this.zeigen(this.auf);this.zf();},
+  mark(){const a=$("au520"),x=this.T[this.sel+"/"+this.auf];if(!a||!x)return;const t=a.currentTime;
+    x.tokens.forEach((_,i)=>{const el=$("kw520_"+i),z=this.zeit(x,i);if(el)el.classList.toggle("hla",!!z&&t>=z.t0&&t<z.t1);});},
+  lauf(){const s=()=>{this.mark();this.raf=requestAnimationFrame(s);};cancelAnimationFrame(this.raf);s();},
+  stopp(){cancelAnimationFrame(this.raf);this.raf=null;},
+  zf(){const E=this.E,t=[];
+    for(const [k,s] of Object.entries(E.satz))if(s.size)t.push(`${k}: ${s.size} neu messen`);
+    for(const [k,Z] of Object.entries(E.zeit)){const n=Object.values(Z).reduce((a,o)=>a+Object.keys(o).length,0);if(n)t.push(`${k}: ${n} Wortzeiten`);}
+    for(const [k,v] of Object.entries(E.regler))t.push(k+" "+v);if(E.interp!=null)t.push("Interpolation "+(E.interp?"an":"aus"));
+    const el=$("zf520");if(el)el.textContent=t.join(" · ");},
+  los(trocken){
+    const E=this.E,e={};
+    const ks=[...new Set([...Object.entries(E.satz).filter(([,s])=>s.size).map(([k])=>k),...Object.keys(E.zeit).filter(k=>Object.keys(E.zeit[k]).length)])];
+    if(ks.length>1){alert("Änderungen in mehreren Sprachen/Spuren: bitte je Sprache und Spur einzeln übernehmen.");return;}
+    if(ks.length){const s=M.daten.spuren[ks[0]];e.lang=s.sprache;e.spur=s.spur;
+      if((E.satz[ks[0]]||new Set()).size)e.satz=[...E.satz[ks[0]]];if(E.zeit[ks[0]])e.zeit=E.zeit[ks[0]];}
+    Object.assign(e,E.regler);if(E.interp!=null)e.interpolation=E.interp;
+    if(trocken){delete e.zeit;e.trocken=true;}
+    if(!trocken&&!Object.keys(e).length&&!confirm("Nichts geändert – 520 nur neu prüfen?"))return;
+    speichern(e).then(ok=>{if(ok&&!trocken){this.E=this.leer();this.T={};this.auf=null;}});
+  }
+};
+MON["530"]={
+  E:null,sel:null,fa:"",
+  ART:{gekippt:["stopp","gekippt"],verdacht:["mensch","Verdacht"],ohne_fa:["mensch","ohne FA-Ränder"],angenommen:["frei","angenommen"]},
+  leer(){return {satz:{},an:{},regler:{},tempo:{},nv:null,grund:""};},
+  set(o){return o[this.sel]=o[this.sel]||new Set();},
+  pl(p){return p?`<audio controls preload="none" src="/datei?p=${encodeURIComponent(p)}" style="width:200px;height:30px"></audio>`:'<span class="klein">–</span>';},
+  html(d){
+    if(!this.E)this.E=this.leer();
+    const E=this.E,S=Object.keys(d.spuren);
+    if(!this.sel||!S.includes(this.sel))this.sel=S[0];
+    const rg=k=>E.regler[k]??d.regler[k];
+    let h=`<div class="box"><h2>1 Anzeigen</h2>
+     ${d.plan_fehler?`<div class="klein err">Planung (Probe) nicht möglich: ${esc(d.plan_fehler)}</div>`:""}
+     ${!S.length?'<div class="klein err">Kein Audio bestellt.</div>':""}
+     ${d.gruende_probe.length||d.hinweise_probe.length?`<div class="klein">${d.gruende_probe.map(esc).join("<br>")}${d.hinweise_probe.length?"<br>"+d.hinweise_probe.map(esc).join("<br>"):""}</div>`:""}
+     ${S.length?`<table class="kapt" style="margin-top:8px"><tr><th>Sprache · Spur</th><th>Endfassung</th><th>FA offen</th><th>Tempo</th><th>Rand max</th><th>Sprachprüfung</th><th>Hörliste</th></tr>
+      ${S.map(k=>{const s=d.spuren[k],n=s.liste.filter(x=>x.art!="angenommen").length;
+        return `<tr class="${k==this.sel?"sel":""}"><td><button class="${k==this.sel?"haupt":""}" onclick="MON['530'].wechsel('${k}')">${esc(s.sprache)} · ${esc(s.spur)}</button><br><span class="klein">Roh aus ${esc(s.quelle)}</span></td>
+         <td>${s.endfassung}/${s.saetze??"?"} · ${s.dauer_min} min${s.fehlt?` <span class="err">(${s.fehlt} ohne Roh-WAV)</span>`:""}</td><td>${s.fa_offen??"–"}</td><td>${s.tempo??"–"}</td>
+         <td><span class="${s.rand_max>rg("rand_max")?"err":""}">${(+s.rand_max).toFixed(2)} s</span></td>
+         <td class="klein">${Object.entries(s.stufen).map(([a,v])=>esc(a)+" "+v).join(" · ")||"–"}</td><td>${n?`<b>${n}</b>`:"0"}</td></tr>`;}).join("")}</table>`:""}</div>`;
+    const s=d.spuren[this.sel];
+    if(s){const n=this.set(E.satz),a=this.set(E.an);
+      const l=s.liste.filter(x=>!this.fa||x.art==this.fa);
+      h+=`<div class="box"><h2>Kapitelpegel ${esc(s.sprache)} · ${esc(s.spur)}</h2>
+       ${s.kapitel.length?`<table class="kapt"><tr><th>Kapitel</th><th>Sätze</th><th>LUFS vorher</th><th>Verstärkung</th><th>LUFS nachher</th><th>Spitze</th></tr>
+        ${s.kapitel.map(k=>`<tr><td>${esc(k.kapitel)}</td><td>${k.saetze}</td><td>${k.lufs_vor}</td><td>${k.gain_db>0?"+":""}${k.gain_db} dB${k.begrenzt?' <span class="klein">begrenzt</span>':""}</td>
+         <td class="${k.lufs_aus?"err":""}">${k.lufs}</td><td class="${k.spitze_aus?"err":""}">${k.peak} dBTP</td></tr>`).join("")}</table>
+        <div class="klein">Ziel ${rg("lufs")} ± ${rg("lufs_tol")} LUFS, Spitze ≤ ${rg("peak_max")} dBTP.</div>`:'<div class="klein">Noch keine Endfassung.</div>'}</div>
+      <div class="box"><h2>2 Handeln · Hörliste ${esc(s.sprache)} · ${esc(s.spur)} <span class="klein">(${l.length} von ${s.liste.length})</span></h2>
+       <div class="akt">Art <select onchange="MON['530'].fa=this.value;MON['530'].neuZeichnen()"><option value="">alle</option>${Object.entries(this.ART).map(([k,v])=>`<option value="${k}" ${this.fa==k?"selected":""}>${v[1]}</option>`).join("")}</select>
+        <span class="klein">„neu bauen“ schneidet und normiert den Satz neu (0 $, FA im Cent-Bereich). Klingt schon die Rohfassung falsch → in <a href="#${esc(M.book_id)}/${esc(s.quelle)}">${esc(s.quelle)}</a> neu vertonen. „annehmen“ braucht unten einen Grund und gilt, bis die Endfassung neu entsteht.</span></div>
+       ${l.length?`<table class="kapt"><tr><th>Satz</th><th>Befund</th><th>Sprechtext · erkannt</th><th>Roh</th><th>Endfassung</th><th></th></tr>
+        ${l.map(x=>{const sp=x.sprache||{};return `<tr class="${n.has(x.id)||a.has(x.id)?"sel":""}"><td class="klein">${esc(x.id)}</td>
+         <td><span class="z ${this.ART[x.art][0]}">${this.ART[x.art][1]}</span><br><span class="klein">${sp.top?"Sprache "+esc(sp.top)+(sp.p!=null?" ("+Math.round(100*sp.p)+" %)":""):""}${sp.cer!=null?" · CER "+Math.round(100*sp.cer)+" %":""}${x.nachvertont?" · "+x.nachvertont+"× nachvertont":""}${x.rand?" · Rand "+x.rand.map(v=>(+v).toFixed(2)).join("/")+" s":""}</span>
+          ${x.art=="angenommen"?`<br><span class="klein">${esc(x.wer||"")} ${esc((x.wann||"").slice(0,16).replace("T"," "))}: ${esc(x.grund||"")}</span>`:""}</td>
+         <td style="max-width:420px">${esc(x.text||"")}${sp.text?`<br><span class="klein">erkannt: ${esc(sp.text)}</span>`:""}</td>
+         <td>${this.pl(x.roh)}</td><td>${this.pl(x.audio)}<br><span class="klein">${x.dauer!=null?(+x.dauer).toFixed(1)+" s":""}</span></td>
+         <td class="klein"><label><input type="checkbox" ${n.has(x.id)?"checked":""} onchange="MON['530'].tg('satz','${x.id}',this.checked)"> neu bauen</label>
+          ${x.art!="angenommen"?`<br><label><input type="checkbox" ${a.has(x.id)?"checked":""} onchange="MON['530'].tg('an','${x.id}',this.checked)"> annehmen</label>`:""}
+          <br><a href="#${esc(M.book_id)}/${esc(s.quelle)}">→ ${esc(s.quelle)} neu vertonen</a></td></tr>`;}).join("")}</table>`:'<div class="klein">keine Einträge</div>'}
+       <div class="klein">Namen falsch ausgesprochen → Aussprache in <a href="#${esc(M.book_id)}/400">400</a>.</div></div>`;}
+    const R=(k,lab,min,max,st,f,inv)=>`${lab} <input type="number" min="${min}" max="${max}" step="${st}" value="${f?f(rg(k)):rg(k)}" style="width:62px" onchange="MON['530'].rg('${k}',${inv||"+this.value"})">`;
+    const P=v=>+(100*v).toFixed(2),Ls=[...new Set(S.map(k=>d.spuren[k].sprache))];
+    h+=`<div class="box"><h2>Regler je Werk</h2>
+     <div class="akt">Tempo ${Ls.map(lg=>`${esc(lg)} <input type="number" min="0.5" max="2" step="0.01" style="width:62px" value="${E.tempo[lg]??d.regler.tempo[lg]??(S.map(k=>d.spuren[k]).find(s=>s.sprache==lg)||{}).tempo??1}" onchange="MON['530'].E.tempo['${lg}']=+this.value;MON['530'].zf()">`).join(" ")}
+      · Rand ${R("vor","vor",0,1,0.01)} ${R("nach","nach",0,1,0.01)} s · ${R("rand_max","Rand ≤",0.01,1,0.01)} s</div>
+     <div class="akt">${R("lufs","LUFS-Ziel",-30,-10,0.5)} ± ${R("lufs_tol","",0.1,3,0.1)} · ${R("peak_max","Spitze ≤",-6,0,0.1)} dBTP
+      · ${R("verdacht_max","Verdacht ≤",0,100,0.5,P,"+this.value/100")} % · ${R("ohne_fa_max","ohne FA ≤",0,100,0.5,P,"+this.value/100")} % · ${R("cer_verdacht","CER-Verdacht ≥",1,100,1,P,"+this.value/100")} %
+      · ${R("versuche","Nachvertonungen",0,3,1)} · <label><input type="checkbox" ${(E.nv??d.regler.nachvertonen)?"checked":""} onchange="MON['530'].E.nv=this.checked==M.daten.regler.nachvertonen?null:this.checked;MON['530'].zf()"> gekippte Sätze automatisch nachvertonen</label></div>
+     <div class="klein">Standard: Rand ${d.standard.vor}/${d.standard.nach} s (≤ ${d.standard.rand_max}), ${d.standard.lufs} ± ${d.standard.lufs_tol} LUFS, Spitze ${d.standard.peak_max} dBTP, Verdacht ${100*d.standard.verdacht_max} %, ohne FA ${100*d.standard.ohne_fa_max} %, CER ${100*d.standard.cer_verdacht} %, ${d.standard.versuche} Nachvertonungen. Tempo-Änderung baut die Sprache neu (0 $). FA/Whisper Modal/CPU, Stichprobe, p-min, kurz-s nicht im Monitor.</div></div>
+    <div class="box"><h2>3 Speichern · 4 Freigeben</h2>
+     <div class="akt"><input type="text" size="50" placeholder="Grund (Pflicht beim Annehmen)" value="${esc(E.grund)}" oninput="MON['530'].E.grund=this.value">
+      <button class="haupt" onclick="MON['530'].los(false)">Übernehmen und 530 starten</button>
+      <button onclick="MON['530'].los(true)">Probe (schreibt nichts)</button> <span id="zf530" class="klein"></span></div>
+     <div class="klein">Automatische Nachvertonung kann in 500/510 Kosten auslösen; dort gilt die Kostenfreigabe je Sprache.</div></div>`;
+    return h;
+  },
+  danach(){this.zf();},
+  neuZeichnen(){$("inhalt").innerHTML=this.html(M.daten);this.danach();},
+  wechsel(k){this.sel=k;this.fa="";this.neuZeichnen();},
+  tg(was,id,an){const s=this.set(this.E[was]);an?s.add(id):s.delete(id);if(an)this.set(this.E[was=="an"?"satz":"an"]).delete(id);this.neuZeichnen();},
+  rg(k,v){if(Math.abs(v-M.daten.regler[k])<1e-9)delete this.E.regler[k];else this.E.regler[k]=+(+v).toFixed(4);this.zf();},
+  zf(){const E=this.E,t=[];
+    for(const [k,s] of Object.entries(E.satz))if(s.size)t.push(`${k}: ${s.size} neu bauen`);
+    for(const [k,s] of Object.entries(E.an))if(s.size)t.push(`${k}: ${s.size} annehmen`);
+    for(const [lg,v] of Object.entries(E.tempo))t.push(`Tempo ${lg} ${v}`);
+    for(const [k,v] of Object.entries(E.regler))t.push(k+" "+v);if(E.nv!=null)t.push("Nachvertonen "+(E.nv?"an":"aus"));
+    const el=$("zf530");if(el)el.textContent=t.join(" · ");},
+  los(trocken){
+    const E=this.E,d=M.daten,e={};
+    const ks=[...new Set([...Object.entries(E.satz),...Object.entries(E.an)].filter(([,s])=>s.size).map(([k])=>k))];
+    if(ks.length>1){alert("Hörliste in mehreren Sprachen/Spuren geändert: bitte einzeln übernehmen.");return;}
+    if(ks.length){const s=d.spuren[ks[0]];e.lang=s.sprache;e.spur=s.spur;
+      const n=[...(E.satz[ks[0]]||[])],a=[...(E.an[ks[0]]||[])];
+      if(a.length){if(!E.grund.trim()){alert("Annehmen braucht einen Grund");return;}e.annehmen=a;e.grund=E.grund.trim();}
+      if(n.length)e.satz=n;}
+    const tp={};for(const [lg,v] of Object.entries(E.tempo)){const alt=d.regler.tempo[lg];if(alt==null||Math.abs(alt-v)>1e-9)tp[lg]=v;}
+    if(Object.keys(tp).length)e.tempo=tp;Object.assign(e,E.regler);if(E.nv!=null)e.nachvertonen=E.nv;
+    if(trocken){delete e.annehmen;delete e.grund;e.trocken=true;}
+    if(!trocken&&!Object.keys(e).length&&!confirm("Nichts geändert – 530 nur neu prüfen?"))return;
+    speichern(e).then(ok=>{if(ok&&!trocken)this.E=this.leer();});
+  }
+};
+MON["540"]={
+  E:null,K:[],
+  URT:{ok:["frei","getrennt"],angenommen:["frei","angenommen"],zu_kurz:["mensch","zu kurz"],nachrunde:["mensch","Nachrunde"],
+       nachrunde_aus:["mensch","nicht getrennt"],grenze:["stopp","an der Grenze"],umbesetzen:["stopp","umbesetzen"]},
+  leer(){return {korr:{},an:new Set(),regler:{},nr:null,neu:false,grund:""};},
+  pl(p,w){return p?`<audio controls preload="none" src="/datei?p=${encodeURIComponent(p)}" style="width:${w||170}px;height:30px"></audio>`:'<span class="klein">–</span>';},
+  f2(v){return v==null?"–":(+v).toFixed(3);},
+  html(d){
+    if(!this.E)this.E=this.leer();
+    const E=this.E,L=Object.keys(d.sprachen);this.K=[];
+    const rg=k=>E.regler[k]??d.regler[k],schw=rg("ecapa_min")??d.regel.ecapa;
+    let h=`<div class="box"><h2>1 Anzeigen</h2>
+     ${d.plan_fehler?`<div class="klein err">Planung (Probe) nicht möglich: ${esc(d.plan_fehler)}</div>`:""}
+     ${!L.length?'<div class="klein err">Kein Hörspiel bestellt – 540 entfällt.</div>':""}
+     ${d.gruende_probe.length||d.hinweise_probe.length?`<div class="klein">${d.gruende_probe.map(esc).join("<br>")}${d.hinweise_probe.length?"<br>"+d.hinweise_probe.map(esc).join("<br>"):""}</div>`:""}
+     <div class="feld" style="margin-top:8px">
+      <span>Regel</span><span>Version ${esc(d.regel.version??"?")} (${esc(d.regel.stand||"")}) · ECAPA-Schwelle ${d.regel.ecapa}${d.regler.ecapa_min!=null?` · <b>je Werk ${d.regler.ecapa_min}</b>`:""} · D-Schwelle ${d.regel.D_schwelle??"–"}</span>
+      <span>Messung</span><span>${esc(d.regler.messung)} · ${d.messung_offen.length?`neu nötig: ${d.messung_offen.map(esc).join(", ")} (~${d.kosten_offen.toFixed(2)} $)`:"alle Messungen aktuell (0 $)"}</span></div></div>`;
+    for(const lg of L){const s=d.sprachen[lg],pn=s.plan,k=s.kontrolle;
+      h+=`<div class="box"><h2>${esc(lg)} · ${esc(s.stufe)} <span class="klein">${s.gemessen?(s.aktuell?"Messung aktuell":"Messung veraltet")+" · "+esc((s.datum||"").slice(0,16).replace("T"," "))+(s.messung?" · "+esc(s.messung.art)+(s.messung.wiederverwendet?" (wiederverwendet)":""):""):"noch nicht gemessen"}</span></h2>
+       <div class="feld">
+        <span>Erzähler</span><span>${esc(s.erzaehler_stimme||"?")} ${this.pl(s.erzaehler_probe)} ${s.erzaehler_saetze!=null?`<span class="klein">${s.erzaehler_saetze} Sätze Referenz</span>`:""}</span>
+        <span>Kontrolle Hörbuch</span><span>${k?`<span class="z ${k.sprecher==1?"frei":"mensch"}">${k.sprecher} Sprecher</span>${k.sprecher!=1?` <a href="#${esc(M.book_id)}/500">→ 500 Erzählerfassung prüfen</a>`:""}`:"–"}${s.wechsel&&s.wechsel.recall!=null?` <span class="klein">· pyannote erkennt ${Math.round(100*s.wechsel.recall)} % der Wechsel (Hinweis)</span>`:""}</span>
+        <span>Umfang</span><span>${pn?`${pn.figuren} Figuren · ${pn.stuecke} Figurenstücke · ${pn.saetze} Hörspiel-Sätze · ${pn.erzaehler} Erzählersätze`:"–"}${s.quellen?` <span class="klein">(Regionen: ${Object.entries(s.quellen).map(([a,v])=>esc(a)+" "+v).join(", ")})</span>`:""}</span></div>
+       ${pn&&pn.fehler.length?`<div class="bef klein">${pn.fehler.map(esc).join("<br>")}</div>`:""}
+       ${pn&&pn.hinweise.length?`<div class="hin klein">${pn.hinweise.map(esc).join("<br>")}</div>`:""}
+       <table class="kapt" style="margin-top:8px"><tr><th>Figur</th><th>Stimme · Ziel</th><th>Korrektur</th><th>Rede</th><th>ECAPA Erz. / Schwelle</th><th>Ziel</th><th>D</th><th>pyannote</th><th>Runde</th><th>Urteil</th><th>Hörprobe A Figur | B Erzähler</th><th>Handeln</th></tr>
+       ${s.figuren.map(f=>{const key=f.figur+":"+lg,i=this.K.push(key)-1,ec=f.ecapa||{},u=f.annahme&&f.urteil!="ok"?"angenommen":f.urteil,uu=this.URT[u]||["",u||"–"];
+         const kn=E.korr[key],ff=kn=="weg"?1:(kn?kn[0]:f.korrektur.formant_faktor),ht=kn=="weg"?0:(kn?kn[1]:f.korrektur.tonhoehe_ht);
+         const dD=f.D||{};
+         return `<tr class="${kn||E.an.has(key)?"sel":""}"><td><b>${esc(f.figur)}</b>${f.statist?'<br><span class="klein">Statist</span>':""}</td>
+          <td>${esc(f.stimme||"–")}<br>${this.pl(f.ziel_probe,140)}</td>
+          <td>F ${(+f.korrektur.formant_faktor).toFixed(2)}${f.korrektur.tonhoehe_ht?` · ${f.korrektur.tonhoehe_ht>0?"+":""}${f.korrektur.tonhoehe_ht} HT`:""}${kn?`<br><b>→ F ${(+ff).toFixed(2)}${ht?` · ${ht>0?"+":""}${ht} HT`:""}</b>`:""}
+           ${f.korrektur_neu?`<br><span class="klein">Vorschlag ${f.korrektur_neu}</span>`:""}${f.protokoll.length?`<br><span class="klein" title="${esc(f.protokoll.map(p=>(p.wann||"").slice(0,16)+" "+(p.wer||"")+": "+(p.grund||"")).join("\n"))}">${f.protokoll.length} Änderung(en)</span>`:""}</td>
+          <td class="klein">${f.saetze??"–"} Sätze${f.stuecke!=null?"<br>"+f.stuecke+" Stücke":""}${f.redezeit_s!=null?"<br>"+(+f.redezeit_s).toFixed(1)+" s":""}</td>
+          <td class="${ec.cosdist_erzaehler!=null&&ec.cosdist_erzaehler<schw?"err":""}">${this.f2(ec.cosdist_erzaehler)} / ${ec.schwelle??schw}${ec.stuecke_verschieden!=null?`<br><span class="klein">Stücke getrennt ${Math.round(100*ec.stuecke_verschieden)} %</span>`:""}</td>
+          <td class="${ec.naeher_an_ziel===false?"err":""}">${this.f2(ec.cosdist_ziel)}${ec.naeher_an_ziel===false?'<br><span class="klein">näher am Erzähler</span>':""}</td>
+          <td class="klein">${dD.D!=null?(+dD.D).toFixed(2):"–"}${dD.status?"<br>"+esc(dD.status):""}</td>
+          <td>${f.pyannote!=null?Math.round(100*f.pyannote)+" %":"–"}</td>
+          <td>${f.nachrunden??"–"}${f.nachrunde?`<br><span class="klein">${f.nachrunde.von}→${f.nachrunde.nach}</span>`:""}</td>
+          <td><span class="z ${uu[0]}">${esc(uu[1])}</span><br><span class="klein">${esc(f.grund||"")}</span>
+           ${f.annahme?`<br><span class="klein">angenommen ${esc(f.annahme.wer||"")} ${esc((f.annahme.wann||"").slice(0,16).replace("T"," "))}: ${esc(f.annahme.grund||"")}</span>`:""}${f.annahme_alt?'<br><span class="klein err">frühere Annahme verfallen (Stimme/Korrektur geändert)</span>':""}</td>
+          <td>${f.probe_figur?`A ${this.pl(f.probe_figur,150)}<br>B ${this.pl(s.erzaehler_probe,150)}<br><span class="klein">${esc(f.probe_satz||"")}${f.probe_t&&f.probe_t[0]!=null?" "+(+f.probe_t[0]).toFixed(1)+"–"+(+f.probe_t[1]).toFixed(1)+" s":""}</span>`:'<span class="klein">–</span>'}</td>
+          <td class="klein">${f.statist?"":`<button title="Formant kleiner/dunkler (größere Stimme)" onclick="MON['540'].stufe(${i},-1)">▼</button> <button title="Formant größer/heller (kleinere Stimme)" onclick="MON['540'].stufe(${i},1)">▲</button>
+            HT <input type="number" min="-${d.tonhoehe_max}" max="${d.tonhoehe_max}" step="0.5" style="width:46px" value="${ht}" onchange="MON['540'].ht(${i},+this.value)">
+            ${kn?` <button onclick="MON['540'].kweg(${i})">verwerfen</button>`:""}
+            ${f.korrektur.formant_faktor!=1||f.korrektur.tonhoehe_ht?`<br><button onclick="MON['540'].kaus(${i})">Korrektur entfernen</button>`:""}
+            ${f.urteil&&!["ok","zu_kurz"].includes(f.urteil)&&!f.annahme?`<br><label><input type="checkbox" ${E.an.has(key)?"checked":""} onchange="MON['540'].an(${i},this.checked)"> annehmen</label>`:""}
+            <br><a href="#${esc(M.book_id)}/410">→ 410 umbesetzen</a>`}</td></tr>`;}).join("")}</table>
+       ${!s.figuren.length?'<div class="klein">Keine Figuren im Ensemble.</div>':""}</div>`;}
+    const R=(k,lab,min,max,st)=>`${lab} <input type="number" min="${min}" max="${max}" step="${st}" value="${rg(k)??""}" placeholder="${k=="ecapa_min"?"Regel "+d.regel.ecapa:""}" style="width:70px" onchange="MON['540'].rg('${k}',this.value)">`;
+    h+=`<div class="box"><h2>Regler je Werk</h2>
+     <div class="akt">${R("ecapa_min","ECAPA-Schwelle",0.05,1.5,0.01)} · ${R("redezeit_min","Redezeit mind.",0,60,0.5)} s
+      · <label><input type="checkbox" ${(E.nr??d.regler.nachrunde)?"checked":""} onchange="MON['540'].E.nr=this.checked==M.daten.regler.nachrunde?null:this.checked;MON['540'].zf()"> automatische Nachrunde (1×)</label>
+      · <label><input type="checkbox" ${E.neu?"checked":""} onchange="MON['540'].E.neu=this.checked;MON['540'].zf()"> Messung neu (~${(0.03*Math.max(1,L.length)).toFixed(2)} $)</label></div>
+     <div class="klein">Standard: Schwelle aus der Regel (${d.regel.ecapa}), Redezeit ${d.standard.redezeit_min} s, Nachrunde ${d.standard.nachrunde?"an":"aus"}. Leeres Schwellenfeld ändert nichts; eine Werk-Schwelle bleibt, bis sie neu gesetzt wird. Messung modal/cpu, Längen und Eichen nicht im Monitor (Eichen nur Admin).</div></div>
+    <div class="box"><h2>3 Speichern · 4 Freigeben</h2>
+     <div class="akt"><input type="text" size="50" placeholder="Grund (Pflicht bei Korrektur/Annehmen)" value="${esc(E.grund)}" oninput="MON['540'].E.grund=this.value">
+      <button class="haupt" onclick="MON['540'].los(false)">Übernehmen und 540 starten</button>
+      <button onclick="MON['540'].los(true)">Probe (schreibt nichts)</button> <span id="zf540" class="klein"></span></div>
+     <div class="klein">Korrekturstufe ändern baut 510 → 530 → 520 für die betroffenen Sätze neu (Kosten dort, Kostenfreigabe je Sprache in 510) und misst dann neu. ▲ = Formant höher (kleiner/heller), ▼ = tiefer (größer/dunkler); Stufen ${d.stufen.join(" · ")}. Stimme passt nicht → <a href="#${esc(M.book_id)}/410">410</a>.</div></div>`;
+    if(d.protokoll.length)h+=`<div class="box"><h2>Protokoll</h2><table class="kapt"><tr><th>wann</th><th>wer</th><th>Aktion</th><th>Figur</th><th>Grund</th></tr>
+      ${d.protokoll.slice().reverse().map(p=>`<tr><td class="klein">${esc((p.wann||"").slice(0,16).replace("T"," "))}</td><td>${esc(p.wer||"")}</td><td>${esc(p.aktion||"")}${p.formant!=null?" F "+p.formant:""}</td><td>${esc((p.figur||"")+" "+(p.sprache||""))}</td><td class="klein">${esc(p.grund||"")}</td></tr>`).join("")}</table></div>`;
+    return h;
+  },
+  danach(){this.zf();},
+  neuZeichnen(){$("inhalt").innerHTML=this.html(M.daten);this.danach();},
+  fig(i){const [f,lg]=[this.K[i].slice(0,this.K[i].lastIndexOf(":")),this.K[i].slice(this.K[i].lastIndexOf(":")+1)];return M.daten.sprachen[lg].figuren.find(x=>x.figur==f);},
+  setz(i,ff,ht){const k=this.K[i],f=this.fig(i),o=f.korrektur;
+    if(Math.abs(ff-o.formant_faktor)<1e-6&&Math.abs(ht-o.tonhoehe_ht)<1e-6)delete this.E.korr[k];
+    else this.E.korr[k]=(Math.abs(ff-1)<1e-6&&!ht)?"weg":[ff,ht];
+    this.E.an.delete(k);this.neuZeichnen();},
+  aktuell(i){const kn=this.E.korr[this.K[i]],o=this.fig(i).korrektur;return kn=="weg"?[1,0]:kn?kn:[o.formant_faktor,o.tonhoehe_ht];},
+  stufe(i,r){const [ff,ht]=this.aktuell(i),st=M.daten.stufen;
+    const n=r>0?st.find(s=>s>ff+1e-6):st.slice().reverse().find(s=>s<ff-1e-6);
+    if(n==null){alert("Natürlichkeitsgrenze erreicht – umbesetzen (410) oder annehmen.");return;}this.setz(i,n,ht);},
+  ht(i,v){const [ff]=this.aktuell(i);this.setz(i,ff,v);},
+  kweg(i){delete this.E.korr[this.K[i]];this.neuZeichnen();},
+  kaus(i){this.setz(i,1,0);},
+  an(i,on){const k=this.K[i];on?this.E.an.add(k):this.E.an.delete(k);if(on)delete this.E.korr[k];this.neuZeichnen();},
+  rg(k,v){if(v===""||v==null){delete this.E.regler[k];this.zf();return;}const x=+v;
+    if(M.daten.regler[k]!=null&&Math.abs(x-M.daten.regler[k])<1e-9)delete this.E.regler[k];else this.E.regler[k]=x;this.zf();},
+  zf(){const E=this.E,t=[];
+    for(const [k,v] of Object.entries(E.korr))t.push(`${k}: ${v=="weg"?"Korrektur weg":"F "+v[0]+(v[1]?" "+v[1]+" HT":"")}`);
+    for(const k of E.an)t.push(k+" annehmen");
+    for(const [k,v] of Object.entries(E.regler))t.push(k+" "+v);if(E.nr!=null)t.push("Nachrunde "+(E.nr?"an":"aus"));if(E.neu)t.push("Messung neu");
+    const el=$("zf540");if(el)el.textContent=t.join(" · ");},
+  los(trocken){
+    const E=this.E,e={};
+    if(Object.keys(E.korr).length)e.korrektur=E.korr;
+    if(E.an.size)e.annehmen=[...E.an];
+    if((e.korrektur||e.annehmen)){if(!E.grund.trim()){alert("Korrektur/Annehmen braucht einen Grund");return;}e.grund=E.grund.trim();}
+    Object.assign(e,E.regler);if(E.nr!=null)e.nachrunde=E.nr;if(E.neu)e.neu=true;
+    if(trocken){delete e.korrektur;delete e.annehmen;delete e.grund;e.trocken=true;}
+    if(!trocken&&!Object.keys(e).length&&!confirm("Nichts geändert – 540 nur neu prüfen?"))return;
     speichern(e).then(ok=>{if(ok&&!trocken)this.E=this.leer();});
   }
 };

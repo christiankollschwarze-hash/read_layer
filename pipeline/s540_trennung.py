@@ -25,8 +25,9 @@ Gate:         je Figur x Sprache: Hoerspiel bestellt, Gates 410/420/510/530/520 
               Mensch-Freigabe gilt bei gleichem ausgabe_hash.
 Kosten:       usage_log Stage 540 (Modal-T4-Sekunden je Sprache, ~0,03 $); Praat/CPU 0 $.
 Regler:       book.json trennung_regler: --messung modal|cpu, --ecapa-min, --redezeit-min, --nachrunde an|aus,
-              --erzaehler-s, --spur-max-s; dazu --korrektur FIGUR:LG=F[,HT]|weg --grund (Korrekturstufe manuell, baut
-              510 -> 530 -> 520 neu), --annehmen FIGUR:LG --grund (trotz Befund, Protokoll), --neu (Messung neu),
+              --erzaehler-s, --spur-max-s; dazu --korrektur FIGUR:LG=F[,HT]|weg --grund (Korrekturstufe manuell, auch
+              mehrfach; danach EIN Neubau 510 -> 530 -> 520), --annehmen FIGUR:LG --grund (mehrfach;
+              trotz Befund, Protokoll), --neu (Messung neu),
               --lang, --trocken, --eichen LG (Regel neu eichen, nur Admin, neue Regelversion).
 Aufruf:       py -3.11 -m pipeline.s540_trennung <werk> [Regler] [--wer CK]
 Exit: 0 auto, 2 Stopp, 3 Mensch, 1 Fehler.
@@ -820,6 +821,7 @@ def run(werk, wer=None, regler=None, nur_lang=None, neu=False, trocken=False):
                 x["text"] = (x.get("text") or x["name"]) + " [Mensch-Freigabe gilt, Ergebnis unveraendert]"
     g.entscheide(schreiben=not trocken)
     g.ergebnisse = ergebnisse
+    g.plaene = plaene
     return g
 
 
@@ -947,8 +949,8 @@ def main(argv=None):
     ap.add_argument("--nachrunde", choices=("an", "aus"))
     ap.add_argument("--erzaehler-s", type=float)
     ap.add_argument("--spur-max-s", type=float)
-    ap.add_argument("--korrektur", metavar="FIGUR:LG=F[,HT]|weg")
-    ap.add_argument("--annehmen", metavar="FIGUR:LG")
+    ap.add_argument("--korrektur", metavar="FIGUR:LG=F[,HT]|weg", action="append")
+    ap.add_argument("--annehmen", metavar="FIGUR:LG", action="append")
     ap.add_argument("--grund")
     ap.add_argument("--eichen", metavar="LG")
     ap.add_argument("--neu", action="store_true")
@@ -968,19 +970,20 @@ def main(argv=None):
         if (any(v is not None for v in regler.values()) or a.korrektur or a.annehmen) and not a.trocken:
             from pipeline import s080_mandant
             s080_mandant.darf(a.werk, "entscheiden", wer)
-        if a.annehmen:
-            f, lg = _figur_lg(a.annehmen)
+        for x in a.annehmen or []:
+            f, lg = _figur_lg(x)
             annehmen(a.werk, f, lg, wer, a.grund)
-        if a.korrektur:
-            fig, rest = a.korrektur.rsplit(":", 1)
+        if a.korrektur and not a.grund:
+            raise ValueError("--korrektur braucht --grund")
+        for x in a.korrektur or []:
+            fig, rest = x.rsplit(":", 1)
             lg, wert = rest.split("=", 1)
-            if not a.grund:
-                raise ValueError("--korrektur braucht --grund")
             if wert == "weg":
                 korrektur(a.werk, fig, lg, None, None, wer, a.grund)
             else:
                 ff, ht = (wert.split(",") + ["0"])[:2]
                 korrektur(a.werk, fig, lg, float(ff), float(ht), wer, a.grund)
+        if a.korrektur:                                   # alle Korrekturen gesetzt -> EIN Neubau 510 -> 530 -> 520
             erg = nachrunde_kette(a.werk, wer)
             print("[540] Korrektur gesetzt; " + ", ".join(f"{s} {e}" for s, e in erg))
             if any(e != "auto" for _, e in erg):

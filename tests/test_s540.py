@@ -347,5 +347,59 @@ class T540(unittest.TestCase):
         self.assertEqual(g.ergebnis["ergebnis"], "auto", g.bericht())
 
 
+    def test_cli_mehrere_korrekturen_eine_kette(self):
+        with contextlib.redirect_stdout(io.StringIO()):
+            rc = P.main(["w", "--korrektur=Hutmacher:de=1.05", "--korrektur=Alice:de=0.97,1", "--grund=heller",
+                         "--wer", "CK"])
+        self.assertIn(rc, (0, 3))
+        self.assertEqual(len(self.kette), 1)
+        self.assertEqual(self.korr_jetzt("Hutmacher"), 1.05)
+        self.assertEqual(P._korr(P._ensemble(C.laden("w"), "de")["Alice"]), {"formant_faktor": 0.97, "tonhoehe_ht": 1.0})
+        with contextlib.redirect_stdout(io.StringIO()):
+            P.main(["w", "--annehmen=Hutmacher:de", "--annehmen=Alice:de", "--grund=ok", "--wer", "CK"])
+        self.assertEqual(set(P.entscheidungen("w")["annahmen"]), {"de/Hutmacher", "de/Alice"})
+
+    def test_monitor_daten_und_argv(self):
+        from cockpit import werk_api as W
+        self.ref["Alice"] = V["weg"]
+        g = self.lauf()
+        self.assertEqual(g.ergebnis["ergebnis"], "mensch", g.bericht())
+        alt = W.BASE
+        W.BASE = self.tmp.name
+        try:
+            d = W._m540_daten("w")
+        finally:
+            W.BASE = alt
+        s = d["sprachen"]["de"]
+        self.assertTrue(s["gemessen"] and s["aktuell"], s)
+        self.assertEqual(d["messung_offen"], [])
+        f = {x["figur"]: x for x in s["figuren"]}
+        self.assertEqual(f["Hutmacher"]["urteil"], "ok")
+        self.assertEqual(f["Alice"]["urteil"], "umbesetzen")
+        self.assertEqual(s["kontrolle"]["sprecher"], 1)
+        self.assertTrue(f["Hutmacher"]["probe_figur"] and s["erzaehler_probe"])
+        self.assertIn(1.0, d["stufen"])
+        a = W._m540_argv("w", {"korrektur": {"Hutmacher:de": [1.05, 0], "Alice:de": "weg"}, "annehmen": ["Alice:de"],
+                               "grund": "gehoert", "ecapa_min": 0.6, "nachrunde": False, "neu": True}, "CK")
+        self.assertEqual(a[6:], ["--korrektur=Hutmacher:de=1.05,0", "--korrektur=Alice:de=weg", "--annehmen=Alice:de",
+                                 "--grund=gehoert", "--ecapa-min=0.6", "--nachrunde=aus", "--neu"])
+        for e in ({"annehmen": ["Alice:de"]}, {"annehmen": ["Niemand:de"], "grund": "x"},
+                  {"annehmen": ["Alice:fr"], "grund": "x"}, {"korrektur": {"Alice:de": [1.3, 0]}, "grund": "x"},
+                  {"korrektur": {"Alice:de": [1.05, 5]}, "grund": "x"}, {"ecapa_min": 3},
+                  {"annehmen": ["Alice:de"], "grund": "x", "trocken": True}):
+            with self.assertRaises(ValueError, msg=e):
+                W._m540_argv("w", e, "CK")
+        with contextlib.redirect_stdout(io.StringIO()):
+            P.main(["w", "--annehmen=Alice:de", "--grund=klingt anders", "--wer", "CK"])
+        W.BASE = self.tmp.name
+        try:
+            d = W._m540_daten("w")
+        finally:
+            W.BASE = alt
+        al = next(x for x in d["sprachen"]["de"]["figuren"] if x["figur"] == "Alice")
+        self.assertEqual(al["urteil"], "angenommen")
+        self.assertEqual(al["annahme"]["grund"], "klingt anders")
+
+
 if __name__ == "__main__":
     unittest.main()

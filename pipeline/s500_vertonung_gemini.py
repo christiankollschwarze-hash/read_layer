@@ -62,6 +62,7 @@ KOSTEN_PUFFER = 1.15         # Wiederholungen/Fallback
 FALLBACK_HINWEIS = 0.10
 RETRIES = 4
 PAUSE = None                 # s zwischen Gemini-Aufrufen (None = config.TTS_DELAY_SECONDS)
+UNGEPRUEFT = "ungeprueft"       # verbucht, Satzpruefung noch offen (Abbruch nach dem Vertonen)
 RANG = {None: 0, "nachklang": 1, "vorlauf": 2, "dauer": 3, "zu_lang": 3, "verschmiert": 3,
         "nicht_ausrichtbar": 3, "clipping": 3, "zu_kurz": 4, "leer": 5}
 SENTINEL = {"de": "So weit, so gut.", "en": "So far, so good.", "fr": "Jusqu'ici, tout va bien.",
@@ -282,6 +283,25 @@ def _freigabe_je_sprache(kf, plan):
     return {lg for lg, p in plan.items() if lg in kf and p["usd"] <= float(kf[lg])}
 
 
+def marke_pfad(werk, lg):
+    return os.path.join(config.work_dir(werk), "_500", f"lauf_{lg}.json")
+
+
+def marke_setzen(werk, lg, engine, stimme_, ids):
+    """Vor dem kostenpflichtigen Lauf: Start, Engine, Stimme, Saetze. Bricht der Lauf ab, uebernimmt der naechste die
+    schon entstandenen WAVs (juenger als Start) ohne neue Kosten und prueft sie nach."""
+    os.makedirs(os.path.dirname(marke_pfad(werk, lg)), exist_ok=True)
+    manifest.json_atomar(marke_pfad(werk, lg), {"start": time.time(), "engine": engine, "stimme": stimme_,
+                                                "ids": sorted(ids), "wann": status.jetzt()})
+
+
+def marke_weg(werk, lg):
+    try:
+        os.remove(marke_pfad(werk, lg))
+    except OSError:
+        pass
+
+
 def _kosten_protokoll(werk, eintrag):
     p = os.path.join(config.work_dir(werk), "500_kosten.json")
     d = _json(p, {"freigaben": []}) or {"freigaben": []}
@@ -322,18 +342,44 @@ class FaPruefer:
     def __init__(self, ms):
         sys.path.insert(0, os.path.join(REPO, "gpu_tts"))
         import cb_pruefung
-        import torchaudio
         cb_pruefung.MS_JE_ZEICHEN = ms
-        self.cbp, self.ta = cb_pruefung, torchaudio
+        self.cbp = cb_pruefung
         self.p = cb_pruefung.Pruefer("cpu")
 
+    @staticmethod
+    def _laden(p):
+        """16-Bit-PCM per wave-Modul (torchaudio.load braucht in neuen Versionen TorchCodec, 15.11.2026)."""
+        import numpy as np
+        import torch
+        with wave.open(p, "rb") as w:
+            sr, nch, sw = w.getframerate(), w.getnchannels(), w.getsampwidth()
+            roh = w.readframes(w.getnframes())
+        if sw != 2:
+            raise ValueError(f"{p}: erwarte 16-Bit-PCM, gefunden {sw * 8} Bit")
+        x = np.frombuffer(roh, dtype="<i2").astype("float32") / 32768.0
+        if nch > 1:
+            x = x.reshape(-1, nch).mean(axis=1)
+        return torch.from_numpy(x.copy()).unsqueeze(0), sr
+
+    @staticmethod
+    def _speichern(p, w, sr):
+        import numpy as np
+        x = (w.detach().cpu().reshape(-1).clamp(-1, 1).numpy() * 32767).astype("<i2")
+        tmp = p + ".tmp"
+        with wave.open(tmp, "wb") as o:
+            o.setnchannels(1)
+            o.setsampwidth(2)
+            o.setframerate(int(sr))
+            o.writeframes(x.tobytes())
+        os.replace(tmp, p)
+
     def pruefe(self, text, p):
-        w, sr = self.ta.load(p)
+        w, sr = self._laden(p)
         return self.p.pruefe(text, w, sr)
 
     def kappen(self, p, ende):
-        w, sr = self.ta.load(p)
-        self.ta.save(p, self.cbp.kappen(w, sr, ende), sr, encoding="PCM_S", bits_per_sample=16)
+        w, sr = self._laden(p)
+        self._speichern(p, self.cbp.kappen(w, sr, ende), sr)
 
 
 def pruefer_fabrik(ms):
@@ -639,9 +685,30 @@ def run(werk, wer=None, regler=None, saetze=None, kapitel=None, nur_lang=None, n
             elif vorh:
                 nicht_uebern = (len(vorh), "; ".join(f"{e} {s_}" + (f" + {a}" if a else "") for e, s_, a in belege)
                                 or "unbekannt")
+        # Wiederaufnahme nach Abbruch (Lauf-Marke): WAVs juenger als der Start, gleiche Engine/Stimme -> ungeprueft
+        mk, wieder = _json(marke_pfad(werk, lg)), 0
+        if mk and mk.get("engine") == engine and mk.get("stimme") == info["stimme"] and not neu:
+            ids_mk = set(mk.get("ids") or [u["id"] for u in units])
+            for u in units:
+                k, pf = f"{lg}/{u['id']}", os.path.join(adir, f"{u['id']}.wav")
+                if u["id"] in ids_mk and os.path.exists(pf) and os.path.getmtime(pf) >= float(mk["start"]) - 1 \
+                        and os.path.getsize(pf) > 0 and not mock.ist_datei(pf) \
+                        and (m.braucht_neu(k, soll[u["id"]]) or not m.datei_aktuell(k)):
+                    if not trocken:
+                        m.setzen(k, soll[u["id"]], datei=pf, engine=engine, stimme=info["stimme"],
+                                 modell=info.get("modell"), adapter=info.get("adapter") if engine == "chatterbox" else None,
+                                 q="neu", pruefung=UNGEPRUEFT, versuche=0, pause_ms=u["pause"], dauer=wav_dauer(pf))
+                    wieder += 1
+            if wieder:
+                nicht_uebern = None                      # Altbestand-Hinweis entfaellt: WAVs aus abgebrochenem Lauf
+                if not trocken:
+                    m.speichern()
         offen = []
         for u in units:
             k = f"{lg}/{u['id']}"
+            if trocken and wieder and os.path.exists(os.path.join(adir, f"{u['id']}.wav")) \
+                    and u["id"] in set((mk or {}).get("ids") or [x["id"] for x in units]):
+                continue
             if trocken and uebern and erstlauf and os.path.exists(os.path.join(adir, f"{u['id']}.wav")):
                 continue
             mock_alt = (m.get(k) or {}).get("q") == "mock" and not mock.aktiv()
@@ -654,9 +721,11 @@ def run(werk, wer=None, regler=None, saetze=None, kapitel=None, nur_lang=None, n
         if probe:
             offen = offen[:int(probe)]
         zeichen = sum(len(tts[t]) for t in offen)
+        nach = [u["id"] for u in units if u["id"] not in offen and (m.get(f"{lg}/{u['id']}") or {}).get("pruefung")
+                == UNGEPRUEFT and m.datei_aktuell(f"{lg}/{u['id']}")]
         plan[lg] = dict(engine=engine, stufe=stufe, info=info, units=units, tts=tts, soll=soll, adir=adir,
                         offen=offen, zeichen=zeichen, usd=kosten(engine, zeichen), alt=alt,
-                        uebern=uebern, nicht_uebern=nicht_uebern, n_lex=n_lex)
+                        uebern=uebern, nicht_uebern=nicht_uebern, n_lex=n_lex, nach=nach, wieder=wieder)
     usd = round(sum(p["usd"] for p in plan.values()), 4)
     n_offen = sum(len(p["offen"]) for p in plan.values())
     g.metrik("kosten_usd", usd)
@@ -669,13 +738,14 @@ def run(werk, wer=None, regler=None, saetze=None, kapitel=None, nur_lang=None, n
     g.metrik("kosten_je_sprache", {lg: {"engine": p["engine"], "saetze": len(p["offen"]), "zeichen": p["zeichen"],
                                         "usd": p["usd"]} for lg, p in plan.items()})
     gesperrt = set()
-    if n_offen and not mock.aktiv() and not trocken:
+    n_nach = sum(len(p["nach"]) for p in plan.values())
+    if (n_offen or n_nach) and not mock.aktiv() and not trocken:
         kf = kosten_freigeben if isinstance(kosten_freigeben, dict) else (
             {"*": kosten_freigeben} if kosten_freigeben is not None else {})
         im_budget = b.mandant_art == "somnio" and usd <= float(rg["budget"])
         frei_lg = set(plan) if im_budget else _freigabe_je_sprache(kf, plan)
         mit_kosten = {lg for lg, p in plan.items() if p["offen"]}
-        gesperrt = mit_kosten - frei_lg
+        gesperrt = mit_kosten - frei_lg - {lg for lg, p in plan.items() if p["nach"]}
         txt = (f"Kostenschaetzung {usd:.2f} $ fuer {n_offen} Saetze ("
                + ", ".join(f"{lg} {p['engine']} {len(p['offen'])} S./{p['zeichen']} Z. ~{p['usd']:.2f} $"
                            for lg, p in plan.items() if p["offen"]) + ")")
@@ -686,7 +756,7 @@ def run(werk, wer=None, regler=None, saetze=None, kapitel=None, nur_lang=None, n
                           + (f" (ueber Budget {float(rg['budget']):.2f} $)" if b.mandant_art == "somnio"
                              else f" – Mandant {b.mandant_art}")
                           + f" – Freigabe im Cockpit (Monitor 500) bzw. --kosten-freigeben {lg}={p['usd']:.2f}")
-        if gesperrt == mit_kosten:
+        if mit_kosten and gesperrt == mit_kosten:
             g.pruefe("kosten", False, wert=usd, bei_fehler="mensch", ruecksprung="500",
                      text=txt + " – Kostenfreigabe je Sprache noetig")
             g.entscheide(schreiben=True)
@@ -699,7 +769,7 @@ def run(werk, wer=None, regler=None, saetze=None, kapitel=None, nur_lang=None, n
             for lg in sorted(mit_kosten - gesperrt):
                 _kosten_protokoll(werk, {"wann": status.jetzt(), "wer": wer, "sprache": lg, "usd": plan[lg]["usd"],
                                          "grenze": float(kf.get(lg, kf.get("*", 0))), "saetze": len(plan[lg]["offen"])})
-        if any(p["engine"] == "gemini" and p["offen"] for p in plan.values()):
+        if any(p["engine"] == "gemini" and (p["offen"] or p["nach"]) for p in plan.values()):
             try:
                 pruefer_g = pruefer_fabrik(MS_GEMINI)
             except Exception as e:
@@ -719,24 +789,48 @@ def run(werk, wer=None, regler=None, saetze=None, kapitel=None, nur_lang=None, n
     for lg, p in plan.items():
         engine, info, units, tts, adir = p["engine"], p["info"], p["units"], p["tts"], p["adir"]
         befund, neu_ids, fb, n_bl = {}, {}, [], 0
-        if p["offen"] and not trocken and ausfall is None:
+        if p["nach"] and not trocken and ausfall is None:
+            print(f"[500] {lg}: {len(p['nach'])} Saetze aus abgebrochenem Lauf nachpruefen (0 $)")
+            for t in p["nach"]:
+                neu_ids[t] = {"pfad": os.path.join(adir, f"{t}.wav")}
+        if (p["offen"] or p["nach"]) and not trocken and ausfall is None:
             usage_log.set_context(werk, STAGE, sprache=lg)
-            print(f"[500] {lg} ({engine}, {info['stimme']}): {len(p['offen'])} Saetze")
+            if p["offen"]:
+                print(f"[500] {lg} ({engine}, {info['stimme']}): {len(p['offen'])} Saetze")
+                marke_setzen(werk, lg, engine, info["stimme"], p["offen"])
             try:
-                if engine == "gemini":
+                if p["offen"] and engine == "gemini":
                     n_bl = gemini_vertonen(werk, lg, units, set(p["offen"]), info["gemini_id"], rg, adir, tts,
                                            neu_ids, fb)
-                else:
+                elif p["offen"]:
                     neu_ids.update(_cb_runde(werk, lg, p["offen"], tts, info, rg, adir, befund))
             except Exception as e:
                 ausfall = f"{lg}: {type(e).__name__}: {str(e)[:160]}"
                 print(f"[500] Abbruch {ausfall}")
+            # sofort verbuchen (ungeprueft): bricht die Pruefung ab, bleibt bezahltes Audio erhalten
+            for t, x in neu_ids.items():
+                if t in p["nach"] or not os.path.exists(x["pfad"]):
+                    continue
+                m.setzen(f"{lg}/{t}", p["soll"][t], datei=x["pfad"], engine=engine, stimme=info["stimme"],
+                         modell=info.get("modell"), adapter=info.get("adapter") if engine == "chatterbox" else None,
+                         dauer=wav_dauer(x["pfad"]), pruefung=UNGEPRUEFT, versuche=0,
+                         q="mock" if mock.aktiv() else ("fallback" if x.get("fallback") else "neu"),
+                         block=x.get("block", False), pause_ms=next((u["pause"] for u in units if u["id"] == t), None))
+            m.speichern()
+            if ausfall is None:
+                marke_weg(werk, lg)
             for t, x in neu_ids.items():
                 befund.setdefault(t, {"grund": None})
+            if p["nach"]:
+                alt_q = {t: (m.get(f"{lg}/{t}") or {}) for t in p["nach"]}
             # Satzpruefung: FA (Gemini lokal; Chatterbox aus Modal) + lokal Dauer/leer/Clipping, bis N x neu
             if engine == "gemini" and pruefer_g and not mock.aktiv():
-                for t in neu_ids:
+                t0 = time.time()
+                for i, t in enumerate(neu_ids, 1):
                     befund[t] = dict(pruefer_g.pruefe(tts[t], neu_ids[t]["pfad"]))
+                    if i % 50 == 0 or i == len(neu_ids):
+                        rest = (time.time() - t0) / i * (len(neu_ids) - i)
+                        print(f"[500] {lg}: Satzpruefung {i}/{len(neu_ids)} (Rest ~{rest / 60:.0f} min)", flush=True)
             med = _median(units, tts, m, lg, {t: wav_dauer(x["pfad"]) for t, x in neu_ids.items()})
             for t, x in neu_ids.items():
                 befund[t]["grund"] = befund[t].get("grund") or _grund_lokal(wav_info(x["pfad"]), tts[t], med, rg)
@@ -767,11 +861,13 @@ def run(werk, wer=None, regler=None, saetze=None, kapitel=None, nur_lang=None, n
                     b_["grund"] = None
                 k = f"{lg}/{t}"
                 inf = wav_info(x["pfad"])
+                vor = (alt_q.get(t) or {}) if p["nach"] else {}
                 m.setzen(k, p["soll"][t], datei=x["pfad"], engine=engine, stimme=info["stimme"],
                          modell=info.get("modell"), adapter=info.get("adapter") if engine == "chatterbox" else None,
                          dauer=inf["dauer"], pruefung=b_.get("grund"), versuche=versuche.get(t, 0),
-                         q="mock" if mock.aktiv() else ("fallback" if x.get("fallback") else "neu"),
-                         block=x.get("block", False), pause_ms=next((u["pause"] for u in units if u["id"] == t), None))
+                         q="mock" if mock.aktiv() else (vor.get("q") or ("fallback" if x.get("fallback") else "neu")),
+                         block=vor.get("block", x.get("block", False)),
+                         pause_ms=next((u["pause"] for u in units if u["id"] == t), None))
             m.speichern()
         pruef[lg] = _gate_sprache(g, m, lg, p, fb, n_bl, rg, trocken, probe, kap, nur_lang)
         je_sprache[lg] = {"engine": engine, "stufe": p["stufe"], "stimme": info["stimme"],

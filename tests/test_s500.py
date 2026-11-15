@@ -251,6 +251,39 @@ class T500(unittest.TestCase):
             with self.assertRaises(ValueError, msg=e):
                 W._m500_argv("w", e, "CK")
 
+    def test_abbruch_in_pruefung_audio_bleibt(self):
+        echt = self.pruefe
+        def kaputt(text, p):
+            raise RuntimeError("TorchCodec is required")
+        self.pruefe = kaputt
+        with self.assertRaises(RuntimeError):
+            self.lauf()
+        n = len(self.calls)
+        m = self.lesen("500_vertonung.json")["eintraege"]
+        self.assertEqual({e["pruefung"] for e in m.values()}, {"ungeprueft"})       # bezahltes Audio verbucht
+        self.pruefe = echt
+        g = self.lauf()
+        self.assertEqual(len(self.calls), n, "kein neuer TTS-Aufruf")
+        self.assertEqual(g.ergebnis["ergebnis"], "auto", g.bericht())
+        self.assertEqual({e["pruefung"] for e in self.lesen("500_vertonung.json")["eintraege"].values()}, {None})
+
+    def test_wiederaufnahme_lauf_marke(self):
+        self.lauf()
+        n = len(self.calls)
+        os.remove(os.path.join(self.wd, "500_vertonung.json"))           # Abbruch vor dem Verbuchen (Altfall)
+        P.marke_setzen("w", "de", "gemini", "herr_a", [])
+        with open(P.marke_pfad("w", "de"), encoding="utf-8") as f:
+            mk = json.load(f)
+        mk["start"] = 0
+        with open(P.marke_pfad("w", "de"), "w", encoding="utf-8") as f:
+            json.dump(mk, f)
+        g = self.lauf(trocken=True)
+        self.assertEqual(g.metriken["offen"], {"de": 0})
+        g = self.lauf()
+        self.assertEqual(len(self.calls), n, "keine neuen Kosten")
+        self.assertEqual(g.ergebnis["ergebnis"], "auto", g.bericht())
+        self.assertEqual(len(self.lesen("500_vertonung.json")["eintraege"]), len(AUDIO))
+
     def test_budget_standard_null(self):
         self.werk(extra={"vertonung_regler": {}})
         g = self.lauf()

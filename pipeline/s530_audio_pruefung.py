@@ -24,7 +24,9 @@ Kosten:       usage_log Stage 530 (Modal-Sekunden FA + Whisper, je Sprache); CPU
 Regler:       book.json pruefung_regler: --tempo [LG=]F (Standard: Chatterbox Adapter-Tempo, Gemini 1,0), --vor/--nach S,
               --rand-max, --lufs, --lufs-tol, --peak-max, --fa modal|cpu, --sprache modal|cpu|aus, --stichprobe P (%),
               --cer-verdacht, --p-min, --kurz-s, --verdacht-max, --ohne-fa-max, --versuche, --nachvertonen an|aus;
-              dazu --satz ID (neu), --kapitel c001,c002, --lang, --spur hoerbuch|hoerspiel, --neu, --trocken.
+              dazu --satz ID (neu), --kapitel c001,c002, --lang, --spur hoerbuch|hoerspiel, --neu, --trocken;
+              --annehmen ID --grund TEXT (mit --lang/--spur; Vermerk work/530_entscheidungen.json, gilt bei gleicher
+              Endfassung).
 Aufruf:       py -3.11 -m pipeline.s530_audio_pruefung <werk> [Regler] [--wer CK]
 Exit: 0 auto, 2 Stopp, 3 Mensch, 1 Fehler.
 """
@@ -86,6 +88,31 @@ def _json(p, leer=None):
         return leer
     with open(p, encoding="utf-8") as f:
         return json.load(f)
+
+
+def entsch_pfad(werk):
+    return os.path.join(config.work_dir(werk), "530_entscheidungen.json")
+
+
+def annehmen(werk, lg, spur, ids, wer, grund):
+    """Hoerliste annehmen (gekippt/Verdacht/ohne FA): Vermerk wer/wann/grund + datei_hash der Endfassung; gilt, solange
+    die Endfassung gleich bleibt."""
+    grund = " ".join(str(grund or "").split())
+    if not grund:
+        raise ValueError("--annehmen braucht --grund")
+    if spur not in SPUREN:
+        raise ValueError(f"Spur {spur!r}")
+    m = manifest.Manifest(werk, f"530_pruefung_{lg}", stage=STAGE)
+    d = _json(entsch_pfad(werk), {}) or {}
+    for t in ids:
+        k = f"{spur}/{t}"
+        e = m.get(k) or {}
+        if not e.get("datei_hash"):
+            raise ValueError(f"{lg}/{k}: keine Endfassung im Manifest")
+        d[f"{lg}/{k}"] = {"wer": wer, "wann": status.jetzt(), "grund": grund, "datei_hash": e["datei_hash"],
+                          "stufe": (e.get("sprache") or {}).get("stufe"), "rand": bool(e.get("rand"))}
+    manifest.json_atomar(entsch_pfad(werk), d, indent=1)
+    return d
 
 
 def kap_von(tid):
@@ -637,7 +664,10 @@ def _gate_spur(g, werk, lg, spur, p, rg, trocken, teil):
         g.pflicht(f"abdeckung_{lg}_{spur}", len(fertig) == len(ids), wert=round(len(fertig) / n, 4), ruecksprung="530",
                   text=f"{pre}: Endfassung je Satz {len(fertig)}/{len(ids)}")
     ein = [m.get(f"{spur}/{t}") for t in fertig]
-    ohne_fa = [t for t, e in zip(fertig, ein) if not e.get("rand")]
+    ent = _json(entsch_pfad(werk), {}) or {}
+    angen = {t for t, e in zip(fertig, ein)
+             if (ent.get(f"{lg}/{spur}/{t}") or {}).get("datei_hash") == e.get("datei_hash")}
+    ohne_fa = [t for t, e in zip(fertig, ein) if not e.get("rand") and t not in angen]
     g.max(f"ohne_fa_{lg}_{spur}", round(len(ohne_fa) / n, 4), float(rg["ohne_fa_max"]), ruecksprung=q)
     rmax = max([max(e["rand"]) for e in ein if e.get("rand")] or [0.0])
     g.max(f"rand_{lg}_{spur}", round(rmax, 3), float(rg["rand_max"]), ruecksprung="530")
@@ -649,8 +679,11 @@ def _gate_spur(g, werk, lg, spur, p, rg, trocken, teil):
     g.max(f"spitze_{lg}_{spur}", len(aus_p), 0, ruecksprung="530")
     sp = {t: (e.get("sprache") or {}) for t, e in zip(fertig, ein)}
     gepr = [t for t, s in sp.items() if s.get("datei_hash") == (m.get(f"{spur}/{t}") or {}).get("datei_hash")]
-    gek = [t for t in gepr if sp[t].get("stufe") == "gekippt"]
-    ver = [t for t in gepr if sp[t].get("stufe") == "verdacht"]
+    gek = [t for t in gepr if sp[t].get("stufe") == "gekippt" and t not in angen]
+    ver = [t for t in gepr if sp[t].get("stufe") == "verdacht" and t not in angen]
+    if angen:
+        g.hinweis(f"angenommen_{lg}_{spur}", False, wert=len(angen),
+                  text=f"{pre}: {len(angen)} Saetze der Hoerliste angenommen (Vermerk 530_entscheidungen.json)")
     if rg["sprache"] == "aus":
         g.hinweis(f"sprache_{lg}_{spur}", False, text=f"{pre}: Sprachpruefung aus")
     else:
@@ -665,6 +698,8 @@ def _gate_spur(g, werk, lg, spur, p, rg, trocken, teil):
     zeile = lambda t: {"id": t, "text": p["soll"][t]["text"], "datei": (m.get(f"{spur}/{t}") or {}).get("datei"),
                        "sprache": sp.get(t)}
     return {"gekippt": [zeile(t) for t in gek], "verdacht": [zeile(t) for t in ver][:200],
+            "angenommen": [dict(zeile(t), **{k: ent[f"{lg}/{spur}/{t}"].get(k) for k in ("wer", "wann", "grund")})
+                           for t in sorted(angen)][:200],
             "ohne_fa": ohne_fa[:200], "kapitel_lufs": aus_l, "kapitel_spitze": aus_p, "fehlt": p["fehlt"][:200],
             "nachvertont": dict(m.meta.get("nachvertont") or {})}
 
@@ -689,6 +724,8 @@ def main(argv=None):
     ap.add_argument("--spur", choices=SPUREN)
     ap.add_argument("--neu", action="store_true")
     ap.add_argument("--trocken", action="store_true")
+    ap.add_argument("--annehmen", action="append", metavar="ID")
+    ap.add_argument("--grund")
     a = ap.parse_args(argv)
     tempo = None
     if a.tempo:
@@ -703,11 +740,18 @@ def main(argv=None):
               "nachvertonen": None if a.nachvertonen is None else a.nachvertonen == "an"}
     wer = a.wer or "pipeline"
     try:
-        if any(v is not None for v in regler.values()) and not a.trocken:
+        if (a.annehmen or any(v is not None for v in regler.values())) and not a.trocken:
             from pipeline import s080_mandant
             s080_mandant.darf(a.werk, "entscheiden", wer)
+        if a.annehmen:
+            if not (a.lang and a.spur):
+                raise ValueError("--annehmen braucht --lang und --spur")
+            if a.trocken:
+                raise ValueError("--annehmen nicht mit --trocken")
+            annehmen(a.werk, a.lang, a.spur, a.annehmen, wer, a.grund)
         g = run(a.werk, wer, regler=regler, saetze=a.satz, kapitel=a.kapitel.split(",") if a.kapitel else None,
-                nur_lang=a.lang, nur_spur=a.spur, neu=a.neu, trocken=a.trocken)
+                nur_lang=a.lang if not a.annehmen or a.satz or a.neu else None,
+                nur_spur=a.spur if not a.annehmen or a.satz or a.neu else None, neu=a.neu, trocken=a.trocken)
     except gate.GateHalt as e:
         print(e)
         return e.exit_code

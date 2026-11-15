@@ -252,6 +252,40 @@ class T520(unittest.TestCase):
         with open(P.korr_pfad("w"), encoding="utf-8") as fh:
             self.assertEqual(json.load(fh), {})
 
+    def test_monitor_daten_teil_argv(self):
+        from cockpit import werk_api as W
+        self.zu_lang = {"c001_00002_s"}
+        self.lauf(regler={"wiederholen": False})
+        alt = W.BASE
+        W.BASE = self.tmp.name
+        try:
+            d = W._m520_daten("w")
+            t = W._m520_teil("w", {"lang": "de", "spur": "hoerbuch", "ids": "c001_00002_s"})["saetze"][0]
+        finally:
+            W.BASE = alt
+        s = d["spuren"]["de/hoerbuch"]
+        self.assertEqual(s["gemessen"], len(Q))
+        self.assertEqual([x["id"] for x in s["liste"]], ["c001_00002_s"])
+        self.assertIn("dauer", s["liste"][0]["befund"])
+        self.assertIn("de/hoerspiel", d["spuren"])
+        self.assertIn("de", d["bruecke"])
+        self.assertEqual(t["tokens"], ["Alice", "saß", "am", "Ufer."])
+        self.assertTrue(t["audio"].endswith("audio_final/c001_00002_s.wav"))
+        a = W._m520_argv("w", {"lang": "de", "spur": "hoerbuch", "satz": ["c001_00003_dl"],
+                               "zeit": {"c001_00002_s": {"1": [0.2, 0.4]}}, "anker_min": 0.9,
+                               "interpolation": False}, "CK")
+        self.assertEqual(a[6:], ["--lang=de", "--spur=hoerbuch", "--satz=c001_00003_dl",
+                                 "--zeit=de:c001_00002_s:1=0.2,0.4", "--anker-min=0.9", "--interpolation=aus"])
+        for e in ({"satz": ["c001_00003_dl"]}, {"lang": "fr"}, {"lang": "de", "spur": "x"},
+                  {"lang": "de", "spur": "hoerbuch", "zeit": {"c001_00002_s": {"1": [0.5, 0.4]}}},
+                  {"lang": "de", "spur": "hoerbuch", "satz": ["c009_x"]}, {"anker_min": 2}):
+            with self.assertRaises(ValueError, msg=e):
+                W._m520_argv("w", e, "CK")
+        with contextlib.redirect_stdout(io.StringIO()):
+            P.main(["w", "--lang=de", "--spur=hoerbuch", "--zeit=de:c001_00002_s:1=0.2,0.4", "--wer", "CK"])
+        e = {x["i"]: x for x in self.aus()["tags"]["c001_00002_s"]}
+        self.assertEqual((e[1]["t0"], e[1]["t1"]), (0.2, 0.4))
+
     def test_mensch_freigabe_gilt(self):
         self.zu_lang = {"c001_00002_s"}
         g = self.lauf(regler={"wiederholen": False})

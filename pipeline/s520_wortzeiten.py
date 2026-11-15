@@ -611,8 +611,12 @@ def main(argv=None):
         if (any(v is not None for v in regler.values()) or a.zeit) and not a.trocken:
             from pipeline import s080_mandant
             s080_mandant.darf(a.werk, "entscheiden", wer)
+        if a.zeit and not a.trocken:                  # Monitor: Wortzeit setzen, danach ganze Stage pruefen
+            for lg, tid, i, t0, t1 in a.zeit:
+                korrektur_setzen(a.werk, lg, a.spur or "hoerbuch", tid, i, t0, t1, wer)
+        teil = not a.zeit or a.satz or a.neu or a.kapitel
         g = run(a.werk, wer, regler=regler, saetze=a.satz, kapitel=a.kapitel.split(",") if a.kapitel else None,
-                nur_lang=a.lang, nur_spur=a.spur, neu=a.neu, trocken=a.trocken, zeiten_man=a.zeit)
+                nur_lang=a.lang if teil else None, nur_spur=a.spur if teil else None, neu=a.neu, trocken=a.trocken)
     except gate.GateHalt as e:
         print(e)
         return e.exit_code
