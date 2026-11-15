@@ -1901,6 +1901,795 @@ MONITOR_SPEICHERN["340"] = _m340_argv
 MONITOR_TEIL["340"] = _m340_teil
 
 
+# ---- 095 Produktwahl (Steckbrief GATE_MONITORE 095: Bestellmatrix + Angebot live; Hoerspiel-Empfehlung 13.11.2026)
+def _m095_probe(book_id, produkte):
+    from pipeline import s095_produktwahl as P
+    b = bestellung.lesen(book_id)
+    pr = [bestellung.produkt_norm(p) for p in produkte]
+    pr, erg = P.abhaengigkeiten(pr)
+    probe = bestellung.Bestellung(dict(b.roh, produkte=pr), b.ordner)
+    f = probe.fehler()
+    return {"produkte": probe.produkte, "ergaenzt": erg, "fehler": f,
+            "stages": sorted(kette.bedarf(probe)) if not f else [],
+            "angebot": P.angebot(probe, P.zeichen(book_id)) if not f else None}
+
+
+def _m095_daten(book_id):
+    from pipeline import hoerspiel_eignung as H
+    b = bestellung.lesen(book_id)
+    roh = b.roh or {}
+    w = werk(book_id)
+    eig = H.fuer_werk(b.ordner)
+    jetzt = _m095_probe(book_id, b.produkte)
+    return {"quellsprache": b.quellsprache, "mandant": b.mandant, "mandant_art": b.mandant_art,
+            "quelle": roh.get("quelle"), "fassung": b.fassung, "wunsch": (roh.get("wunsch") or {}).get("zielsprachen") or [],
+            "abgeleitet": "produkte" in b.abgeleitet, "sprachen": list(bestellung.sprachliste()),
+            "matrix": [{"inhalt": i, "stufe": s, "kanaele": list(k)} for (i, s), k in bestellung.MATRIX.items()],
+            "produkte": b.produkte, "jetzt": jetzt, "eignung": eig,
+            "namen": {s["stage"]: s["name"] for s in w["stages"]},
+            "laeuft": [s["stage"] for s in w["stages"] if s["bestellt"]]}
+
+
+def _m095_teil(book_id, q):
+    import json as _j
+    return _m095_probe(book_id, _j.loads(q.get("produkte") or "[]"))
+
+
+def _m095_argv(book_id, e, wer):
+    a = [PY, "-m", "pipeline.s095_produktwahl", book_id, "--wer", wer]
+    if e.get("default"):
+        return a + ["--default"]
+    pr = e.get("produkte")
+    if pr is None:
+        return a
+    if not pr:
+        raise ValueError("mindestens ein Produkt")
+    r = _m095_probe(book_id, pr)
+    if r["fehler"]:
+        raise ValueError("; ".join(r["fehler"]))
+    for p in pr:
+        p = bestellung.produkt_norm(p)
+        t = f"{p['sprache']}:{p['inhalt']}" + (f":{p['stufe']}" if p["inhalt"] != "text" else "") + ":" + ",".join(p["kanaele"])
+        t += "".join(f":+{z}" for z in p["zusatz"])
+        a.append(f"--produkt={t}")
+    return a
+
+
+MONITOR_DATEN["095"] = _m095_daten
+MONITOR_SPEICHERN["095"] = _m095_argv
+MONITOR_TEIL["095"] = _m095_teil
+
+
+# ---- 400 Regie (Steckbrief GATE_MONITORE 400: Befundliste Text | Sprechtext; Aussprache in 210 und 400; 0 $)
+def _m400_daten(book_id):
+    from pipeline import s400_regie as P
+    b = bestellung.lesen(book_id)
+    roh = b.roh or {}
+    audio = b.audiosprachen()
+    hoerbuch = b.audiosprachen("hoerbuch")
+    premium = [lg for lg in audio if any(p.get("stufe") in P.PREMIUM and p.get("inhalt") in ("hoerbuch", "hoerspiel")
+                                         for p in b.produkte_fuer(sprache=lg))]
+    ein = _m200_lesen(book_id, "330_rueckuebersetzung.json") or {}
+    aus = _m200_lesen(book_id, "400_regie.json") or {}
+    pr = _m200_lesen(book_id, "400_pruefung.json") or {}
+    korr = P.korrekturen_lesen(book_id)
+    inh = aus.get("content") or ein.get("content") or {}
+    prod = aus.get("production") or {}
+    rg = (aus.get("meta") or {}).get("regie") or {}
+    profil = (aus.get("meta") or ein.get("meta") or {}).get("profile") or {}
+    skip = [str(x) for x in roh.get("audio_pron_skip") or []]
+    sk = {x.strip().lower() for x in skip}
+    sprachen = {}
+    for lg in audio:
+        p = pr.get(lg) or {}
+        byid = {}
+        for art, l in (p.get("fehler") or {}).items():
+            for x in l:
+                e = byid.setdefault(x["id"], {"id": x["id"], "text": x["text"], "sprechtext": x["sprechtext"], "arten": []})
+                if art == "style":
+                    e["direction"] = x["sprechtext"]
+                    e["sprechtext"] = ((prod.get("sprechtext") or {}).get(x["id"]) or {}).get(lg, e["sprechtext"]) \
+                        if e["sprechtext"] == x["sprechtext"] and len(e["arten"]) == 0 else e["sprechtext"]
+                e["arten"].append(art)
+        for tid in p.get("manuell") or []:
+            m = ((korr.get("sprechtext") or {}).get(lg) or {}).get(tid) or {}
+            e = byid.setdefault(tid, {"id": tid, "text": str((inh.get(tid) or {}).get(lg) or ""),
+                                      "sprechtext": m.get("text", ""), "arten": []})
+            e["arten"].append("manuell")
+            e["wer"], e["wann"] = m.get("wer"), m.get("wann")
+        bf = sorted(byid.values(), key=lambda x: x["id"])
+        for x in bf:
+            x["kapitel"] = x["id"].split("_")[0] if x["id"].startswith("c") else "ansage"
+            if lg in premium and "direction" not in x:
+                x["direction"] = ((prod.get("direction") or {}).get(x["id"]) or {}).get(lg)
+        js = {art: len(l) for art, l in (p.get("fehler") or {}).items()}
+        sprachen[lg] = {"befunde": bf, "zaehler": js, "premium": lg in premium, "hoerbuch": lg in hoerbuch,
+                        "leer": len(p.get("leer") or []), "ohne_aussprache": p.get("ohne_aussprache") or {},
+                        "ansagen": (aus.get("ansagen") or {}).get(lg) or []}
+    begr = []
+    for bg in P.begriffe(profil, korr.get("aussprache")):
+        e = bg["e"]
+        begr.append({"key": bg["key"], "quelle": bg["quelle"],
+                     "namen": {lg: P._name(bg, lg) for lg in audio},
+                     "aussprache_210": e.get("pronunciation") or "",
+                     "tts_210": {lg: e.get(f"tts_{lg}") or "" for lg in audio},
+                     "hinweis_400": (korr.get("aussprache") or {}).get(bg["key"], {}).get("hinweis") or "",
+                     "skip": bg["key"].strip().lower() in sk,
+                     "ohne": {lg: len((sprachen[lg]["ohne_aussprache"] or {}).get(bg["key"]) or []) for lg in audio}})
+    typ_tab, _sz = P.pausen_tabellen(roh)
+    return {"audio": audio, "premium": premium, "hoerbuch": hoerbuch, "vorhanden": bool(aus), "ein_fehlt": not ein,
+            "regler": P._load_reglers(book_id), "pausen": typ_tab, "pausen_werk": roh.get("audio_pausen") or {},
+            "pausen_standard": dict(config.PAUSE_AFTER_MS),
+            "laenge_max": float(roh.get("audio_laenge_max") or P.LAENGE_MAX),
+            "style_max": int(roh.get("audio_style_max") or P.STYLE_MAX),
+            "standard": {"laenge_max": P.LAENGE_MAX, "style_max": P.STYLE_MAX},
+            "namensprache": rg.get("namensprache"), "tts_backend": rg.get("tts_backend") or getattr(config, "TTS_BACKEND", ""),
+            "regeln_v": rg.get("regeln_v"), "erzeugt": rg.get("erzeugt"), "begriffe": begr, "skip": skip,
+            "sprachen": sprachen,
+            "regie": P.directions_from_reglers(P._load_reglers(book_id))}
+
+
+def _m400_argv(book_id, e, wer):
+    import re as _re
+    from pipeline import s400_regie as P
+    a = [PY, "-m", "pipeline.s400_regie", book_id, "--wer", wer]
+    b = bestellung.lesen(book_id)
+    audio = b.audiosprachen()
+    sp = {k: str(v).strip() for k, v in (e.get("sprechtext") or {}).items()}
+    if sp:
+        lg = e.get("lang")
+        if lg not in audio:
+            raise ValueError(f"Audiosprache {lg!r} nicht bestellt {audio}")
+        a.append(f"--lang={lg}")
+        for t, x in sp.items():
+            if not _re.fullmatch(r"c\d+_\d+_[a-z]+", t):
+                raise ValueError(f"Knoten-ID {t!r} ungueltig (Ansagen sind nicht editierbar)")
+            if not x:
+                raise ValueError(f"{t}: Sprechtext leer (- = zuruecksetzen)")
+            a.append(f"--sprechtext={t}={x}")
+    for k in P.REGLER:
+        if e.get(k) not in (None, ""):
+            n = int(e[k])
+            if not 1 <= n <= 10:
+                raise ValueError(f"{k} 1–10")
+            a.append(f"--{k}={n}")
+    for typ, ms in (e.get("pausen") or {}).items():
+        if typ not in config.PAUSE_AFTER_MS:
+            raise ValueError(f"Pausentyp {typ!r} unbekannt")
+        n = int(ms)
+        if not 0 <= n <= 5000:
+            raise ValueError("Pause 0–5000 ms")
+        a.append(f"--pause={typ}={n}")
+    for term, hin in (e.get("aussprache") or {}).items():
+        term, hin = str(term).strip(), str(hin).strip()
+        if not term or "=" in term:
+            raise ValueError(f"Begriff {term!r} ungueltig")
+        a.append(f"--aussprache={term}={hin or '-'}")
+    a += [f"--pron-skip={x}" for x in e.get("skip") or []]
+    a += [f"--pron-skip-weg={x}" for x in e.get("skip_weg") or []]
+    if e.get("laenge_max") not in (None, ""):
+        x = float(e["laenge_max"])
+        if not 1 <= x <= 5:
+            raise ValueError("Laenge 1–5")
+        a.append(f"--laenge-max={x:g}")
+    if e.get("style_max") not in (None, ""):
+        n = int(e["style_max"])
+        if not 50 <= n <= 1000:
+            raise ValueError("Style 50–1000")
+        a.append(f"--style-max={n}")
+    if e.get("trocken"):
+        a.append("--trocken")
+    return a
+
+
+MONITOR_DATEN["400"] = _m400_daten
+MONITOR_SPEICHERN["400"] = _m400_argv
+
+
+# ---- 410 Casting (Steckbrief GATE_MONITORE 410: Besetzungstabelle mit Hoerprobe; Umbesetzen Archiv + Design;
+#      Statist-Schalter je Figur; Regler je Werk; Korrektur je Figur)
+def _m410_probe(name, lg):
+    """Hoerprobe einer Stimme fuer eine Sprache (Pfad relativ zu BASE) oder None."""
+    from pipeline import s410_casting as P, voice_registry as vr
+    if not name or name == P.CB_STANDARD:
+        return None
+    for d in (os.path.join(vr.STIMMEN_DIR, "_gemini_standard", name), os.path.join(vr.STIMMEN_DIR, name)):
+        for f in (f"muster_{lg}.wav", f"klon_{lg}.wav", "hoerprobe.wav"):
+            p = os.path.join(d, f)
+            if os.path.isfile(p):
+                q = os.path.relpath(p, BASE)
+                return None if q.startswith("..") else q.replace("\\", "/")
+    return None
+
+
+def _m410_daten(book_id):
+    from pipeline import s410_casting as P, voice_registry as vr, trennung as T
+    b = bestellung.lesen(book_id)
+    roh = b.roh or {}
+    rg = P._regler(roh)
+    ziele, unbekannt = P._ziele(b)
+    c = P.laden(book_id)
+    schema_ok = bool(c and c.get("schema") == P.SCHEMA)
+    reg, std = vr.laden(), P._standard()
+    data = _m200_lesen(book_id, "400_regie.json") or {}
+    profil = (data.get("meta") or {}).get("profile") or {}
+    if not profil.get("characters"):
+        profil = ((_m200_lesen(book_id, "210_profil.json") or {}).get("meta") or {}).get("profile") or profil
+    figuren210 = list((profil.get("characters") or {}).keys())
+    hoerspiel = any("hoerspiel" in inh for je in ziele.values() for inh in je.values())
+    sb = (c or {}).get("steckbriefe") or {}
+    je_sb, fremd, fehlend = P._abgleich(sb, figuren210) if (hoerspiel and sb) else ({}, [], [])
+    erz_sb = sb.get("erzaehler") or {}
+    profile = T._profile()
+    try:
+        R = T.regel()
+    except Exception:
+        R = {}
+
+    def dprof(name, lg):
+        return (profile.get(name) or {}).get(lg) or {}
+
+    def kurz(name):
+        if name in reg:
+            s = reg[name]
+            return {"art": "archiv", "status": s.get("status"), "kurz": s.get("kurz") or "", "rufname": s.get("rufname"),
+                    "rolle_typ": s.get("rolle_typ"), "geschlecht": (s.get("merkmale") or {}).get("geschlecht"),
+                    "grundton_hz": s.get("grundton_hz"), "merkmale": vr.normalisieren(s.get("merkmale"))}
+        if name in std:
+            return {"art": "gemini_standard", "status": "standard", "kurz": std[name].get("charakter") or "",
+                    "geschlecht": std[name].get("geschlecht"), "grundton_hz": std[name].get("grundton_hz"),
+                    "merkmale": vr.normalisieren({"geschlecht": std[name].get("geschlecht")})}
+        if name == P.CB_STANDARD:
+            return {"art": "chatterbox_standard", "status": "standard", "kurz": "Chatterbox ohne Referenz"}
+        return {"art": "unbekannt", "status": None, "kurz": ""}
+
+    pool_cache = {}
+
+    def pool(lg, engine):
+        k = (lg, engine)
+        if k not in pool_cache:
+            namen = [n for n, s in reg.items() if s.get("status") != "abgelehnt"]
+            namen += list(std) if engine == "gemini" else [P.CB_STANDARD]
+            pool_cache[k] = [n for n in namen if P.nutzbar(n, lg, engine, reg, std)[0]]
+        return pool_cache[k]
+
+    def kandidaten(lg, engine, merk, rolle, belegt, erz_name):
+        out = []
+        erz_f0 = (kurz(erz_name).get("grundton_hz") if erz_name else None)
+        for n in pool(lg, engine):
+            k = kurz(n)
+            x = {"name": n, "passung": vr.passung(merk, k["merkmale"]) if merk and k.get("merkmale") else None,
+                 "grundton_hz": k.get("grundton_hz"), "geschlecht": k.get("geschlecht"), "kurz": k.get("kurz"),
+                 "rufname": k.get("rufname"), "art": k["art"], "status": k.get("status"),
+                 "rolle_typ": k.get("rolle_typ"), "belegt": belegt.get(n), "probe": _m410_probe(n, lg)}
+            if rolle == "figur" and erz_name:
+                if x["grundton_hz"] and erz_f0:
+                    x["f0_abstand"] = round(abs(x["grundton_hz"] - erz_f0) / max(x["grundton_hz"], erz_f0), 3)
+                if R:
+                    t = T.abstand(dprof(n, lg), dprof(erz_name, lg), R) if dprof(n, lg) and dprof(erz_name, lg) \
+                        else {"status": "unbekannt"}
+                    x["d_status"], x["D"] = t.get("status"), t.get("D")
+            out.append(x)
+        out.sort(key=lambda x: (x["belegt"] is not None, -(x["passung"] if x["passung"] is not None else -1),
+                                x["name"]))
+        return out
+
+    def befunde(e, rolle, inhalte):
+        bf = []
+        if not e.get("stimme"):
+            bf.append("unbesetzt")
+        elif not e.get("nutzbar"):
+            bf.append("nicht_nutzbar")
+        if e.get("quelle") == "neu":
+            bf.append("neu")
+        if e.get("passung") is not None and e["passung"] < float(rg["schwelle"]):
+            bf.append("passung")
+        if rolle == "figur":
+            if e.get("grundton_ok") is False:
+                bf.append("grundton")
+            st = (e.get("trennung") or {}).get("status")
+            if st in ("zu_nah", "knapp"):
+                bf.append(st)
+        return bf
+
+    vorg_f, vorg_e, stat_fest = rg.get("figuren") or {}, rg.get("erzaehler") or {}, set(rg.get("statisten") or [])
+    gruppen = []
+    rollen = (c or {}).get("rollen") if schema_ok else None
+    for lg in sorted(ziele):
+        for st in sorted(ziele[lg]):
+            bs = ((rollen or {}).get(lg) or {}).get(st)
+            engine = P.ENGINE[st]
+            gr = {"lg": lg, "stufe": st, "engine": engine, "inhalte": ziele[lg][st], "vorhanden": bool(bs),
+                  "adapter": (bs or {}).get("adapter"), "adapter_ok": (bs or {}).get("adapter_ok", True),
+                  "adapter_grund": (bs or {}).get("adapter_grund"), "zeilen": [], "statisten": [],
+                  "geschichten": (bs or {}).get("geschichten")}
+            if not bs:
+                gruppen.append(gr)
+                continue
+            erz = bs.get("erzaehler") or {}
+            alle = [erz] + list(bs.get("ensemble") or [])
+            belegt = {}
+            for e in alle:
+                if e.get("stimme"):
+                    belegt.setdefault(e["stimme"], e.get("figur"))
+            doppelt = {s for s in belegt if sum(1 for e in alle if e.get("stimme") == s) > 1}
+            for e in alle:
+                rolle = e.get("rolle") or ("erzaehler" if e is erz else "figur")
+                merk = (erz_sb.get("merkmale") if rolle == "erzaehler" else (je_sb.get(e.get("figur")) or {}).get("merkmale"))
+                merk = vr.normalisieren(merk) if merk else None
+                andere = {k: v for k, v in belegt.items() if k != e.get("stimme")}
+                z = {k: e.get(k) for k in ("rolle", "figur", "stimme", "quelle", "passung", "grundton_hz", "archiv_status",
+                                           "gemini_id", "referenz", "modell", "nutzbar", "grund", "gewicht", "anteil",
+                                           "kurz", "name_lg", "trennung", "korrektur", "korrektur_protokoll",
+                                           "grundton_ok", "grundton_grund", "design_prompt", "geschichten")}
+                z["rolle"] = rolle
+                z["befunde"] = befunde(e, rolle, gr["inhalte"]) + (["doppelt"] if e.get("stimme") in doppelt else [])
+                z["stimme_info"] = kurz(e["stimme"]) if e.get("stimme") else None
+                if z["stimme_info"]:
+                    z["stimme_info"].pop("merkmale", None)
+                z["probe"] = _m410_probe(e.get("stimme"), lg)
+                z["merkmale"] = merk
+                z["steckbrief"] = {k: (je_sb.get(e.get("figur")) or {}).get(k) for k in
+                                   ("stimm_beschreibung_en", "auffaelligkeiten", "unterscheiden_von")} \
+                    if rolle == "figur" else {k: erz_sb.get(k) for k in ("erzaehlform", "ich_figur", "genre_stimme",
+                                                                         "stimm_beschreibung_en")}
+                z["vorgabe"] = (vorg_e.get(lg) or vorg_e.get("*")) if rolle == "erzaehler" else vorg_f.get(e.get("figur"))
+                z["design_prompt_werk"] = (rg.get("design_prompt") or {}).get(e.get("figur") if rolle == "figur" else "Erzaehler")
+                z["kandidaten"] = kandidaten(lg, engine, merk, rolle, andere,
+                                             erz.get("stimme") if rolle == "figur" else None)
+                gr["zeilen"].append(z)
+            for s in bs.get("statisten") or []:
+                f = s.get("figur")
+                merk = (je_sb.get(f) or {}).get("merkmale")
+                merk = vr.normalisieren(merk) if merk else None
+                gr["statisten"].append({"figur": f, "gewicht": s.get("gewicht"), "anteil": s.get("anteil"),
+                                        "kurz": (je_sb.get(f) or {}).get("kurz"), "fest": f in stat_fest,
+                                        "vorgabe": vorg_f.get(f), "merkmale": merk,
+                                        "kandidaten": kandidaten(lg, engine, merk, "figur", belegt, erz.get("stimme"))})
+            gruppen.append(gr)
+
+    try:
+        text, _n, _gek = P._text(data, b.quellsprache or config.SOURCE_LANGUAGE,
+                                 int(rg["max_text"]) if hoerspiel else P.HOERBUCH_TEXT, hoerspiel) if data else ("", 0, False)
+    except Exception:
+        text = ""
+    dp, muster = P.design_preis()
+    fr = (c or {}).get("freigabe") or {}
+    return {"vorhanden": bool(c), "schema_ok": schema_ok, "regie_fehlt": not data, "hoerspiel": hoerspiel,
+            "ziele": ziele, "unbekannt": unbekannt, "gruppen": gruppen,
+            "freigabe": {"wer": fr.get("wer"), "wann": fr.get("wann"), "gilt": P.freigegeben(c) if schema_ok else False,
+                         "tor": (c or {}).get("tor")},
+            "protokoll": ((c or {}).get("protokoll") or [])[-15:],
+            "steckbriefe": {"vorhanden": bool(sb), "gerettet": bool(sb.get("_gerettet")), "herkunft": sb.get("_herkunft"),
+                            "dialogzeilen": sb.get("_dialogzeilen"), "hinweise": sb.get("hinweise") or "",
+                            "erzaehler": {k: erz_sb.get(k) for k in ("erzaehlform", "ich_figur", "genre_stimme",
+                                                                     "merkmale", "stimm_beschreibung_en")},
+                            "figuren": len(je_sb), "fremd": fremd, "fehlend": fehlend},
+            "figuren210": figuren210,
+            "regler": {k: rg[k] for k in ("schwelle", "f0_abstand", "max_ensemble", "min_anteil", "reihe_erbe",
+                                          "geschichten")},
+            "kapitel": P._kapitel(data),
+            "standard": {k: P.REGLER_STD[k] for k in ("schwelle", "f0_abstand", "max_ensemble", "min_anteil")},
+            "vorgaben": {"erzaehler": vorg_e, "figuren": vorg_f, "statisten": sorted(stat_fest),
+                         "design_prompt": rg.get("design_prompt") or {}},
+            "reihe": roh.get("reihe"), "teil": roh.get("teil"),
+            "archiv": {"belegt": vr.belegte_plaetze(reg), "max": vr.MAX_STIMMEN},
+            "grenzen": {"formant_min": T.FORMANT_MIN, "formant_max": T.FORMANT_MAX, "tonhoehe_max": T.TONHOEHE_MAX_HT},
+            "trennregel": {k: R.get(k) for k in ("D_schwelle", "D_ziel", "version")} if R else {},
+            "kosten": {"steckbriefe": round(P.kosten_schaetzen(len(text), rg.get("modell")), 4),
+                       "design_stueck": dp, "design_muster": muster},
+            "modell": rg.get("modell") or config.MODELS.get("caster")}
+
+
+def _m410_argv(book_id, e, wer):
+    from pipeline import s410_casting as P, voice_registry as vr
+    b = bestellung.lesen(book_id)
+    ziele, _u = P._ziele(b)
+    reg, std = vr.laden(), P._standard()
+    data = _m200_lesen(book_id, "400_regie.json") or {}
+    profil = (data.get("meta") or {}).get("profile") or {}
+    if not profil.get("characters"):
+        profil = ((_m200_lesen(book_id, "210_profil.json") or {}).get("meta") or {}).get("profile") or profil
+    figuren = set((profil.get("characters") or {}).keys())
+
+    def stimme_ok(n, wo):
+        if n == P.NEU or n in reg or n in std or n == P.CB_STANDARD:
+            if n in reg and reg[n].get("status") == "abgelehnt":
+                raise ValueError(f"{wo}: Stimme {n} im Archiv abgelehnt")
+            return n
+        raise ValueError(f"{wo}: Stimme {n!r} nicht im Archiv")
+
+    def fig_ok(f):
+        f = str(f).strip()
+        if f not in figuren:
+            raise ValueError(f"Figur {f!r} nicht in der Figurenliste 210")
+        if any(ch in f for ch in "=:"):
+            raise ValueError(f"Figur {f!r}: '=' oder ':' im Namen nicht erlaubt")
+        return f
+    a = [PY, "-m", "pipeline.s410_casting", book_id, "--wer", wer]
+    aend, design = False, bool(e.get("design"))
+    for lg, n in (e.get("erzaehler") or {}).items():
+        if lg not in ziele:
+            raise ValueError(f"Sprache {lg!r} hat keinen Erzaehler {sorted(ziele)}")
+        n = str(n).strip()
+        a.append(f"--erzaehler={lg}={'-' if n in ('', '-') else stimme_ok(n, 'Erzaehler ' + lg)}")
+        design |= n == P.NEU
+        aend = True
+    for f, n in (e.get("figur") or {}).items():
+        f, n = fig_ok(f), str(n).strip()
+        if n in ("", "-"):
+            a.append(f"--figur-weg={f}")
+        else:
+            a.append(f"--figur={f}={stimme_ok(n, f)}")
+            design |= n == P.NEU
+        aend = True
+    for f in e.get("statist") or []:
+        a.append(f"--statist={fig_ok(f)}")
+        aend = True
+    for f in e.get("statist_weg") or []:
+        a.append(f"--statist-weg={fig_ok(f)}")
+        aend = True
+    for f, t in (e.get("design_prompt") or {}).items():
+        f, t = str(f).strip(), " ".join(str(t).split())
+        if f != "Erzaehler":
+            f = fig_ok(f)
+        if not 20 <= len(t) <= 1500:
+            raise ValueError(f"Design-Prompt {f}: 20–1500 Zeichen")
+        a.append(f"--design-prompt={f}={t}")
+        aend = True
+    for k, lo, hi, typ in (("schwelle", 0, 100, float), ("f0_abstand", 0.01, 0.5, float),
+                           ("max_ensemble", 0, 40, int), ("min_anteil", 0, 100, float)):
+        if e.get(k) not in (None, ""):
+            x = typ(e[k])
+            if not lo <= x <= hi:
+                raise ValueError(f"{k} {lo}–{hi}")
+            a.append(f"--{k.replace('_', '-')}={x:g}")
+            aend = True
+    if e.get("reihe_erbe") is not None:
+        a.append("--mit-reihe" if e["reihe_erbe"] else "--ohne-reihe")
+        aend = True
+    if e.get("geschichten") is not None:
+        gs = str(e["geschichten"]).replace(" ", "")
+        if gs not in ("aus", "") and not P.geschichten_spec_ok(gs):
+            raise ValueError("Geschichten: aus | kapitel | c001-c003,c004")
+        a.append(f"--geschichten={gs or 'aus'}")
+        aend = True
+    from pipeline import trennung as T
+    for key, wert in (e.get("korrektur") or {}).items():
+        fig, _, lg = str(key).rpartition(":")
+        fig_ok(fig)
+        if lg not in ziele:
+            raise ValueError(f"Korrektur {key}: Sprache {lg!r} ohne Casting")
+        w = str(wert).strip()
+        if w != "-":
+            teile = [t.strip() for t in w.split(",")]
+            ff, ht = float(teile[0]), float(teile[1]) if len(teile) > 1 and teile[1] else 0.0
+            if not T.FORMANT_MIN <= ff <= T.FORMANT_MAX:
+                raise ValueError(f"Korrektur {fig}: Formant {T.FORMANT_MIN}–{T.FORMANT_MAX}")
+            if abs(ht) > T.TONHOEHE_MAX_HT:
+                raise ValueError(f"Korrektur {fig}: Tonhoehe ±{T.TONHOEHE_MAX_HT} HT")
+            w = f"{ff:g},{ht:g}"
+        a.append(f"--korrektur={fig}:{lg}={w}")
+    if e.get("neu_steckbriefe"):
+        a.append("--neu-steckbriefe")
+    if e.get("neu"):
+        a.append("--neu")
+    if design:
+        a.append("--design")
+    grund = " ".join(str(e.get("grund") or "").split())
+    c = P.laden(book_id)
+    if ((aend or e.get("neu")) and P.freigegeben(c) or e.get("korrektur") or e.get("neu")) and not grund:
+        raise ValueError("Grund ist Pflicht (Casting freigegeben, Korrektur oder Neubesetzung – Protokoll)")
+    if grund:
+        a.append(f"--grund={grund}")
+    if e.get("trocken"):
+        if e.get("korrektur"):
+            raise ValueError("Korrektur wird sofort geschrieben – Probe ohne Korrektur")
+        a.append("--trocken")
+    return a
+
+
+MONITOR_DATEN["410"] = _m410_daten
+MONITOR_SPEICHERN["410"] = _m410_argv
+
+
+# ---- 420 Sprecher (Steckbrief GATE_MONITORE 420: Befundliste als Drehbuch; Sprecher je Segment, Schnittmarken;
+#      Satz/Kapitel neu zuordnen; Regler je Werk)
+def _m420_basis(book_id):
+    from pipeline import s420_sprecher as P, s410_casting as C
+    b = bestellung.lesen(book_id)
+    data = _m200_lesen(book_id, "400_regie.json") or {}
+    content = data.get("content") or {}
+    sprech = (data.get("production") or {}).get("sprechtext") or {}
+    src = b.quellsprache or config.SOURCE_LANGUAGE
+    ziele = P._ziele(b)
+    c = C.laden(book_id)
+    return b, data, content, sprech, src, ziele, c
+
+
+def _m420_text(content, sprech, tid, lg):
+    v = (sprech.get(tid) or {}).get(lg)
+    return v if v is not None else str((content.get(tid) or {}).get(lg) or "")
+
+
+def _m420_frei(c):
+    from pipeline import s410_casting as C
+    return C.freigegeben(c)
+
+
+def _m420_daten(book_id):
+    from pipeline import s420_sprecher as P
+    b, data, content, sprech, src, ziele, c = _m420_basis(book_id)
+    rg = P._regler(b.roh or {})
+    aus = P.laden(book_id) or {}
+    saetze = aus.get("saetze") or {}
+    korr = P._json(P.korr_pfad(book_id), {}) or {}
+    drama = rg["drama"] if rg["drama"] is not None else (data.get("meta") or {}).get("modus") == "drama"
+    sprachen = {}
+    for lg, stufe in sorted(ziele.items()):
+        cast = P.besetzung(c, lg, stufe) or []
+        ref_lg = src if src != lg else None
+        befunde, zeichen, stat, fremd = [], 0, {}, {}
+        ids = set(t for t, v in saetze.items() if lg in v) | set(korr.get(lg) or {})
+        for t, e in content.items():                      # Rede-Spur (dl/qt mit Zeichen) ohne Segmente
+            if isinstance(e, dict) and e.get("type") in ("dl", "qt") and any(ch in P.ZEICHEN for ch in _m420_text(content, sprech, t, lg)):
+                ids.add(t)
+        for t in sorted(ids):
+            r = (saetze.get(t) or {}).get(lg)
+            arten = []
+            if r:
+                seg = r.get("seg") or []
+                if any(x.get("u") for x in seg):
+                    arten.append("unsicher")
+                if r.get("rf"):
+                    arten.append("rueckfall")
+                if r.get("ref") is not None and not r.get("rf") and P._figuren(seg) != P._figuren(r["ref"]):
+                    arten.append("inkonsistent")
+                if r.get("q") == "manuell":
+                    arten.append("manuell")
+                for x in seg:
+                    stat[x["s"]] = stat.get(x["s"], 0) + 1
+                for n in r.get("unbekannt") or []:
+                    fremd[n] = fremd.get(n, 0) + 1
+                zeichen += len(_m420_text(content, sprech, t, lg))
+                spr = sorted(P._figuren(seg))
+            else:
+                spr = []
+                if t not in (korr.get(lg) or {}):
+                    arten.append("ohne_segmente")
+            if t in (korr.get(lg) or {}) and not (r and r.get("q") == "manuell"):
+                arten.append("veraltet")
+            befunde.append({"id": t, "kapitel": t[:4], "arten": arten, "sprecher": spr, "q": (r or {}).get("q")})
+        n_mit = sum(1 for x in befunde if x["q"])
+        sprachen[lg] = {"stufe": stufe, "referenz": ref_lg,
+                        "besetzung": [{"figur": P.ERZ, "name": "Erzähler", "rolle": "erzaehler"}] + cast,
+                        "befunde": befunde, "mit_rede": n_mit,
+                        "unbekannt": dict(sorted(fremd.items(), key=lambda x: -x[1])), "segmente": dict(sorted(stat.items(), key=lambda x: -x[1])),
+                        "zaehler": {a: sum(1 for x in befunde if a in x["arten"]) for a in
+                                    ("unsicher", "rueckfall", "inkonsistent", "manuell", "veraltet", "ohne_segmente")},
+                        "kosten_neu": round(P.kosten_schaetzen(zeichen, n_mit, 1, rg["modell"], rg["teil"]), 4),
+                        "kosten_satz": round(P.kosten_schaetzen(zeichen / n_mit, 1, 1, rg["modell"], 1), 5) if n_mit else 0.0}
+    meta = aus.get("meta") or {}
+    return {"vorhanden": bool(aus), "regie_fehlt": not data, "ziele": ziele, "quelle": src,
+            "casting_frei": bool(c) and _m420_frei(c),
+            "drama": drama, "drama_regler": rg["drama"], "modell": rg["modell"] or config.MODELS.get("caster"),
+            "regler": {k: rg[k] for k in ("vorfilter", "rueckfall_max", "unsicher_max", "konsistenz_min")},
+            "standard": {k: P.REGLER_STD[k] for k in ("vorfilter", "rueckfall_max", "unsicher_max", "konsistenz_min")},
+            "je_sprache": meta.get("je_sprache") or {}, "datum": aus.get("datum"), "sprachen": sprachen}
+
+
+def _m420_teil(book_id, q):
+    """?lang=LG&ids=a,b -> je Satz Zieltext, Segmente (Ziel/Referenz), Herkunft, Korrektur."""
+    from pipeline import s420_sprecher as P
+    b, data, content, sprech, src, ziele, c = _m420_basis(book_id)
+    lg = q.get("lang") or ""
+    if lg not in ziele:
+        raise ValueError(f"Hoerspiel-Sprache {lg!r} nicht bestellt")
+    ids = [x for x in (q.get("ids") or "").split(",") if x][:60]
+    saetze = (P.laden(book_id) or {}).get("saetze") or {}
+    korr = (P._json(P.korr_pfad(book_id), {}) or {}).get(lg) or {}
+    ref_lg = src if src != lg else None
+    out = []
+    for t in ids:
+        e = content.get(t) or {}
+        r = (saetze.get(t) or {}).get(lg) or {}
+        text = _m420_text(content, sprech, t, lg)
+        out.append({"id": t, "typ": e.get("type"), "text": text, "seg": r.get("seg") or [{"t": text, "s": P.ERZ}],
+                    "hat_seg": bool(r), "q": r.get("q"), "rf": r.get("rf"), "ref": r.get("ref"),
+                    "unbekannt": r.get("unbekannt") or [],
+                    "ref_text": str(e.get(ref_lg) or "") if ref_lg else "", "korrektur": t in korr,
+                    "sprecher_drama": e.get("sprecher")})
+    return {"saetze": out}
+
+
+def _m420_argv(book_id, e, wer):
+    import json as _j
+    import re as _re
+    from pipeline import s420_sprecher as P
+    b, data, content, sprech, src, ziele, c = _m420_basis(book_id)
+    a = [PY, "-m", "pipeline.s420_sprecher", book_id, "--wer", wer]
+    seg, weg = e.get("segmente") or {}, e.get("korrektur_weg") or []
+    if seg or weg:
+        lg = e.get("lang")
+        if lg not in ziele:
+            raise ValueError(f"Hoerspiel-Sprache {lg!r} nicht bestellt {sorted(ziele)}")
+        a.append(f"--lang={lg}")
+        erlaubt = {x["figur"] for x in (P.besetzung(c, lg, ziele[lg]) or [])} | {P.ERZ}
+        for t, l in seg.items():
+            if not _re.fullmatch(r"c\d+_\d+_[a-z]+", t) or t not in content:
+                raise ValueError(f"Satz-ID {t!r} unbekannt")
+            l = [{"t": str(x.get("t") or ""), "s": str(x.get("s") or "")} for x in l or []]
+            if not l or any(not x["t"].strip() for x in l):
+                raise ValueError(f"{t}: leeres Segment")
+            fremd = sorted({x["s"] for x in l} - erlaubt)
+            if fremd:
+                raise ValueError(f"{t}: Sprecher nicht in der Besetzung: {', '.join(fremd)}")
+            if not P.rekonstruiert(l, _m420_text(content, sprech, t, lg)):
+                raise ValueError(f"{t}: Segmente ergeben nicht den Satz")
+            a.append(f"--segmente={t}={_j.dumps(l, ensure_ascii=False)}")
+        for t in weg:
+            a.append(f"--korrektur-weg={t}")
+        if e.get("trocken"):
+            raise ValueError("Korrekturen werden sofort geschrieben – Probe ohne Korrekturen")
+    for t in e.get("satz") or []:
+        if t not in content:
+            raise ValueError(f"Satz-ID {t!r} unbekannt")
+        a.append(f"--satz={t}")
+    kap = [k for k in e.get("kapitel") or [] if k]
+    if kap:
+        if any(not _re.fullmatch(r"c\d{3}", k) for k in kap):
+            raise ValueError("Kapitel cNNN")
+        a.append("--kapitel=" + ",".join(kap))
+    for k, flag in (("rueckfall_max", "--rueckfall-max"), ("unsicher_max", "--unsicher-max"),
+                    ("konsistenz_min", "--konsistenz-min")):
+        if e.get(k) not in (None, ""):
+            x = float(e[k])
+            if not 0 <= x <= 1:
+                raise ValueError(f"{k} 0–1")
+            a.append(f"{flag}={x:g}")
+    if e.get("drama") is not None:
+        if e["drama"] not in ("an", "aus", "auto"):
+            raise ValueError("drama an|aus|auto")
+        a.append(f"--drama={e['drama']}")
+    if e.get("vorfilter") is not None:
+        a.append(f"--vorfilter={'an' if e['vorfilter'] else 'aus'}")
+    if e.get("neu"):
+        a.append("--neu")
+    if e.get("trocken"):
+        a.append("--trocken")
+    return a
+
+
+MONITOR_DATEN["420"] = _m420_daten
+MONITOR_SPEICHERN["420"] = _m420_argv
+MONITOR_TEIL["420"] = _m420_teil
+
+
+# ---- 500 Vertonung (Steckbrief GATE_MONITORE 500/510: Kostenfreigabe je Sprache; Hoerliste abspielen/neu/annehmen;
+#      Probe N Saetze; Regler Budget + Pruefschwellen je Werk; Technik nicht im Monitor)
+def _m500_daten(book_id):
+    import contextlib as _cl
+    import io as _io
+    from pipeline import s500_vertonung_gemini as P
+    b = bestellung.lesen(book_id)
+    roh = b.roh or {}
+    rg = P._regler(roh)
+    ordner = config.book_dir(book_id)
+    plan_fehler, g = None, None
+    try:
+        with _cl.redirect_stdout(_io.StringIO()):
+            g = P.run(book_id, wer="monitor", trocken=True)
+    except Exception as e:                                   # Monitor zeigt trotzdem Manifest/Hoerliste
+        plan_fehler = f"{type(e).__name__}: {e}"
+    met = (g.metriken if g else {}) or {}
+    pruef = (getattr(g, "pruef", None) if g else None) or _m200_lesen(book_id, "500_pruefung.json") or {}
+    man = (_m200_lesen(book_id, "500_vertonung.json") or {}).get("eintraege") or {}
+    ent = P._json(P.entscheidungen_pfad(book_id), {}) or {}
+    data = _m200_lesen(book_id, "400_regie.json") or {}
+    sprech = (data.get("production") or {}).get("sprechtext") or {}
+
+    def rel(datei):
+        if not datei:
+            return None
+        q = os.path.relpath(os.path.join(ordner, datei), BASE)
+        return None if q.startswith("..") else q.replace("\\", "/")
+    sprachen = {}
+    kj = met.get("kosten_je_sprache") or {}
+    for lg, st in (met.get("audiosprachen") or {}).items():
+        js = (met.get("je_sprache") or {}).get(lg) or {}
+        p = pruef.get(lg) or {}
+        eint = {k.split("/", 1)[1]: e for k, e in man.items() if k.startswith(lg + "/")}
+        q = {}
+        for e in eint.values():
+            q[e.get("q") or "?"] = q.get(e.get("q") or "?", 0) + 1
+
+        def zeile(x, art):
+            e = eint.get(x["id"]) or {}
+            st_ = ((sprech.get(x["id"]) or {}).get(lg)) or x.get("text") or ""
+            return dict(x, art=art, audio=rel(e.get("datei") or x.get("datei")), engine=e.get("engine"),
+                        sprechtext=st_, usd_neu=P.kosten(e.get("engine") or "gemini", len(st_)))
+        liste = ([zeile(x, "auffaellig") for x in p.get("auffaellig") or []]
+                 + [zeile(x, "leer") for x in p.get("leer") or []]
+                 + [zeile(x, "angenommen") for x in p.get("angenommen") or []])
+        ids = {x["id"] for x in liste}
+        liste += [zeile(x, "probe") for x in p.get("probe") or [] if x["id"] not in ids]
+        stimme = js.get("stimme") or p.get("stimme")
+        sprachen[lg] = {"stufen": st, "engine": js.get("engine") or p.get("engine") or (kj.get(lg) or {}).get("engine"),
+                        "stimme": stimme, "stimme_probe": _m410_probe(stimme, lg),
+                        "einheiten": js.get("einheiten"), "im_manifest": len(eint), "herkunft": q,
+                        "dauer_s": round(sum(float(e.get("dauer") or 0) for e in eint.values()), 1),
+                        "fehlt": len(p.get("fehlt") or []), "veraltet": len(p.get("veraltet") or []),
+                        "fallback_bloecke": len(p.get("fallback_bloecke") or []),
+                        "offen": kj.get(lg) or {"saetze": 0, "zeichen": 0, "usd": 0.0},
+                        "hoerliste": liste,
+                        "angenommen": [x for x in liste if x["art"] == "angenommen"]}
+    fr = (P._json(os.path.join(config.work_dir(book_id), "500_kosten.json"), {}) or {}).get("freigaben") or []
+    return {"plan_fehler": plan_fehler, "mandant": b.mandant_art, "budget": float(rg["budget"]),
+            "kosten_offen": met.get("kosten_usd"), "sprachen": sprachen, "freigaben": fr[-10:],
+            "regler": {k: rg[k] for k in ("budget", "auffaellig_max", "dauer_min", "dauer_max", "versuche")},
+            "standard": {k: P.REGLER_STD[k] for k in ("budget", "auffaellig_max", "dauer_min", "dauer_max", "versuche")},
+            "gruende_probe": (g.ergebnis or {}).get("gruende", []) if g else [],
+            "hinweise_probe": (g.ergebnis or {}).get("hinweise", []) if g else []}
+
+
+def _m500_argv(book_id, e, wer):
+    import re as _re
+    from pipeline import s500_vertonung_gemini as P
+    b = bestellung.lesen(book_id)
+    audio = list(P._stufen(b))
+    data = _m200_lesen(book_id, "400_regie.json") or {}
+    ids_ok = set(data.get("content") or {}) | {a.get("id") for l in (data.get("ansagen") or {}).values()
+                                              for a in l if isinstance(a, dict)}
+    a = [PY, "-m", "pipeline.s500_vertonung_gemini", book_id, "--wer", wer]
+    lg = e.get("lang")
+    if lg is not None and lg not in audio:
+        raise ValueError(f"Audiosprache {lg!r} nicht bestellt {audio}")
+    if lg:
+        a.append(f"--lang={lg}")
+
+    def tid_ok(t):
+        if t not in ids_ok or not _re.fullmatch(r"[\w-]+", t):
+            raise ValueError(f"Satz-ID {t!r} unbekannt")
+        return t
+    an = e.get("annehmen") or []
+    if an:
+        if not lg:
+            raise ValueError("Annehmen braucht die Sprache")
+        grund = " ".join(str(e.get("grund") or "").split())
+        if not grund:
+            raise ValueError("Annehmen braucht einen Grund")
+        if e.get("trocken"):
+            raise ValueError("Annehmen wird sofort geschrieben – Probe ohne Annehmen")
+        a += [f"--annehmen={tid_ok(t)}" for t in an] + [f"--grund={grund}"]
+    a += [f"--satz={tid_ok(t)}" for t in e.get("satz") or []]
+    for k, v in (e.get("kosten_freigeben") or {}).items():
+        if k not in audio:
+            raise ValueError(f"Kostenfreigabe: Sprache {k!r} nicht bestellt")
+        x = float(v)
+        if not 0 <= x <= 500:
+            raise ValueError("Kostenfreigabe 0–500 $")
+        a.append(f"--kosten-freigeben={k}={x:g}")
+    if e.get("probe") not in (None, ""):
+        n = int(e["probe"])
+        if not 1 <= n <= 20:
+            raise ValueError("Probe 1–20 Saetze")
+        a.append(f"--probe={n}")
+    for k, lo, hi, typ in (("budget", 0, 500, float), ("auffaellig_max", 0, 1, float), ("dauer_min", 0.1, 1, float),
+                           ("dauer_max", 1, 5, float), ("versuche", 0, 3, int)):
+        if e.get(k) not in (None, ""):
+            x = typ(e[k])
+            if not lo <= x <= hi:
+                raise ValueError(f"{k} {lo}–{hi}")
+            a.append(f"--{k.replace('_', '-')}={x:g}")
+    if e.get("trocken"):
+        a.append("--trocken")
+    return a
+
+
+MONITOR_DATEN["500"] = _m500_daten
+MONITOR_SPEICHERN["500"] = _m500_argv
+
+
 # ---- Stage-Ergebnis (Monitor-Abschnitt "Ergebnis", CK 04.11.2026: Ergebnis je Stage ansehen)
 ERGEBNIS_EXTRA = {"100": ["book.json", "raw.txt", "@author.json"], "110": ["book.json", "@author.json"], "115": ["book.json"], "120": ["raw_modernized.txt"],
                   "150": ["book.json", "work/ingest_bericht.json", "raw_modernized.txt"], "195": ["book.json"]}

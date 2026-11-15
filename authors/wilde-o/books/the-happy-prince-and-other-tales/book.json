@@ -45,5 +45,135 @@
   ],
   "zurueckgesetzt_librivox": "2026-10-10",
   "librivox_geprueft": "treffer",
-  "librivox_geprueft_am": "2026-10-10T20:30:50"
+  "librivox_geprueft_am": "2026-10-10T20:30:50",
+  "mandant": "somnio",
+  "besitzer": "somnio",
+  "quelle": "gutenberg",
+  "rechte": {
+    "art": "gemeinfrei",
+    "bearbeitung": true,
+    "drm_frei": true,
+    "versichert": null,
+    "hinweis": null
+  },
+  "produkte": [
+    {
+      "sprache": "en",
+      "inhalt": "text",
+      "stufe": null,
+      "kanaele": [
+        "taella",
+        "epub"
+      ],
+      "zusatz": []
+    },
+    {
+      "sprache": "en",
+      "inhalt": "hoerbuch",
+      "stufe": "basic",
+      "kanaele": [
+        "taella",
+        "epub",
+        "extern"
+      ],
+      "zusatz": []
+    },
+    {
+      "sprache": "de",
+      "inhalt": "text",
+      "stufe": null,
+      "kanaele": [
+        "taella",
+        "epub"
+      ],
+      "zusatz": []
+    },
+    {
+      "sprache": "de",
+      "inhalt": "hoerbuch",
+      "stufe": "premium",
+      "kanaele": [
+        "taella",
+        "extern"
+      ],
+      "zusatz": []
+    },
+    {
+      "sprache": "de",
+      "inhalt": "hoerspiel",
+      "stufe": "premium",
+      "kanaele": [
+        "taella"
+      ],
+      "zusatz": []
+    }
+  ],
+  "fassung": "modernisiert",
+  "casting_regler": {
+    "erzaehler": {},
+    "figuren": {
+      "Nightingale": "w_kind_hoch_neugierig",
+      "Reed": "Kore",
+      "God": "m_greis_mittel_guetig",
+      "Professor's daughter": "Autonoe",
+      "Mayor": "Sadaltager",
+      "Miller's Wife": "w_mittel_mittel_cholerisch",
+      "Mathematical Master": "Charon",
+      "Charity Children": "w_jung_hoch_ruhig",
+      "Professor of Ornithology": "Iapetus",
+      "match-girl": "w_jung_mittel_aengstlich",
+      "Hugh the Miller": "Fenrir",
+      "Swallow": "m_mittel_mittel_ruhig_3",
+      "Happy Prince": "m_jung_mittel_ruhig",
+      "Giant": "herr_b",
+      "Hans": "m_jung_mittel_melancholisch",
+      "Water-rat": "Iapetus",
+      "Duck": "Autonoe",
+      "little boy": "Gacrux",
+      "Art Professor": "Achird",
+      "overseer": "Enceladus",
+      "Green Lizard": "m_mittel_hoch_albern",
+      "Butterfly": "m_mittel_hoch_nervoes",
+      "Daisy": "w_jung_mittel_ruhig",
+      "Oak-tree": "m_alt_tief_melancholisch",
+      "Snow": "Sadachbia",
+      "Frost": "Puck",
+      "North Wind": "m_alt_tief_ruhig",
+      "Hail": "m_mittel_mittel_albern",
+      "Miller's youngest son": "m_alt_tief_schlaefrig",
+      "Blacksmith": "herr_a",
+      "Doctor": "m_mittel_tief_ruhig",
+      "seamstress": "w_jung_mittel_aengstlich",
+      "Town Clerk": "m_mittel_hoch_nervoes",
+      "Angel": "m_mittel_hoeher_thornton_2",
+      "Chamberlain's nephew": "m_jung_mittel_ruhig",
+      "Cornish ogre": "m_alt_tief_cholerisch"
+    },
+    "statisten": [],
+    "design_prompt": {},
+    "schwelle": 70,
+    "f0_abstand": 0.12,
+    "max_ensemble": 15,
+    "min_anteil": 2.0,
+    "max_text": 400000,
+    "modell": null,
+    "reihe_erbe": true
+  },
+  "casting": "work/casting.json",
+  "vertonung_regler": {
+    "engine": {},
+    "ex": 0.5,
+    "cfg": 0.5,
+    "block_min": null,
+    "block_ideal": null,
+    "block_max": null,
+    "valley_ratio": 0.45,
+    "batch": 8,
+    "fp16": false,
+    "budget": 3.0,
+    "auffaellig_max": 0.01,
+    "dauer_min": 0.6,
+    "dauer_max": 1.6,
+    "versuche": 2
+  }
 }

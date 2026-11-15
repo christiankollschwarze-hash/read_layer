@@ -225,6 +225,57 @@ class T420(unittest.TestCase):
         g = self.lauf()
         self.assertEqual(g.ergebnis["ergebnis"], "stopp", "Mock-Zuordnung im Live-Lauf")
 
+    def test_monitor_420(self):
+        from cockpit import werk_api as W
+        self.unsicher = {"c001_00004_dl"}
+        self.lauf()
+        d = W._m420_daten("w")
+        self.assertTrue(d["vorhanden"] and d["casting_frei"])
+        sp = d["sprachen"]["de"]
+        self.assertEqual([b["figur"] for b in sp["besetzung"]], ["Erzaehler", "Alice", "Hatter", "Cat"])
+        bf = {x["id"]: x for x in sp["befunde"]}
+        self.assertEqual(bf["c001_00004_dl"]["arten"], ["unsicher"])
+        self.assertEqual(bf["c001_00003_dl"]["sprecher"], ["Hatter"])
+        self.assertNotIn("c001_00002_s", bf)
+        self.assertGreater(sp["kosten_neu"], 0)
+        t = W._m420_teil("w", {"lang": "de", "ids": "c001_00003_dl"})["saetze"][0]
+        self.assertEqual([x["s"] for x in t["seg"]], ["Hatter", "Erzaehler"])
+        self.assertEqual([x["s"] for x in t["ref"]], ["Hatter", "Erzaehler"])
+        seg = [{"t": "„Ich bin Alice“,", "s": "Hatter"}, {"t": " sagte sie.", "s": "Erzaehler"}]
+        a = W._m420_argv("w", {"lang": "de", "segmente": {"c001_00004_dl": seg}, "satz": ["c002_00003_dl"],
+                               "unsicher_max": 0.1, "drama": "aus"}, "CK")
+        self.assertEqual(a[6:], ["--lang=de", "--segmente=c001_00004_dl=" + json.dumps(seg, ensure_ascii=False),
+                                 "--satz=c002_00003_dl", "--unsicher-max=0.1", "--drama=aus"])
+        for e in ({"lang": "en", "segmente": {"c001_00004_dl": seg}},
+                  {"lang": "de", "segmente": {"c001_00004_dl": [dict(seg[0], s="Nobody"), seg[1]]}},
+                  {"lang": "de", "segmente": {"c001_00004_dl": seg[:1]}},
+                  {"lang": "de", "segmente": {"c001_00004_dl": seg}, "trocken": True},
+                  {"satz": ["c009_00001_s"]}, {"kapitel": ["x1"]}, {"konsistenz_min": 2}, {"drama": "ja"}):
+            with self.assertRaises(ValueError, msg=e):
+                W._m420_argv("w", e, "CK")
+        with contextlib.redirect_stdout(io.StringIO()):
+            rc = P.main(W._m420_argv("w", {"lang": "de", "segmente": {"c001_00004_dl": seg}}, "CK")[3:])
+        self.assertEqual(rc, 0, S.laden("w")["stages"]["420"])
+        sp = W._m420_daten("w")["sprachen"]["de"]
+        self.assertEqual({x["id"]: x for x in sp["befunde"]}["c001_00004_dl"]["arten"], ["manuell"])
+        self.assertTrue(W._m420_teil("w", {"lang": "de", "ids": "c001_00004_dl"})["saetze"][0]["korrektur"])
+        self.assertEqual(S.zustand("w", "420"), "frei")
+
+    def test_unbekannte_sprecher_genannt(self):
+        from cockpit import werk_api as W
+        alt = WER["c002_00003_dl"]
+        WER["c002_00003_dl"] = "Dormouse"
+        self.addCleanup(WER.__setitem__, "c002_00003_dl", alt)
+        g = self.lauf()
+        self.assertTrue(any("nicht in der Besetzung" in h and "Dormouse (1x)" in h for h in g.ergebnis["hinweise"]),
+                        g.ergebnis["hinweise"])
+        r = self.lesen("420_sprecher.json")["saetze"]["c002_00003_dl"]["de"]
+        self.assertEqual((r["rf"], r["unbekannt"]), ("sprecher_unbekannt", ["Dormouse"]))
+        self.assertEqual(self.lesen("420_pruefung.json")["de"]["unbekannt"], {"Dormouse": 1})
+        self.assertEqual(W._m420_daten("w")["sprachen"]["de"]["unbekannt"], {"Dormouse": 1})
+        self.assertEqual(W._m420_teil("w", {"lang": "de", "ids": "c002_00003_dl"})["saetze"][0]["unbekannt"],
+                         ["Dormouse"])
+
     def test_kein_hoerspiel(self):
         self.werk(produkte=HS[:1])
         self.assertEqual(self.lauf().ergebnis["ergebnis"], "stopp")

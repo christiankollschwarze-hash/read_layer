@@ -201,6 +201,56 @@ class T500(unittest.TestCase):
         self.assertEqual(g.ergebnis["ergebnis"], "auto", g.bericht())
         self.assertEqual(self.lesen("500_kosten.json")["freigaben"][0]["wer"], "test")
 
+    def test_kostenfreigabe_je_sprache(self):
+        rl = rollen()
+        rl["en"] = json.loads(json.dumps(rl["de"]))
+        self.werk(produkte=PREM + [dict(PREM[0], sprache="en")], extra={"mandant": "user:x"}, rl=rl)
+        g = self.lauf()
+        self.assertEqual(g.ergebnis["ergebnis"], "mensch")
+        self.assertEqual(self.calls, [])
+        kj = g.metriken["kosten_je_sprache"]
+        self.assertEqual(set(kj), {"de", "en"})
+        g = self.lauf(kosten_freigeben={"de": kj["de"]["usd"] + 0.001})
+        self.assertEqual(g.ergebnis["ergebnis"], "mensch", g.bericht())
+        self.assertTrue(any("en: Kosten" in x and "nicht freigegeben" in x for x in g.ergebnis["gruende"]))
+        self.assertTrue(os.path.exists(self.a("c002_00002_s.wav")))
+        self.assertFalse(os.path.exists(os.path.join(self.d, "fassungen", "en", "audio", "c002_00002_s.wav")))
+        self.assertEqual(self.lesen("500_kosten.json")["freigaben"][0]["sprache"], "de")
+        g = self.lauf(kosten_freigeben={"en": kj["en"]["usd"] + 0.001})
+        self.assertEqual(g.ergebnis["ergebnis"], "auto", g.bericht())
+
+    def test_annehmen_mit_grund(self):
+        from cockpit import werk_api as W
+        self.grund = {"Die Katze grinste sie an.": ["zu_kurz"] * 3}
+        g = self.lauf()
+        self.assertEqual(g.ergebnis["ergebnis"], "mensch")
+        with self.assertRaises(ValueError):
+            P.annehmen("w", "de", ["c002_00002_s"], "CK", "")
+        P.annehmen("w", "de", ["c002_00002_s"], "CK", "klingt gut")
+        g = self.lauf()
+        self.assertEqual(g.ergebnis["ergebnis"], "auto", g.bericht())
+        self.assertEqual(self.lesen("500_pruefung.json")["de"]["angenommen"][0]["grund_annahme"], "klingt gut")
+        d = W._m500_daten("w")
+        sp = d["sprachen"]["de"]
+        self.assertEqual(sp["engine"], "gemini")
+        self.assertEqual([x["id"] for x in sp["angenommen"]], ["c002_00002_s"])
+        self.assertTrue(sp["angenommen"][0]["datei"].endswith("c002_00002_s.wav"))
+        self.grund = {"Die Katze grinste sie an.": ["zu_kurz"] * 3}
+        P.synth = lambda text, style, out, voice, lg: wav(out, 0.05 * len(text), 2000)   # andere WAV
+        g = self.lauf(saetze=["c002_00002_s"])                       # neue WAV -> Annahme verfaellt
+        self.assertEqual(g.ergebnis["ergebnis"], "mensch", g.bericht())
+        a = W._m500_argv("w", {"lang": "de", "annehmen": ["c002_00002_s"], "grund": "ok", "satz": ["c001_00002_s"],
+                               "kosten_freigeben": {"de": 0.5}, "budget": 1, "auffaellig_max": 0.02, "versuche": 1,
+                               "probe": 5}, "CK")
+        self.assertEqual(a[6:], ["--lang=de", "--annehmen=c002_00002_s", "--grund=ok", "--satz=c001_00002_s",
+                                 "--kosten-freigeben=de=0.5", "--probe=5", "--budget=1", "--auffaellig-max=0.02",
+                                 "--versuche=1"])
+        for e in ({"lang": "de", "annehmen": ["c002_00002_s"]}, {"lang": "fr", "satz": ["c001_00002_s"]},
+                  {"satz": ["c009_00001_s"]}, {"versuche": 9}, {"kosten_freigeben": {"fr": 1}},
+                  {"lang": "de", "annehmen": ["c002_00002_s"], "grund": "x", "trocken": True}, {"probe": 0}):
+            with self.assertRaises(ValueError, msg=e):
+                W._m500_argv("w", e, "CK")
+
     def test_budget_standard_null(self):
         self.werk(extra={"vertonung_regler": {}})
         g = self.lauf()

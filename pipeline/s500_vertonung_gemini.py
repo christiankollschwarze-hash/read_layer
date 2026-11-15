@@ -27,7 +27,8 @@ Kosten:       usage_log Stage 500 mit Sprache (Gemini-TTS je Aufruf in tts_clien
 Regler:       book.json vertonung_regler: --engine LG=gemini|chatterbox, --ex, --cfg, --block-min/
               --block-ideal/--block-max, --valley-ratio, --batch, --fp16 an|aus, --budget, --auffaellig-max,
               --dauer-min/--dauer-max, --versuche; dazu --satz ID (neu), --kapitel c001,c002, --lang, --neu,
-              --probe N, --kosten-freigeben USD, --trocken.
+              --probe N, --kosten-freigeben [LG=]USD (je Sprache einzeln; ohne LG = Gesamtbetrag),
+              --annehmen ID --lang LG --grund TEXT (auffaelligen Satz annehmen, gilt bis neue WAV), --trocken.
 Aufruf:       py -3.11 -m pipeline.s500_vertonung_gemini <werk> [Regler] [--wer CK]
 Exit: 0 auto, 2 Stopp, 3 Mensch, 1 Fehler.
 """
@@ -249,6 +250,36 @@ def kosten(engine, zeichen, heute=None):
         if usd is None:
             usd = zeichen / 100_000 * (getattr(config, "ANGEBOT_USD_100K", {}) or {}).get("hoerbuch_premium", 1.5)
     return round(usd * KOSTEN_PUFFER, 4)
+
+
+def entscheidungen_pfad(werk):
+    return os.path.join(config.work_dir(werk), "500_entscheidungen.json")
+
+
+def annehmen(werk, lg, ids, wer, grund):
+    """Auffaellige Saetze annehmen (Vermerk wer/wann/grund + datei_hash; gilt, solange die WAV gleich bleibt)."""
+    if not grund:
+        raise ValueError("--annehmen braucht --grund")
+    m = manifest.Manifest(werk, "500_vertonung", stage=STAGE)
+    d = _json(entscheidungen_pfad(werk), {}) or {}
+    for t in ids:
+        k = f"{lg}/{t}"
+        h = m.datei_hash(k)
+        if not h:
+            raise ValueError(f"{k}: keine WAV im Manifest")
+        d[k] = {"wer": wer, "wann": status.jetzt(), "grund": grund, "datei_hash": h,
+                "pruefung": (m.get(k) or {}).get("pruefung")}
+    manifest.json_atomar(entscheidungen_pfad(werk), d, indent=1)
+    return d
+
+
+def _freigabe_je_sprache(kf, plan):
+    """kf {lg|'*': usd} -> Sprachen, deren Kosten freigegeben sind."""
+    if not kf:
+        return set()
+    if "*" in kf and sum(p["usd"] for p in plan.values()) <= float(kf["*"]):
+        return set(plan)
+    return {lg for lg, p in plan.items() if lg in kf and p["usd"] <= float(kf[lg])}
 
 
 def _kosten_protokoll(werk, eintrag):
@@ -635,25 +666,39 @@ def run(werk, wer=None, regler=None, saetze=None, kapitel=None, nur_lang=None, n
         return g
 
     # ---- Kostenfreigabe / FA-Pruefer vor dem Lauf
+    g.metrik("kosten_je_sprache", {lg: {"engine": p["engine"], "saetze": len(p["offen"]), "zeichen": p["zeichen"],
+                                        "usd": p["usd"]} for lg, p in plan.items()})
+    gesperrt = set()
     if n_offen and not mock.aktiv() and not trocken:
-        frei_k = kosten_freigeben is not None and usd <= float(kosten_freigeben)
+        kf = kosten_freigeben if isinstance(kosten_freigeben, dict) else (
+            {"*": kosten_freigeben} if kosten_freigeben is not None else {})
         im_budget = b.mandant_art == "somnio" and usd <= float(rg["budget"])
+        frei_lg = set(plan) if im_budget else _freigabe_je_sprache(kf, plan)
+        mit_kosten = {lg for lg, p in plan.items() if p["offen"]}
+        gesperrt = mit_kosten - frei_lg
         txt = (f"Kostenschaetzung {usd:.2f} $ fuer {n_offen} Saetze ("
                + ", ".join(f"{lg} {p['engine']} {len(p['offen'])} S./{p['zeichen']} Z. ~{p['usd']:.2f} $"
                            for lg, p in plan.items() if p["offen"]) + ")")
-        if not (frei_k or im_budget):
+        for lg in sorted(gesperrt):
+            p = plan[lg]
+            g.pruefe(f"kosten_{lg}", False, wert=p["usd"], bei_fehler="mensch", ruecksprung="500",
+                     text=f"{lg}: Kosten ~{p['usd']:.2f} $ fuer {len(p['offen'])} Saetze ({p['engine']}) nicht freigegeben"
+                          + (f" (ueber Budget {float(rg['budget']):.2f} $)" if b.mandant_art == "somnio"
+                             else f" – Mandant {b.mandant_art}")
+                          + f" – Freigabe im Cockpit (Monitor 500) bzw. --kosten-freigeben {lg}={p['usd']:.2f}")
+        if gesperrt == mit_kosten:
             g.pruefe("kosten", False, wert=usd, bei_fehler="mensch", ruecksprung="500",
-                     text=txt + (f" ueber Budget {float(rg['budget']):.2f} $" if b.mandant_art == "somnio"
-                                 else f" – Mandant {b.mandant_art}")
-                     + f" – Freigabe: py -3.11 -m pipeline.s500_vertonung_gemini {werk} --kosten-freigeben "
-                       f"{usd:.2f} --wer CK" + (f" (Freigabe {float(kosten_freigeben):.2f} $ reicht nicht)"
-                                                 if kosten_freigeben is not None else ""))
+                     text=txt + " – Kostenfreigabe je Sprache noetig")
             g.entscheide(schreiben=True)
             return g
-        g.hinweis("kosten", True, wert=usd, text=txt + (" – freigegeben" if frei_k else " – im Budget"))
-        if frei_k:
-            _kosten_protokoll(werk, {"wann": status.jetzt(), "wer": wer, "usd": usd, "grenze": float(kosten_freigeben),
-                                     "saetze": n_offen})
+        for lg in gesperrt:
+            plan[lg]["offen"], plan[lg]["gesperrt"] = [], True
+        g.hinweis("kosten", True, wert=usd, text=txt + (" – im Budget" if im_budget else
+                  f" – freigegeben: {', '.join(sorted(mit_kosten - gesperrt))}"))
+        if not im_budget:
+            for lg in sorted(mit_kosten - gesperrt):
+                _kosten_protokoll(werk, {"wann": status.jetzt(), "wer": wer, "sprache": lg, "usd": plan[lg]["usd"],
+                                         "grenze": float(kf.get(lg, kf.get("*", 0))), "saetze": len(plan[lg]["offen"])})
         if any(p["engine"] == "gemini" and p["offen"] for p in plan.values()):
             try:
                 pruefer_g = pruefer_fabrik(MS_GEMINI)
@@ -820,11 +865,15 @@ def _gate_sprache(g, m, lg, p, fb, n_bl, rg, trocken, probe, kap, nur_lang):
         elif e.get("pruefung"):
             ausf.append(u["id"])
     n = len(units) or 1
-    teil = bool(probe or kap or (nur_lang and nur_lang != lg) or trocken)
+    teil = bool(probe or kap or (nur_lang and nur_lang != lg) or trocken or p.get("gesperrt"))
+    ent = _json(entscheidungen_pfad(g.book_id), {}) or {}
+    angen = [t for t in ausf if (ent.get(f"{lg}/{t}") or {}).get("datei_hash")
+             and ent[f"{lg}/{t}"]["datei_hash"] == m.datei_hash(f"{lg}/{t}")]
+    ausf = [t for t in ausf if t not in angen]
     if teil:
         g.hinweis(f"abdeckung_{lg}", not fehlt and not veraltet, wert=len(fehlt) + len(veraltet),
                   text=f"{lg}: {len(fehlt) + len(veraltet)} von {len(units)} Saetzen ohne aktuelles Audio "
-                       f"({'Probe' if probe else 'Teillauf' if not trocken else 'Probe trocken'})")
+                       f"({'Kosten nicht freigegeben' if p.get('gesperrt') else 'Probe' if probe else 'Teillauf' if not trocken else 'Probe trocken'})")
     else:
         g.pflicht(f"abdeckung_{lg}", not fehlt, wert=round(1 - len(fehlt) / n, 4), ruecksprung="500",
                   text=f"{lg}: Abdeckung WAV je Audio-Satz {len(units) - len(fehlt)}/{len(units)}"
@@ -837,6 +886,9 @@ def _gate_sprache(g, m, lg, p, fb, n_bl, rg, trocken, probe, kap, nur_lang):
     clip = [t for t in ausf if (m.get(f"{lg}/{t}") or {}).get("pruefung") == "clipping"]
     g.max(f"clipping_{lg}", len(clip), 0, ruecksprung="500")
     g.max(f"auffaellig_{lg}", round(len(ausf) / n, 4), float(rg["auffaellig_max"]), ruecksprung="500")
+    if angen:
+        g.hinweis(f"angenommen_{lg}", False, wert=len(angen),
+                  text=f"{lg}: {len(angen)} auffaellige Saetze angenommen (Vermerk 500_entscheidungen.json)")
     if p["engine"] == "gemini" and n_bl:
         g.hinweis(f"fallback_{lg}", len(fb) / n_bl <= FALLBACK_HINWEIS, wert=len(fb),
                   text=f"{lg}: {len(fb)}/{n_bl} Bloecke im Solo-Fallback")
@@ -858,6 +910,8 @@ def _gate_sprache(g, m, lg, p, fb, n_bl, rg, trocken, probe, kap, nur_lang):
         return {"id": t, "text": u_by[t]["text"][:300], "grund": e.get("pruefung"), "datei": e.get("datei"),
                 "dauer": e.get("dauer"), "versuche": e.get("versuche")}
     return {"engine": p["engine"], "stimme": p["info"]["stimme"], "auffaellig": [zeile(t) for t in ausf],
+            "angenommen": [dict(zeile(t), wer=ent[f"{lg}/{t}"].get("wer"), wann=ent[f"{lg}/{t}"].get("wann"),
+                                grund_annahme=ent[f"{lg}/{t}"].get("grund")) for t in angen],
             "leer": [zeile(t) for t in leer], "fehlt": fehlt[:200], "veraltet": veraltet[:200],
             "probe": [zeile(t) for t in p["offen"]] if probe else [], "fallback_bloecke": fb}
 
@@ -876,7 +930,9 @@ def main(argv=None):
     ap.add_argument("--kapitel")
     ap.add_argument("--lang")
     ap.add_argument("--neu", action="store_true")
-    ap.add_argument("--kosten-freigeben", type=float, metavar="USD")
+    ap.add_argument("--kosten-freigeben", action="append", metavar="[LG=]USD")
+    ap.add_argument("--annehmen", action="append", metavar="ID")
+    ap.add_argument("--grund")
     ap.add_argument("--trocken", action="store_true")
     a = ap.parse_args(argv)
     wer = a.wer or "pipeline"
@@ -894,12 +950,25 @@ def main(argv=None):
               "valley_ratio": a.valley_ratio, "batch": a.batch, "fp16": {"an": True, "aus": False}.get(a.fp16),
               "budget": a.budget, "auffaellig_max": a.auffaellig_max, "dauer_min": a.dauer_min,
               "dauer_max": a.dauer_max, "versuche": a.versuche}
+    kf = None
+    if a.kosten_freigeben:
+        kf = {}
+        for x in a.kosten_freigeben:
+            k, v = x.split("=", 1) if "=" in x else ("*", x)
+            kf[k] = float(v)
     try:
-        if (a.kosten_freigeben is not None or any(v is not None for v in regler.values())) and not a.trocken:
+        if (kf or a.annehmen or any(v is not None for v in regler.values())) and not a.trocken:
             from pipeline import s080_mandant
             s080_mandant.darf(a.werk, "entscheiden", wer)
+        if a.annehmen:
+            if not a.lang:
+                raise ValueError("--annehmen braucht --lang")
+            if a.trocken:
+                raise ValueError("--annehmen nicht mit --trocken")
+            annehmen(a.werk, a.lang, a.annehmen, wer, a.grund)
         g = run(a.werk, wer, regler=regler, saetze=a.satz, kapitel=a.kapitel.split(",") if a.kapitel else None,
-                nur_lang=a.lang, neu=a.neu, probe=a.probe, kosten_freigeben=a.kosten_freigeben, trocken=a.trocken)
+                nur_lang=a.lang if not a.annehmen or a.satz or a.neu else None, neu=a.neu, probe=a.probe,
+                kosten_freigeben=kf, trocken=a.trocken)
     except gate.GateHalt as e:
         print(e)
         return e.exit_code

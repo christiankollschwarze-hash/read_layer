@@ -16,6 +16,7 @@ SPRECHER_GUT = 4         # wiederkehrende Sprecher (>= SPRECHER_TREFFER Redebegl
 SPRECHER_MIN = 2
 SPRECHER_TREFFER = 3
 BUEHNE_MIN = 30          # Sprecherzeilen fuer Buehnenform
+BUEHNE_JE_ROLLE = 5      # Sprecherzeilen je Rolle (Ueberschriften wie CANTO I/II wiederholen sich nicht)
 MAX_ZEICHEN = 2_000_000  # Rechenzeit begrenzen (Stichprobe vom Anfang)
 
 _REDE = re.compile(r"„[^“”\"]{1,1500}[“”\"]|“[^”]{1,1500}”|\"[^\"]{1,1500}\"|«[^»]{1,1500}»|»[^«]{1,1500}«")
@@ -23,13 +24,15 @@ _VERBEN = (r"said|asked|cried|replied|answered|whispered|shouted|exclaimed|conti
            r"sagte|fragte|rief|antwortete|flüsterte|schrie|erwiderte|meinte|murmelte|"
            r"dijo|preguntó|respondió|gritó|dit|demanda|répondit|cria|disse|chiese|rispose|gridò")
 _NAME = r"([A-ZÄÖÜÀ-Ý][a-zäöüßà-ÿ]{2,}(?:\s[A-ZÄÖÜ][a-zäöüß]{2,})?)"
-_NACH = re.compile(rf"\b(?:{_VERBEN})\s+{_NAME}")
+_ART = r"(?:(?:the|der|die|das|el|la|le|il|lo)\s+)?"
+_NACH = re.compile(rf"\b(?:{_VERBEN})\s+{_ART}{_NAME}")
 _VOR = re.compile(rf"{_NAME}\s+(?:{_VERBEN})\b")
 _BUEHNE = re.compile(r"^[ \t]{0,4}([A-ZÄÖÜ][A-ZÄÖÜ .'-]{1,28}[A-ZÄÖÜ])(?:\.|:|[ \t]*$)|^[ \t]{0,4}([A-ZÄÖÜ][a-zäöüß]{2,15}):\s", re.M)
 _AKT = re.compile(r"^\s*(ACT|SCENE|AKT|SZENE|ACTO|ESCENA|ACTE|SCÈNE|ATTO)\s+[IVXLC\d]+", re.M | re.I)
 _KEIN_NAME = {"The", "And", "But", "Then", "She", "He", "They", "It", "This", "That", "Der", "Die", "Das", "Sie", "Er",
               "Und", "Aber", "Dann", "Was", "Wie", "When", "What", "Yes", "Nein", "Well", "Now", "Chapter", "Kapitel"}
-_MARKEN = {"ACT", "SCENE", "AKT", "SZENE", "CHAPTER", "KAPITEL", "BOOK", "BUCH", "PART", "TEIL", "THE", "END", "NOTE"}
+_MARKEN = {"ACT", "SCENE", "AKT", "SZENE", "CHAPTER", "KAPITEL", "BOOK", "BUCH", "CANTO", "GESANG", "VOLUME", "BAND", "PROLOGUE", "EPILOGUE", "CONTENTS", "INTRODUCTION",
+           "PREFACE", "VORWORT", "INHALT", "FINIS", "APPENDIX", "PART", "TEIL", "THE", "END", "NOTE"}
 
 
 def rohtext(ordner):
@@ -85,7 +88,8 @@ def bewerten(text, figuren=None):
     n_sp = max(w["n_sprecher"], w["buehne_rollen"], figuren or 0)
     w["figuren_210"] = figuren
     g = []
-    drama = w["buehne_zeilen"] >= BUEHNE_MIN and w["buehne_rollen"] >= SPRECHER_MIN
+    drama = (w["buehne_zeilen"] >= BUEHNE_MIN and w["buehne_rollen"] >= SPRECHER_MIN
+             and w["buehne_zeilen"] >= BUEHNE_JE_ROLLE * w["buehne_rollen"])   # Rollen sprechen wiederholt
     if drama:
         g.append(f"Bühnenform: {w['buehne_zeilen']} Sprecherzeilen, {w['buehne_rollen']} Rollen"
                  + (f", {w['akte']} Akt-/Szenenmarken" if w["akte"] else ""))

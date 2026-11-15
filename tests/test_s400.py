@@ -217,6 +217,45 @@ class T400(unittest.TestCase):
         self.assertEqual(g.ergebnis["ergebnis"], "mensch")
         self.assertTrue(any("Style" in x for x in g.ergebnis["gruende"]))
 
+    def test_roemischer_kapitelverweis_vor_paragraf(self):
+        from pipeline import sprechtext as st
+        self.assertEqual(st.sprechtext("Der oben aus VI. § 21 zitierte Satz.", "de")[:27], "Der oben aus Kapitel sechs,")
+        self.assertTrue(st.sprechtext("In XIII. § 1 we read.", "en").startswith("In chapter thirteen, "))
+        self.assertEqual(st.roemisch_offen(st.sprechtext("VI. § 21:—", "de")), [])
+        self.assertEqual(st.sprechtext("Ludwig XIV. kam.", "de"), "Ludwig der Vierzehnte kam.")
+        self.assertEqual(st.sprechtext("Lun Yu, XV. 1 und Tso Chuan, XXXII, 2.", "de", erweitert=True),
+                         "Lun Yu, fünfzehn, eins und Tso Chuan, zweiunddreißig, zwei.")
+        self.assertEqual(st.roemisch_offen("LI CH’UAN aus dem achten Jahrhundert"), [])
+
+    def test_monitor_400_und_regler_je_werk(self):
+        from cockpit import werk_api as W
+        self.werk(stufe="premium")
+        self.lauf(aussprache=["Blankenese=BLAN-ke-nay-ze"], laenge_max=2.0, style_max=300, pron_skip=["X"])
+        with open(os.path.join(self.d, "book.json"), encoding="utf-8") as f:
+            b = json.load(f)
+        self.assertEqual((b["audio_laenge_max"], b["audio_style_max"], b["audio_pron_skip"]), (2.0, 300, ["X"]))
+        g = self.lauf(trocken=True)
+        self.assertEqual(g.ergebnis["ergebnis"], "auto", g.bericht())             # Hinweis 400 deckt Aussprache
+        d = W._m400_daten("w")
+        self.assertEqual((d["audio"], d["premium"], d["laenge_max"], d["style_max"]), (["de"], ["de"], 2.0, 300))
+        bl = next(x for x in d["begriffe"] if x["key"] == "Blankenese")
+        self.assertEqual(bl["hinweis_400"], "BLAN-ke-nay-ze")
+        self.assertEqual(len(d["sprachen"]["de"]["ansagen"]), 4)
+        self.lauf(aussprache=["Blankenese=-"], pron_skip_weg=["x"])
+        with open(os.path.join(self.d, "book.json"), encoding="utf-8") as f:
+            self.assertEqual(json.load(f)["audio_pron_skip"], [])
+        self.assertEqual(next(x for x in W._m400_daten("w")["begriffe"] if x["key"] == "Blankenese")["hinweis_400"], "")
+        a = W._m400_argv("w", {"lang": "de", "sprechtext": {"c001_00002_s": " Hallo. "}, "tempo": 7,
+                               "pausen": {"h": 1000}, "aussprache": {"Blankenese": ""}, "skip": ["Y"],
+                               "skip_weg": ["X"], "laenge_max": 1.8, "style_max": 250}, "CK")
+        self.assertEqual(a[6:], ["--lang=de", "--sprechtext=c001_00002_s=Hallo.", "--tempo=7", "--pause=h=1000",
+                                 "--aussprache=Blankenese=-", "--pron-skip=Y", "--pron-skip-weg=X",
+                                 "--laenge-max=1.8", "--style-max=250"])
+        for e in ({"lang": "fr", "sprechtext": {"c001_00002_s": "x"}}, {"tempo": 11}, {"pausen": {"zz": 1}},
+                  {"lang": "de", "sprechtext": {"ansage_titel": "x"}}, {"laenge_max": 9}):
+            with self.assertRaises(ValueError):
+                W._m400_argv("w", e, "CK")
+
 
 if __name__ == "__main__":
     unittest.main()

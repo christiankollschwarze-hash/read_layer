@@ -27,12 +27,19 @@ Mensch-Freigabe gilt, solange ausgabe_hash gleich bleibt. Freigegebenes Casting 
 CLI: py -3.11 -m pipeline.s410_casting <werk> [--design] [--neu [--grund TEXT]] [--neu-steckbriefe]
      [--erzaehler [LG=]STIMME] [--figur NAME=STIMME] [--figur-weg NAME] [--statist NAME] [--statist-weg NAME]
      [--design-prompt NAME=TEXT] [--schwelle 70] [--f0-abstand 0.12] [--max-ensemble 15] [--min-anteil 2]
-     [--modell M] [--ohne-reihe | --mit-reihe] [--korrektur FIGUR:LG=FAKTOR[,HT]] [--freigeben --grund TEXT]
+     [--modell M] [--geschichten aus|kapitel|c001-c003,..] [--ohne-reihe | --mit-reihe] [--korrektur FIGUR:LG=FAKTOR[,HT]] [--freigeben --grund TEXT]
      [--trocken] [--wer CK]
+Getrenntes Casting je Geschichte (Sammelbaende, CK 15.11.2026): --geschichten kapitel | c001-c003,c004 | aus.
+Eine Stimme darf dann mehrere Figuren sprechen, die nie in derselben Geschichte vorkommen (Vorkommen = Name im
+Quelltext der Geschichte, Varianten wie 210); Erzaehlerstimme bleibt fuer Figuren gesperrt.
+Vorgabe '@neu' (--erzaehler LG=@neu, --figur NAME=@neu) = diese Rolle mit --design neu entwerfen; die Vorgabe wird
+danach durch den Namen der neuen Stimme ersetzt. Aenderung eines freigegebenen Castings: Regler mit --grund
+(Bestand der uebrigen Rollen bleibt, Protokoll "aenderung"); --neu --grund = komplette Neubesetzung.
 """
 import argparse
 import json
 import os
+import re
 import sys
 import time
 
@@ -48,6 +55,7 @@ PROMPT_V = 2
 ENGINE = {"basic": "chatterbox", "premium": "gemini", "drama": "gemini"}
 AUDIO = ("hoerbuch", "hoerspiel")
 CB_STANDARD = "chatterbox-standard"
+NEU = "@neu"                 # Vorgabe: Rolle neu entwerfen (Voice Design, nur mit --design)
 HOERBUCH_TEXT = 30_000
 GENRE_ERZAEHLER = getattr(config, "CASTING_GENRE_ERZAEHLER", {
     "maerchen": "grossmutter_a", "abenteuer": "herr_a", "krimi": "herr_a", "grosses_werk": "herr_b"})
@@ -57,7 +65,7 @@ REGLER_STD = {"erzaehler": {}, "figuren": {}, "statisten": [], "design_prompt": 
               "max_ensemble": getattr(config, "CASTING_MAX_ENSEMBLE", 15),
               "min_anteil": getattr(config, "CASTING_MIN_ANTEIL", 2.0),
               "max_text": getattr(config, "CASTING_MAX_ZEICHEN", 400_000),
-              "modell": None, "reihe_erbe": True}
+              "modell": None, "reihe_erbe": True, "geschichten": None}
 LANG_NAME = {"en": "English", "de": "German", "fr": "French", "es": "Spanish", "it": "Italian"}
 
 
@@ -349,6 +357,63 @@ class _Ctx:
         self.neu, self.design_fehler = [], []
         self.werk_dir = config.book_dir(werk)
         self._erz = {}
+        self.geschichten = geschichten_bauen(data, src, rg.get("geschichten"))
+        self._vork = {}
+        self.ersetzt = []          # Vorgaben @neu, die in diesem Lauf durch neue Stimmen ersetzt wurden
+
+
+def _kapitel(data):
+    out = []
+    for tid in (data.get("content") or {}):
+        if tid[:4] not in out and re.fullmatch(r"c\d{3}", tid[:4]):
+            out.append(tid[:4])
+    return out
+
+
+def geschichten_spec_ok(spec):
+    return spec in (None, "", "kapitel") or bool(re.fullmatch(r"c\d{3}(-c\d{3})?(,c\d{3}(-c\d{3})?)*", spec or ""))
+
+
+def geschichten_bauen(data, src, spec):
+    """-> [{name, kapitel [..], text}] oder [] (aus). Nicht genannte Kapitel = je eine eigene Geschichte."""
+    if not spec:
+        return []
+    kap = _kapitel(data)
+    gruppen = []
+    if spec == "kapitel":
+        gruppen = [[k] for k in kap]
+    else:
+        vergeben = set()
+        for teil in spec.split(","):
+            a, _, b = teil.partition("-")
+            g = [k for k in kap if a <= k <= (b or a) and k not in vergeben]
+            vergeben.update(g)
+            if g:
+                gruppen.append(g)
+        gruppen += [[k] for k in kap if k not in vergeben]
+        gruppen.sort(key=lambda g: g[0])
+    out = []
+    for g in gruppen:
+        text = "\n".join(str(e.get(src) or "") for t, e in (data.get("content") or {}).items()
+                         if t[:4] in g and isinstance(e, dict))
+        out.append({"name": g[0] if len(g) == 1 else f"{g[0]}-{g[-1]}", "kapitel": g, "text": text})
+    return out
+
+
+def vorkommen(ctx, figur):
+    """Geschichten (Indizes), in denen die Figur vorkommt; None = getrenntes Casting aus bzw. nirgends gefunden."""
+    if not ctx.geschichten:
+        return None
+    if figur not in ctx._vork:
+        from pipeline.s210_profil import figur_treffer
+        g = {i for i, x in enumerate(ctx.geschichten) if figur_treffer(figur, x["text"]) > 0}
+        ctx._vork[figur] = g or None
+    return ctx._vork[figur]
+
+
+def konflikt(a, b):
+    """Zwei Figuren duerfen nicht dieselbe Stimme haben (a, b = Geschichten-Mengen; None = ueberall)."""
+    return a is None or b is None or bool(set(a) & set(b))
 
 
 def _profil_erz(ctx, lg, name):
@@ -473,20 +538,23 @@ def _erzaehler(ctx, lg, st, engine, gesperrt, ensemble):
     merk = vr.normalisieren(profil.get("merkmale")) if profil.get("merkmale") else None
     figur = ich or "Erzaehler"
     name, quelle = _vorgabe_erz(ctx, lg)
+    zwang = name == NEU
+    if zwang:
+        name = None
     extra = {}
-    if not name:
+    if not name and not zwang:
         f = _fest(ctx, lg, st)
         if f and f.get("stimme"):
             name, quelle = f["stimme"], f.get("quelle") or "bestand"
-    if not name:
+    if not name and not zwang:
         r = _reihe(ctx, lg, st)
         if r and r.get("stimme"):
             name, quelle, extra = r["stimme"], "reihe", {"reihe_ref": {k: r.get(k) for k in ("gemini_id", "referenz")}}
-    if not name and not ich:
+    if not name and not ich and not zwang:
         gn = GENRE_ERZAEHLER.get(erz.get("genre_stimme", ""))
         if gn and nutzbar(gn, lg, engine, ctx.reg, ctx.std)[0] and gn not in gesperrt:
             name, quelle = gn, "genre"
-    if not name:
+    if not name and not zwang:
         pool = _usable_reg(ctx, lg, engine)
         for rt in ("erzaehler", None):
             n, _s, _sc = vr.beste_stimme(merk or vr.normalisieren({}), pool, gesperrt, ensemble, rt)
@@ -497,6 +565,10 @@ def _erzaehler(ctx, lg, st, engine, gesperrt, ensemble):
         n, _e = _designen(ctx, profil, "erzaehler", ensemble)
         if n:
             name, quelle = n, "neu"
+            if zwang:                                   # Vorgabe @neu -> neue Stimme (gilt fuer weitere Sprachen)
+                v = ctx.rg.setdefault("erzaehler", {})
+                v[lg if v.get(lg) == NEU else "*"] = n
+                ctx.ersetzt.append(n)
     if not name:
         return {"rolle": "erzaehler", "figur": figur, "stimme": None, "quelle": "unbesetzt", "nutzbar": False,
                 "design_prompt": vr.design_prompt(dict(profil, rolle_typ="erzaehler"), ensemble)}
@@ -509,10 +581,14 @@ def _ensemble(ctx, lg, st, engine, erz, gesperrt, ensemble):
     figs = sorted(ctx.figuren_sb.values(),
                   key=lambda f: (rang.get(f.get("gewicht"), 2), -float(f.get("dialog_anteil_prozent") or 0)))
     out, statisten = [], []
+    basis_g, basis_e, besetzt = set(gesperrt), list(ensemble), []
     for f in figs:
         name_f = f.get("name")
         if ctx.ich and name_f == ctx.ich:
             continue
+        gs = vorkommen(ctx, name_f)
+        gesperrt = basis_g | {s_ for g_, s_, _e in besetzt if konflikt(gs, g_)}
+        ensemble = basis_e + [e_ for g_, s_, e_ in besetzt if konflikt(gs, g_)]
         anteil = float(f.get("dialog_anteil_prozent") or 0)
         vorgabe = (rg.get("figuren") or {}).get(name_f)
         bestand = (_fest(ctx, lg, st, name_f) or _reihe(ctx, lg, st, name_f) or {}).get("stimme")
@@ -527,7 +603,10 @@ def _ensemble(ctx, lg, st, engine, erz, gesperrt, ensemble):
         meta = {"gewicht": f.get("gewicht"), "anteil": anteil, "kurz": f.get("kurz"), "name_lg": name_lg}
         stimme_, quelle, extra = None, None, {}
         fest = _fest(ctx, lg, st, name_f)
-        if vorgabe:
+        zwang = vorgabe == NEU
+        if zwang:
+            pass
+        elif vorgabe:
             stimme_, quelle = vorgabe, "vorgabe"
         elif fest and fest.get("stimme"):
             stimme_, quelle = fest["stimme"], fest.get("quelle") or "bestand"
@@ -536,7 +615,7 @@ def _ensemble(ctx, lg, st, engine, erz, gesperrt, ensemble):
             if r and r.get("stimme"):
                 stimme_, quelle = r["stimme"], "reihe"
                 extra = {"reihe_ref": {k: r.get(k) for k in ("gemini_id", "referenz")}}
-        if not stimme_:
+        if not stimme_ and not zwang:
             ep = _profil_erz(ctx, lg, erz.get("stimme")) if erz.get("stimme") else None
             pool = _usable_reg(ctx, lg, engine)
             try:
@@ -550,11 +629,16 @@ def _ensemble(ctx, lg, st, engine, erz, gesperrt, ensemble):
             n, _e = _designen(ctx, f, "figur", ensemble)
             if n:
                 stimme_, quelle = n, "neu"
+                if zwang:
+                    ctx.rg.setdefault("figuren", {})[name_f] = n
+                    ctx.ersetzt.append(n)
         if not stimme_:
             out.append(dict({"rolle": "figur", "figur": name_f, "stimme": None, "quelle": "unbesetzt",
                              "nutzbar": False, "design_prompt": vr.design_prompt(f, ensemble)}, **meta))
             continue
         e = _rolle(ctx, "figur", name_f, stimme_, quelle, lg, engine, merk, **extra, **meta)
+        if ctx.geschichten:
+            e["geschichten"] = sorted(gs) if gs is not None else None
         ok_g, grund_g, _k = vr.unterscheidbar({"merkmale": _stimm_daten(stimme_, ctx.reg, ctx.std)[0],
                                                "grundton_hz": e.get("grundton_hz"), "name": stimme_}, ensemble)
         e["grundton_ok"] = ok_g
@@ -563,14 +647,13 @@ def _ensemble(ctx, lg, st, engine, erz, gesperrt, ensemble):
         if erz.get("stimme"):
             t, k = _abstand(ctx, stimme_, lg, erz["stimme"], merk)
             e["trennung"] = t
-            if fest and fest.get("korrektur"):
+            if fest and fest.get("korrektur") and fest.get("stimme") == stimme_:
                 e["korrektur"] = fest["korrektur"]
                 e["korrektur_protokoll"] = fest.get("korrektur_protokoll")
             elif k:
                 e["korrektur"] = k
-        gesperrt.add(stimme_)
-        ensemble.append({"name": stimme_, "merkmale": _stimm_daten(stimme_, ctx.reg, ctx.std)[0],
-                         "grundton_hz": e.get("grundton_hz")})
+        besetzt.append((gs, stimme_, {"name": stimme_, "merkmale": _stimm_daten(stimme_, ctx.reg, ctx.std)[0],
+                                      "grundton_hz": e.get("grundton_hz")}))
         out.append(e)
     return out, statisten
 
@@ -599,8 +682,21 @@ def plan_bauen(ctx, ziele):
             bs["ensemble"], bs["statisten"] = ([], [])
             if "hoerspiel" in inhalte:
                 bs["ensemble"], bs["statisten"] = _ensemble(ctx, lg, st, engine, erz, gesperrt, ensemble)
+                if ctx.geschichten:
+                    bs["geschichten"] = [{"name": x["name"], "kapitel": x["kapitel"]} for x in ctx.geschichten]
             rollen.setdefault(lg, {})[st] = bs
     return rollen
+
+
+def kosten_schaetzen(zeichen, modell=None):
+    """Schaetzung Steckbriefe neu in $ (Peak-Preis, ohne Cache; Token ~ Zeichen/4, Antwort ~6.000 Token)."""
+    p = getattr(config, "PREISE", {}).get(modell or config.MODELS.get("caster")) or {}
+    return ((zeichen + 4000) / 4 * p.get("in", 0) + 6000 * p.get("out", 0)) / 1e6
+
+
+def design_preis():
+    """Stueckpreis Voice Design je Stimme (None = nicht hinterlegt) + Muster-TTS (~2 x 8 s Gemini-TTS)."""
+    return (getattr(config, "STUECKPREISE", {}) or {}).get("gemini-voice-design"), 0.01
 
 
 # ============================================================ Altfassung (Schema 1)
@@ -671,9 +767,11 @@ def regler_anwenden(rg, aend):
     for x in aend.get("figur") or []:
         f, n = x.split("=", 1)
         rg["figuren"][f] = n
+        rg["statisten"] = [y for y in rg["statisten"] if y != f]      # eigene Stimme hebt Statist auf
     for f in aend.get("figur_weg") or []:
         rg["figuren"].pop(f, None)
     for f in aend.get("statist") or []:
+        rg["figuren"].pop(f, None)                                     # Statist hebt Stimmvorgabe auf
         if f not in rg["statisten"]:
             rg["statisten"].append(f)
     for f in aend.get("statist_weg") or []:
@@ -684,6 +782,8 @@ def regler_anwenden(rg, aend):
     for k in ("schwelle", "f0_abstand", "max_ensemble", "min_anteil", "max_text", "modell", "reihe_erbe"):
         if aend.get(k) is not None:
             rg[k] = aend[k]
+    if aend.get("geschichten") is not None:
+        rg["geschichten"] = None if aend["geschichten"] in ("", "aus") else aend["geschichten"]
     return rg
 
 
@@ -691,7 +791,7 @@ def _regler_gueltig(rg):
     try:
         return (0 <= float(rg["schwelle"]) <= 100 and 0 < float(rg["f0_abstand"]) < 1
                 and 0 <= int(rg["max_ensemble"]) <= 40 and 0 <= float(rg["min_anteil"]) <= 100
-                and int(rg["max_text"]) >= 10_000)
+                and int(rg["max_text"]) >= 10_000 and geschichten_spec_ok(rg.get("geschichten")))
     except Exception:
         return False
 
@@ -801,8 +901,9 @@ def run(werk, wer=None, design=False, neu=False, neu_steckbriefe=False, grund=No
     alt = laden(werk)
     alt_frei = freigegeben(alt)
     aendert = bool(regler and any(v not in (None, [], {}) for v in regler.values()))
-    if alt_frei and (aendert or neu) and not (neu and grund):
-        raise ValueError("Casting ist freigegeben – Aenderung/Neubesetzung nur mit --neu --grund (Protokoll)")
+    if alt_frei and (aendert or neu) and not grund:
+        raise ValueError("Casting ist freigegeben – Aenderung nur mit --grund, Neubesetzung mit --neu --grund "
+                         "(Protokoll)")
     if aendert:
         rg = regler_anwenden(rg, regler)
         if not trocken:
@@ -813,7 +914,7 @@ def run(werk, wer=None, design=False, neu=False, neu_steckbriefe=False, grund=No
     ziele, unbekannt = _ziele(b)
     hoerspiel = any("hoerspiel" in inh for je in ziele.values() for inh in je.values())
     g.metrik("ziele", ziele)
-    g.metrik("regler", {k: rg[k] for k in ("schwelle", "f0_abstand", "max_ensemble", "min_anteil")})
+    g.metrik("regler", {k: rg[k] for k in ("schwelle", "f0_abstand", "max_ensemble", "min_anteil", "geschichten")})
     ip = config.work_path(werk, "400_regie")
     ok = g.pflicht("eingang", os.path.exists(ip), ruecksprung="400", text="400_regie.json vorhanden")
     ok = g.pflicht("audiosprachen", bool(b.audiosprachen()), ruecksprung="095",
@@ -910,6 +1011,13 @@ def run(werk, wer=None, design=False, neu=False, neu_steckbriefe=False, grund=No
         rollen = plan_bauen(ctx, ziele)
     finally:
         vr.SCHWELLE_PASST, vr.MIN_F0_ABSTAND = alt_g
+    if ctx.ersetzt and not trocken:                    # @neu -> Name der neuen Stimme (sonst neues Design je Lauf)
+        bestellung.feld_setzen(werk, casting_regler=rg)
+    offen_neu = [f"{k}" for k, v in list((rg.get("erzaehler") or {}).items()) + list((rg.get("figuren") or {}).items())
+                 if v == NEU]
+    g.hinweis("neu_offen", not offen_neu, wert=offen_neu,
+              text=f"Neu entwerfen vorgemerkt, aber nicht entworfen (--design fehlt oder Design fehlgeschlagen): "
+                   f"{', '.join(offen_neu)}")
 
     # --- Gate je Rolle x Sprache
     schwelle = float(rg["schwelle"])
@@ -938,8 +1046,10 @@ def run(werk, wer=None, design=False, neu=False, neu_steckbriefe=False, grund=No
                 g.pflicht(f"adapter_{k}", bs.get("adapter_ok", True), wert=bs.get("adapter"),
                           text=f"{lg}/{st}: LoRA-Adapter {((bs.get('adapter') or {}).get('name')) or 'keiner'} "
                                f"freigegeben" + (f" – {bs.get('adapter_grund')}" if bs.get("adapter_grund") else ""))
-            stimmen = [e.get("stimme") for e in alle if e.get("stimme")]
-            doppelt = sorted({s for s in stimmen if stimmen.count(s) > 1})
+            doppelt = sorted({a.get("stimme") for i, a in enumerate(alle) for b_ in alle[i + 1:]
+                              if a.get("stimme") and a.get("stimme") == b_.get("stimme")
+                              and (a is erz or konflikt(a.get("geschichten"), b_.get("geschichten"))
+                                   if ctx.geschichten else True)})
             g.pruefe(f"sperre_{k}", not doppelt, wert=doppelt, bei_fehler="mensch",
                      text=f"{lg}/{st}: eine Stimme = eine Rolle"
                       + (f" – doppelt: {', '.join(doppelt)}" if doppelt else ""))
@@ -1006,6 +1116,10 @@ def run(werk, wer=None, design=False, neu=False, neu_steckbriefe=False, grund=No
     if neu and alt:
         c["protokoll"].append({"wann": status.jetzt(), "wer": wer, "aktion": "neu", "grund": grund or "",
                                "alt_hash": kern(alt.get("rollen")) if alt.get("schema") == SCHEMA else None})
+    elif aendert and alt and not trocken:
+        c["protokoll"].append({"wann": status.jetzt(), "wer": wer, "aktion": "aenderung", "grund": grund or "",
+                               "regler": {k: v for k, v in regler.items() if v not in (None, [], {})},
+                               "alt_hash": kern(alt.get("rollen")) if alt.get("schema") == SCHEMA else None})
     c["tor"] = "freigegeben" if (c["freigabe"] or {}).get("hash") == aus_hash else "offen"
     c["plan"] = _plan_v1(rollen)
     v1 = (alt or {}).get("v1_extra") if (alt or {}).get("schema") == SCHEMA else \
@@ -1045,6 +1159,7 @@ def main(argv=None):
     ap.add_argument("--min-anteil", type=float)
     ap.add_argument("--max-text", type=int)
     ap.add_argument("--modell")
+    ap.add_argument("--geschichten", help="aus | kapitel | c001-c003,c004 (getrenntes Casting je Geschichte)")
     ap.add_argument("--ohne-reihe", action="store_true")
     ap.add_argument("--mit-reihe", action="store_true")
     ap.add_argument("--korrektur", action="append", metavar="FIGUR:LG=FAKTOR[,HT]")
@@ -1055,7 +1170,7 @@ def main(argv=None):
     regler = {"erzaehler": a.erzaehler, "figur": a.figur, "figur_weg": a.figur_weg, "statist": a.statist,
               "statist_weg": a.statist_weg, "design_prompt": a.design_prompt, "schwelle": a.schwelle,
               "f0_abstand": a.f0_abstand, "max_ensemble": a.max_ensemble, "min_anteil": a.min_anteil,
-              "max_text": a.max_text, "modell": a.modell,
+              "max_text": a.max_text, "modell": a.modell, "geschichten": a.geschichten,
               "reihe_erbe": False if a.ohne_reihe else (True if a.mit_reihe else None)}
     try:
         aendert = any(v not in (None, []) for v in regler.values()) or a.korrektur or a.freigeben or a.neu

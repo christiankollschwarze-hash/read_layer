@@ -296,6 +296,120 @@ class T410(unittest.TestCase):
         self.assertEqual(g.ergebnis["ergebnis"], "auto", g.bericht())
         self.assertEqual(P.laden("w")["rollen"]["de"]["basic"]["erzaehler"]["quelle"], "reihe")
 
+    def _design_fake(self):
+        self.designs = []
+
+        def fake(name, figur, ensemble, muster, werk):
+            reg = vr.laden()
+            reg[name] = {"id": "voice_" + name, "status": "kandidat", "rolle_typ": figur.get("rolle_typ"),
+                         "grundton_hz": 300 + 40 * len(self.designs), "merkmale": figur.get("merkmale") or {}}
+            vr.speichern(reg)
+            self.designs.append((name, figur.get("stimm_beschreibung_en")))
+            return reg[name]
+        alt = vr.neu_designen
+        vr.neu_designen = fake
+        self.addCleanup(setattr, vr, "neu_designen", alt)
+
+    def test_neu_entwerfen_und_aenderung_mit_grund(self):
+        self._design_fake()
+        self.werk(produkte=self.HS)
+        g = self.lauf(regler={"figur": ["Hatter=@neu"]})                 # ohne --design: vorgemerkt, unbesetzt
+        self.assertTrue(any("Neu entwerfen vorgemerkt" in h for h in g.ergebnis["hinweise"]), g.bericht())
+        self.assertEqual(self.designs, [])
+        g = self.lauf(design=True, regler={"design_prompt": ["Hatter=A silly nasal hatter, middle-aged, quick."]})
+        self.assertEqual(len(self.designs), 1)
+        self.assertEqual(self.designs[0][1], "A silly nasal hatter, middle-aged, quick.")
+        neu = self.designs[0][0]
+        h = [e for e in P.laden("w")["rollen"]["en"]["premium"]["ensemble"] if e["figur"] == "Hatter"][0]
+        self.assertEqual((h["stimme"], h["quelle"]), (neu, "neu"))
+        self.assertEqual(self.bj()["casting_regler"]["figuren"]["Hatter"], neu)      # @neu ersetzt
+        self.assertEqual(g.ergebnis["ergebnis"], "mensch")
+        self.lauf(design=True)                                                       # kein zweites Design
+        self.assertEqual(len(self.designs), 1)
+        S.entscheiden("w", "410", "frei", "CK", "Hoerprobe ok")
+        self.lauf()
+        self.assertTrue(P.freigegeben(P.laden("w")))
+        with self.assertRaises(ValueError):
+            self.lauf(regler={"statist": ["Hatter"]})
+        g = self.lauf(regler={"statist": ["Hatter"]}, grund="Hatter spricht kaum")  # ohne --neu: Bestand bleibt
+        c = P.laden("w")
+        self.assertEqual(c["protokoll"][-1]["aktion"], "aenderung")
+        bs = c["rollen"]["en"]["premium"]
+        self.assertIn("Hatter", [s["figur"] for s in bs["statisten"]])
+        self.assertEqual([e["stimme"] for e in bs["ensemble"] if e["figur"] == "Alice"], ["w_jung"])
+        self.assertFalse(P.freigegeben(c))
+
+    def test_erzaehler_neu_entwerfen(self):
+        self._design_fake()
+        g = self.lauf(design=True, regler={"erzaehler": ["de=@neu"]})
+        e = P.laden("w")["rollen"]["de"]["basic"]["erzaehler"]
+        self.assertEqual(e["quelle"], "neu")
+        self.assertEqual(self.bj()["casting_regler"]["erzaehler"], {"de": e["stimme"]})
+        self.assertEqual(g.ergebnis["ergebnis"], "stopp")          # Fake-Stimme ohne Referenz-Audio (Chatterbox)
+
+    def test_monitor_410(self):
+        from cockpit import werk_api as W
+        self.werk(produkte=self.HS)
+        self.lauf()
+        d = W._m410_daten("w")
+        self.assertTrue(d["hoerspiel"] and d["schema_ok"])
+        self.assertEqual([(x["lg"], x["stufe"], x["engine"]) for x in d["gruppen"]], [("en", "premium", "gemini")])
+        z = {r["figur"]: r for r in d["gruppen"][0]["zeilen"]}
+        self.assertEqual(z["Erzaehler"]["rolle"], "erzaehler")
+        self.assertIn("zu_nah", z["Hatter"]["befunde"])
+        self.assertEqual(z["Alice"]["stimme"], "w_jung")
+        k = {x["name"]: x for x in z["Alice"]["kandidaten"]}
+        self.assertNotIn("alt_weg", k)
+        self.assertIn("Charon", k)                                  # Gemini-Standardstimme waehlbar
+        self.assertEqual(k["herr_a"]["belegt"], "Erzaehler")
+        self.assertEqual(z["Alice"]["kandidaten"][0]["name"], "w_jung")  # beste Passung zuerst (eigene)
+        self.assertEqual([s["figur"] for s in d["gruppen"][0]["statisten"]], ["Cat"])
+        self.assertEqual(d["steckbriefe"]["fremd"], ["Queen"])
+        a = W._m410_argv("w", {"figur": {"Hatter": "@neu", "Cat": "m_mittel"}, "statist": ["Alice"],
+                               "design_prompt": {"Hatter": "A silly nasal hatter, middle-aged."},
+                               "korrektur": {"Alice:en": "1.05,0"}, "schwelle": 60, "grund": "Test"}, "CK")
+        self.assertEqual(a[6:], ["--figur=Hatter=@neu", "--figur=Cat=m_mittel", "--statist=Alice",
+                                 "--design-prompt=Hatter=A silly nasal hatter, middle-aged.", "--schwelle=60",
+                                 "--korrektur=Alice:en=1.05,0", "--design", "--grund=Test"])
+        for e in ({"figur": {"Alice": "gibtsnicht"}}, {"figur": {"Nobody": "w_jung"}}, {"figur": {"Alice": "alt_weg"}},
+                  {"erzaehler": {"fr": "herr_a"}}, {"korrektur": {"Alice:en": "1.3"}, "grund": "x"},
+                  {"korrektur": {"Alice:en": "1.05"}}, {"korrektur": {"Alice:en": "1.05"}, "grund": "x", "trocken": True},
+                  {"schwelle": 120}, {"neu": True}):
+            with self.assertRaises(ValueError, msg=e):
+                W._m410_argv("w", e, "CK")
+        S.entscheiden("w", "410", "frei", "CK", "ok")
+        self.lauf()
+        with self.assertRaises(ValueError):
+            W._m410_argv("w", {"statist": ["Hatter"]}, "CK")        # freigegeben -> Grund Pflicht
+        with contextlib.redirect_stdout(io.StringIO()):
+            rc = P.main(W._m410_argv("w", {"korrektur": {"Hatter:en": "1.08,0"}, "grund": "Probe"}, "CK")[3:])
+        self.assertEqual(rc, 0)
+        h = [e for e in P.laden("w")["rollen"]["en"]["premium"]["ensemble"] if e["figur"] == "Hatter"][0]
+        self.assertEqual(h["korrektur"]["formant_faktor"], 1.08)
+        self.assertTrue(W._m410_daten("w")["freigabe"]["gilt"])
+
+    def test_geschichten_getrennt(self):
+        self.werk(produkte=self.HS)
+        p = os.path.join(self.d, "work", "400_regie.json")
+        with open(p, encoding="utf-8") as f:
+            data = json.load(f)
+        data["content"]["c002_00001_s"] = {"type": "s", "en": "The Cat smiled.", "de": "Die Katze laechelte."}
+        with open(p, "w", encoding="utf-8") as f:
+            json.dump(data, f)
+        g = self.lauf(regler={"figur": ["Alice=w_jung", "Cat=w_jung"]})
+        self.assertTrue(any("doppelt: w_jung" in x for x in g.ergebnis["gruende"]), g.bericht())
+        g = self.lauf(regler={"geschichten": "kapitel"})
+        self.assertFalse(any("doppelt" in x for x in g.ergebnis["gruende"]), g.bericht())
+        bs = P.laden("w")["rollen"]["en"]["premium"]
+        e = {x["figur"]: x for x in bs["ensemble"]}
+        self.assertEqual((e["Alice"]["geschichten"], e["Cat"]["geschichten"]), ([0], [1]))
+        self.assertEqual([x["name"] for x in bs["geschichten"]], ["c001", "c002"])
+        self.assertEqual(self.bj()["casting_regler"]["geschichten"], "kapitel")
+        g = self.lauf(regler={"figur": ["Hatter=w_jung"]})                 # Hatter und Alice in c001 -> doppelt
+        self.assertTrue(any("doppelt: w_jung" in x for x in g.ergebnis["gruende"]), g.bericht())
+        self.assertFalse(P._regler_gueltig(dict(P.REGLER_STD, geschichten="c1-c3")))
+        self.assertEqual([x["kapitel"] for x in P.geschichten_bauen(data, "en", "c002")], [["c001"], ["c002"]])
+
     def test_cli(self):
         with contextlib.redirect_stdout(io.StringIO()):
             rc = P.main(["w", "--wer", "CK", "--schwelle", "60"])

@@ -5,6 +5,8 @@ Eingang:      Mandant (080), Quelle + wunsch.zielsprachen (090), vorhandene prod
 Gate:         mind. 1 Produkt; nur gueltige Kombinationen (Matrix) -> sonst Stopp.
               Abhaengigkeit Hoerspiel -> Hoerbuch-Erzaehlerspur gleicher Sprache (Stufe premium) wird ergaenzt.
               Somnio -> auto; User/Verlag -> Mensch (Kostenangebot aus Bestellung); BETA (Sound-Carpet) -> Mensch.
+Hoerspiel-Eignung (13.11.2026): Empfehlung aus pipeline/hoerspiel_eignung (Rede-Anteil, Sprecher, Buehnenform,
+              0 $); Metrik hoerspiel_eignung. Hoerspiel bestellt, Urteil ungeeignet -> Mensch (bewusst bestaetigen).
 Default:      ohne produkte: Text TAELLA in Quellsprache + Zielsprachen (wunsch aus 090, sonst en<->de).
 Kosten:       0 $ (kein LLM). Kostenangebot = Selbstkosten-Schaetzung aus config.ANGEBOT_USD_100K.
 Regler:       --produkt SPRACHE:INHALT[:STUFE]:KANAL[,KANAL][:+ZUSATZ]  (mehrfach; ersetzt die Bestellung)
@@ -19,7 +21,7 @@ import os
 import sys
 
 from config import config
-from pipeline import bestellung, gate, kette, s080_mandant, status
+from pipeline import bestellung, gate, hoerspiel_eignung, kette, s080_mandant, status
 from pipeline.manifest import hash_obj
 
 STAGE = "095"
@@ -143,14 +145,22 @@ def run(werk, wer=None, produkte=None, default=False):
     g.metrik("angebot_usd", ang)
     if not fehler:
         g.metrik("bestellung_hash", bestell_hash(probe))
-    mensch, grund = False, None
+    eig = hoerspiel_eignung.fuer_werk(b.ordner)
+    g.metrik("hoerspiel_eignung", {"urteil": eig["urteil"], "stufe": eig["stufe"], "gruende": eig["gruende"]})
+    hs = [p for p in probe.produkte if p["inhalt"] == "hoerspiel"]
+    gr = []
+    if hs and eig["urteil"] == "ungeeignet":
+        g.hinweis("hoerspiel_ungeeignet", False, wert=eig["urteil"],
+                  text="Hoerspiel bestellt, Empfehlung: ungeeignet (" + "; ".join(eig["gruende"]) +
+                       ") – bewusst bestaetigen oder Hoerbuch waehlen")
+        gr.append("Hoerspiel trotz Empfehlung 'ungeeignet'")
     if beta:
-        mensch, grund = True, f"BETA in Bestellung ({len(beta)}× Sound-Carpet, keine Stage) – Mensch"
-    elif probe.mandant_art != "somnio":
-        mensch = True
-        grund = (f"Mandant {probe.mandant}: Bestellung + Kostenangebot freigeben"
-                 f" (~{ang['summe']:.2f} $ Selbstkosten)" if ang else
-                 f"Mandant {probe.mandant}: Bestellung freigeben (Zeichenzahl unbekannt, kein Angebot)")
+        gr.append(f"BETA in Bestellung ({len(beta)}× Sound-Carpet, keine Stage)")
+    if probe.mandant_art != "somnio":
+        gr.append(f"Mandant {probe.mandant}: Bestellung + Kostenangebot freigeben"
+                  f" (~{ang['summe']:.2f} $ Selbstkosten)" if ang else
+                  f"Mandant {probe.mandant}: Bestellung freigeben (Zeichenzahl unbekannt, kein Angebot)")
+    mensch, grund = bool(gr), (" · ".join(gr) + " – Mensch") if gr else None
     if not fehler and (probe.produkte != b.produkte or "produkte" in b.abgeleitet):
         bestellung.schreiben(werk, produkte=probe.produkte)
     e = g.entscheide(mensch_immer=mensch, mensch_grund=grund)

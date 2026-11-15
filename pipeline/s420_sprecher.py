@@ -271,6 +271,9 @@ def _antwort(a, tid, text, ref, lg, src, namen, ersetzen):
     rec = {"seg": seg, "q": "llm"}
     if fe:
         rec["rf"] = fe
+        if fe == "sprecher_unbekannt":            # genannte Namen ausserhalb der Besetzung (Hinweis 210/410)
+            rec["unbekannt"] = sorted({(x.get("s") or "").strip() for x in a.get(lg) or [] if isinstance(x, dict)
+                                       and _sprecher(x.get("s"), namen) is None and (x.get("s") or "").strip()})
     if src != lg and ref:
         r, rfe = _segs(a.get(src), ref, namen)
         if r is not None and not rfe:
@@ -313,6 +316,16 @@ def zuordnen(items, cast, lg, src, ich, rg, kontext_fn):
             rec = {"seg": [{"t": text, "s": ERZ}], "q": "rueckfall", "rf": fe or "rekonstruktion"}
         out[tid] = rec
     return out, n
+
+
+def kosten_schaetzen(zeichen, saetze, sprachen=1, modell=None, teil=None):
+    """Schaetzung Neu-Zuordnen in $ (Peak-Preis, ohne Cache): je Teil ~2.000 Zeichen Prompt; Ziel + Referenz
+    im Eingang; Antwort ~ 1,5x Ziel (JSON beider Sprachen). Token ~ Zeichen/4."""
+    p = getattr(config, "PREISE", {}).get(modell or config.MODELS.get("caster")) or {}
+    teile = max(1, -(-int(saetze) // int(teil or REGLER_STD["teil"])))
+    ein = (2 * zeichen + 2000 * teile) / 4
+    aus = 1.5 * 2 * zeichen / 4
+    return sprachen * (ein * p.get("in", 0) + aus * p.get("out", 0)) / 1e6
 
 
 # ============================================================ Regler / Korrekturen
@@ -559,6 +572,14 @@ def run(werk, wer=None, kapitel=None, neu=False, saetze=None, regler=None, trock
         ens = [x["figur"] for x in cast if x["rolle"] == "ensemble"]
         gehoert = {x["s"] for r in mit.values() for x in r["seg"]}
         stumm = [f for f in ens if f not in gehoert]
+        fremd = {}
+        for r in mit.values():
+            for n in r.get("unbekannt") or []:
+                fremd[n] = fremd.get(n, 0) + 1
+        fremd_txt = ", ".join(f"{n} ({k}x)" for n, k in sorted(fremd.items(), key=lambda x: -x[1])[:8])
+        g.hinweis(f"unbekannt_{lg}", not fremd, wert=dict(sorted(fremd.items(), key=lambda x: -x[1])[:20]),
+                  text=f"{lg}: genannte Sprecher nicht in der Besetzung (Rueckfall Erzaehler): {fremd_txt} "
+                       f"-> Figur in 210 ergaenzen, in 410 besetzen")
         g.hinweis(f"figur_ohne_{lg}", not stumm, wert=stumm, text=f"{lg}: besetzte Figuren ohne Segmente: "
                   + ", ".join(stumm))
         spur = [t for t, r in recs_lg.items() if r is None and any(ch in ZEICHEN for ch in texte.get(t, ""))
@@ -582,11 +603,14 @@ def run(werk, wer=None, kapitel=None, neu=False, saetze=None, regler=None, trock
         ausgabe["sprachen"][lg] = {"stufe": stufe, "besetzung": cast,
                                    "text": "sprechtext" if mit_sp else "lesetext"}
         for t, r in mit.items():
-            ausgabe["saetze"].setdefault(t, {})[lg] = {k: v for k, v in r.items() if k in ("seg", "h", "q", "rf", "ref")}
+            ausgabe["saetze"].setdefault(t, {})[lg] = {k: v for k, v in r.items()
+                                                       if k in ("seg", "h", "q", "rf", "ref", "unbekannt")}
         def zeile(t):
             return {"id": t, "text": texte.get(t, "")[:300],
                     "seg": [f"[{x['s']}{' ?' if x.get('u') else ''}] {x['t']}" for x in (mit.get(t) or {}).get("seg", [])]}
-        pruef[lg] = {"unsicher": [zeile(t) for t in uns], "rueckfall": [dict(zeile(t), grund=mit[t]["rf"]) for t in rf],
+        pruef[lg] = {"unsicher": [zeile(t) for t in uns],
+                     "rueckfall": [dict(zeile(t), grund=mit[t]["rf"], unbekannt=mit[t].get("unbekannt") or []) for t in rf],
+                     "unbekannt": fremd,
                      "inkonsistent": [dict(zeile(t), ref=sorted(_figuren(mit[t]["ref"]))) for t in inkon],
                      "drama_fremd": drama_fremd}
 

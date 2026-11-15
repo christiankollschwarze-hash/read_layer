@@ -9,7 +9,9 @@ main{max-width:1200px;margin:0 auto}
 #editor .cm-gutters{background:var(--tint);border-right:1px solid var(--line);color:var(--ink-3)}
 .feld{display:grid;grid-template-columns:150px 1fr;gap:8px 12px;align-items:center}
 .geaendert{color:var(--s-mensch);font-weight:600}
-details.ausnahme{margin-top:10px}details.ausnahme summary{cursor:pointer;color:var(--ink-3);font-size:12px}
+details.ausnahme{margin-top:10px}
+.freigabe{margin-top:12px;padding:12px 14px;border:2px solid var(--s-mensch);border-radius:var(--r-s);background:color-mix(in srgb,var(--s-mensch) 6%,transparent)}
+.freigabe h3{margin:0 0 4px}details.ausnahme summary{cursor:pointer;color:var(--ink-3);font-size:12px}
 .dateien{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
 .dateien button.akt{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 #ansicht{max-height:640px;overflow:auto;border-top:1px solid var(--line);padding-top:10px}
@@ -48,6 +50,15 @@ details.ausnahme{margin-top:10px}details.ausnahme summary{cursor:pointer;color:v
 .qw.ge{outline:2px solid var(--s-mensch)}.qw.sel{outline:2px solid var(--ink)}
 .zw.hla{outline:2px solid var(--ink)}.zw.hlp{box-shadow:inset 0 0 0 2px var(--s-mensch);border-bottom:2px dashed var(--s-mensch)}
 .l340 .qw{cursor:default;margin-left:6px}
+.t095 td{padding:6px 8px;vertical-align:top}.t095 select{margin-right:6px}
+.b400{display:grid;grid-template-columns:110px 1fr 1fr 190px;gap:6px 12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px;line-height:1.45}
+.b400.kopf{font-weight:600;font-size:12px;color:var(--ink-3)}.b400.geaendert{background:color-mix(in srgb,var(--s-mensch) 7%,transparent)}
+.b400 .neu{cursor:text}.b400 .neu:hover{background:var(--tint)}.b400 textarea{width:100%;min-height:70px}
+.d400a{background:color-mix(in srgb,var(--s-stopp) 16%,transparent);border-radius:2px}.d400b{background:color-mix(in srgb,var(--s-frei) 22%,transparent);border-radius:2px}
+.d420{border-bottom:1px solid var(--line);padding:8px 0}.d420.geaendert{background:color-mix(in srgb,var(--s-mensch) 6%,transparent)}
+.dz{display:grid;grid-template-columns:150px 1fr;gap:8px;font-size:14px;line-height:1.5;padding:1px 0}.dsp{font-variant:small-caps;font-weight:600;font-size:12px;letter-spacing:.04em}
+.dz .w{cursor:pointer}.dz .w:hover{background:var(--tint)}
+.t400 td{padding:3px 6px;vertical-align:top}.t400 input[type=text],.t400 td input:not([type]){width:100%;min-width:160px}.t400 tr.ohne{background:color-mix(in srgb,var(--s-mensch) 7%,transparent)}
 </style></head><body>
 <header>
  <a class="marke" href="/"></a><span class="seitentitel">Gate-Monitor</span>
@@ -61,6 +72,7 @@ details.ausnahme{margin-top:10px}details.ausnahme summary{cursor:pointer;color:v
  <div class="ampel a-ruhe" id="ampel"><span class="dot"></span><span id="ampeltext">–</span></div>
  <div class="box" id="gate"></div>
  <div id="inhalt"></div>
+ <div id="freigabe2"></div>
  <div class="box" id="ergebnis"><h2>Ergebnis</h2><div class="klein">lädt …</div></div>
  <div class="box" id="laufbox" style="display:none"><h2>Lauf</h2><div id="laufinfo" class="klein"></div><pre id="log">–</pre></div>
 </main>
@@ -111,12 +123,19 @@ function gateZeigen(){
     for(const z of rs)if(z.ziel&&z.ziel!=s.stage)kn.push(`<button onclick="laufLos('ab','${esc(z.ziel)}')">Rücksprung ${esc(z.ziel)}${z.scope?" ("+esc(z.scope)+")":""}</button>`);
   }
   h+=kn.length?`<div class="akt">${kn.join("")}</div>`:"";
-  if(s.zustand=="mensch"&&r.entscheiden.ok)h+=`<details class="ausnahme"><summary>Ausnahme: ohne Korrektur entscheiden (Grund Pflicht)</summary>
-    <div class="akt"><input type="text" id="ausgrund" placeholder="Grund" size="40">${["frei","stopp"].map(n=>`<button onclick="entscheide('${n}')">${n}</button>`).join("")}</div></details>`;
+  if(s.zustand=="mensch"&&r.entscheiden.ok)h+=freigabeHtml("1");
   $("gate").innerHTML=h;
+  const f2=$("freigabe2");if(f2)f2.innerHTML=s.zustand=="mensch"&&r.entscheiden.ok?`<div class="box">${freigabeHtml("2")}</div>`:"";
 }
-async function entscheide(nach){
-  const grund=$("ausgrund").value.trim();if(!grund){alert("Grund ist Pflicht");return;}
+function freigabeHtml(k){
+  return `<div class="freigabe"><h3>Entscheidung nötig</h3>
+   <div class="klein">Die Stage wartet auf dich. Entweder oben/unten korrigieren und neu prüfen – oder so wie sie ist entscheiden:</div>
+   <div class="akt"><input type="text" id="ausgrund${k}" placeholder="Begründung (Pflicht), z. B. Reste geprüft, klingt richtig" size="52">
+    <button class="haupt" onclick="entscheide('frei','${k}')">Freigeben – weiter in der Kette</button>
+    <button onclick="entscheide('stopp','${k}')">Anhalten (Stopp)</button></div></div>`;
+}
+async function entscheide(nach,k){
+  const grund=$("ausgrund"+(k||"1")).value.trim();if(!grund){alert("Begründung ist Pflicht");$("ausgrund"+(k||"1")).focus();return;}
   const r=await api(`/api/werk/${B()}/aktion`,{art:"entscheiden",stage:M.stage.stage,nach,grund,wer:$("wer").value});
   if(!r.ok)alert(r.fehler);laden();
 }
@@ -1114,6 +1133,586 @@ MON["340"]={
     if(!trocken&&E.alle&&!confirm(`Alle Kapitel werden neu aligned (Live-Modus, ~${d.kosten_neu.toFixed(3)} $). Weiter?`))return;
     if(!trocken&&!E.alle&&(n||nk)&&!confirm([n&&`${n} Sätze neu alignen (~${(n*d.kosten_satz).toFixed(4)} $)`,nk&&`${nk} Kapitel neu alignen`].filter(Boolean).join(" und ")+"?"))return;
     speichern(e).then(ok=>{if(ok&&!trocken){this.E=this.leer();this.sel=null;}});
+  }
+};
+MON["095"]={
+  E:null,V:null,tm:null,
+  vonProdukten(pr){const E={};for(const p of pr){const e=E[p.sprache]=E[p.sprache]||{text:[],hb:{stufe:"",kan:[]},hs:{stufe:"",beta:false}};
+      if(p.inhalt=="text")e.text=[...p.kanaele];else if(p.inhalt=="hoerbuch")e.hb={stufe:p.stufe,kan:[...p.kanaele]};else e.hs={stufe:p.stufe,beta:(p.zusatz||[]).includes("sound_carpet")};}
+    return E;},
+  produkte(){const out=[];for(const [lg,e] of Object.entries(this.E)){
+      if(e.text.length)out.push({sprache:lg,inhalt:"text",stufe:null,kanaele:e.text,zusatz:[]});
+      if(e.hb.stufe&&e.hb.kan.length)out.push({sprache:lg,inhalt:"hoerbuch",stufe:e.hb.stufe,kanaele:e.hb.kan,zusatz:[]});
+      if(e.hs.stufe)out.push({sprache:lg,inhalt:"hoerspiel",stufe:e.hs.stufe,kanaele:["taella"],zusatz:e.hs.beta?["sound_carpet"]:[]});}
+    return out;},
+  erlaubt(inhalt,stufe){const m=M.daten.matrix.find(x=>x.inhalt==inhalt&&x.stufe==(stufe||null));return m?m.kanaele:[];},
+  html(d){
+    if(!this.E)this.E=this.vonProdukten(d.produkte);
+    const ei=d.eignung,farbe={geeignet:"frei",bedingt:"mensch",ungeeignet:"stopp",unbekannt:""}[ei.urteil];
+    const KN={taella:"TÆLLA",epub:"ePub",extern:"extern"};
+    const zeile=lg=>{const e=this.E[lg]||{text:[],hb:{stufe:"",kan:[]},hs:{stufe:"",beta:false}};this.E[lg]=e;
+      const kb=(art,k,an,dis)=>`<label class="klein"><input type="checkbox" ${an?"checked":""} ${dis?"disabled":""} onchange="MON['095'].kan('${lg}','${art}','${k}',this.checked)"> ${KN[k]}</label>`;
+      const hbK=e.hb.stufe?this.erlaubt("hoerbuch",e.hb.stufe).map(k=>kb("hb",k,e.hb.kan.includes(k))).join(" "):"";
+      return `<tr><td><b>${esc(lg)}</b>${lg==d.quellsprache?' <span class="klein">Quelle</span>':""}${d.wunsch.includes(lg)?' <span class="klein">Wunsch</span>':""}</td>
+        <td>${this.erlaubt("text",null).map(k=>kb("text",k,e.text.includes(k))).join(" ")}</td>
+        <td><select onchange="MON['095'].stufe('${lg}','hb',this.value)"><option value="">–</option>${["basic","premium"].map(s=>`<option ${e.hb.stufe==s?"selected":""}>${s}</option>`).join("")}</select> ${hbK}</td>
+        <td><select onchange="MON['095'].stufe('${lg}','hs',this.value)"><option value="">–</option>${["premium","drama"].map(s=>`<option ${e.hs.stufe==s?"selected":""}>${s}</option>`).join("")}</select>
+          ${e.hs.stufe?`<span class="klein">TÆLLA</span> <label class="klein"><input type="checkbox" ${e.hs.beta?"checked":""} onchange="MON['095'].E['${lg}'].hs.beta=this.checked;MON['095'].vorschau()"> Sound-Carpet <span class="z mensch">BETA</span></label>`:""}</td></tr>`;};
+    return `<div class="box"><h2>1 Anzeigen</h2><div class="feld">
+      <span>Werk</span><span>Quelle ${esc(d.quelle||"–")} · Ausgangssprache ${esc(d.quellsprache||"–")} · Fassung ${esc(d.fassung||"–")} · Mandant ${esc(d.mandant||"–")} (${esc(d.mandant_art||"")})${d.wunsch.length?` · Wunsch-Zielsprachen aus 090: ${esc(d.wunsch.join(", "))}`:""}${d.abgeleitet?' · <span class="z mensch">Bestellung noch abgeleitet (Default)</span>':""}</span></div></div>
+    <div class="box"><h2>Empfehlung Hörspiel</h2><div class="feld">
+      <span>Urteil</span><span><span class="z ${farbe}">${esc(ei.urteil)}</span>${ei.stufe?` · empfohlene Stufe <b>${esc(ei.stufe)}</b>`:""}</span>
+      <span>Gründe</span><span class="klein">${ei.gruende.map(esc).join("<br>")}</span></div>
+      <div class="klein">Messung am Rohtext (wörtliche Rede, wiederkehrende Sprecher, Bühnenform), 0 $. Empfehlung, keine Sperre: Hörspiel trotz „ungeeignet“ geht, 095 fragt dann nach (Mensch).</div></div>
+    <div class="box"><h2>2 Bearbeiten · Bestellmatrix</h2>
+     <table class="kapt t095"><tr><th>Sprache</th><th>Text</th><th>Hörbuch</th><th>Hörspiel</th></tr>${d.sprachen.map(zeile).join("")}</table>
+     <div class="klein">Hörspiel braucht die Hörbuch-Erzählerspur premium derselben Sprache – 095 ergänzt sie automatisch. Hörbuch premium nur TÆLLA/extern, Hörspiel nur TÆLLA.</div>
+     <h3>Vorschau</h3><div id="vs095" class="klein">…</div></div>
+    <div class="box"><h2>3 Speichern · 4 Freigeben</h2>
+     <div class="akt"><button class="haupt" onclick="MON['095'].los(false)">Bestellung übernehmen und 095 neu prüfen</button>
+      <button onclick="MON['095'].los(true)">Default aus Wunsch (090) ableiten</button>
+      <button onclick="MON['095'].E=MON['095'].vonProdukten(M.daten.produkte);MON['095'].neuZeichnen()">Änderungen verwerfen</button></div>
+     <div class="klein">Fertige Stages bleiben frei; neu bestellte kommen als offen dazu, abbestellte entfallen. Somnio → auto; User/Verlag, BETA oder Hörspiel trotz „ungeeignet“ → Mensch.</div></div>`;
+  },
+  danach(){this.vorschau();},
+  neuZeichnen(){$("inhalt").innerHTML=this.html(M.daten);this.danach();},
+  kan(lg,art,k,an){const e=this.E[lg],l=art=="text"?e.text:e.hb.kan,i=l.indexOf(k);if(an&&i<0)l.push(k);if(!an&&i>=0)l.splice(i,1);this.vorschau();},
+  stufe(lg,art,s){const e=this.E[lg];
+    if(art=="hb"){e.hb.stufe=s;const ok=s?this.erlaubt("hoerbuch",s):[];e.hb.kan=e.hb.kan.filter(k=>ok.includes(k));if(s&&!e.hb.kan.length)e.hb.kan=["taella"];}
+    else{e.hs.stufe=s;if(!s)e.hs.beta=false;
+      if(s&&M.daten.eignung.urteil=="ungeeignet")alert("Hinweis: Das Werk ist laut Empfehlung für ein Hörspiel ungeeignet ("+M.daten.eignung.gruende.join("; ")+").");}
+    this.neuZeichnen();},
+  vorschau(){clearTimeout(this.tm);this.tm=setTimeout(async()=>{
+    const d=M.daten,pr=this.produkte(),el=$("vs095");if(!el)return;
+    if(!pr.length){el.innerHTML='<span class="err">Mindestens ein Produkt wählen.</span>';return;}
+    const r=await api(`/api/werk/${B()}/monitor/095/teil?produkte=${encodeURIComponent(JSON.stringify(pr))}`);this.V=r;
+    if(r.fehler&&!Array.isArray(r.fehler)){el.innerHTML=`<span class="err">${esc(r.fehler)}</span>`;return;}
+    if(r.fehler.length){el.innerHTML=`<span class="err">${r.fehler.map(esc).join("<br>")}</span>`;return;}
+    const alt=new Set(d.laeuft),neu=new Set(r.stages),nm=s=>`${s} ${esc(d.namen[s]||"")}`;
+    const dazu=r.stages.filter(s=>!alt.has(s)),weg=d.laeuft.filter(s=>!neu.has(s));
+    const a=r.angebot;
+    el.innerHTML=`<div class="feld"><span>Produkte</span><span>${r.produkte.map(p=>`${p.sprache}:${p.inhalt}${p.stufe?":"+p.stufe:""}:${p.kanaele.join(",")}${p.zusatz.length?" +"+p.zusatz.join(","):""}`).map(esc).join(" · ")}${r.ergaenzt.length?` <span class="z mensch">ergänzt: ${esc(r.ergaenzt.join(", "))}</span>`:""}</span>
+      <span>Kette</span><span>${r.stages.length} Stages${dazu.length?` · <b>neu:</b> ${dazu.map(nm).join(", ")}`:""}${weg.length?` · <b>entfällt:</b> ${weg.map(nm).join(", ")}`:""}${!dazu.length&&!weg.length?" · unverändert":""}</span>
+      <span>Angebot</span><span>${a?`Selbstkosten-Schätzung ~${a.summe.toFixed(2)} $ (${Object.entries(a).filter(([k])=>k!="summe").map(([k,v])=>esc(k)+" "+v.toFixed(2)).join(" · ")})`:"Zeichenzahl unbekannt – kein Angebot"}</span></div>`;
+  },300);},
+  los(def){
+    if(def){if(!confirm("Bestellung aus dem Wunsch (090) neu ableiten?"))return;speichern({default:true}).then(ok=>{if(ok)this.E=null;});return;}
+    const pr=this.produkte();if(!pr.length){alert("Mindestens ein Produkt wählen.");return;}
+    if(this.V&&this.V.fehler&&this.V.fehler.length){alert(this.V.fehler.join("\n"));return;}
+    speichern({produkte:pr}).then(ok=>{if(ok)this.E=null;});
+  }
+};
+MON["400"]={
+  E:null,lg:null,fa:"",fk:"",seite:0,N:40,
+  AN:{roemisch_h:"römisch (Überschrift)",roemisch:"römisch",reste:"Reste (Ziffern § & %)",laenge:"Länge",style:"Style",manuell:"manuell"},
+  leer(){return {spr:{},regler:{},pausen:{},aussprache:{},skip:new Set(),skip_weg:new Set(),laenge_max:null,style_max:null};},
+  S(lg){return this.E.spr[lg]=this.E.spr[lg]||{text:{}};},
+  diff(a,b){/* Wortdiff: -> [htmlA, htmlB] mit markierten Abweichungen */
+    const x=a.split(/(\s+)/),y=b.split(/(\s+)/),n=x.length,m=y.length;
+    if(n*m>90000)return [esc(a),esc(b)];
+    const L=Array.from({length:n+1},()=>new Uint16Array(m+1));
+    for(let i=n-1;i>=0;i--)for(let j=m-1;j>=0;j--)L[i][j]=x[i]===y[j]?L[i+1][j+1]+1:Math.max(L[i+1][j],L[i][j+1]);
+    let i=0,j=0,A="",Bo="";
+    while(i<n&&j<m){if(x[i]===y[j]){A+=esc(x[i]);Bo+=esc(y[j]);i++;j++;}
+      else if(L[i+1][j]>=L[i][j+1]){A+=/\S/.test(x[i])?`<span class="d400a">${esc(x[i])}</span>`:esc(x[i]);i++;}
+      else{Bo+=/\S/.test(y[j])?`<span class="d400b">${esc(y[j])}</span>`:esc(y[j]);j++;}}
+    for(;i<n;i++)A+=/\S/.test(x[i])?`<span class="d400a">${esc(x[i])}</span>`:esc(x[i]);
+    for(;j<m;j++)Bo+=/\S/.test(y[j])?`<span class="d400b">${esc(y[j])}</span>`:esc(y[j]);
+    return [A,Bo];},
+  html(d){
+    if(!this.E)this.E=this.leer();
+    if(!this.lg||!d.audio.includes(this.lg))this.lg=d.audio[0];
+    const E=this.E,lg=this.lg,sp=d.sprachen[lg]||{befunde:[],zaehler:{},ansagen:[],ohne_aussprache:{}};
+    const dot=ok=>`<span class="dot" style="background:var(--s-${ok?"frei":"mensch"})"></span>`;
+    const pr=Object.entries(this.AN).filter(([a])=>a!="manuell"&&(a!="style"||sp.premium)).map(([a,n])=>{const v=sp.zaehler[a]||0;
+      return `<tr><td>${dot(!v)}</td><td>${n}</td><td>${v}</td><td class="klein">Soll 0</td></tr>`;}).join("");
+    const nohne=Object.keys(sp.ohne_aussprache||{}).length;
+    const rg=k=>E.regler[k]??d.regler[k];
+    const pz=(t)=>E.pausen[t]??d.pausen[t];
+    return `<div class="box"><h2>1 Anzeigen</h2>
+     ${d.ein_fehlt?'<div class="klein err">330_rueckuebersetzung.json fehlt.</div>':d.vorhanden?"":'<div class="klein err">Noch keine Regie – 400 erst laufen lassen (0 $).</div>'}
+     <div class="feld">
+      <span>Werk</span><span>Audiosprachen ${esc(d.audio.join(", ")||"–")}${d.premium.length?` · Premium/Drama: ${esc(d.premium.join(", "))}`:""} · Regler Betonung ${d.regler.betonung} / Emotion ${d.regler.emotion} / Tempo ${d.regler.tempo} · Namen gesprochen in ${esc(d.namensprache||"–")} · TTS ${esc(d.tts_backend)} · Regeln v${esc(d.regeln_v??"–")}</span>
+      <span>Kosten</span><span>0 $ (keine KI, nur Regeln) · Hörprobe je Satz folgt mit AP P3-2</span>
+      <span>Audiosprache</span><span>${d.audio.map(z=>{const n=Object.keys(this.S(z).text).length,s=d.sprachen[z]||{befunde:[]};
+        return `<button class="${z==lg?"haupt":""}" onclick="MON['400'].wechsel('${z}')">${esc(z)}${s.premium?" (premium)":""} · ${s.befunde.filter(x=>!(x.arten.length==1&&x.arten[0]=="manuell")).length} Befunde${n?" · "+n+" geändert":""}</button>`;}).join(" ")}</span></div></div>
+    <div class="box"><h2>Audiosprache ${esc(lg)}</h2><div class="feld">
+      <span>Prüfungen</span><span><table class="kapt">${pr}
+        <tr><td>${dot(!nohne)}</td><td>Figuren/Unübersetzt ohne Aussprache</td><td>${nohne}</td><td class="klein">${sp.premium?"Soll 0 (Premium)":"nur Hinweis (basic)"}</td></tr>
+        ${sp.leer?`<tr><td><span class="dot" style="background:var(--s-stopp)"></span></td><td>Knoten ohne Text</td><td>${sp.leer}</td><td class="klein">→ 310</td></tr>`:""}</table></span>
+      <span>Ansagen</span><span class="klein">${sp.ansagen.length?sp.ansagen.map(a=>`<b>${esc(a.art)}</b> (${esc(a.position)}, ${a.pause_after_ms} ms): ${esc(a.sprechtext)}`).join("<br>"):"keine (kein Hörbuch in dieser Sprache)"}</span>
+      ${sp.premium?`<span>Regie (Stil)</span><span class="klein">${Object.entries(d.regie).map(([t,r])=>`<b>${esc(t)}</b>: ${esc(r)}`).join("<br>")}</span>`:""}</div></div>
+    <div class="box"><h2>2 Bearbeiten · Befundliste ${esc(lg)} <span class="klein" id="n400"></span></h2>
+     <div class="akt">Befund <select onchange="MON['400'].fa=this.value;MON['400'].seite=0;MON['400'].liste()"><option value="">alle</option>${Object.entries(this.AN).map(([k,v])=>`<option value="${k}" ${this.fa==k?"selected":""}>${v}</option>`).join("")}</select>
+      Kapitel <select onchange="MON['400'].fk=this.value;MON['400'].seite=0;MON['400'].liste()"><option value="">alle</option>${[...new Set(sp.befunde.map(x=>x.kapitel))].sort().map(k=>`<option ${this.fk==k?"selected":""}>${k}</option>`).join("")}</select>
+      <span id="seiten400"></span> <span class="klein">Sprechtext anklicken = von Hand setzen (gilt, bis sich der Lesetext ändert). Abweichungen: <span class="d400a">Text</span> → <span class="d400b">Sprechtext</span>.</span></div>
+     <div id="bl400"></div></div>
+    <div class="box"><h2>Aussprache · Figuren und Unübersetztes</h2>
+     <div class="klein">Herkunft 210 = Profil (Figuren pflegen in <a href="#${esc(M.book_id)}/210">210</a>); 400 = Werk-Hinweis hier, gilt zusätzlich und hat Vorrang (näher am Audio). „überspringen“ nimmt einen Begriff aus der Aussprache-Prüfung.</div>
+     <table class="kapt t400"><tr><th>Begriff</th><th>Art</th>${d.audio.map(z=>`<th>${esc(z)}</th>`).join("")}<th>210</th><th>400-Hinweis</th><th>überspringen</th></tr>
+      ${d.begriffe.map((b,i)=>{const sk=(b.skip&&!E.skip_weg.has(b.key))||E.skip.has(b.key),fehlt=d.audio.some(z=>b.ohne[z]);
+        return `<tr class="${fehlt?"ohne":""}"><td><b>${esc(b.key)}</b></td><td class="klein">${b.quelle=="characters"?"Figur":"unübersetzt"}</td>
+        ${d.audio.map(z=>`<td class="klein">${esc(b.namen[z])}${b.ohne[z]?` <span class="z mensch">${b.ohne[z]}× ohne</span>`:""}</td>`).join("")}
+        <td class="klein">${esc(b.aussprache_210||"")}${Object.entries(b.tts_210).filter(([,v])=>v).map(([z,v])=>` ${esc(z)}: ${esc(v)}`).join("")}</td>
+        <td><input value="${esc(E.aussprache[b.key]??b.hinweis_400)}" placeholder="z. B. Sun Tsu wie ‚Sun Dsü‘" onchange="MON['400'].au(${i},this.value)"></td>
+        <td><input type="checkbox" ${sk?"checked":""} onchange="MON['400'].sk(${i},this.checked)"></td></tr>`;}).join("")}</table>
+     ${d.begriffe.length?"":'<div class="klein">keine Figuren/unübersetzten Begriffe im Profil</div>'}</div>
+    <div class="box"><h2>Regler je Werk</h2>
+     <div class="akt">${["betonung","emotion","tempo"].map(k=>`${k[0].toUpperCase()+k.slice(1)} <input type="range" min="1" max="10" value="${rg(k)}" oninput="this.nextElementSibling.textContent=this.value" onchange="MON['400'].rg('${k}',+this.value)"> <b>${rg(k)}</b>`).join(" · ")}</div>
+     <div class="akt">Pausen nach Typ (ms): ${Object.keys(d.pausen_standard).filter(t=>t!="skip").map(t=>`${esc(t)} <input type="number" min="0" max="5000" step="50" value="${pz(t)}" style="width:68px" onchange="MON['400'].pa('${t}',+this.value)">`).join(" ")}</div>
+     <div class="akt">Länge Sprechtext ≤ <input type="number" step="0.1" min="1" max="5" value="${E.laenge_max??d.laenge_max}" style="width:60px" onchange="MON['400'].E.laenge_max=+this.value==M.daten.laenge_max?null:+this.value;MON['400'].zf()">× Text · Style ≤ <input type="number" min="50" max="1000" step="10" value="${E.style_max??d.style_max}" style="width:70px" onchange="MON['400'].E.style_max=+this.value==M.daten.style_max?null:+this.value;MON['400'].zf()"> Zeichen</div>
+     <div class="klein">Standard: Regler 5/5/5, Pausen ${Object.entries(d.pausen_standard).filter(([t])=>t!="skip").map(([t,v])=>esc(t)+" "+v).join(", ")}, Länge ${d.standard.laenge_max}×, Style ${d.standard.style_max}. Betonung/Emotion/Tempo wirken nur bei Premium (Stil-Zeile) und gelten auch für 500.</div></div>
+    <div class="box"><h2>3 Speichern · 4 Freigeben</h2>
+     <div class="akt"><button class="haupt" onclick="MON['400'].los(false)">Übernehmen und 400 neu prüfen</button>
+      <button onclick="MON['400'].los(true)">Probe (schreibt nichts)</button> <span id="zf400" class="klein"></span></div>
+     <div class="klein">400 kostet nichts und läuft in Sekunden. Eine Mensch-Freigabe gilt, solange die Ausgabe gleich bleibt. Rücksprung: Knoten ohne Text → <a href="#${esc(M.book_id)}/310">310</a>; Zielsatz falsch → <a href="#${esc(M.book_id)}/330">330</a>; Satzgrenze falsch (z. B. nach „Kap.“) → Abkürzungen in <a href="#${esc(M.book_id)}/200">200</a>.</div></div>`;
+  },
+  danach(){this.liste();this.zf();},
+  neuZeichnen(){$("inhalt").innerHTML=this.html(M.daten);this.danach();},
+  wechsel(lg){this.lg=lg;this.fa="";this.fk="";this.seite=0;this.neuZeichnen();},
+  liste(){
+    const d=M.daten,lg=this.lg,sp=d.sprachen[lg]||{befunde:[]},S=this.S(lg),N=this.N;
+    const l=sp.befunde.filter(x=>(!this.fa||x.arten.includes(this.fa))&&(!this.fk||x.kapitel==this.fk)),ns=Math.max(1,Math.ceil(l.length/N));
+    if(this.seite>=ns)this.seite=ns-1;
+    $("n400").textContent=`(${l.length} von ${sp.befunde.length})`;
+    $("seiten400").innerHTML=ns>1?`<button onclick="MON['400'].seite--;MON['400'].liste()" ${this.seite?"":"disabled"}>‹</button> Seite ${this.seite+1}/${ns} <button onclick="MON['400'].seite++;MON['400'].liste()" ${this.seite<ns-1?"":"disabled"}>›</button>`:"";
+    if(!l.length){$("bl400").innerHTML='<div class="klein">keine Befunde</div>';return;}
+    $("bl400").innerHTML=`<div class="b400 kopf"><span>Knoten</span><span>Text</span><span>Sprechtext</span><span>Befund</span></div>`+l.slice(this.seite*N,this.seite*N+N).map(x=>{
+      const i=sp.befunde.indexOf(x),t=S.text[x.id],[a,b]=this.diff(x.text,x.sprechtext),edit=x.id.startsWith("c");
+      const zelle=t!=null?`<textarea oninput="MON['400'].tx(${i},this.value)">${esc(t)}</textarea>`
+        :`<div class="${edit?"neu":""}" ${edit?`title="klicken zum Bearbeiten" onclick="MON['400'].bearb(${i})"`:""}>${b}</div>`;
+      return `<div class="b400 ${t!=null?"geaendert":""}"><span class="klein">${esc(x.id)}</span><span>${a}</span><span>${zelle}${x.direction?`<div class="klein">Stil (${x.direction.length} Z.): ${esc(x.direction)}</div>`:""}</span>
+        <span>${x.arten.map(r=>`<span class="chip">${esc(this.AN[r]||r)}</span>`).join("")}${x.wer?`<div class="klein">${esc(x.wer)} ${esc((x.wann||"").slice(0,16).replace("T"," "))}</div>`:""}
+        ${t!=null?`<button onclick="MON['400'].tx(${i},null)">verwerfen</button>`:x.arten.includes("manuell")?`<button onclick="MON['400'].zurueck(${i})">auf Regeln zurücksetzen</button>`:""}</span></div>`;}).join("");
+  },
+  bearb(i){const x=M.daten.sprachen[this.lg].befunde[i];this.S(this.lg).text[x.id]=x.sprechtext;this.liste();this.zf();},
+  tx(i,v){const x=M.daten.sprachen[this.lg].befunde[i],S=this.S(this.lg);if(v==null){delete S.text[x.id];this.liste();}else S.text[x.id]=v;this.zf();},
+  zurueck(i){const x=M.daten.sprachen[this.lg].befunde[i];this.S(this.lg).text[x.id]="-";this.liste();this.zf();},
+  rg(k,v){if(v==M.daten.regler[k])delete this.E.regler[k];else this.E.regler[k]=v;this.zf();},
+  pa(t,v){if(v==M.daten.pausen[t])delete this.E.pausen[t];else this.E.pausen[t]=v;this.zf();},
+  au(i,v){const b=M.daten.begriffe[i];if(v.trim()==(b.hinweis_400||""))delete this.E.aussprache[b.key];else this.E.aussprache[b.key]=v.trim();this.zf();},
+  sk(i,an){const b=M.daten.begriffe[i],E=this.E;E.skip.delete(b.key);E.skip_weg.delete(b.key);
+    if(an&&!b.skip)E.skip.add(b.key);if(!an&&b.skip)E.skip_weg.add(b.key);this.zf();},
+  zf(){const E=this.E,t=[];
+    for(const [lg,S] of Object.entries(E.spr)){const n=Object.keys(S.text).length;if(n)t.push(`${lg}: ${n} Sprechtexte`);}
+    for(const [k,v] of Object.entries(E.regler))t.push(k+" "+v);
+    const np=Object.keys(E.pausen).length;if(np)t.push(np+" Pausen");
+    const na=Object.keys(E.aussprache).length;if(na)t.push(na+" Aussprache-Hinweise");
+    if(E.skip.size||E.skip_weg.size)t.push(`überspringen +${E.skip.size}/−${E.skip_weg.size}`);
+    if(E.laenge_max)t.push("Länge "+E.laenge_max);if(E.style_max)t.push("Style "+E.style_max);
+    const el=$("zf400");if(el)el.textContent=t.join(" · ");},
+  los(trocken){
+    const E=this.E,e={};
+    const mit=Object.entries(E.spr).filter(([,S])=>Object.keys(S.text).length).map(([lg])=>lg);
+    if(mit.length>1){alert("Sprechtexte in mehreren Sprachen ("+mit.join(", ")+"): bitte je Sprache einzeln übernehmen.");return;}
+    if(mit.length){const lg=mit[0],S=E.spr[lg],bf=M.daten.sprachen[lg].befunde;e.lang=lg;
+      const st=Object.fromEntries(Object.entries(S.text).filter(([id,t])=>t.trim()&&t.trim()!=(bf.find(x=>x.id==id)||{}).sprechtext));
+      if(Object.keys(st).length)e.sprechtext=st;}
+    Object.assign(e,E.regler);if(Object.keys(E.pausen).length)e.pausen=E.pausen;if(Object.keys(E.aussprache).length)e.aussprache=E.aussprache;
+    if(E.skip.size)e.skip=[...E.skip];if(E.skip_weg.size)e.skip_weg=[...E.skip_weg];
+    if(E.laenge_max)e.laenge_max=E.laenge_max;if(E.style_max)e.style_max=E.style_max;if(trocken)e.trocken=true;
+    if(!trocken&&!Object.keys(e).length&&!confirm("Nichts geändert – 400 nur neu prüfen?"))return;
+    speichern(e).then(ok=>{if(ok&&!trocken)this.E=this.leer();});
+  }
+};
+MON["410"]={
+  E:null,g:0,offen:null,alle:false,gleich:true,
+  BF:{unbesetzt:["stopp","unbesetzt"],nicht_nutzbar:["stopp","nicht nutzbar"],neu:["mensch","neu entworfen – Hörprobe"],
+      passung:["mensch","Passung < Schwelle"],grundton:["mensch","Grundton zu nah (Figur↔Figur)"],zu_nah:["mensch","zu nah am Erzähler"],
+      knapp:["mensch","knapp – Korrektur"],doppelt:["mensch","Stimme doppelt"]},
+  leer(){return {erzaehler:{},figur:{},statist:new Set(),statist_weg:new Set(),design_prompt:{},regler:{},reihe_erbe:null,korrektur:{},neu_sb:false,neu:false};},
+  probe(p){return p?`<audio controls preload="none" src="/datei?p=${encodeURIComponent(p)}" style="width:190px;height:30px"></audio>`:'<span class="klein">keine Probe</span>';},
+  merk(m){if(!m)return "–";return [m.geschlecht,m.alter,m.tonlage,...(m.klangfarbe||[]),m.tempo,...(m.temperament||[]),m.sicherheit,m.akzent].filter(x=>x&&x!="neutral"&&x!="mittel").map(esc).join(" · ")||"–";},
+  html(d){
+    if(!this.E)this.E=this.leer();
+    const E=this.E,ki=(M.stage.kosten||{}).usd,fr=d.freigabe,sb=d.steckbriefe;
+    if(this.g>=d.gruppen.length)this.g=0;
+    const G=d.gruppen[this.g];
+    const nE=g=>(E.erzaehler[g.lg]?1:0);
+    const dp=d.kosten.design_stueck;
+    let h=`<div class="box"><h2>1 Anzeigen</h2>
+     ${d.regie_fehlt?'<div class="klein err">400_regie.json fehlt – 400 erst laufen lassen.</div>':""}
+     ${!d.vorhanden?'<div class="klein err">Noch kein Casting – 410 laufen lassen (Steckbriefe ~'+d.kosten.steckbriefe.toFixed(3)+' $).</div>':!d.schema_ok?'<div class="klein err">casting.json ist eine Altfassung (Schema 1) – 410 neu prüfen überführt sie (Stimmen bleiben).</div>':""}
+     <div class="feld">
+      <span>Bestellung</span><span>${Object.entries(d.ziele).map(([lg,je])=>Object.entries(je).map(([st,inh])=>`${esc(lg)} · ${esc(st)} (${inh.map(esc).join(", ")})`).join("; ")).join(" · ")||"–"}${d.hoerspiel?' · <b>Hörspiel: Freigabe immer durch Mensch</b>':""}${d.unbekannt.length?` · <span class="err">ohne Casting: ${esc(d.unbekannt.join(", "))}</span>`:""}</span>
+      <span>Freigabe</span><span>${fr.gilt?`<span class="z frei">freigegeben</span> ${esc(fr.wer||"")} ${esc((fr.wann||"").slice(0,16).replace("T"," "))}`:`<span class="z mensch">${esc(fr.tor||"offen")}</span>`} <span class="klein">Änderungen an einem freigegebenen Casting brauchen einen Grund (Protokoll) und eine neue Freigabe.</span></span>
+      <span>Kosten</span><span>Ist ${ki!=null?ki.toFixed(4)+" $":"–"} · Steckbriefe neu ~${d.kosten.steckbriefe.toFixed(3)} $ (${esc(d.modell)}) · Neu entwerfen je Stimme: ${dp==null?"Voice-Design-Stückpreis nicht hinterlegt":dp.toFixed(2)+" $"} + Muster ~${d.kosten.design_muster.toFixed(2)} $ · Umbesetzen aus dem Archiv 0 $</span>
+      <span>Archiv</span><span>${d.archiv.belegt}/${d.archiv.max} Plätze${d.reihe?` · Reihe ${esc(d.reihe)} Teil ${esc(d.teil??"?")}`:""}${d.trennregel.D_ziel?` · Trennregel v${esc(d.trennregel.version)}: D ≥ ${d.trennregel.D_schwelle} (Ziel ${d.trennregel.D_ziel})`:""}</span>
+      <span>Steckbriefe</span><span>${sb.vorhanden?`${sb.gerettet?'<span class="z mensch">nur gerettet</span> ':""}${esc(sb.herkunft||"")} Erzähler: ${esc(sb.erzaehler.erzaehlform||"?")}${sb.erzaehler.ich_figur?" ("+esc(sb.erzaehler.ich_figur)+")":""} · Genre ${esc(sb.erzaehler.genre_stimme||"?")} · ${this.merk(sb.erzaehler.merkmale)}${d.hoerspiel?` · Figuren mit Steckbrief ${sb.figuren}/${d.figuren210.length}`:""}
+        ${sb.fehlend.length?`<br><span class="klein">ohne Steckbrief (Statisten): ${esc(sb.fehlend.join(", "))} → <a href="#${esc(M.book_id)}/210">210</a> bzw. Steckbriefe neu</span>`:""}
+        ${sb.fremd.length?`<br><span class="klein">nicht in 210 (ignoriert): ${esc(sb.fremd.join(", "))}</span>`:""}
+        ${sb.hinweise?`<br><span class="klein">Hinweis: ${esc(sb.hinweise)}</span>`:""}`:"–"}</span>
+      <span>Besetzung</span><span>${d.gruppen.map((g,i)=>{const nb=g.zeilen.reduce((a,z)=>a+z.befunde.length,0),n=nE(g)+g.zeilen.filter(z=>z.rolle=="figur"&&E.figur[z.figur]).length;
+        return `<button class="${i==this.g?"haupt":""}" onclick="MON['410'].wechsel(${i})">${esc(g.lg)} · ${esc(g.stufe)} (${esc(g.engine)}) · ${g.zeilen.length} Rollen${nb?" · "+nb+" Befunde":""}${n?" · "+n+" geändert":""}</button>`;}).join(" ")}</span>
+     </div></div>`;
+    if(G)h+=this.gruppe(d,G);
+    h+=`<div class="box"><h2>Regler je Werk</h2>
+     <div class="akt">Passungsschwelle <input type="number" min="0" max="100" value="${E.regler.schwelle??d.regler.schwelle}" style="width:60px" onchange="MON['410'].rg('schwelle',+this.value)">
+      · Grundton-Abstand Figur↔Figur ≥ <input type="number" min="1" max="50" value="${Math.round(100*(E.regler.f0_abstand??d.regler.f0_abstand))}" style="width:55px" onchange="MON['410'].rg('f0_abstand',+this.value/100)"> %
+      · max. Ensemble <input type="number" min="0" max="40" value="${E.regler.max_ensemble??d.regler.max_ensemble}" style="width:55px" onchange="MON['410'].rg('max_ensemble',+this.value)">
+      · min. Dialoganteil <input type="number" min="0" max="100" step="0.5" value="${E.regler.min_anteil??d.regler.min_anteil}" style="width:60px" onchange="MON['410'].rg('min_anteil',+this.value)"> %
+      ${d.reihe?` · <label><input type="checkbox" ${(E.reihe_erbe??d.regler.reihe_erbe)?"checked":""} onchange="MON['410'].E.reihe_erbe=this.checked==M.daten.regler.reihe_erbe?null:this.checked;MON['410'].zf()"> Reihen-Erbe</label>`:""}</div>
+     ${d.hoerspiel?`<div class="akt">Getrenntes Casting je Geschichte (Sammelband): <select id="gs410" onchange="MON['410'].gs(this.value)">${["aus","kapitel","gruppen"].map(v=>`<option value="${v}" ${this.gsArt(d)==v?"selected":""}>${{aus:"aus",kapitel:"je Kapitel",gruppen:"Kapitelgruppen"}[v]}</option>`).join("")}</select>
+      ${this.gsArt(d)=="gruppen"?`<input type="text" size="34" placeholder="z. B. c001-c003,c004" value="${esc((this.E.geschichten??d.regler.geschichten)||"")}" onchange="MON['410'].gs(this.value)">`:""}
+      <span class="klein">${d.kapitel.length} Kapitel. Eine Stimme darf dann mehrere Figuren sprechen, die nie in derselben Geschichte vorkommen (Name im Text der Geschichte).</span></div>`:""}
+     <div class="klein">Standard: Schwelle ${d.standard.schwelle}, Grundton ${Math.round(100*d.standard.f0_abstand)} %, Ensemble ${d.standard.max_ensemble}, Anteil ${d.standard.min_anteil} %. Schwelle und Abstand gelten für die Archivsuche; feste Besetzungen bleiben.</div>
+     <div class="akt"><label><input type="checkbox" ${E.neu_sb?"checked":""} onchange="MON['410'].E.neu_sb=this.checked;MON['410'].zf()"> Steckbriefe neu erzeugen</label> <span class="klein">~${d.kosten.steckbriefe.toFixed(3)} $</span>
+      · <label><input type="checkbox" ${E.neu?"checked":""} onchange="MON['410'].E.neu=this.checked;MON['410'].zf()"> komplett neu besetzen</label> <span class="klein">verwirft den Bestand (nur Vorgaben bleiben), Grund Pflicht</span></div></div>
+    <div class="box"><h2>3 Speichern · 4 Freigeben</h2>
+     <div class="akt"><input type="text" id="grund410" size="60" placeholder="Grund${fr.gilt?" (Pflicht – Casting ist freigegeben)":" (Pflicht bei Korrektur/Neubesetzung)"}" value="${esc(E.grund||"")}" oninput="MON['410'].E.grund=this.value">
+      <button class="haupt" onclick="MON['410'].los(false)">Übernehmen und 410 neu prüfen</button>
+      <button onclick="MON['410'].los(true)">Probe (schreibt nichts)</button> <span id="zf410" class="klein"></span></div>
+     <div class="klein">Gewählte Stimmen werden als Vorgabe je Werk gespeichert (book.json casting_regler) und gelten bei jedem Lauf. Eine Mensch-Freigabe gilt, solange die Besetzung gleich bleibt; danach oben „Freigeben“. Rücksprung: Figurenliste/Steckbrief falsch → <a href="#${esc(M.book_id)}/210">210</a>.</div>
+     ${d.protokoll.length?`<details style="margin-top:8px"><summary class="klein">Protokoll (${d.protokoll.length})</summary><table class="kapt">${d.protokoll.slice().reverse().map(p=>`<tr><td class="klein">${esc((p.wann||"").slice(0,16).replace("T"," "))}</td><td class="klein">${esc(p.wer||"")}</td><td>${esc(p.aktion)}</td><td class="klein">${esc(p.figur||"")} ${esc(p.sprache||"")} ${esc(p.grund||"")}</td></tr>`).join("")}</table></details>`:""}</div>`;
+    return h;
+  },
+  gruppe(d,G){
+    const E=this.E,lg=G.lg,schw=E.regler.schwelle??d.regler.schwelle;
+    if(!G.vorhanden)return `<div class="box"><h2>Besetzung ${esc(lg)} · ${esc(G.stufe)}</h2><div class="klein">Noch nicht besetzt – 410 neu prüfen.</div></div>`;
+    const hs=G.inhalte.includes("hoerspiel");
+    const zeile=(z,i)=>{
+      const fig=z.rolle=="figur",neu=fig?E.figur[z.figur]:E.erzaehler[lg],stat=fig&&E.statist.has(z.figur);
+      const t=z.trennung||{},k=z.korrektur||{},kk=E.korrektur[z.figur+":"+lg];
+      const kv=kk!=null?(kk=="-"?["",""]:kk.split(",")):[k.formant_faktor??"",k.tonhoehe_ht??""];
+      const si=z.stimme_info||{};
+      return `<tr class="${neu||stat||kk!=null?"sel":""}">
+       <td><b>${fig?esc(z.figur):"Erzähler"}</b>${!fig&&z.figur&&z.figur!="Erzaehler"?` <span class="klein">(Ich: ${esc(z.figur)})</span>`:""}${fig&&z.name_lg&&z.name_lg!=z.figur?`<br><span class="klein">${esc(z.name_lg)}</span>`:""}
+        ${fig?`<br><span class="klein">${esc(z.gewicht||"")} · ${z.anteil??"?"} %${z.kurz?" · "+esc(z.kurz):""}</span>`:""}${fig&&G.geschichten?`<br><span class="klein">Geschichten: ${z.geschichten?z.geschichten.map(i=>esc((G.geschichten[i]||{}).name||i)).join(", "):"nicht gefunden (gilt überall)"}</span>`:""}<br><span class="klein">${this.merk(z.merkmale)}</span></td>
+       <td>${z.stimme?`<b>${esc(z.stimme)}</b>${si.rufname?` <span class="klein">„${esc(si.rufname)}“</span>`:""}<br><span class="klein">${esc(si.kurz||"")}</span><br><span class="klein">${esc(z.quelle||"")} · ${esc(si.status||si.art||"")}${z.gemini_id&&z.gemini_id!=z.stimme?" · "+esc(z.gemini_id):""}</span>`:'<span class="err">unbesetzt</span>'}
+        ${z.vorgabe?`<br><span class="klein">Vorgabe ${esc(z.vorgabe)} <a href="javascript:MON['410'].vorgabeWeg(${i})" title="Vorgabe entfernen">✕</a></span>`:""}
+        ${neu?`<br><span class="geaendert">→ ${neu=="@neu"?"neu entwerfen":neu=="-"?"Vorgabe entfernen":esc(neu)}</span>`:""}${z.grund?`<br><span class="err klein">${esc(z.grund)}</span>`:""}</td>
+       <td>${this.probe(z.probe)}</td>
+       <td>${z.passung??"–"}${z.passung!=null&&z.passung<schw?' <span class="z mensch"></span>':""}</td>
+       <td>${z.grundton_hz?Math.round(z.grundton_hz)+" Hz":"–"}${z.grundton_ok===false?`<br><span class="klein err">${esc(z.grundton_grund||"")}</span>`:""}</td>
+       <td>${fig?`${t.status?`<span class="z ${t.status=="ok"?"frei":t.status=="unbekannt"?"":"mensch"}">${esc(t.status)}</span>`:"–"}${t.D!=null?` D ${(+t.D).toFixed(2)}`:""}`:""}</td>
+       <td>${fig&&hs?`<input type="number" step="0.01" min="${d.grenzen.formant_min}" max="${d.grenzen.formant_max}" value="${kv[0]}" placeholder="Formant" style="width:62px" onchange="MON['410'].ko(${i},this.value,null)">
+         <input type="number" step="0.5" min="-${d.grenzen.tonhoehe_max}" max="${d.grenzen.tonhoehe_max}" value="${kv[1]}" placeholder="HT" style="width:48px" onchange="MON['410'].ko(${i},null,this.value)">${k.grund?`<br><span class="klein">${esc(k.grund)}</span>`:""}`:""}</td>
+       <td>${z.befunde.map(b=>`<span class="z ${(this.BF[b]||["mensch"])[0]}">${esc((this.BF[b]||[0,b])[1])}</span>`).join(" ")}</td>
+       <td><button onclick="MON['410'].auf(${i})">${this.offen==="z"+i?"zu":"umbesetzen"}</button>${fig?`<br><label class="klein"><input type="checkbox" ${stat?"checked":""} onchange="MON['410'].statist(${i},this.checked)"> Statist</label>`:""}</td></tr>
+       ${this.offen==="z"+i?`<tr><td colspan="9">${this.wahl(d,G,z,"z"+i)}</td></tr>`:""}`;};
+    const szeile=(s,i)=>{const neu=E.figur[s.figur],weg=E.statist_weg.has(s.figur);
+      return `<tr class="${neu||weg?"sel":""}"><td><b>${esc(s.figur)}</b><br><span class="klein">${esc(s.gewicht||"")} · ${s.anteil??"?"} %${s.kurz?" · "+esc(s.kurz):""}</span></td>
+       <td class="klein">${s.fest?"als Statist festgelegt":"automatisch (Gewicht/Anteil)"}${neu?`<br><span class="geaendert">→ eigene Stimme ${neu=="@neu"?"(neu entwerfen)":esc(neu)}</span>`:weg?'<br><span class="geaendert">→ nicht mehr fest Statist</span>':""}</td>
+       <td><button onclick="MON['410'].auf('s${i}')">${this.offen==="s"+i?"zu":"eigene Stimme"}</button>${s.fest?` <label class="klein"><input type="checkbox" ${weg?"":"checked"} onchange="MON['410'].festStat(${i},this.checked)"> fest Statist</label>`:""}</td></tr>
+       ${this.offen==="s"+i?`<tr><td colspan="3">${this.wahl(d,G,s,"s"+i)}</td></tr>`:""}`;};
+    return `<div class="box"><h2>2 Bearbeiten · Besetzung ${esc(lg)} · ${esc(G.stufe)} <span class="klein">${esc(G.engine)} · ${esc(G.inhalte.join(", "))}</span></h2>
+     ${G.geschichten?`<div class="klein">Getrenntes Casting: ${G.geschichten.length} Geschichten (${G.geschichten.map(x=>esc(x.name)).join(", ")}); je Figur steht, wo sie vorkommt.</div>`:""}
+     ${G.engine=="chatterbox"?`<div class="klein">LoRA-Adapter: ${G.adapter?esc(G.adapter.name)+" v"+esc(G.adapter.version??"?"):"keiner"} ${G.adapter_ok?"":`<span class="err">${esc(G.adapter_grund||"nicht freigegeben")}</span>`}</div>`:""}
+     <table class="kapt t210"><tr><th>Rolle</th><th>Stimme</th><th>Hörprobe</th><th>Passung</th><th>Grundton</th><th>${hs?"Abstand zum Erzähler":""}</th><th>${hs?"Korrektur":""}</th><th>Befunde</th><th></th></tr>
+      ${G.zeilen.map(zeile).join("")}</table>
+     ${hs?`<div class="klein">Abstand = Trennregel F0 × Stimmtraktlänge gegen den Erzähler des Werks (ok / knapp / zu nah). Korrektur = Formantfaktor ${d.grenzen.formant_min}–${d.grenzen.formant_max} und Tonhöhe ±${d.grenzen.tonhoehe_max} HT nach der Vertonung (510); gemessen wird erst in 540. Reicht die Grenze nicht: umbesetzen.</div>`:""}
+     ${G.statisten.length?`<h3>Statisten (sprechen mit der Erzählerstimme) · ${G.statisten.length}</h3><table class="kapt t210">${G.statisten.map(szeile).join("")}</table>`:""}</div>`;
+  },
+  eff(G,r){const E=this.E,v=r.rolle=="erzaehler"?E.erzaehler[G.lg]:E.figur[r.figur];return v&&v!="-"&&v!="@neu"?v:(v=="@neu"?null:r.stimme);},
+  belegtVon(G,z,name){/* wer hat die Stimme schon (inkl. vorgemerkter Wahl)? Mit getrenntem Casting nur Figuren derselben Geschichte */
+    const kf=(a,b)=>!G.geschichten||a==null||b==null||a.some(x=>b.includes(x));
+    for(const r of G.zeilen){if(r===z)continue;
+      if(this.eff(G,r)==name&&(r.rolle=="erzaehler"||z.rolle=="erzaehler"||kf(z.geschichten,r.geschichten)))return r.rolle=="erzaehler"?"Erzähler":r.figur;}
+    for(const s of G.statisten){if(s===z)continue;const v=this.E.figur[s.figur];if(v==name)return s.figur+" (vorgemerkt)";}
+    return null;},
+  wahl(d,G,z,key){
+    const E=this.E,schw=E.regler.schwelle??d.regler.schwelle,fig=z.rolle!="erzaehler";
+    z.kandidaten.forEach(k=>{k.belegt=this.belegtVon(G,z,k.name);});
+    z.kandidaten.sort((a,b)=>(!!a.belegt-!!b.belegt)||((b.passung??-1)-(a.passung??-1))||a.name.localeCompare(b.name));
+    const ges=(z.merkmale||{}).geschlecht;
+    let l=z.kandidaten.filter(k=>!this.gleich||!ges||ges=="neutral"||!k.geschlecht||k.geschlecht==ges||k.geschlecht=="neutral");
+    const n=l.length;if(!this.alle)l=l.slice(0,25);
+    const prompt=E.design_prompt[z.figur]??z.design_prompt_werk??(z.steckbrief||{}).stimm_beschreibung_en??z.design_prompt??"";
+    const dp=d.kosten.design_stueck;
+    return `<div style="padding:6px 0 10px 12px;border-left:3px solid var(--s-mensch)">
+     <div class="akt"><b>Archiv · ${esc(G.engine)}</b> <label class="klein"><input type="checkbox" ${this.gleich?"checked":""} onchange="MON['410'].gleich=this.checked;MON['410'].neuZeichnen()"> nur passendes Geschlecht</label>
+      <label class="klein"><input type="checkbox" ${this.alle?"checked":""} onchange="MON['410'].alle=this.checked;MON['410'].neuZeichnen()"> alle ${n} zeigen</label>
+      <span class="klein">sortiert nach Passung zum Steckbrief (Schwelle ${schw}); belegte Stimmen unten</span></div>
+     <table class="kapt"><tr><th>Stimme</th><th>Beschreibung</th><th>Hörprobe</th><th>Passung</th><th>Grundton</th>${fig?"<th>zum Erzähler</th>":""}<th></th></tr>
+     ${l.map(k=>{const j=z.kandidaten.indexOf(k);return `<tr${k.name==z.stimme?' class="sel"':""}><td><b>${esc(k.name)}</b>${k.rufname?` <span class="klein">„${esc(k.rufname)}“</span>`:""}<br><span class="klein">${esc(k.art=="archiv"?k.status:k.art)}${k.rolle_typ?" · "+esc(k.rolle_typ):""}</span></td>
+       <td class="klein">${esc(k.kurz||"")}${k.geschlecht?" · "+esc(k.geschlecht):""}</td><td>${this.probe(k.probe)}</td>
+       <td>${k.passung??"–"}${k.passung!=null&&k.passung<schw?' <span class="klein">(unter Schwelle)</span>':""}</td><td>${k.grundton_hz?Math.round(k.grundton_hz)+" Hz":"–"}</td>
+       ${fig?`<td class="klein">${k.f0_abstand!=null?"F0 "+Math.round(100*k.f0_abstand)+" %":""}${k.d_status?` · <span class="z ${k.d_status=="ok"?"frei":k.d_status=="unbekannt"?"":"mensch"}">${esc(k.d_status)}</span>`:""}${k.D!=null?" D "+(+k.D).toFixed(2):""}</td>`:""}
+       <td>${k.name==z.stimme?'<span class="klein">jetzt</span>':k.belegt?`<span class="klein">belegt: ${esc(k.belegt)}</span>`:`<button onclick="MON['410'].waehle('${key}',${j})">wählen</button>`}</td></tr>`;}).join("")}</table>
+     <div class="akt" style="margin-top:8px"><b>Neu entwerfen</b> (Gemini Voice Design, ${dp==null?"Stückpreis nicht hinterlegt":"~"+dp.toFixed(2)+" $"} + Muster ~${d.kosten.design_muster.toFixed(2)} $; danach Hörprobe und Freigabe)</div>
+     <textarea id="dp410" style="width:100%;min-height:70px" placeholder="Design-Prompt (englisch, 2–3 Sätze: Alter, Geschlecht, Tonlage, Klangfarbe, Tempo, Temperament)">${esc(prompt)}</textarea>
+     <div class="akt"><button onclick="MON['410'].entwerfen('${key}')">neu entwerfen vormerken</button> <span class="klein">Kinderstimmen blockt Gemini – Kinderfiguren werden von einer erwachsenen Stimme mit leichter Stimme gesprochen.</span></div></div>`;
+  },
+  danach(){this.zf();},
+  neuZeichnen(){$("inhalt").innerHTML=this.html(M.daten);this.danach();},
+  wechsel(i){this.g=i;this.offen=null;this.neuZeichnen();},
+  auf(k){k=typeof k=="number"?"z"+k:k;this.offen=this.offen===k?null:k;this.neuZeichnen();},
+  ziel(key){const G=M.daten.gruppen[this.g];return key[0]=="z"?G.zeilen[+key.slice(1)]:G.statisten[+key.slice(1)];},
+  setze(z,wert){const E=this.E,G=M.daten.gruppen[this.g];
+    if(z.rolle=="erzaehler"){if(wert==null)delete E.erzaehler[G.lg];else E.erzaehler[G.lg]=wert;}
+    else{if(wert==null)delete E.figur[z.figur];else E.figur[z.figur]=wert;
+      if(wert&&wert!="-")E.statist.delete(z.figur);}},
+  waehle(key,j){const z=this.ziel(key),k=z.kandidaten[j];this.setze(z,k.name==(z.vorgabe||null)?null:k.name);this.offen=null;this.neuZeichnen();},
+  entwerfen(key){const z=this.ziel(key),t=$("dp410").value.trim();
+    if(t.length<20){alert("Design-Prompt: mindestens 20 Zeichen");return;}
+    const std=z.design_prompt_werk??(z.steckbrief||{}).stimm_beschreibung_en??z.design_prompt??"";
+    if(t!=std)this.E.design_prompt[z.rolle=="erzaehler"?(z.figur||"Erzaehler"):z.figur]=t;
+    this.setze(z,"@neu");this.offen=null;this.neuZeichnen();},
+  vorgabeWeg(i){const z=M.daten.gruppen[this.g].zeilen[i];this.setze(z,"-");this.neuZeichnen();},
+  statist(i,an){const z=M.daten.gruppen[this.g].zeilen[i],E=this.E;
+    if(an){E.statist.add(z.figur);delete E.figur[z.figur];}else E.statist.delete(z.figur);
+    this.neuZeichnen();},
+  festStat(i,an){const s=M.daten.gruppen[this.g].statisten[i];if(an)this.E.statist_weg.delete(s.figur);else this.E.statist_weg.add(s.figur);this.neuZeichnen();},
+  ko(i,ff,ht){const z=M.daten.gruppen[this.g].zeilen[i],lg=M.daten.gruppen[this.g].lg,k=z.figur+":"+lg,E=this.E;
+    const alt=E.korrektur[k]&&E.korrektur[k]!="-"?E.korrektur[k].split(","):[(z.korrektur||{}).formant_faktor??"",(z.korrektur||{}).tonhoehe_ht??0];
+    const f=ff!=null?ff:alt[0],h=ht!=null?ht:alt[1];
+    E.korrektur[k]=f===""||f==null?"-":`${f},${h||0}`;
+    const k0=z.korrektur||{};if(E.korrektur[k]==(k0.formant_faktor!=null?`${k0.formant_faktor},${k0.tonhoehe_ht||0}`:"-"))delete E.korrektur[k];this.zf();},
+  rg(k,v){if(v==M.daten.regler[k])delete this.E.regler[k];else this.E.regler[k]=v;this.zf();},
+  gsArt(d){const v=this.E.geschichten!==undefined?this.E.geschichten:d.regler.geschichten;return !v||v=="aus"?"aus":v=="kapitel"?"kapitel":"gruppen";},
+  gs(v){v=v.replace(/\s/g,"");if(v=="gruppen")v=M.daten.kapitel.length?M.daten.kapitel[0]:"";const alt=M.daten.regler.geschichten||"aus";
+    if((v||"aus")==alt)delete this.E.geschichten;else this.E.geschichten=v||"aus";this.neuZeichnen();},
+  eingabe(){const E=this.E,e={};if(E.geschichten!==undefined)e.geschichten=E.geschichten;
+    if(Object.keys(E.erzaehler).length)e.erzaehler=E.erzaehler;if(Object.keys(E.figur).length)e.figur=E.figur;
+    if(E.statist.size)e.statist=[...E.statist];if(E.statist_weg.size)e.statist_weg=[...E.statist_weg];
+    if(Object.keys(E.design_prompt).length)e.design_prompt=E.design_prompt;Object.assign(e,E.regler);
+    if(E.reihe_erbe!=null)e.reihe_erbe=E.reihe_erbe;if(Object.keys(E.korrektur).length)e.korrektur=E.korrektur;
+    if(E.neu_sb)e.neu_steckbriefe=true;if(E.neu)e.neu=true;if((E.grund||"").trim())e.grund=E.grund.trim();return e;},
+  zf(){const E=this.E,t=[];
+    for(const [lg,n] of Object.entries(E.erzaehler))t.push(`Erzähler ${lg}: ${n=="@neu"?"neu entwerfen":n=="-"?"Vorgabe weg":n}`);
+    const nf=Object.keys(E.figur).length;if(nf)t.push(nf+" Figur(en) umbesetzt");
+    if(E.statist.size)t.push(E.statist.size+" → Statist");if(E.statist_weg.size)t.push(E.statist_weg.size+" nicht mehr Statist");
+    const nk=Object.keys(E.korrektur).length;if(nk)t.push(nk+" Korrektur(en)");
+    for(const [k,v] of Object.entries(E.regler))t.push(k+" "+v);if(E.reihe_erbe!=null)t.push("Reihen-Erbe "+(E.reihe_erbe?"an":"aus"));
+    if(E.neu_sb)t.push("Steckbriefe neu");if(E.neu)t.push("komplett neu besetzen");if(E.geschichten!==undefined)t.push("Geschichten "+E.geschichten);
+    const el=$("zf410");if(el)el.textContent=t.join(" · ");},
+  los(trocken){
+    const e=this.eingabe(),d=M.daten;
+    if(trocken){delete e.korrektur;e.trocken=true;}
+    const n=Object.keys(e).filter(k=>k!="grund"&&k!="trocken").length;
+    if(!trocken&&!n&&!confirm("Nichts geändert – 410 nur neu prüfen?"))return;
+    const design=Object.values(e.erzaehler||{}).concat(Object.values(e.figur||{})).filter(x=>x=="@neu").length;
+    const kost=(design?design*((d.kosten.design_stueck||0)+d.kosten.design_muster):0)+(e.neu_steckbriefe?d.kosten.steckbriefe:0);
+    if(!trocken&&(design||e.neu_steckbriefe)&&!confirm(`Kostet im Live-Modus: ${design?design+" neue Stimme(n) (Voice Design"+(d.kosten.design_stueck==null?", Stückpreis nicht hinterlegt":"")+")":""}${e.neu_steckbriefe?" Steckbriefe neu":""} – Schätzung ~${kost.toFixed(3)} $. Weiter?`))return;
+    speichern(e).then(ok=>{if(ok&&!trocken){this.E=this.leer();this.offen=null;}});
+  }
+};
+MON["420"]={
+  E:null,lg:null,fa:"befund",fk:"",fs:"",seite:0,N:20,T:{},ed:null,
+  AN:{unsicher:["mensch","unsicher"],rueckfall:["stopp","Rückfall"],inkonsistent:["mensch","inkonsistent zur Ausgangssprache"],
+      manuell:["frei","manuell"],veraltet:["mensch","Korrektur veraltet"],ohne_segmente:["","Rede ohne Segmente"]},
+  FARBEN:["#c0392b","#2471a3","#7d3c98","#1e8449","#b9770e","#a04000","#117a65","#6c3483","#2e4053","#922b21","#1f618d","#7e5109"],
+  leer(){return {seg:{},weg:new Set(),satz:new Set(),kapitel:new Set(),regler:{},drama:null,vorfilter:null,neu:false};},
+  S(lg){return this.E.seg[lg]=this.E.seg[lg]||{};},
+  farbe(s){const sp=M.daten.sprachen[this.lg];const i=sp.besetzung.findIndex(x=>x.figur==s);return s=="Erzaehler"||i<=0?"var(--ink-3)":this.FARBEN[(i-1)%this.FARBEN.length];},
+  name(s){const x=M.daten.sprachen[this.lg].besetzung.find(b=>b.figur==s);return x?(x.name&&x.name!=x.figur&&x.figur!="Erzaehler"?`${x.figur} (${x.name})`:x.name||x.figur):s;},
+  zeilen(seg){return (seg||[]).map(x=>`<div class="dz"><span class="dsp" style="color:${this.farbe(x.s)}">${esc(x.s=="Erzaehler"?"Erzähler":x.s)}${x.u?' <span class="z mensch" title="unsicher"></span>':""}</span><span style="color:${x.s=="Erzaehler"?"inherit":this.farbe(x.s)}">${esc(x.t)}</span></div>`).join("");},
+  html(d){
+    if(!this.E)this.E=this.leer();
+    const L=Object.keys(d.sprachen);
+    if(!this.lg||!L.includes(this.lg))this.lg=L[0];
+    const E=this.E,ki=(M.stage.kosten||{}).usd,sp=d.sprachen[this.lg];
+    if(!sp)return `<div class="box"><h2>1 Anzeigen</h2><div class="klein err">Kein Hörspiel bestellt – 420 entfällt.</div></div>`;
+    const js=d.je_sprache[this.lg]||{},rg=k=>E.regler[k]??d.regler[k];
+    const quote=(n,m)=>m?(100*n/m).toFixed(1)+" %":"–";
+    const fig=js.mit_rede?sp.befunde.filter(x=>x.sprecher.length).length:0;
+    const dot=ok=>`<span class="dot" style="background:var(--s-${ok?"frei":"mensch"})"></span>`;
+    const kand=js.kandidaten||sp.befunde.length;
+    return `<div class="box"><h2>1 Anzeigen</h2>
+     ${d.regie_fehlt?'<div class="klein err">400_regie.json fehlt.</div>':""}${!d.casting_frei?'<div class="klein err">Casting nicht freigegeben – zuerst <a href="#'+esc(M.book_id)+'/410">410</a>.</div>':""}
+     ${!d.vorhanden?'<div class="klein err">Noch keine Zuordnung – 420 laufen lassen (~'+Object.values(d.sprachen).reduce((a,s)=>a+s.kosten_neu,0).toFixed(3)+' $ Schätzung nach Lauf genauer).</div>':""}
+     <div class="feld">
+      <span>Werk</span><span>Hörspiel ${esc(Object.entries(d.ziele).map(([l,s])=>l+" ("+s+")").join(", "))} · Ausgangssprache ${esc(d.quelle)} · Modus ${d.drama?"<b>Drama</b> (Sprecher am Knoten, kein LLM)":"Prosa (LLM "+esc(d.modell)+")"}${d.datum?" · Stand "+esc(d.datum.slice(0,16).replace("T"," ")):""}</span>
+      <span>Kosten</span><span>Ist ${ki!=null?ki.toFixed(4)+" $":"–"} · alles neu ${this.lg} ~${sp.kosten_neu.toFixed(3)} $ · je Satz ~${sp.kosten_satz.toFixed(4)} $ · Sprecher/Schnitt von Hand 0 $</span>
+      <span>Sprache</span><span>${L.map(z=>{const s=d.sprachen[z],n=s.befunde.filter(x=>x.arten.some(a=>a!="manuell")).length,g=Object.keys(this.S(z)).length;
+        return `<button class="${z==this.lg?"haupt":""}" onclick="MON['420'].wechsel('${z}')">${esc(z)} · ${s.mit_rede} Sätze mit Rede · ${n} Befunde${g?" · "+g+" geändert":""}</button>`;}).join(" ")}</span></div></div>
+    <div class="box"><h2>Hörspiel ${esc(this.lg)}</h2><div class="feld">
+      <span>Prüfungen</span><span><table class="kapt">
+       <tr><td>${dot(!js.rueckfaelle||js.rueckfaelle/kand<=d.regler.rueckfall_max)}</td><td>Rückfälle auf Erzähler</td><td>${js.rueckfaelle??sp.zaehler.rueckfall} (${quote(js.rueckfaelle??sp.zaehler.rueckfall,kand)})</td><td class="klein">≤ ${(100*d.regler.rueckfall_max).toFixed(1)} %</td></tr>
+       <tr><td>${dot(!fig||(js.unsicher??sp.zaehler.unsicher)/fig<=d.regler.unsicher_max)}</td><td>unsicher (Sätze mit Figur)</td><td>${js.unsicher??sp.zaehler.unsicher} (${quote(js.unsicher??sp.zaehler.unsicher,fig)})</td><td class="klein">≤ ${(100*d.regler.unsicher_max).toFixed(1)} %</td></tr>
+       <tr><td>${dot(js.konsistenz==null||js.konsistenz>=d.regler.konsistenz_min)}</td><td>Konsistenz zur Ausgangssprache</td><td>${js.konsistenz==null?(sp.referenz?"–":"nicht messbar (Hörspiel in Ausgangssprache)"):(100*js.konsistenz).toFixed(1)+" %"}</td><td class="klein">≥ ${(100*d.regler.konsistenz_min).toFixed(1)} %</td></tr>
+       <tr><td>${dot(!sp.zaehler.veraltet)}</td><td>Korrekturen veraltet</td><td>${sp.zaehler.veraltet}</td><td class="klein">Hinweis</td></tr>
+       <tr><td>${dot(!sp.zaehler.ohne_segmente)}</td><td>Rede-Sätze ohne Segmente (ganz Erzähler)</td><td>${sp.zaehler.ohne_segmente}</td><td class="klein">Hinweis</td></tr>
+       <tr><td></td><td>manuell korrigiert</td><td>${sp.zaehler.manuell}</td><td class="klein">gilt als geprüft</td></tr></table></span>
+      <span>Besetzung</span><span>${sp.besetzung.map((b,i)=>`<span class="chip" style="border-color:${this.farbe(b.figur)};color:${this.farbe(b.figur)}" onclick="MON['420'].fsi(${i})">${esc(this.name(b.figur))}${b.rolle=="statist"?" · Statist":""} · ${sp.segmente[b.figur]||0}</span>`).join("")}
+       ${Object.keys(sp.unbekannt||{}).length?`<br><span class="err">Genannt, aber nicht besetzt (→ Erzähler): ${Object.entries(sp.unbekannt).map(([n,k])=>esc(n)+" "+k+"×").join(", ")}</span> <span class="klein">→ Figur in <a href="#${esc(M.book_id)}/210">210</a> ergänzen, in <a href="#${esc(M.book_id)}/410">410</a> besetzen, dann Sätze neu zuordnen.</span>`:""}
+       <br><span class="klein">Zahl = Segmente. Anklicken filtert. Figur fehlt in der Besetzung → <a href="#${esc(M.book_id)}/410">410</a>.</span></span></div></div>
+    <div class="box"><h2>2 Bearbeiten · Drehbuch ${esc(this.lg)} <span class="klein" id="n420"></span></h2>
+     <div class="akt">Anzeige <select onchange="MON['420'].fa=this.value;MON['420'].seite=0;MON['420'].liste()">
+       <option value="befund" ${this.fa=="befund"?"selected":""}>nur Befunde</option><option value="alle" ${this.fa=="alle"?"selected":""}>alle Sätze mit Rede</option>
+       ${Object.entries(this.AN).map(([k,v])=>`<option value="${k}" ${this.fa==k?"selected":""}>${v[1]}</option>`).join("")}</select>
+      Kapitel <select onchange="MON['420'].fk=this.value;MON['420'].seite=0;MON['420'].liste()"><option value="">alle</option>${[...new Set(sp.befunde.map(x=>x.kapitel))].sort().map(k=>`<option ${this.fk==k?"selected":""}>${k}</option>`).join("")}</select>
+      Sprecher <select onchange="MON['420'].fs=this.value;MON['420'].seite=0;MON['420'].liste()"><option value="">alle</option>${sp.besetzung.filter(b=>b.figur!="Erzaehler").map(b=>`<option value="${esc(b.figur)}" ${this.fs==b.figur?"selected":""}>${esc(b.figur)}</option>`).join("")}</select>
+      <span id="seiten420"></span></div>
+     <div class="klein">„bearbeiten“: Sprecher je Segment wählen; ein Wort anklicken setzt/entfernt davor einen Schnitt. Rechts die Ausgangssprache zum Vergleich.</div>
+     <div id="bl420"></div>
+     <div class="akt" style="margin-top:8px">Kapitel neu zuordnen (kostet): ${[...new Set(sp.befunde.map(x=>x.kapitel))].sort().map(k=>`<span class="chip ${E.kapitel.has(k)?"":"weg"}" onclick="MON['420'].kap('${k}')">${k}</span>`).join("")||'<span class="klein">–</span>'}</div></div>
+    <div class="box"><h2>Regler je Werk</h2>
+     <div class="akt">Rückfälle ≤ <input type="number" min="0" max="100" step="0.5" value="${+(100*rg("rueckfall_max")).toFixed(2)}" style="width:60px" onchange="MON['420'].rg('rueckfall_max',+this.value/100)"> %
+      · unsicher ≤ <input type="number" min="0" max="100" step="0.5" value="${+(100*rg("unsicher_max")).toFixed(2)}" style="width:60px" onchange="MON['420'].rg('unsicher_max',+this.value/100)"> %
+      · Konsistenz ≥ <input type="number" min="0" max="100" step="0.5" value="${+(100*rg("konsistenz_min")).toFixed(2)}" style="width:60px" onchange="MON['420'].rg('konsistenz_min',+this.value/100)"> %</div>
+     <div class="akt">Drama-Modus <select onchange="MON['420'].E.drama=this.value==(M.daten.drama_regler==null?'auto':M.daten.drama_regler?'an':'aus')?null:this.value;MON['420'].zf()">${["auto","an","aus"].map(v=>`<option ${(E.drama??(d.drama_regler==null?"auto":d.drama_regler?"an":"aus"))==v?"selected":""}>${v}</option>`).join("")}</select>
+      · <label><input type="checkbox" ${(E.vorfilter??d.regler.vorfilter)?"checked":""} onchange="MON['420'].E.vorfilter=this.checked==M.daten.regler.vorfilter?null:this.checked;MON['420'].zf()"> Vorfilter (nur Absätze mit Rede-Spur)</label>
+      · <label><input type="checkbox" ${E.neu?"checked":""} onchange="MON['420'].E.neu=this.checked;MON['420'].zf()"> alles neu zuordnen</label> <span class="klein">~${Object.values(d.sprachen).reduce((a,s)=>a+s.kosten_neu,0).toFixed(3)} $</span></div>
+     <div class="klein">Standard: Rückfälle ${100*d.standard.rueckfall_max} %, unsicher ${100*d.standard.unsicher_max} %, Konsistenz ${100*d.standard.konsistenz_min} %, Drama auto (aus 400), Vorfilter an. Modell und Teilgröße nicht im Monitor.</div></div>
+    <div class="box"><h2>3 Speichern · 4 Freigeben</h2>
+     <div class="akt"><button class="haupt" onclick="MON['420'].los(false)">Übernehmen und 420 neu prüfen</button>
+      <button onclick="MON['420'].los(true)">Probe (schreibt nichts)</button> <span id="zf420" class="klein"></span></div>
+     <div class="klein">Von Hand gesetzte Segmente gelten als geprüft (420_korrekturen.json), bis sich der Satz in 400 ändert. Eine Mensch-Freigabe gilt, solange die Zuordnung gleich bleibt. Rücksprung: Figur fehlt → <a href="#${esc(M.book_id)}/410">410</a>; Satzgrenze falsch → <a href="#${esc(M.book_id)}/200">200</a>; Sprechtext falsch → <a href="#${esc(M.book_id)}/400">400</a>.</div></div>`;
+  },
+  danach(){this.liste();this.zf();},
+  neuZeichnen(){$("inhalt").innerHTML=this.html(M.daten);this.danach();},
+  fsi(i){const f=M.daten.sprachen[this.lg].besetzung[i].figur;this.fs=this.fs==f||f=="Erzaehler"?"":f;this.neuZeichnen();},
+  wechsel(lg){this.lg=lg;this.fk="";this.fs="";this.seite=0;this.ed=null;this.T={};this.neuZeichnen();},
+  gefiltert(){const sp=M.daten.sprachen[this.lg];
+    return sp.befunde.filter(x=>(this.fa=="alle"?x.q:this.fa=="befund"?x.arten.some(a=>a!="manuell")||this.S(this.lg)[x.id]:x.arten.includes(this.fa))
+      &&(!this.fk||x.kapitel==this.fk)&&(!this.fs||x.sprecher.includes(this.fs)));},
+  async liste(){
+    const l=this.gefiltert(),N=this.N,ns=Math.max(1,Math.ceil(l.length/N));
+    if(this.seite>=ns)this.seite=ns-1;
+    $("n420").textContent=`(${l.length} von ${M.daten.sprachen[this.lg].befunde.length})`;
+    $("seiten420").innerHTML=ns>1?`<button onclick="MON['420'].seite--;MON['420'].liste()" ${this.seite?"":"disabled"}>‹</button> Seite ${this.seite+1}/${ns} <button onclick="MON['420'].seite++;MON['420'].liste()" ${this.seite<ns-1?"":"disabled"}>›</button>`:"";
+    const s=l.slice(this.seite*N,this.seite*N+N),fehlt=s.filter(x=>!this.T[x.id]).map(x=>x.id);
+    if(!s.length){$("bl420").innerHTML='<div class="klein">keine Sätze</div>';return;}
+    if(fehlt.length){$("bl420").innerHTML='<div class="klein">lädt …</div>';
+      const r=await api(`/api/werk/${B()}/monitor/420/teil?lang=${this.lg}&ids=${fehlt.join(",")}`);
+      if(r.fehler){$("bl420").innerHTML=`<span class="err">${esc(r.fehler)}</span>`;return;}
+      for(const t of r.saetze)this.T[t.id]=t;}
+    this.zeichne(s);
+  },
+  zeichne(s){
+    s=s||this.gefiltert().slice(this.seite*this.N,this.seite*this.N+this.N);
+    const S=this.S(this.lg),sp=M.daten.sprachen[this.lg],E=this.E;
+    $("bl420").innerHTML=s.map(x=>{const t=this.T[x.id];if(!t)return "";
+      const neu=S[x.id],weg=E.weg.has(x.id),ed=this.ed&&this.ed.tid==x.id;
+      return `<div class="d420 ${neu||weg||E.satz.has(x.id)?"geaendert":""}"><div class="kopf340"><b class="klein">${esc(x.id)}</b><span class="klein">${esc(t.typ||"")}${t.q?" · "+esc(t.q):""}${t.sprecher_drama?" · Rolle "+esc(t.sprecher_drama):""}</span>
+        ${x.arten.map(a=>`<span class="z ${(this.AN[a]||["mensch"])[0]}">${esc((this.AN[a]||[0,a])[1])}</span>`).join(" ")}${t.rf?` <span class="klein err">${t.unbekannt.length?"nicht besetzt: "+esc(t.unbekannt.join(", ")):esc(t.rf)}</span>`:""}
+        <span style="margin-left:auto"></span>
+        ${ed?"":`<button onclick="MON['420'].bearb('${x.id}')">bearbeiten</button>`}
+        <label class="klein"><input type="checkbox" ${E.satz.has(x.id)?"checked":""} onchange="MON['420'].sz('${x.id}',this.checked)"> neu zuordnen (~${sp.kosten_satz.toFixed(4)} $)</label>
+        ${t.korrektur?`<label class="klein"><input type="checkbox" ${weg?"checked":""} onchange="MON['420'].wg('${x.id}',this.checked)"> Korrektur entfernen</label>`:""}</div>
+       <div class="zw200" style="grid-template-columns:3fr 2fr"><div style="border:0">${ed?this.editor(t):neu?this.zeilen(neu)+'<button onclick="MON[\'420\'].verwerfen(\''+x.id+'\')">verwerfen</button>':this.zeilen(t.seg)}</div>
+        <div style="border:0" class="klein">${t.ref?this.zeilen(t.ref):t.ref_text?esc(t.ref_text):""}</div></div></div>`;}).join("");
+  },
+  bearb(tid){const t=this.T[tid],seg=this.S(this.lg)[tid]||t.seg,tok=[],spk={};
+    seg.forEach((g,k)=>{const m=g.t.match(/\s*\S+\s*/g)||[g.t];m.forEach((w,j)=>{if(j==0)spk[tok.length]=g.s;tok.push({t:w,s:g.s});});});
+    this.ed={tid,tok,spk};this.zeichne();},
+  editor(t){const ed=this.ed,sp=M.daten.sprachen[this.lg],starts=Object.keys(ed.spk).map(Number).sort((a,b)=>a-b);
+    let h="";starts.forEach((st,k)=>{const bis=k+1<starts.length?starts[k+1]:ed.tok.length,s=ed.spk[st];
+      h+=`<div class="dz"><select class="dsp" style="color:${this.farbe(s)}" onchange="MON['420'].spr(${st},this.value)">${sp.besetzung.map(b=>`<option value="${esc(b.figur)}" ${b.figur==s?"selected":""}>${esc(b.figur=="Erzaehler"?"Erzähler":b.figur)}</option>`).join("")}</select>
+       <span>${ed.tok.slice(st,bis).map((w,j)=>`<span class="w" title="${st+j?"Schnitt davor setzen/entfernen":""}" onclick="MON['420'].schnitt(${st+j})">${j==0&&st>0?'<span class="trenn">✂</span>':""}${esc(w.t)}</span>`).join("")}</span></div>`;});
+    return h+`<div class="akt"><button class="haupt" onclick="MON['420'].fertig()">vormerken</button> <button onclick="MON['420'].ed=null;MON['420'].zeichne()">abbrechen</button></div>`;},
+  schnitt(i){if(!i)return;const ed=this.ed;if(i in ed.spk)delete ed.spk[i];else ed.spk[i]=ed.tok[i].s;this.zeichne();},
+  spr(st,v){this.ed.spk[st]=v;this.zeichne();},
+  fertig(){const ed=this.ed,starts=Object.keys(ed.spk).map(Number).sort((a,b)=>a-b),seg=[];
+    starts.forEach((st,k)=>{const bis=k+1<starts.length?starts[k+1]:ed.tok.length;const t=ed.tok.slice(st,bis).map(w=>w.t).join("");
+      if(seg.length&&seg[seg.length-1].s==ed.spk[st])seg[seg.length-1].t+=t;else seg.push({t,s:ed.spk[st]});});
+    const alt=this.T[ed.tid].seg.map(x=>x.t+"|"+x.s).join("¦"),neu=seg.map(x=>x.t+"|"+x.s).join("¦");
+    if(alt==neu)delete this.S(this.lg)[ed.tid];else this.S(this.lg)[ed.tid]=seg;
+    this.ed=null;this.zeichne();this.zf();},
+  verwerfen(tid){delete this.S(this.lg)[tid];this.zeichne();this.zf();},
+  sz(tid,an){an?this.E.satz.add(tid):this.E.satz.delete(tid);this.zf();},
+  wg(tid,an){an?this.E.weg.add(tid):this.E.weg.delete(tid);this.zf();},
+  kap(k){const E=this.E;E.kapitel.has(k)?E.kapitel.delete(k):E.kapitel.add(k);this.neuZeichnen();},
+  rg(k,v){if(Math.abs(v-M.daten.regler[k])<1e-9)delete this.E.regler[k];else this.E.regler[k]=+v.toFixed(4);this.zf();},
+  zf(){const E=this.E,t=[];
+    for(const [lg,S] of Object.entries(E.seg)){const n=Object.keys(S).length;if(n)t.push(`${lg}: ${n} Sätze von Hand`);}
+    if(E.weg.size)t.push(E.weg.size+" Korrektur(en) entfernen");if(E.satz.size)t.push(E.satz.size+" Sätze neu");
+    if(E.kapitel.size)t.push("Kapitel neu: "+[...E.kapitel].join(", "));
+    for(const [k,v] of Object.entries(E.regler))t.push(k+" "+v);if(E.drama)t.push("Drama "+E.drama);
+    if(E.vorfilter!=null)t.push("Vorfilter "+(E.vorfilter?"an":"aus"));if(E.neu)t.push("alles neu");
+    const el=$("zf420");if(el)el.textContent=t.join(" · ");},
+  los(trocken){
+    const E=this.E,d=M.daten,e={};
+    const mit=Object.entries(E.seg).filter(([,S])=>Object.keys(S).length).map(([lg])=>lg);
+    if(mit.length>1||(mit.length&&E.weg.size&&mit[0]!=this.lg)){alert("Korrekturen in mehreren Sprachen: bitte je Sprache einzeln übernehmen.");return;}
+    if(mit.length||E.weg.size){e.lang=mit[0]||this.lg;if(mit.length)e.segmente=E.seg[mit[0]];if(E.weg.size)e.korrektur_weg=[...E.weg];}
+    if(trocken&&(e.segmente||e.korrektur_weg)){alert("Korrekturen werden sofort geschrieben – Probe nur für Regler.");return;}
+    if(E.satz.size)e.satz=[...E.satz];if(E.kapitel.size)e.kapitel=[...E.kapitel];Object.assign(e,E.regler);
+    if(E.drama)e.drama=E.drama;if(E.vorfilter!=null)e.vorfilter=E.vorfilter;if(E.neu)e.neu=true;if(trocken)e.trocken=true;
+    const kost=E.neu?Object.values(d.sprachen).reduce((a,s)=>a+s.kosten_neu,0):E.satz.size*d.sprachen[this.lg].kosten_satz;
+    if(!trocken&&(E.neu||E.satz.size||E.kapitel.size)&&!confirm(`Neu zuordnen kostet im Live-Modus (Schätzung ~${kost.toFixed(3)} $${E.kapitel.size?" + Kapitel":""}). Weiter?`))return;
+    if(!trocken&&!Object.keys(e).length&&!confirm("Nichts geändert – 420 nur neu prüfen?"))return;
+    speichern(e).then(ok=>{if(ok&&!trocken){this.E=this.leer();this.T={};this.ed=null;}});
+  }
+};
+MON["500"]={
+  E:null,lg:null,fa:"",
+  ART:{auffaellig:["mensch","auffällig"],leer:["stopp","leer"],angenommen:["frei","angenommen"],probe:["","Probe"]},
+  leer(){return {neu:{},an:{},kf:{},regler:{},probe:5,probeLg:"",grund:""};},
+  set(o,lg){return o[lg]=o[lg]||new Set();},
+  probe(p){return p?`<audio controls preload="none" src="/datei?p=${encodeURIComponent(p)}" style="width:210px;height:30px"></audio>`:'<span class="klein">–</span>';},
+  html(d){
+    if(!this.E)this.E=this.leer();
+    const E=this.E,L=Object.keys(d.sprachen),ki=(M.stage.kosten||{}).usd;
+    if(!this.lg||!L.includes(this.lg))this.lg=L[0];
+    const rg=k=>E.regler[k]??d.regler[k];
+    const dot=c=>`<span class="dot" style="background:var(--s-${c})"></span>`;
+    let h=`<div class="box"><h2>1 Anzeigen</h2>
+     ${d.plan_fehler?`<div class="klein err">Planung (Probe) nicht möglich: ${esc(d.plan_fehler)}</div>`:""}
+     <div class="feld">
+      <span>Kosten</span><span>Ist ${ki!=null?ki.toFixed(4)+" $":"–"} · offen (Schätzung) ${d.kosten_offen!=null?(+d.kosten_offen).toFixed(2)+" $":"–"} · Mandant ${esc(d.mandant)}${d.mandant=="somnio"?` · Budget ${d.budget.toFixed(2)} $ (darunter läuft es ohne Freigabe)`:" · Freigabe immer nötig"}</span>
+      ${d.gruende_probe.length||d.hinweise_probe.length?`<span>Lauf jetzt</span><span class="klein">${d.gruende_probe.map(esc).join("<br>")}${d.hinweise_probe.length?"<br>"+d.hinweise_probe.map(esc).join("<br>"):""}</span>`:""}
+     </div>
+     <table class="kapt" style="margin-top:8px"><tr><th>Sprache</th><th>Engine</th><th>Stimme</th><th>Audio</th><th>Herkunft</th><th>offen</th><th>Kosten freigeben</th></tr>
+      ${L.map(lg=>{const s=d.sprachen[lg],o=s.offen||{};const fr=E.kf[lg]!=null;
+        return `<tr><td><b>${esc(lg)}</b><br><span class="klein">${esc(s.stufen&&s.stufen.join?s.stufen.join(", "):JSON.stringify(s.stufen))}</span></td><td>${esc(s.engine||"–")}</td>
+        <td>${esc(s.stimme||"–")}<br>${this.probe(s.stimme_probe)}</td>
+        <td>${s.im_manifest}/${s.einheiten??"?"} Sätze · ${(s.dauer_s/60).toFixed(1)} min${s.fehlt?` · <span class="err">${s.fehlt} fehlen</span>`:""}${s.veraltet?` · <span class="err">${s.veraltet} veraltet</span>`:""}${s.fallback_bloecke?` · ${s.fallback_bloecke} Fallback-Blöcke`:""}</td>
+        <td class="klein">${Object.entries(s.herkunft).map(([k,v])=>esc(k)+" "+v).join(" · ")||"–"}</td>
+        <td>${o.saetze?`${o.saetze} Sätze · ${o.zeichen.toLocaleString("de-DE")} Z. · ~${(+o.usd).toFixed(2)} $`:'<span class="klein">nichts offen</span>'}</td>
+        <td>${o.saetze?`<label><input type="checkbox" ${fr?"checked":""} onchange="MON['500'].kfr('${lg}',this.checked)"> bis</label> <input type="number" step="0.01" min="0" style="width:70px" value="${fr?E.kf[lg]:(Math.ceil(o.usd*100+1)/100).toFixed(2)}" onchange="MON['500'].E.kf['${lg}']=+this.value;MON['500'].zf()"> $`:""}</td></tr>`;}).join("")}</table>
+     <div class="akt">Probe vor dem Volllauf: <input type="number" min="1" max="20" value="${E.probe}" style="width:50px" onchange="MON['500'].E.probe=+this.value"> Sätze
+      <select onchange="MON['500'].E.probeLg=this.value">${L.map(lg=>`<option ${E.probeLg==lg?"selected":""}>${lg}</option>`).join("")}</select>
+      <button onclick="MON['500'].probeLos()">Probe vertonen</button> <span class="klein">kostet wenige Cent; danach Hörliste prüfen und freigeben</span></div></div>`;
+    const sp=d.sprachen[this.lg];
+    if(sp){const n=this.set(E.neu,this.lg),a=this.set(E.an,this.lg);
+      const l=sp.hoerliste.filter(x=>!this.fa||x.art==this.fa);
+      h+=`<div class="box"><h2>2 Bearbeiten · Hörliste ${esc(this.lg)} <span class="klein">(${l.length} von ${sp.hoerliste.length})</span></h2>
+       <div class="akt">${L.map(z=>`<button class="${z==this.lg?"haupt":""}" onclick="MON['500'].wechsel('${z}')">${esc(z)} · ${d.sprachen[z].hoerliste.filter(x=>x.art!="angenommen").length}</button>`).join(" ")}
+        Art <select onchange="MON['500'].fa=this.value;MON['500'].neuZeichnen()"><option value="">alle</option>${Object.entries(this.ART).map(([k,v])=>`<option value="${k}" ${this.fa==k?"selected":""}>${v[1]}</option>`).join("")}</select>
+        <span class="klein">Hörliste = auffällige, leere, angenommene und Probe-Sätze. „neu vertonen“ kostet; „annehmen“ braucht unten einen Grund und gilt, bis die WAV neu entsteht.</span></div>
+       ${l.length?`<table class="kapt"><tr><th>Satz</th><th>Befund</th><th>Sprechtext</th><th>Audio</th><th></th></tr>
+        ${l.map(x=>`<tr class="${n.has(x.id)||a.has(x.id)?"sel":""}"><td class="klein">${esc(x.id)}</td>
+         <td><span class="z ${this.ART[x.art][0]}">${this.ART[x.art][1]}</span>${x.grund?`<br><span class="klein">${esc(x.grund)}</span>`:""}${x.wer?`<br><span class="klein">${esc(x.wer)} ${esc((x.wann||"").slice(0,16).replace("T"," "))}: ${esc(x.grund_annahme||"")}</span>`:""}</td>
+         <td style="max-width:420px">${esc(x.sprechtext)}</td>
+         <td>${this.probe(x.audio)}<br><span class="klein">${x.dauer!=null?(+x.dauer).toFixed(1)+" s":""}${x.versuche?" · "+x.versuche+" Versuche":""}</span></td>
+         <td class="klein"><label><input type="checkbox" ${n.has(x.id)?"checked":""} onchange="MON['500'].tg('neu','${x.id}',this.checked)"> neu vertonen (~${(+x.usd_neu).toFixed(3)} $)</label>
+          ${x.art=="auffaellig"?`<br><label><input type="checkbox" ${a.has(x.id)?"checked":""} onchange="MON['500'].tg('an','${x.id}',this.checked)"> annehmen</label>`:""}</td></tr>`).join("")}</table>`:'<div class="klein">keine Einträge</div>'}</div>`;}
+    h+=`<div class="box"><h2>Regler je Werk</h2>
+     <div class="akt">Budget (Somnio) <input type="number" min="0" step="0.5" value="${rg("budget")}" style="width:70px" onchange="MON['500'].rg('budget',+this.value)"> $
+      · auffällig ≤ <input type="number" min="0" max="100" step="0.5" value="${+(100*rg("auffaellig_max")).toFixed(2)}" style="width:60px" onchange="MON['500'].rg('auffaellig_max',+this.value/100)"> %
+      · Dauer je Zeichen <input type="number" min="0.1" max="1" step="0.05" value="${rg("dauer_min")}" style="width:60px" onchange="MON['500'].rg('dauer_min',+this.value)"> – <input type="number" min="1" max="5" step="0.1" value="${rg("dauer_max")}" style="width:60px" onchange="MON['500'].rg('dauer_max',+this.value)"> × Median
+      · Wiederholungen <input type="number" min="0" max="3" value="${rg("versuche")}" style="width:50px" onchange="MON['500'].rg('versuche',+this.value)"></div>
+     <div class="klein">Standard: Budget ${d.standard.budget} $, auffällig ${100*d.standard.auffaellig_max} %, Dauer ${d.standard.dauer_min}–${d.standard.dauer_max}, ${d.standard.versuche} Wiederholungen. Technik (Engine, Blöcke, cfg, fp16, Batch) nicht im Monitor.</div></div>
+    <div class="box"><h2>3 Speichern · 4 Freigeben</h2>
+     <div class="akt"><input type="text" size="50" placeholder="Grund (Pflicht beim Annehmen)" value="${esc(E.grund)}" oninput="MON['500'].E.grund=this.value">
+      <button class="haupt" onclick="MON['500'].los(false)">Übernehmen und 500 starten</button>
+      <button onclick="MON['500'].los(true)">Probe (schreibt nichts)</button> <span id="zf500" class="klein"></span></div>
+     <div class="klein">Ohne Kostenfreigabe vertont 500 nichts (außer Somnio im Budget). Freigaben gelten je Sprache; nicht freigegebene Sprachen warten. Rücksprung: Sprechtext/Aussprache → <a href="#${esc(M.book_id)}/400">400</a>; Stimme → <a href="#${esc(M.book_id)}/410">410</a>.</div>
+     ${d.freigaben.length?`<details style="margin-top:8px"><summary class="klein">Kostenfreigaben (${d.freigaben.length})</summary><table class="kapt">${d.freigaben.slice().reverse().map(f=>`<tr><td class="klein">${esc((f.wann||"").slice(0,16).replace("T"," "))}</td><td class="klein">${esc(f.wer||"")}</td><td>${esc(f.sprache||"alle")}</td><td>${(+f.usd).toFixed(2)} $ (bis ${(+f.grenze).toFixed(2)})</td><td class="klein">${f.saetze} Sätze</td></tr>`).join("")}</table></details>`:""}</div>`;
+    return h;
+  },
+  danach(){this.zf();},
+  neuZeichnen(){$("inhalt").innerHTML=this.html(M.daten);this.danach();},
+  wechsel(lg){this.lg=lg;this.fa="";this.neuZeichnen();},
+  kfr(lg,an){const o=M.daten.sprachen[lg].offen;if(an)this.E.kf[lg]=Math.ceil(o.usd*100+1)/100;else delete this.E.kf[lg];this.neuZeichnen();},
+  tg(was,id,an){const s=this.set(this.E[was],this.lg);an?s.add(id):s.delete(id);if(was=="an"&&an)this.set(this.E.neu,this.lg).delete(id);if(was=="neu"&&an)this.set(this.E.an,this.lg).delete(id);this.neuZeichnen();},
+  rg(k,v){if(Math.abs(v-M.daten.regler[k])<1e-9)delete this.E.regler[k];else this.E.regler[k]=+(+v).toFixed(4);this.zf();},
+  zf(){const E=this.E,t=[];
+    for(const [lg,s] of Object.entries(E.neu))if(s.size)t.push(`${lg}: ${s.size} neu`);
+    for(const [lg,s] of Object.entries(E.an))if(s.size)t.push(`${lg}: ${s.size} annehmen`);
+    for(const [lg,v] of Object.entries(E.kf))t.push(`Kosten ${lg} bis ${(+v).toFixed(2)} $`);
+    for(const [k,v] of Object.entries(E.regler))t.push(k+" "+v);
+    const el=$("zf500");if(el)el.textContent=t.join(" · ");},
+  probeLos(){const lg=this.E.probeLg||Object.keys(M.daten.sprachen)[0],o=M.daten.sprachen[lg].offen||{};
+    const usd=o.saetze?Math.ceil((o.usd/o.saetze*this.E.probe*1.5)*100+1)/100:0.05;
+    if(!confirm(`Probe ${this.E.probe} Sätze ${lg} vertonen (Freigabe bis ${usd.toFixed(2)} $)?`))return;
+    speichern({lang:lg,probe:this.E.probe,kosten_freigeben:{[lg]:usd}});},
+  los(trocken){
+    const E=this.E,d=M.daten,e={};
+    const lgs=[...new Set([...Object.entries(E.neu),...Object.entries(E.an)].filter(([,s])=>s.size).map(([lg])=>lg))];
+    if(lgs.length>1){alert("Hörliste in mehreren Sprachen geändert: bitte je Sprache einzeln übernehmen.");return;}
+    if(lgs.length){const lg=lgs[0];e.lang=lg;const n=[...(E.neu[lg]||[])],a=[...(E.an[lg]||[])];
+      if(a.length){if(!E.grund.trim()){alert("Annehmen braucht einen Grund");return;}e.annehmen=a;e.grund=E.grund.trim();}
+      if(n.length){e.satz=n;const usd=d.sprachen[lg].hoerliste.filter(x=>n.includes(x.id)).reduce((s,x)=>s+(+x.usd_neu),0);
+        if(E.kf[lg]==null&&!(d.mandant=="somnio"&&usd<=(E.regler.budget??d.budget)))E.kf[lg]=Math.ceil(usd*150+1)/100;}}
+    if(Object.keys(E.kf).length)e.kosten_freigeben=E.kf;Object.assign(e,E.regler);
+    if(trocken){delete e.annehmen;delete e.grund;e.trocken=true;}
+    const kost=Object.values(E.kf).reduce((s,v)=>s+(+v),0);
+    if(!trocken&&kost&&!confirm(`Vertonung startet mit Kostenfreigabe bis ${kost.toFixed(2)} $ (${Object.keys(E.kf).join(", ")}). Weiter?`))return;
+    if(!trocken&&!Object.keys(e).length&&!confirm("Nichts geändert – 500 nur neu prüfen?"))return;
+    speichern(e).then(ok=>{if(ok&&!trocken)this.E=this.leer();});
   }
 };
 MON["190"]={

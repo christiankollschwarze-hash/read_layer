@@ -91,6 +91,46 @@ class T(unittest.TestCase):
         with self.assertRaises(PermissionError):
             self.lauf(produkte=[P.produkt_parsen("de:text:taella")], wer="anna")
 
+    def test_hoerspiel_eignung_mensch_und_metrik(self):
+        self.buch()
+        self.assertEqual(self.lauf(produkte=[P.produkt_parsen("de:hoerspiel:premium:taella")]), "mensch")
+        st = S.laden(W)["stages"]["095"]
+        self.assertEqual(st["metriken"]["hoerspiel_eignung"]["urteil"], "ungeeignet")
+        self.assertIn("ungeeignet", " ".join(st["gate"]["gruende"]))
+        dialog = "\n\n".join(f'"Where now, {n}?" asked Tom. "Home," said Anna. "Why?" asked Ben. "Late," said Mary.'
+                              for n in range(400))
+        open(os.path.join(self.tmp.name, "raw_modernized.txt"), "w").write(dialog)
+        self.assertEqual(self.lauf(produkte=[P.produkt_parsen("de:hoerspiel:premium:taella")]), "auto")
+        self.assertEqual(S.laden(W)["stages"]["095"]["metriken"]["hoerspiel_eignung"]["urteil"], "geeignet")
+
+    def test_eignung_formen(self):
+        from pipeline import hoerspiel_eignung as H
+        drama = "\n".join(["ACT I", "SCENE I"] + [f"HAMLET.\nLine {i}.\nHORATIO.\nReply {i}.\nOPHELIA. Hm {i}."
+                                                     for i in range(20)])
+        self.assertEqual((H.bewerten(drama)["urteil"], H.bewerten(drama)["stufe"]), ("geeignet", "drama"))
+        kommentar = " ".join(f'Tu Mu says: "The army must be {i} strong and well led."' for i in range(300))
+        self.assertEqual(H.bewerten(kommentar)["urteil"], "ungeeignet")      # Zitate ohne Sprecherwechsel
+        kanto = "\n".join(f"CANTO {r}\n" + "verse " * 50 for r in ["I", "II", "III", "IV", "V", "VI", "VII"] * 6)
+        self.assertNotEqual(H.bewerten(kanto)["stufe"], "drama")
+        self.assertEqual(H.bewerten(None)["urteil"], "unbekannt")
+
+    def test_monitor_095(self):
+        from cockpit import werk_api as Wa
+        self.buch()
+        self.lauf()
+        a = Wa._m095_argv(W, {"produkte": [{"sprache": "en", "inhalt": "text", "kanaele": ["taella"]},
+                                            {"sprache": "de", "inhalt": "hoerbuch", "stufe": "basic",
+                                             "kanaele": ["taella", "epub"]}]}, "CK")
+        self.assertEqual(a[4:], ["--wer", "CK", "--produkt=en:text:taella", "--produkt=de:hoerbuch:basic:taella,epub"])
+        r = Wa._m095_teil(W, {"produkte": json.dumps([{"sprache": "de", "inhalt": "hoerspiel", "stufe": "drama",
+                                                        "kanaele": ["taella"]}])})
+        self.assertEqual(r["ergaenzt"], ["de:hoerbuch:premium:taella"])
+        self.assertIn("540", r["stages"])
+        with self.assertRaises(ValueError):
+            Wa._m095_argv(W, {"produkte": [{"sprache": "de", "inhalt": "hoerspiel", "stufe": "premium",
+                                             "kanaele": ["epub"]}]}, "CK")
+        self.assertEqual(Wa._m095_argv(W, {"default": True}, "CK")[-1], "--default")
+
 
 if __name__ == "__main__":
     unittest.main()

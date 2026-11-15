@@ -87,7 +87,7 @@ async function hochladen(file,art){
 async function pollUpload(){
   const s=await api("/api/upload");
   $("up").innerHTML=`<p>${s.laeuft?"Anlage läuft …":"Fertig: Exit "+s.exit+" ("+esc(s.deutung)+")"}</p><pre>${esc(s.log)}</pre>`+
-    (!s.laeuft&&s.neu&&s.neu.length?`<button class="haupt" onclick="waehle('${esc(s.neu[0])}')">Weiter mit ${esc(s.neu[0])}</button>`:"");
+    (!s.laeuft&&s.neu&&s.neu.length?`<button class="haupt" onclick="location.href='/monitor#'+encodeURIComponent('${esc(s.neu[0])}')+'/095'">Weiter: Bestellung festlegen (095)</button> <button onclick="waehle('${esc(s.neu[0])}')">Werkansicht</button>`:"");
   if(s.laeuft)setTimeout(pollUpload,1500);
 }
 wer?werkwahl():anmeldung();

@@ -23,6 +23,9 @@ Style ≤ 200 Zeichen → Mensch; Figuren/Unuebersetzt ohne Aussprache → Mensc
 Regler 1–10, Gate 330/340 frei, Audiosprache bestellt → sonst Stopp; Mock im Live-Lauf → Stopp.
 Mensch-Freigabe gilt, solange ausgabe_hash gleich bleibt.
 
+Monitor 400 (13.11.2026): --laenge-max/--style-max je Werk (book.json audio_laenge_max/_style_max);
+--aussprache BEGRIFF=- loescht den 400-Hinweis, --pron-skip-weg BEGRIFF nimmt einen Begriff wieder auf.
+
 CLI: py -3.11 -m pipeline.s400_regie <werk> [--betonung N --emotion N --tempo N] [--pause TYP=MS]
      [--pron-skip BEGRIFF] [--aussprache BEGRIFF=HINWEIS] [--sprechtext ID=TEXT | --sprechtext ID=-] [--lang LG]
      [--laenge-max 1.5] [--style-max 200] [--trocken] [--wer CK]
@@ -246,7 +249,8 @@ _ZAHL = re.compile(r"[\d§&%]")
 
 def zahl_zuschlag(abb, text):
     """Laengenzuwachs aus Zahl-/Symbolwoertern (zaehlt nicht ins Laengenverhaeltnis)."""
-    return sum(max(0, (b - a) - (d - c)) for a, b, c, d in abb or [] if b > a and _ZAHL.search(text[c:d]))
+    return sum(max(0, (b - a) - (d - c)) for a, b, c, d in abb or []
+               if b > a and (_ZAHL.search(text[c:d]) or st.ist_roemisch(text[c:d].strip(" .,;:"))))
 
 
 def fehlerarten(sp, text, typ, laenge_max=LAENGE_MAX, abb=None):
@@ -317,11 +321,9 @@ def ansagen(b, data, lg, autor_name, laenge_max):
 
 # ============================================================ Hauptlauf
 def run(werk, wer=None, regler=None, pausen=None, pron_skip=None, aussprache=None, sprechtext_man=None,
-        nur_lang=None, laenge_max=None, style_max=None, trocken=False):
+        nur_lang=None, laenge_max=None, style_max=None, trocken=False, pron_skip_weg=None):
     wer = wer or "pipeline"
     g = gate.Gate(werk, STAGE, ruecksprung="400", wer=wer)
-    laenge_max = float(laenge_max or LAENGE_MAX)
-    style_max = int(style_max or STYLE_MAX)
     b = bestellung.lesen(werk)
     roh = dict(b.roh)
 
@@ -335,16 +337,23 @@ def run(werk, wer=None, regler=None, pausen=None, pron_skip=None, aussprache=Non
         p = dict(roh.get("audio_pausen") or {})
         p.update(pausen)
         neu["audio_pausen"] = p
-    if pron_skip:
-        s = list(roh.get("audio_pron_skip") or [])
-        s += [x for x in pron_skip if x not in s]
+    if pron_skip or pron_skip_weg:
+        weg = {str(x).strip().lower() for x in pron_skip_weg or []}
+        s = [x for x in roh.get("audio_pron_skip") or [] if str(x).strip().lower() not in weg]
+        s += [x for x in pron_skip or [] if x not in s]
         neu["audio_pron_skip"] = s
+    if laenge_max:
+        neu["audio_laenge_max"] = float(laenge_max)
+    if style_max:
+        neu["audio_style_max"] = int(style_max)
     if neu and not trocken:
         b = bestellung.feld_setzen(werk, **neu)
         roh = dict(b.roh)
     elif neu:
         roh.update(neu)
 
+    laenge_max = float(roh.get("audio_laenge_max") or LAENGE_MAX)
+    style_max = int(roh.get("audio_style_max") or STYLE_MAX)
     src = b.quellsprache or config.SOURCE_LANGUAGE
     audio = b.audiosprachen()
     hoerbuch = b.audiosprachen("hoerbuch")
@@ -379,7 +388,10 @@ def run(werk, wer=None, regler=None, pausen=None, pron_skip=None, aussprache=Non
     k_neu = False
     for x in aussprache or []:
         term, hin = x.split("=", 1)
-        korr["aussprache"][term.strip()] = {"hinweis": hin.strip(), "wer": wer, "wann": manifest.jetzt()}
+        if hin.strip() == "-":
+            korr["aussprache"].pop(term.strip(), None)
+        else:
+            korr["aussprache"][term.strip()] = {"hinweis": hin.strip(), "wer": wer, "wann": manifest.jetzt()}
         k_neu = True
     if sprechtext_man:
         lg_m = nur_lang or (audio[0] if len(audio) == 1 else None)
@@ -541,6 +553,7 @@ def main(argv=None):
         ap.add_argument(f"--{k}", type=int)
     ap.add_argument("--pause", action="append", metavar="TYP=MS")
     ap.add_argument("--pron-skip", action="append", metavar="BEGRIFF")
+    ap.add_argument("--pron-skip-weg", action="append", metavar="BEGRIFF")
     ap.add_argument("--aussprache", action="append", metavar="BEGRIFF=HINWEIS")
     ap.add_argument("--sprechtext", action="append", metavar="ID=TEXT", help="ID=- loescht")
     ap.add_argument("--lang", help="Audiosprache fuer --sprechtext")
@@ -551,12 +564,13 @@ def main(argv=None):
     regler = {k: getattr(a, k) for k in REGLER}
     pausen = {x.split("=", 1)[0]: int(x.split("=", 1)[1]) for x in a.pause or []}
     try:
-        aendert = any(v is not None for v in regler.values()) or pausen or a.pron_skip or a.aussprache or a.sprechtext
+        aendert = any(v is not None for v in regler.values()) or pausen or a.pron_skip or a.aussprache or a.sprechtext \
+            or a.pron_skip_weg or a.laenge_max or a.style_max
         if aendert and not a.trocken:
             from pipeline import s080_mandant
             s080_mandant.darf(a.werk, "entscheiden", a.wer or "pipeline")
         g = run(a.werk, a.wer, regler, pausen, a.pron_skip, a.aussprache, a.sprechtext, a.lang,
-                a.laenge_max, a.style_max, a.trocken)
+                a.laenge_max, a.style_max, a.trocken, a.pron_skip_weg)
     except gate.GateHalt as e:
         print(e)
         return e.exit_code

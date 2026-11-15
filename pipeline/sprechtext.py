@@ -26,7 +26,7 @@ try:
 except Exception:                                   # pragma: no cover
     _n2w = None
 
-REGELN_V = 2
+REGELN_V = 3
 SPRACHEN = ("en", "de", "es", "fr", "it")
 
 # ============================================================ Zahlwoerter
@@ -242,7 +242,8 @@ _KEIN_NAME = {x.lower() for x in (
     "While Before After Perhaps Maybe Well Still Yet Though Although Since Once Unless Whether Did Do Does Was Were "
     "Am Is Are Had Have Has Could Would Should Must May Might Shall Will Can Let Than That This These Those Who Whom "
     "Which Whose Sir Madam Mr Mrs Miss Dr Lord Lady King Queen Pope Saint St Der Die Das Den Dem Des Ein Eine Und Aber "
-    "Dann Als Wenn Ob El La Los Las Le Les Il Lo Gli Un Une Una Uno Y Et E Pero Mais Ma").split()}
+    "Dann Als Wenn Ob El La Los Las Le Les Il Lo Gli Un Une Una Uno Y Et E Pero Mais Ma "
+    "In Im Aus Von Vom See Siehe Vgl Cf Compare From To Of On At By With Nach Bei Zu Zur Zum").split()}
 
 
 def _r_herrscher(sp, lg, typ):
@@ -331,7 +332,34 @@ def _r_spanne(sp, lg, typ):
     return sp.sub(_SPANNE, lambda m: [(m.end(1), m.start(2), f" {_BIS.get(lg, 'to')} ")])
 
 
-STANDARD = (_r_kursiv, _r_ueberschrift, _r_schluessel, _r_herrscher, _r_de, _r_spanne)
+# Roemische Kapitelverweise vor Paragraf ("VI. § 21", "XIII. §§ 3") -> "Kapitel sechs, § 21" (13.11.2026, the-art-of-war)
+_KAP_WORT = {"en": "chapter", "de": "Kapitel", "es": "capítulo", "fr": "chapitre", "it": "capitolo"}
+_ROEM_PAR = re.compile(r"(?<![\w])([IVXLCDM]+)\.?(\s*)(?=§)")
+
+
+def _r_roem_paragraf(sp, lg, typ):
+    def f(m):
+        tok = m.group(1)
+        if not ist_roemisch(tok):
+            return None
+        w = zahlwort(roemisch_zu_int(tok), lg)
+        return [(m.start(1), m.end(0), f"{_KAP_WORT.get(lg, 'chapter')} {w}, ")] if w else None
+    return sp.sub(_ROEM_PAR, f)
+
+
+# Zitierweise "Lun Yu, XV. 1", "Tso Chuan, XXXII, 2", "supra II. 14" -> Grundzahl (ab zwei Zeichen, Zahl folgt)
+_ROEM_ZITAT = re.compile(r"(?<![\w])([IVXLCDM]{2,})[.,](?=\s*\d)")
+
+
+def _r_roem_zitat(sp, lg, typ):
+    def f(m):
+        tok = m.group(1)
+        w = zahlwort(roemisch_zu_int(tok), lg) if ist_roemisch(tok) else None
+        return [(m.start(1), m.end(0), w + ",")] if w else None
+    return sp.sub(_ROEM_ZITAT, f)
+
+
+STANDARD = (_r_kursiv, _r_ueberschrift, _r_roem_paragraf, _r_roem_zitat, _r_schluessel, _r_herrscher, _r_de, _r_spanne)
 
 # ============================================================ Erweiterte Regeln
 _SYMBOL = {"%": {"en": "percent", "de": "Prozent", "es": "por ciento", "fr": "pour cent", "it": "per cento"},
@@ -467,6 +495,9 @@ def roemisch_offen(s, ueberschrift_=False):
         if not ist_roemisch(tok):
             continue
         if len(tok) >= 2:
+            if re.match(r"\s+[A-ZÄÖÜ’'][A-ZÄÖÜ’'-]+\b", s[m.end():]) and \
+                    not ist_roemisch(re.match(r"\s+([A-ZÄÖÜ’'-]+)", s[m.end():]).group(1)):
+                continue                                # Name in Versalien ("LI CH’UAN")
             out.append(tok)
         elif ueberschrift_ and tok in ("V", "X"):
             nach = s[m.end():].strip()

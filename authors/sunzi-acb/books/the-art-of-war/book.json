@@ -45,7 +45,19 @@
       "inhalt": "text",
       "stufe": null,
       "kanaele": [
-        "taella"
+        "taella",
+        "epub"
+      ],
+      "zusatz": []
+    },
+    {
+      "sprache": "en",
+      "inhalt": "hoerbuch",
+      "stufe": "basic",
+      "kanaele": [
+        "taella",
+        "epub",
+        "extern"
       ],
       "zusatz": []
     },
@@ -54,7 +66,18 @@
       "inhalt": "text",
       "stufe": null,
       "kanaele": [
-        "taella"
+        "taella",
+        "epub"
+      ],
+      "zusatz": []
+    },
+    {
+      "sprache": "de",
+      "inhalt": "hoerbuch",
+      "stufe": "premium",
+      "kanaele": [
+        "taella",
+        "extern"
       ],
       "zusatz": []
     }
@@ -66,5 +89,6 @@
     "drm_frei": true,
     "versichert": null,
     "hinweis": null
-  }
+  },
+  "casting": "work/casting.json"
 }
