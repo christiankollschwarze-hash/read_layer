@@ -346,29 +346,39 @@ def run(werk, wer=None, neu=False, titel_neu=None, umbruch=None, schrift=None, p
     b = bestellung.lesen(werk)
     roh = b.roh
 
-    # Regler (persistent); Titel manuell -> book.json zurueck
-    if not trocken:
-        if titel_neu:
-            fass = [dict(f) for f in roh.get("fassungen") or [] if isinstance(f, dict)]
-            for lg, t in titel_neu.items():
-                e = next((f for f in fass if f.get("sprache") == lg), None)
-                if not e:
-                    e = {"sprache": lg}
-                    fass.append(e)
-                e.update(titel=t.strip(), titel_quelle="manuell", titel_pruefen=False)
+    # Regler (persistent); Titel manuell -> book.json zurueck. Probe (trocken): dieselben Werte nur im Speicher
+    # (Live-Vorschau im Monitor), nichts wird geschrieben.
+    if titel_neu:
+        fass = [dict(f) for f in roh.get("fassungen") or [] if isinstance(f, dict)]
+        for lg, t in titel_neu.items():
+            if not (t or "").strip():
+                raise ValueError(f"--titel {lg}: leer")
+            e = next((f for f in fass if f.get("sprache") == lg), None)
+            if not e:
+                e = {"sprache": lg}
+                fass.append(e)
+            e.update(titel=t.strip(), titel_quelle="manuell", titel_pruefen=False)
+        if trocken:
+            roh = dict(roh, fassungen=fass)
+            b.roh = roh
+        else:
             bestellung.feld_setzen(werk, fassungen=fass)
             b = bestellung.lesen(werk)
             roh = b.roh
-        k = {}
-        if umbruch:
-            k["umbruch"] = {**entscheidungen(werk).get("umbruch", {}), **umbruch}
-        for n, v in (("schrift", schrift), ("position", position), ("transparenz", transparenz),
-                     ("sprecher", sprecher_an), ("vermerke", vermerke_an)):
-            if v is not None:
-                k[n] = v
-        if k:
-            entscheidung_setzen(werk, wer, **k)
+    k = {}
+    if umbruch:
+        k["umbruch"] = {**entscheidungen(werk).get("umbruch", {}), **umbruch}
+    for n, v in (("schrift", schrift), ("position", position), ("transparenz", transparenz),
+                 ("sprecher", sprecher_an), ("vermerke", vermerke_an)):
+        if v is not None:
+            k[n] = v
+    if k and not trocken:
+        entscheidung_setzen(werk, wer, **k)
     ents = entscheidungen(werk)
+    if k and trocken:
+        ents = {**ents, **k}
+        for n in [n for n, v in ents.items() if v is None]:
+            ents.pop(n)
     if freigeben and not trocken:
         return _freigeben(werk, wer)
 

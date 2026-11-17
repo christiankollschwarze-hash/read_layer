@@ -29,7 +29,9 @@ Gate:         je Sprache Pflicht: Bloecke vollstaendig (Erzeugen 3 Bloecke, Auto
 Kosten:       usage_log Stage 600 (2 Aufrufe deepseek, ~0,3 ct je Werk).
 Regler:       --modus uebernehmen|erzeugen, --modell, --neu, --koeder TEXT (Passage im Werktext waehlen),
               --genre WERT, --geschlecht weiblich|maennlich|unklar, --ersetzen BLOCK:I:LG=TEXT (Satz manuell),
-              --block-neu BLOCK (Block neu erzeugen), --laenge-max 1200, --vermerke an|aus (nur Admin),
+              --block-neu BLOCK (Block neu erzeugen), --laenge-max 1200 (je Werk, book.json klappentext_regler),
+              --annehmen sicherheit|edition --grund TEXT (Vermerk wer/wann/grund in 600_entscheidungen.json,
+              gilt bei gleichem ausgabe_hash), --vermerke an|aus (nur Admin),
               --trocken (Probe ohne LLM, nichts schreiben). Persistente Regler in work/600_entscheidungen.json.
 Aufruf:       python -m pipeline.s600_klappentext <werk> [Regler] [--wer CK]
 Exit: 0 auto, 2 Stopp, 3 Mensch, 1 Fehler.
@@ -81,6 +83,28 @@ GENRES = {
 }
 GENRE_WERTE = {w.strip().lower(): gr for gr, ws in GENRES.items() for w in ws.split(",")}
 GESCHLECHT = ("weiblich", "maennlich", "unklar")
+ANNEHMBAR = ("sicherheit", "edition")
+# Token-Schaetzung je Aufruf (ein, aus); Ausgabe der Bloecke/Uebersetzung je Sprache
+TOK_META = (HEAD_CHARS + MID_CHARS) // 4 + 700, 600
+TOK_BLOECKE = 900, 260
+TOK_UEBERSETZEN = 500, 250
+
+
+def kosten_schaetzen(n_langs, modus="erzeugen", modell=None, art="alles"):
+    """$-Schaetzung (Peak-Preis, ohne Cache). art: alles | meta (= Koeder neu) | bloecke (Einordnung/Autor neu)."""
+    pr = (getattr(config, "PREISE", {}) or {}).get(modell or config.MODELS.get("profiler")) or {}
+
+    def c(tok):
+        return (tok[0] * pr.get("in", 0) + tok[1] * pr.get("out", 0)) / 1e6
+    n = max(1, int(n_langs))
+    meta = c(TOK_META)
+    bl = c((TOK_BLOECKE[0], TOK_BLOECKE[1] * n))
+    ue = c((TOK_UEBERSETZEN[0], TOK_UEBERSETZEN[1] * max(0, n - 1)))
+    if art == "meta":
+        return meta
+    if art == "bloecke":
+        return bl if modus == "erzeugen" else 0.0
+    return meta + (bl if modus == "erzeugen" else ue)
 
 
 def genre_gruppe(genre):
@@ -482,8 +506,21 @@ def nachuebersetzen(werk, roh, stellen, langs, modell=None):
 # ============================================================
 
 def run(werk, wer=None, modus=None, modell=None, neu=False, koeder=None, genre=None, geschlecht=None,
-        ersetzen=None, block_neu=None, laenge_max=None, vermerke=None, trocken=False):
+        ersetzen=None, block_neu=None, laenge_max=None, vermerke=None, trocken=False, annehmen=None, grund=None):
     wer = wer or "pipeline"
+    for p_ in annehmen or ():
+        if p_ not in ANNEHMBAR:
+            raise ValueError(f"--annehmen {p_!r}: nur {ANNEHMBAR}")
+    if annehmen and not (grund or "").strip():
+        raise ValueError("--annehmen braucht --grund")
+    if annehmen and trocken:
+        raise ValueError("--annehmen nicht mit --trocken")
+    if laenge_max is not None and not trocken:                       # Regler je Werk (Monitor 600)
+        if not 200 <= int(laenge_max) <= 5000:
+            raise ValueError("--laenge-max 200-5000")
+        reg0 = dict(bestellung.lesen(werk).roh.get("klappentext_regler") or {})
+        reg0["laenge_max"] = int(laenge_max)
+        bestellung.feld_setzen(werk, klappentext_regler=reg0)
     g = gate.Gate(werk, STAGE, ruecksprung="600", wer=wer)
     b = bestellung.lesen(werk)
     roh_b = b.roh
@@ -603,6 +640,18 @@ def run(werk, wer=None, modus=None, modell=None, neu=False, koeder=None, genre=N
         else:
             break
 
+    aus_hash = manifest.hash_obj({"b": blurb, "v": verm, "m": {k_: meta.get(k_) for k_ in
+                                                               ("genre", "hauptfigur_geschlecht", "ton")}})
+    if annehmen:
+        ang = dict(ents.get("angenommen") or {})
+        for p_ in annehmen:
+            ang[p_] = {"wer": wer, "wann": manifest.jetzt(), "grund": grund.strip(), "hash": aus_hash}
+        ents = entscheidung_setzen(werk, wer, angenommen=ang)
+
+    def angenommen(name):
+        a = (ents.get("angenommen") or {}).get(name)
+        return a if a and a.get("hash") == aus_hash else None
+
     # Gate
     for lg in langs:
         def je(art, lg=lg):
@@ -639,10 +688,14 @@ def run(werk, wer=None, modus=None, modell=None, neu=False, koeder=None, genre=N
         g.hinweis("author_json", False, text="author.json fehlt – Autor-Block neutral (110/150)")
     elif not autor.get("verified"):
         g.hinweis("autor_verifiziert", False, text="Autor nicht verifiziert (110)")
-    g.pruefe("sicherheit", meta.get("sicherheit") != "pruefen", wert=meta.get("sicherheit"), bei_fehler="mensch",
-             text=f"Sicherheit {meta.get('sicherheit')}")
-    g.pruefe("edition", not f["edition"], bei_fehler="mensch",
-             text="Werk statt Edition beschrieben" + (f" – Verdacht {f['edition'][:4]}" if f["edition"] else ""))
+    for name, ok, wert, txt in (
+            ("sicherheit", meta.get("sicherheit") != "pruefen", meta.get("sicherheit"),
+             f"Sicherheit {meta.get('sicherheit')}"),
+            ("edition", not f["edition"], len(f["edition"]),
+             "Werk statt Edition beschrieben" + (f" – Verdacht {f['edition'][:4]}" if f["edition"] else ""))):
+        a = None if ok else angenommen(name)
+        g.pruefe(name, ok, wert=wert, bei_fehler="hinweis" if a else "mensch",
+                 text=txt + (f" [angenommen {a['wer']}: {a['grund']}]" if a else ""))
     g.hinweis("genre", meta.get("genre_bekannt"), wert=meta.get("genre"),
               text=f"Genre {meta.get('genre')!r} -> Gruppe {meta.get('genre_gruppe')}"
                    + ("" if meta.get("genre_bekannt") else " (nicht in Liste)"))
@@ -659,8 +712,6 @@ def run(werk, wer=None, modus=None, modell=None, neu=False, koeder=None, genre=N
            "sprachen": langs, "autor": meta["autor"], "wirkungssprache": autor.get("wirkungssprache", "") or "",
            "meta": meta, "blurb": blurb, "vermerke": verm, "eingang_hash": eingang, "roh": roh,
            "modell": modell or config.MODELS.get("profiler"), "prompt_v": PROMPT_V, "erzeugt": manifest.jetzt()}
-    aus_hash = manifest.hash_obj({"b": blurb, "v": verm, "m": {k_: meta.get(k_) for k_ in
-                                                               ("genre", "hauptfigur_geschlecht", "ton")}})
     g.metrik("ausgabe_hash", aus_hash)
     st = status.laden(werk)["stages"].get(STAGE) or {}
     mensch_gilt = st.get("zustand") == "frei" and (st.get("gate") or {}).get("ergebnis") == "mensch" \
@@ -683,6 +734,9 @@ def run(werk, wer=None, modus=None, modell=None, neu=False, koeder=None, genre=N
     if not trocken:
         manifest.json_atomar(aus_pfad, aus, indent=2)
     g.aus = aus
+    g.befunde = {k_: (v if isinstance(v, dict) else [list(x) if isinstance(x, tuple) else x for x in v])
+                 for k_, v in f.items()}
+    g.laenge_max = laenge_max
     return g
 
 
@@ -700,6 +754,8 @@ def main(argv=None):
     ap.add_argument("--block-neu", action="append", choices=["koeder", "einordnung", "autor"])
     ap.add_argument("--laenge-max", type=int)
     ap.add_argument("--vermerke", choices=["an", "aus"], help="nur Admin")
+    ap.add_argument("--annehmen", action="append", choices=list(ANNEHMBAR), help="Befund annehmen (mit --grund)")
+    ap.add_argument("--grund")
     ap.add_argument("--trocken", action="store_true")
     a = ap.parse_args(argv)
     ers = {}
@@ -712,11 +768,12 @@ def main(argv=None):
             print(f"[600] --ersetzen {s!r}: Format BLOCK:I:LG=TEXT")
             return 1
     try:
-        if (ers or a.genre is not None or a.geschlecht or a.koeder is not None or a.modus) and not a.trocken:
+        if (ers or a.genre is not None or a.geschlecht or a.koeder is not None or a.modus or a.annehmen) \
+                and not a.trocken:
             from pipeline import s080_mandant
             s080_mandant.darf(a.werk, "entscheiden", a.wer or "pipeline")
         g = run(a.werk, a.wer, a.modus, a.modell, a.neu, a.koeder, a.genre, a.geschlecht, ers or None,
-                a.block_neu, a.laenge_max, a.vermerke, a.trocken)
+                a.block_neu, a.laenge_max, a.vermerke, a.trocken, a.annehmen, a.grund)
     except gate.GateHalt as e:
         print(e)
         return e.exit_code

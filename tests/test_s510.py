@@ -341,6 +341,44 @@ class T510(unittest.TestCase):
         self.lauf()
         self.assertIsNone(self.e("c001_00003_dl")["pruefung"])
 
+    def test_pegel_an_erzaehlerstuecke_im_satz(self):
+        """v2: Figur auf den Pegel der stehenbleibenden Einschuebe, nicht der ganzen (betonten) Erzaehlerfassung."""
+        import numpy as np
+        e_p, f_p = os.path.join(self.wd, "erz.wav"), os.path.join(self.wd, "fig.wav")
+        wav(e_p, 1.0, 20000)
+        with wave.open(e_p, "rb") as w:
+            laut = w.readframes(w.getnframes())
+        wav(e_p, 1.0, 2000)
+        with wave.open(e_p, "rb") as w:
+            leise = w.readframes(w.getnframes())
+        with wave.open(e_p, "wb") as w:                                      # Rede laut, Einschub leise
+            w.setnchannels(1)
+            w.setsampwidth(2)
+            w.setframerate(24000)
+            w.writeframes(laut + leise)
+        wav(f_p, 2.0, 20000)
+        alt = (P.grenzen, P.abdeckung_seg)
+        P.grenzen = lambda zeit, zu, n, idxs: {0: (0, n // 2), 1: (n // 2, n)}
+        P.abdeckung_seg = lambda zeit, zu, k: 1.0
+        try:
+            rg = dict(P.REGLER_STD)
+            seg = [{"w": ["a"], "q": "Hut"}, {"w": ["b"], "q": "erz"}]
+            w_q = {"Hut": (["a"], [0]), "erz": (["a", "b"], [0, 1])}
+            y, gr, _prot, werte = P.montage(seg, w_q, {"Hut": f_p, "erz": e_p}, {}, rg, {})
+        finally:
+            P.grenzen, P.abdeckung_seg = alt
+        self.assertIsNone(gr, werte)
+        self.assertLess(werte["naht_db"], 1.0)
+        n = len(y) // 2
+        self.assertAlmostEqual(P._db_aktiv(y[:n]), P._db_aktiv(y[n:]), delta=1.0)
+        self.assertLess(float(np.abs(y[:n]).max()), 0.1)                  # nicht auf die laute Rede gehoben
+
+    def test_db_aktiv_ohne_pausen(self):
+        import numpy as np
+        x = np.concatenate([np.zeros(24000, "float32"), np.full(24000, 0.1, "float32")])
+        self.assertAlmostEqual(P._db_aktiv(x), 20 * np.log10(0.1), delta=0.1)
+        self.assertLess(P._db(x), P._db_aktiv(x) - 2)
+
     def test_dauer_ausserhalb(self):
         self.lang = 4.0
         self.lauf()

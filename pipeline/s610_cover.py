@@ -20,6 +20,9 @@ Gate:         je Werk, rein bildtechnisch: Bild lesbar; Breite >= 1000 px; 2:3 +
               Sperre "nur Text" -> Mensch (Motiv vorgeben). Mandant user/verlag mit erzeugtem Cover -> immer
               Mensch. Stopp: Gate 600 nicht frei, Autor fehlt, Mock im Live-Lauf, Erbe ohne Bild Teil 1.
               Mensch-Freigabe gilt bei gleichem bild_hash. Sichtpruefung am fertigen Cover in 615.
+Regler:       --motiv, --neu, --varianten N, --waehle I, --bild DATEI, --erbe an|aus, --schwelle NAME=WERT (je Werk),
+              --annehmen --grund TEXT (Bild trotz Rot annehmen; Vermerk in 610_entscheidungen.json, gilt bei
+              gleichem bild_hash), --trocken.
 Kosten:       usage_log Stage 610 (gemini-2.5-flash-image ~3,7 ct je Bild); unveraenderte Eingaenge -> kein Aufruf.
 Abnehmer:     s615 Cover final.
 """
@@ -44,6 +47,11 @@ VERSUCHE_TEXT = 4
 SCHWELLEN = {"breite_min": 1000, "format_tol": 0.02, "delta_e_max": 5.0, "ocr_woerter_max": 0,
              "motiv_hoehe_min": 0.60, "zentrum_tol": 0.10, "linien_min": 0.01, "linien_max": 0.25}
 ENDUNGEN = ("png", "jpg")
+KOSTEN_BILD = 0.039                     # $ je erzeugtem Bild (gemini-2.5-flash-image, ~1.290 Ausgabe-Token)
+
+
+def kosten_schaetzen(n=1):
+    return round(int(n) * KOSTEN_BILD, 4)
 
 
 class NurText(RuntimeError):
@@ -397,8 +405,12 @@ def uebernahme_150(roh):
 
 
 def run(werk, wer=None, modell=None, neu=False, motiv=None, bild=None, varianten=None, waehle=None,
-        erbe=None, schwellen=None, trocken=False):
+        erbe=None, schwellen=None, trocken=False, annehmen=False, grund=None):
     wer = wer or "pipeline"
+    if annehmen and not (grund or "").strip():
+        raise ValueError("--annehmen braucht --grund")
+    if annehmen and trocken:
+        raise ValueError("--annehmen nicht mit --trocken")
     from pipeline import bestellung, kette
     g = gate.Gate(werk, STAGE, ruecksprung="610", wer=wer)
     b = bestellung.lesen(werk)
@@ -553,7 +565,9 @@ def run(werk, wer=None, modell=None, neu=False, motiv=None, bild=None, varianten
                 neu_erzeugt += 1
             m = pruefen(pfad)
             rot = rot_liste(m, s)
-            if rot and herkunft in ("erzeugt", "bestand") and runden == 0:
+            # nur frisch erzeugte bzw. neu uebernommene Bestandsbilder; ein bereits geprueftes Bild nicht erneut (Kosten)
+            frisch = neu_erzeugt or (herkunft == "bestand" and not man.get("herkunft"))
+            if rot and herkunft in ("erzeugt", "bestand") and runden == 0 and frisch:
                 print(f"[610] Bildpruefung rot ({', '.join(rot)}) -> 1x automatisch neu")
                 herkunft, runden, rep = "erzeugt", 1, 1
                 continue
@@ -567,7 +581,19 @@ def run(werk, wer=None, modell=None, neu=False, motiv=None, bild=None, varianten
     g.metrik("reparatur", rep)
     g.metrik("bild_hash", bild_hash)
     gate_bild(g, m, s)
+    rot = rot_liste(m, s)
+    if annehmen:
+        ents = entscheidung_setzen(werk, wer, angenommen={"wer": wer, "wann": manifest.jetzt(),
+                                                          "grund": grund.strip(), "bild_hash": bild_hash, "rot": rot})
+    ang = ents.get("angenommen") or {}
+    if ang and ang.get("bild_hash") == bild_hash:
+        for p in g.pruefungen:
+            if not p["ok"] and p["bei_fehler"] == "mensch":
+                p["bei_fehler"] = "hinweis"
+                p["text"] += f" [angenommen {ang.get('wer')}: {ang.get('grund')}]"
     g.mock(1 if ist_mock(pfad) else 0, [os.path.basename(pfad)], ruecksprung="610")
+    g.bild = {"pfad": pfad, "metriken": m, "rot": rot, "schwellen": s, "herkunft": herkunft,
+              "prompt": prompt, "bild_hash": bild_hash}
 
     st = status.laden(werk)["stages"].get(STAGE) or {}
     mensch_gilt = st.get("zustand") == "frei" and (st.get("gate") or {}).get("ergebnis") == "mensch" \
@@ -620,6 +646,8 @@ def main(argv=None):
     ap.add_argument("--erbe", choices=["an", "aus"], help="Reihen-Erbe (Bild von Teil 1)")
     ap.add_argument("--schwelle", action="append", metavar="NAME=WERT", help=f"Schwellen: {', '.join(SCHWELLEN)}")
     ap.add_argument("--trocken", action="store_true", help="vorhandenes Bild nur pruefen, nichts schreiben")
+    ap.add_argument("--annehmen", action="store_true", help="Bild trotz roter Pruefung annehmen (mit --grund)")
+    ap.add_argument("--grund")
     a = ap.parse_args(argv)
     schw = {}
     for x in a.schwelle or []:
@@ -632,11 +660,11 @@ def main(argv=None):
             print(f"[610] --schwelle {x!r}: Format NAME=WERT, Namen {', '.join(SCHWELLEN)}")
             return 1
     try:
-        if (a.motiv is not None or a.bild or a.waehle is not None or a.erbe or schw) and not a.trocken:
+        if (a.motiv is not None or a.bild or a.waehle is not None or a.erbe or schw or a.annehmen) and not a.trocken:
             from pipeline import s080_mandant
             s080_mandant.darf(a.werk, "override" if schw else "entscheiden", a.wer or "pipeline")
         g = run(a.werk, a.wer, a.modell, a.neu or a.force, a.motiv, a.bild, a.varianten, a.waehle, a.erbe,
-                schw or None, a.trocken)
+                schw or None, a.trocken, a.annehmen, a.grund)
     except gate.GateHalt as e:
         print(e)
         return e.exit_code

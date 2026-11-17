@@ -50,7 +50,7 @@ from pipeline import s500_vertonung_gemini as s500
 STAGE = "510"
 SR = 24000
 ERZ = s420.ERZ
-VERSION = 1
+VERSION = 2          # 2: Pegel an die Erzaehlerstuecke im Satz (aktiver Pegel), CK 16.11.2026
 REGLER_STD = {"schnitt": "modal", "ueberblend_ms": 12, "lautheit": True,
               "budget": float(getattr(config, "BUDGET_510_USD", 0.0)), "auffaellig_max": 0.01, "naht_db": 3.0,
               "stueck_min": 0.15, "dauer_min": 0.7, "dauer_max": 1.5, "fa_min": 0.9, "versuche": 2}
@@ -140,6 +140,17 @@ def _rms(v):
 
 def _db(v):
     return 20 * np.log10(_rms(v))
+
+
+def _db_aktiv(v, rahmen_s=0.03, fenster_db=30.0):
+    """Aktiver Sprechpegel: Median der 30-ms-Rahmen, die hoechstens 30 dB unter dem lautesten liegen
+    (Pausen, Atem und Ueberblendung zaehlen nicht). Zu kurz -> RMS-Pegel."""
+    f = int(SR * rahmen_s)
+    n = len(v) // f if f else 0
+    if n < 3:
+        return _db(v)
+    d = 20 * np.log10(np.sqrt(np.mean(np.square(np.asarray(v[:n * f], np.float64)).reshape(n, f), axis=1)) + 1e-9)
+    return float(np.median(d[d >= d.max() - fenster_db]))
 
 
 def korrigieren(x, sr, formant_faktor=1.0, tonhoehe_ht=0.0):
@@ -302,19 +313,23 @@ def montage(seg, w_q, wavs, zt, rg, korr, manuell=None):
         prot.append({"k": k, "q": q, "a": round(g[0] / SR, 3), "b": round(g[1] / SR, 3)})
     if not teile:
         return None, "kein_schnitt", prot, {}
-    ref = _rms(xs["erz"]) if "erz" in xs else None
-    out, naht = [], 0.0
+    # Pegelbezug (v2, CK 16.11.2026): die Erzaehlerstuecke, die im Satz stehen bleiben (Einschuebe sind leiser als die
+    # betonte Rede in der Erzaehlerfassung); ohne Einschub die ganze Erzaehlerfassung. Gemessen als aktiver Pegel.
+    erz_teile = [y for q, y in teile if q == "erz"]
+    ref = (_db_aktiv(np.concatenate(erz_teile)) if erz_teile else _db_aktiv(xs["erz"]) if "erz" in xs else None)
+    out, pegel, naht = [], [], 0.0
     kk = int(SR * float(rg["ueberblend_ms"]) / 1000)
     for i, (q, y) in enumerate(teile):
-        if rg["lautheit"] and ref and q != "erz":
-            y = y * (ref / _rms(y))
+        if rg["lautheit"] and ref is not None and q != "erz":
+            y = y * float(10 ** ((ref - _db_aktiv(y)) / 20))
+        pegel.append(_db_aktiv(y))
         k2 = min(len(y) // 2, kk)
         if k2:
             r = np.linspace(0, 1, k2, dtype="float32")
             y[:k2] *= r
             y[-k2:] *= r[::-1]
         if i and teile[i - 1][0] != q:
-            naht = max(naht, abs(_db(y) - _db(out[-1])))
+            naht = max(naht, abs(pegel[-1] - pegel[-2]))
         out.append(y)
     y = np.concatenate(out)
     werte = {"naht_db": round(naht, 2), "fa_min": round(fa_min, 3), "dauer": round(len(y) / SR, 3)}

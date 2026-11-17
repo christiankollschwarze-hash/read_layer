@@ -269,6 +269,62 @@ class T600(unittest.TestCase):
         self.assertEqual(g.ergebnis["ergebnis"], "auto", g.bericht())
         self.assertEqual(self.aufrufe, ["meta", "bloecke"])
 
+    def test_annehmen_sicherheit_edition_gilt_bei_gleichem_hash(self):
+        self.meta["sicherheit"] = "pruefen"
+        self.assertEqual(self.lauf().ergebnis["ergebnis"], "mensch")
+        with self.assertRaises(ValueError):
+            self.lauf(annehmen=["sicherheit"])                         # Grund Pflicht
+        with self.assertRaises(ValueError):
+            self.lauf(annehmen=["autor_fakten"], grund="x")
+        g = self.lauf(annehmen=["sicherheit"], grund="Inhalt geprueft, harmlos")
+        self.assertEqual(g.ergebnis["ergebnis"], "auto", g.bericht())
+        e = P.entscheidungen("w")["angenommen"]["sicherheit"]
+        self.assertEqual((e["wer"], e["grund"]), ("test", "Inhalt geprueft, harmlos"))
+        self.assertEqual(self.lauf().ergebnis["ergebnis"], "auto")
+        neu = "Eine stille Geschichte über ein Haus am Fluss, in dem die Zeit für immer stehen geblieben ist."
+        g = self.lauf(ersetzen={("einordnung", 0, "de"): neu})        # Ausgabe geaendert -> Annahme verfaellt
+        self.assertEqual(g.ergebnis["ergebnis"], "mensch")
+        self.assertEqual(self.aufrufe, ["meta", "bloecke"])
+
+    def test_laenge_max_je_werk_und_befunde_kosten(self):
+        g = self.lauf(laenge_max=300)
+        self.assertTrue(any("Soll <= 300" in h for h in g.ergebnis["hinweise"]))
+        with open(os.path.join(self.d, "book.json"), encoding="utf-8") as f:
+            self.assertEqual(json.load(f)["klappentext_regler"]["laenge_max"], 300)
+        g = self.lauf(trocken=True)
+        self.assertEqual(g.laenge_max, 300)
+        self.assertIn("laenge", g.befunde)
+        self.assertEqual(self.aufrufe, ["meta", "bloecke"])
+        with self.assertRaises(ValueError):
+            self.lauf(laenge_max=50)
+        k = P.kosten_schaetzen(2)
+        self.assertGreater(k, P.kosten_schaetzen(2, art="bloecke"))
+        self.assertEqual(P.kosten_schaetzen(2, modus="uebernehmen", art="bloecke"), 0.0)
+
+    def test_monitor_600_daten_argv(self):
+        from cockpit import werk_api as W
+        self.meta["sicherheit"] = "pruefen"
+        self.autor_b = [{"en": "Jane Doe was born in 1850 in Liverpool and wrote about the sea.",
+                         "de": "Jane Doe wurde 1850 in Liverpool geboren und schrieb über das Meer."}]
+        self.lauf()
+        d = W._m600_daten("w")
+        self.assertTrue(d["vorhanden"])
+        self.assertIsNone(d["plan_fehler"])
+        self.assertEqual(d["sprachen"], ["en", "de"])
+        self.assertIn("Liverpool", d["autor_ungedeckt"])
+        self.assertEqual(d["meta"]["sicherheit"], "pruefen")
+        self.assertIn("de", d["laenge"])
+        self.assertEqual(self.aufrufe, ["meta", "bloecke"])                 # Monitor = Probe, 0 $
+        self.assertIn(SAETZE_EN[3], W._m600_teil("w", {"werktext": "1"})["text"])
+        a = W._m600_argv("w", {"ersetzen": {"autor:0:de": "Jane Doe schrieb über das Meer."}, "koeder": SAETZE_EN[3],
+                               "annehmen": ["sicherheit"], "grund": "geprüft", "laenge_max": 900}, "CK")
+        self.assertIn("--koeder=" + SAETZE_EN[3], a)
+        self.assertIn("--annehmen=sicherheit", a)
+        for e in ({"ersetzen": {"koeder:0:de": "x"}}, {"koeder": "Gibt es nicht im Werk, ganz sicher nicht."},
+                  {"annehmen": ["sicherheit"]}, {"laenge_max": 10}):
+            with self.assertRaises(ValueError):
+                W._m600_argv("w", e, "CK")
+
     def test_trocken_ohne_bestand(self):
         g = self.lauf(trocken=True)
         self.assertEqual(g.ergebnis["ergebnis"], "stopp")

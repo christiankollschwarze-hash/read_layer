@@ -60,6 +60,13 @@ details.ausnahme{margin-top:10px}
 .dz{display:grid;grid-template-columns:150px 1fr;gap:8px;font-size:14px;line-height:1.5;padding:1px 0}.dsp{font-variant:small-caps;font-weight:600;font-size:12px;letter-spacing:.04em}
 .dz .w{cursor:pointer}.dz .w:hover{background:var(--tint)}
 .t400 td{padding:3px 6px;vertical-align:top}.t400 input[type=text],.t400 td input:not([type]){width:100%;min-width:160px}.t400 tr.ohne{background:color-mix(in srgb,var(--s-mensch) 7%,transparent)}
+.kt600{display:grid;gap:18px}.kt600>div{border-top:1px solid var(--line);padding-top:6px}
+.kb600{margin:8px 0;font-size:14px;line-height:1.55}.kd600{font-style:italic}
+.st600.ed{cursor:text}.st600.ed:hover{background:var(--tint)}.st600.bf{background:color-mix(in srgb,var(--s-stopp) 16%,transparent);border-radius:2px}
+.zw610{display:grid;grid-template-columns:340px 1fr;gap:18px}.b610{width:100%;border:1px solid var(--line);border-radius:var(--r-s)}
+.gal610{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}.gal610>div{border:1px solid var(--line);border-radius:var(--r-s);padding:6px}.gal610>div.sel{border:2px solid var(--ink)}.gal610 img{width:100%}
+.gal615{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}.gal615 img{width:100%;border:1px solid var(--line);border-radius:var(--r-s)}.gal615 img.vorschau{outline:2px solid var(--s-mensch)}
+.kopf615{margin-bottom:4px}.leer615{height:280px;display:flex;align-items:center;justify-content:center;border:1px dashed var(--line)}
 </style></head><body>
 <header>
  <a class="marke" href="/"></a><span class="seitentitel">Gate-Monitor</span>
@@ -2135,6 +2142,310 @@ MON["540"]={
     if(trocken){delete e.korrektur;delete e.annehmen;delete e.grund;e.trocken=true;}
     if(!trocken&&!Object.keys(e).length&&!confirm("Nichts geändert – 540 nur neu prüfen?"))return;
     speichern(e).then(ok=>{if(ok&&!trocken)this.E=this.leer();});
+  }
+};
+MON["600"]={
+  E:null,ED:null,
+  BN:{leer:"leer",sprache:"Sprache",kopie:"Kopie",lizenz:"Lizenztext",markup:"Markup",koeder:"Köder nicht wörtlich",vermerk:"Vermerk fehlt"},
+  BL:{koeder:"Köder",einordnung:"Einordnung",autor:"Autor"},
+  leer(){return {ers:{},koeder:null,genre:null,geschlecht:null,modus:null,block:new Set(),laenge:null,an:new Set(),grund:"",neu:false};},
+  bef(blk,i,lg){return M.daten.satz_befunde.filter(x=>x.block==blk&&(i==null?x.i==null:x.i==i)&&(x.lg==lg||x.lg=="*"));},
+  html(d){
+    if(!this.E)this.E=this.leer();
+    const E=this.E,m=d.meta||{},ki=(M.stage.kosten||{}).usd,L=d.sprachen,ma=d.manuell,mo=E.modus||d.modus;
+    const lm=E.laenge??d.laenge_max;
+    const gopt=Object.entries(d.genres).map(([gr,ws])=>`<optgroup label="${esc(gr)}">${ws.split(",").map(w=>w.trim()).map(w=>`<option ${(E.genre??m.genre)==w?"selected":""}>${esc(w)}</option>`).join("")}</optgroup>`).join("");
+    const genreBekannt=Object.values(d.genres).some(ws=>ws.split(",").map(w=>w.trim()).includes(E.genre??m.genre));
+    let h=`<div class="box"><h2>1 Anzeigen</h2>
+     ${d.plan_fehler?`<div class="klein err">Probe nicht möglich: ${esc(d.plan_fehler)}</div>`:""}
+     ${!d.vorhanden?`<div class="klein err">${d.altformat?"Klappentext im Altformat (vor Umbau Phase 2) – 600 einmal laufen lassen (~"+d.kosten.alles.toFixed(4)+" $).":"Noch kein Klappentext – 600 erst laufen lassen (Gate 190/330 müssen frei sein)."}</div>`:""}
+     <div class="feld">
+      <span>Modus</span><span>${esc(d.modus)} ${d.modus!=d.modus_auto?`<span class="klein">(automatisch wäre ${esc(d.modus_auto)})</span>`:""} · Herkunft ${esc(d.herkunft||"–")} · Sprachen ${esc(L.join(", "))} · Modell ${esc(d.modell)}${d.erzeugt?` · erzeugt ${esc(d.erzeugt.slice(0,16).replace("T"," "))}`:""}${d.verlag?' · <span class="z mensch">Mandant Verlag: nur Übernehmen, immer Mensch</span>':""}</span>
+      <span>Genre</span><span><select onchange="MON['600'].E.genre=this.value==(M.daten.meta.genre||'')?null:this.value;MON['600'].zf()">${genreBekannt?"":`<option selected>${esc(E.genre??m.genre??"")}</option>`}${gopt}</select>
+        → Gruppe <b>${esc(m.genre_gruppe||"–")}</b>${m.genre_bekannt===false?' <span class="z mensch">nicht in Liste</span>':""}${ma.genre?' <span class="klein">manuell</span> <button onclick="MON[\'600\'].E.genre=\'\';MON[\'600\'].zf()">zurücksetzen</button>':""}</span>
+      <span>Hauptfigur</span><span><select onchange="MON['600'].E.geschlecht=this.value==M.daten.meta.hauptfigur_geschlecht?null:this.value;MON['600'].zf()">${d.geschlechter.map(g=>`<option ${(E.geschlecht??m.hauptfigur_geschlecht)==g?"selected":""}>${g}</option>`).join("")}</select>
+        <span class="klein">(Erzählerwahl Teaser 640)${ma.hauptfigur_geschlecht?" · manuell":""} · Hauptfiguren: ${esc((m.hauptfiguren||[]).join(", ")||"–")}</span></span>
+      <span>Ton · Essenz</span><span class="klein">${esc(m.ton||"–")} · ${esc(m.essenz||"–")}</span>
+      <span>Länge</span><span>${L.map(lg=>{const n=d.laenge[lg];return n==null?"":`${esc(lg)} ${n<=lm?"":'<span class="z mensch">'}${n.toLocaleString("de-DE")}${n<=lm?"":"</span>"} `;}).join("· ")} <span class="klein">Zeichen (Soll ≤ ${lm.toLocaleString("de-DE")}, Hinweis)</span></span>
+      <span>Kosten</span><span>Ist ${ki!=null?ki.toFixed(4)+" $":"–"} · alles neu ~${d.kosten.alles.toFixed(4)} $ · Köder neu ~${d.kosten.koeder.toFixed(4)} $${mo=="erzeugen"?` · Block neu ~${d.kosten.bloecke.toFixed(4)} $`:""}</span></div>
+     ${d.hinweise.length?`<div class="klein hin" style="margin-top:6px">${d.hinweise.map(esc).join(" · ")}</div>`:""}</div>`;
+    // Shop-Vorschau
+    h+=`<div class="box"><h2>2 Bearbeiten · Shop-Vorschau <span class="klein">Satz anklicken = ersetzen (Einordnung/Autor) · Befunde rot markiert</span></h2>
+      <div class="kt600" style="grid-template-columns:repeat(${L.length},1fr)">${L.map(lg=>`<div><h3>${esc(lg)}${lg==d.quelle?' <span class="klein">Ausgangssprache</span>':""}</h3>${this.spalte(lg)}</div>`).join("")}</div>
+      ${mo=="erzeugen"?`<div class="akt" style="margin-top:8px">Block neu erzeugen: ${["koeder","einordnung","autor"].filter(b=>b!="autor"||d.autor_pflicht).map(b=>`<label><input type="checkbox" ${E.block.has(b)?"checked":""} onchange="MON['600'].blk('${b}',this.checked)"> ${this.BL[b]} <span class="klein">~${(b=="koeder"?d.kosten.koeder:d.kosten.bloecke).toFixed(4)} $</span></label>`).join(" ")}
+        <span class="klein">Köder neu = Metadaten + Passage neu (LLM); Zielsprachen kommen immer aus 330.</span></div>`:""}</div>`;
+    // Koeder
+    if(mo=="erzeugen"){
+      const kz=E.koeder!=null?E.koeder:(ma.koeder||m.leseprobe_zitat||"");
+      h+=`<div class="box"><h2>Köder · Passage im Werktext</h2>
+       <div class="feld"><span>Aktuell</span><span><i>${esc(kz||"–")}</i>${E.koeder===""?' <span class="geaendert">→ zurück zum Modell-Vorschlag</span>':E.koeder!=null?' <span class="geaendert">neu gewählt</span>':ma.koeder?' <span class="klein">manuell gewählt</span>':' <span class="klein">Vorschlag Modell</span>'}
+        ${(m.koeder_ids||[]).length?`<div class="klein">Knoten ${esc(m.koeder_ids.join(", "))} · Zielsprachen wörtlich aus 330</div>`:""}</span></div>
+       <div class="akt"><button onclick="MON['600'].werktext()">Werktext öffnen (${d.werktext.zeichen.toLocaleString("de-DE")} Zeichen)</button>
+        <button onclick="MON['600'].markiert()">Markierung als Köder übernehmen</button>
+        ${ma.koeder||E.koeder?`<button onclick="MON['600'].E.koeder='';MON['600'].neuZeichnen()">Modell-Vorschlag wieder nutzen</button>`:""}
+        <span class="klein">2–3 aufeinanderfolgende Sätze markieren (Strg+F sucht). Ein Köder in der Zielsprache, der nicht passt → Satz in <a href="#${esc(M.book_id)}/310">310</a> korrigieren.</span></div>
+       <div id="ed600" style="display:none;height:360px;border:1px solid var(--line-2);border-radius:var(--r-s);overflow:hidden"></div></div>`;
+    }
+    // Pruefungen mit Annehmen
+    const an=d.angenommen,sich=m.sicherheit=="pruefen",edi=d.edition.length>0;
+    const anz=(k)=>an[k]?`<div class="klein">angenommen von ${esc(an[k].wer)} ${esc((an[k].wann||"").slice(0,16).replace("T"," "))}: ${esc(an[k].grund)} ${an[k].gilt?'<span class="z frei">gilt</span>':'<span class="z mensch">veraltet (Klappentext geändert)</span>'}</div>`:"";
+    h+=`<div class="box"><h2>Prüfungen mit Mensch-Entscheidung</h2><div class="feld">
+      <span>Autor-Fakten</span><span>${!d.autor_pflicht?'<span class="klein">Autor-Block entfällt (eigene Rechte)</span>':d.autor_ungedeckt.length?`<span class="z mensch">ungedeckt</span> ${d.autor_ungedeckt.map(x=>`<span class="chip">${esc(x)}</span>`).join("")}
+        <div class="klein">Nicht in author.json: ${esc(d.autor.name_display||"–")} · ${esc(d.autor.geburtsjahr??"?")}–${esc(d.autor.todesjahr??"?")}${d.autor.geburtsort?" · "+esc(d.autor.geburtsort):""}${d.autor.verified?"":' · <span class="z mensch">nicht verifiziert</span>'}.
+        Entweder Satz im Autor-Block ändern (oben anklicken) oder Fakten in <a href="#${esc(M.book_id)}/110">110</a> ergänzen.</div>`:'<span class="dot" style="background:var(--s-frei)"></span> gedeckt'}</span>
+      <span>Sicherheit</span><span>${sich?'<span class="z mensch">prüfen</span>':'<span class="dot" style="background:var(--s-frei)"></span> '+esc(m.sicherheit||"–")}${(m.inhaltshinweise||[]).length?` <span class="klein">Inhaltshinweise: ${esc(m.inhaltshinweise.join(", "))}</span>`:""}
+        ${sich?`<label><input type="checkbox" ${E.an.has("sicherheit")?"checked":""} onchange="MON['600'].ann('sicherheit',this.checked)"> annehmen</label>`:""}${anz("sicherheit")}</span>
+      <span>Edition</span><span>${edi?`<span class="z mensch">Verdacht</span> ${d.edition.map(x=>`<span class="chip">${esc(x)}</span>`).join("")} <span class="klein">(Einordnung beschreibt evtl. Vorwort/Ausgabe statt Werk)</span>
+        <label><input type="checkbox" ${E.an.has("edition")?"checked":""} onchange="MON['600'].ann('edition',this.checked)"> annehmen</label>`:'<span class="dot" style="background:var(--s-frei)"></span> Werk beschrieben'}${anz("edition")}</span>
+      ${E.an.size?`<span>Grund</span><span><input type="text" size="60" value="${esc(E.grund)}" placeholder="Pflicht, z. B. Inhalt gelesen, unkritisch" oninput="MON['600'].E.grund=this.value;MON['600'].zf()"></span>`:""}</div>
+      <div class="klein">Eine Annahme gilt, solange der Klappentext (ausgabe_hash) gleich bleibt.</div></div>`;
+    // Regler
+    h+=`<div class="box"><h2>Regler je Werk</h2><div class="akt">
+      Modus <select ${d.verlag?"disabled":""} onchange="MON['600'].E.modus=this.value==M.daten.modus?null:this.value;MON['600'].neuZeichnen()">
+        <option value="erzeugen" ${mo=="erzeugen"?"selected":""}>erzeugen (~${d.kosten.modus_erzeugen.toFixed(4)} $)</option>
+        <option value="uebernehmen" ${mo=="uebernehmen"?"selected":""} ${d.epub_kt?"":"disabled"}>übernehmen aus ePub${d.epub_kt?` (~${d.kosten.modus_uebernehmen.toFixed(4)} $)`:" (kein Klappentext aus 150)"}</option></select>
+      Länge-max <input type="number" min="200" max="5000" step="50" value="${lm}" style="width:80px" onchange="MON['600'].E.laenge=+this.value==M.daten.laenge_max?null:+this.value;MON['600'].neuZeichnen()"> Zeichen
+      <label><input type="checkbox" ${E.neu?"checked":""} onchange="MON['600'].E.neu=this.checked;MON['600'].zf()"> Metadaten + Klappentext komplett neu</label> <span class="klein">~${d.kosten.alles.toFixed(4)} $</span></div>
+      <div class="klein">Standard: Modus automatisch (${esc(d.modus_auto)}), Länge ${d.laenge_standard.toLocaleString("de-DE")} Zeichen (nur Hinweis). Moduswechsel erzeugt neu (kostet). Modell und Vermerke nicht im Monitor.</div></div>`;
+    h+=`<div class="box"><h2>3 Speichern · 4 Freigeben</h2>
+     <div class="akt"><button class="haupt" onclick="MON['600'].los(false)">Übernehmen und 600 neu prüfen</button>
+      <button onclick="MON['600'].los(true)">Probe (schreibt nichts, kein LLM)</button> <span id="zf600" class="klein"></span></div>
+     <div class="klein">Eine Mensch-Freigabe gilt, solange die Ausgabe gleich bleibt. Rücksprung: Köder in der Zielsprache → <a href="#${esc(M.book_id)}/310">310</a> · Autor-Fakten → <a href="#${esc(M.book_id)}/110">110</a> · Klappentext fehlt (Verlag) → <a href="#${esc(M.book_id)}/150">150</a>.</div>
+     ${d.protokoll.length?`<details style="margin-top:6px"><summary class="klein">Protokoll (${d.protokoll.length})</summary><table class="kapt">${d.protokoll.slice().reverse().map(p=>`<tr><td class="klein">${esc((p.wann||"").slice(0,16).replace("T"," "))}</td><td class="klein">${esc(p.wer)}</td><td class="klein">${esc(Object.entries(p.was||{}).map(([k,v])=>k+": "+v).join(" · "))}</td></tr>`).join("")}</table></details>`:""}</div>`;
+    return h;
+  },
+  spalte(lg){
+    const d=M.daten,b=d.blurb,E=this.E,ers=d.manuell.ersetzt||{};
+    const block=(blk)=>{
+      const l=b[blk]||[];
+      const fb=this.bef(blk,null,lg).filter(x=>x.i==null);
+      if(!l.length)return fb.length?`<div class="kb600"><span class="klein">${this.BL[blk]}</span> ${fb.map(x=>`<span class="chip" style="border-color:var(--s-stopp)">${esc(this.BN[x.art]||x.art)}</span>`).join("")}</div>`:"";
+      return `<div class="kb600"><span class="klein">${this.BL[blk]}${E.block.has(blk)?' <span class="geaendert">→ neu</span>':""}</span>
+        <div class="${blk=="koeder"?"kd600":""}">${l.map((s,i)=>{const k=`${blk}:${i}:${lg}`,bf=this.bef(blk,i,lg),man=ers[blk]&&ers[blk][i]&&ers[blk][i][lg]!=null;
+          if(E.ers[k]!=null)return `<textarea style="width:100%;min-height:70px" oninput="MON['600'].E.ers['${k}']=this.value;MON['600'].zf()">${esc(E.ers[k])}</textarea><button onclick="delete MON['600'].E.ers['${k}'];MON['600'].neuZeichnen()">verwerfen</button> `;
+          const edit=blk!="koeder";
+          return `<span class="st600 ${bf.length?"bf":""} ${edit?"ed":""}" title="${esc(bf.map(x=>x.text).join(" · ")||(edit?"klicken zum Ersetzen":"Köder: Passage im Werktext wählen"))}" ${edit?`onclick="MON['600'].bearb('${k}')"`:""}>${esc(s[lg]||"⟨leer⟩")}</span>${man?'<sup class="klein" title="manuell ersetzt">m</sup>':""}${bf.length?" "+bf.map(x=>`<span class="chip" style="border-color:var(--s-stopp)">${esc(this.BN[x.art]||x.art)}</span>`).join(""):""} `;}).join("")}</div>
+        ${fb.length?fb.map(x=>`<div class="klein err">${esc(x.text)}</div>`).join(""):""}</div>`;};
+    const v=Object.entries(d.vermerke||{}).map(([a,t])=>`<div class="klein">${esc(t[lg]||"")}</div>`).join("");
+    const vb=this.bef("vermerk",null,lg).map(x=>`<div class="klein err">${esc(x.text)}</div>`).join("");
+    return block("koeder")+block("einordnung")+block("autor")+(v||vb?`<div class="kb600"><span class="klein">Vermerke</span>${v}${vb}</div>`:"");
+  },
+  danach(){this.zf();this.ED=null;},
+  neuZeichnen(){$("inhalt").innerHTML=this.html(M.daten);this.danach();},
+  bearb(k){const [blk,i,lg]=k.split(":");this.E.ers[k]=((M.daten.blurb[blk]||[])[+i]||{})[lg]||"";this.neuZeichnen();},
+  blk(b,on){on?this.E.block.add(b):this.E.block.delete(b);this.neuZeichnen();},
+  ann(p,on){on?this.E.an.add(p):this.E.an.delete(p);this.neuZeichnen();},
+  async werktext(){
+    const el=$("ed600");if(!el)return;el.style.display="";
+    if(this.ED)return;
+    el.innerHTML='<div class="klein" style="padding:8px">lädt …</div>';
+    const t=await api(`/api/werk/${B()}/monitor/600/teil?werktext=1`);
+    if(t.fehler){el.innerHTML=`<div class="klein err" style="padding:8px">${esc(t.fehler)}</div>`;return;}
+    el.innerHTML="";
+    this.ED=new CM.EditorView({parent:el,doc:t.text,extensions:[CM.basicSetup,CM.EditorView.lineWrapping,CM.EditorState.readOnly.of(true)]});
+    const z=(this.E.koeder||M.daten.manuell.koeder||M.daten.meta.leseprobe_zitat||"").split(/\s+/).slice(0,6).join(" ");
+    const p=z?t.text.indexOf(z):-1;
+    if(p>=0)this.ED.dispatch({selection:{anchor:p,head:p+z.length},effects:CM.EditorView.scrollIntoView(p,{y:"center"})});
+  },
+  markiert(){
+    if(!this.ED){alert("Erst den Werktext öffnen und eine Passage markieren.");return;}
+    const s=this.ED.state.selection.main,t=this.ED.state.sliceDoc(s.from,s.to).replace(/\s+/g," ").trim();
+    if(t.length<20){alert("Bitte eine Passage (2–3 Sätze) markieren.");return;}
+    if(t.length>1200){alert("Passage zu lang (max. 1.200 Zeichen).");return;}
+    this.E.koeder=t;const ed=this.ED;this.neuZeichnen();
+    const el=$("ed600");if(el){el.style.display="";el.innerHTML="";el.appendChild(ed.dom);this.ED=ed;}
+  },
+  zf(){const E=this.E,t=[];
+    const n=Object.keys(E.ers).length;if(n)t.push(n+" Satz/Sätze ersetzt");
+    if(E.koeder!=null)t.push(E.koeder?"Köder neu gewählt":"Köder: Modell-Vorschlag");
+    if(E.genre!=null)t.push("Genre "+(E.genre||"zurück"));if(E.geschlecht)t.push("Hauptfigur "+E.geschlecht);
+    if(E.modus)t.push("Modus "+E.modus+" (kostet)");if(E.block.size)t.push("neu: "+[...E.block].map(b=>this.BL[b]).join(", ")+" (kostet)");
+    if(E.laenge)t.push("Länge-max "+E.laenge);if(E.an.size)t.push([...E.an].join(", ")+" annehmen");if(E.neu)t.push("komplett neu (kostet)");
+    const el=$("zf600");if(el)el.textContent=t.join(" · ");},
+  los(trocken){
+    const d=M.daten,E=this.E,e={};
+    const ers={};for(const [k,v] of Object.entries(E.ers)){const [blk,i,lg]=k.split(":");if(v.trim()&&v.trim()!=((d.blurb[blk]||[])[+i]||{})[lg])ers[k]=v.trim();}
+    if(Object.keys(ers).length)e.ersetzen=ers;
+    if(E.koeder!=null)e.koeder=E.koeder;if(E.genre!=null)e.genre=E.genre;if(E.geschlecht)e.geschlecht=E.geschlecht;
+    if(E.modus)e.modus=E.modus;if(E.block.size)e.block_neu=[...E.block];if(E.laenge)e.laenge_max=E.laenge;if(E.neu)e.neu=true;
+    if(E.an.size){if(!E.grund.trim()){alert("Annehmen braucht einen Grund");return;}e.annehmen=[...E.an];e.grund=E.grund.trim();}
+    if(trocken){delete e.annehmen;delete e.grund;e.trocken=true;}
+    const kost=(E.neu||E.modus)?d.kosten.alles:[...E.block].reduce((s,b)=>s+(b=="koeder"?d.kosten.koeder:d.kosten.bloecke),0);
+    if(!trocken&&!Object.keys(e).length&&!confirm("Nichts geändert – 600 nur neu prüfen?"))return;
+    if(!trocken&&kost>0&&!confirm(`LLM-Aufruf (Live-Modus, ~${kost.toFixed(4)} $). Weiter?`))return;
+    speichern(e).then(ok=>{if(ok&&!trocken){this.E=this.leer();this.ED=null;}});
+  }
+};
+MON["610"]={
+  E:null,
+  PN:{breite:"Breite",format:"Format 2:3",randfarbe:"Randfarbe",text_im_bild:"Text im Bild",motiv_hoehe:"Motivhöhe",zentrum:"Zentrum",linien:"Linienanteil"},
+  SN:{breite_min:"Breite min (px)",format_tol:"Format-Toleranz",delta_e_max:"Randfarbe ΔE max",ocr_woerter_max:"Text im Bild max (Wörter)",motiv_hoehe_min:"Motivhöhe min",zentrum_tol:"Zentrum-Toleranz",linien_min:"Linienanteil min",linien_max:"Linienanteil max"},
+  leer(){return {motiv:null,neu:false,varianten:null,waehle:null,bild:null,bildname:"",erbe:null,schwellen:{},an:false,grund:""};},
+  html(d){
+    if(!this.E)this.E=this.leer();
+    const E=this.E,ki=(M.stage.kosten||{}).usd,dot=ok=>`<span class="dot" style="background:var(--s-${ok==null?"mensch":ok?"frei":"stopp"})"></span>`;
+    if(d.uebernahme)return `<div class="box"><h2>1 Anzeigen</h2><div class="klein">Cover aus dem ePub übernommen (150) – 610 entfällt. Prüfung und Sichtfreigabe in <a href="#${esc(M.book_id)}/615">615</a>.</div>${d.datei?`<img src="/datei?p=${encodeURIComponent(d.datei)}" style="max-width:320px;margin-top:8px;border:1px solid var(--line)">`:""}</div>`;
+    const img=d.datei?`/datei?p=${encodeURIComponent(d.datei)}&t=${d.stand}`:null;
+    const fmt=v=>v==null?"–":typeof v=="number"?String(+v.toFixed(4)).replace(".",","):esc(v);
+    let h=`<div class="box"><h2>1 Anzeigen</h2>
+     ${d.plan_fehler?`<div class="klein err">Probe nicht möglich: ${esc(d.plan_fehler)}</div>`:""}
+     <div class="zw610"><div>${img?`<a href="${img}" target="_blank"><img src="${img}" class="b610"></a>`:'<div class="klein err">Noch keine Illustration – 610 laufen lassen oder Bild hochladen.</div>'}</div>
+     <div><div class="feld">
+      <span>Werk</span><span>${esc(d.titel)} · ${esc(d.autor||"–")}</span>
+      <span>Herkunft</span><span>${esc(d.herkunft||"–")}${d.gewaehlt?` (Variante ${d.gewaehlt})`:""}${d.modell?` · ${esc(d.modell)}`:""}${d.mandant!="somnio"?` · <span class="z mensch">Mandant ${esc(d.mandant)}: erzeugtes Cover immer Mensch</span>`:""}</span>
+      <span>Stimmung (600)</span><span class="klein">${esc(d.stimmung||"–")}${d.genre_gruppe?` · Gruppe ${esc(d.genre_gruppe)}`:""} <a href="#${esc(M.book_id)}/600">Ton/Genre falsch → 600</a></span>
+      <span>Kosten</span><span>Ist ${ki!=null?ki.toFixed(4)+" $":"–"} · je neues Bild ~${d.kosten_bild.toFixed(3)} $</span>
+      <span>Prüfung</span><span><table class="kapt">${d.pruefungen.map(p=>`<tr><td>${dot(p.ok)}</td><td>${this.PN[p.art]}</td><td>${fmt(p.wert)}${p.extra?` <span class="klein">${esc(Array.isArray(p.extra)?p.extra.join(", "):p.extra)}</span>`:""}</td><td class="klein">${esc(p.soll)}</td></tr>`).join("")||'<tr><td class="klein">keine Messwerte</td></tr>'}</table></span>
+     </div>
+     ${d.gruende.length?`<div class="bef klein" style="margin-top:6px">${d.gruende.map(esc).join("<br>")}</div>`:""}
+     ${d.hinweise.length?`<div class="hin klein" style="margin-top:4px">${d.hinweise.map(esc).join(" · ")}</div>`:""}
+     ${d.prompt?`<details style="margin-top:6px"><summary class="klein">Prompt${d.prompt_jetzt&&d.prompt_jetzt!=d.prompt?' <span class="z mensch">geändert seit Erzeugung</span>':""}</summary><div class="klein" style="white-space:pre-wrap">${esc(d.prompt)}</div></details>`:""}
+     ${d.versuche.length?`<details><summary class="klein">Versuche (${d.versuche.length})</summary><table class="kapt">${d.versuche.map(v=>`<tr><td class="klein">${v.nr}</td><td class="klein">${esc(v.ergebnis)}</td><td class="klein">${esc(v.text||"")}</td><td class="klein">${esc((v.zeit||"").slice(0,16).replace("T"," "))}</td></tr>`).join("")}</table></details>`:""}
+     </div></div></div>`;
+    // Bearbeiten
+    const motiv=E.motiv!=null?E.motiv:d.motiv;
+    h+=`<div class="box"><h2>2 Bearbeiten · Bild</h2>
+     <div class="feld"><span>Motiv (englisch)</span><span><input type="text" size="70" value="${esc(motiv)}" placeholder="${esc(d.motiv_book||"z. B. a lone lighthouse in a storm")}" oninput="MON['610'].E.motiv=this.value==M.daten.motiv?null:this.value;MON['610'].zf()">
+       <div class="klein">Eine Figur, eine Geste oder ein Gegenstand – kein Handlungsablauf. Ändert den Prompt → nächster Lauf erzeugt neu (~${d.kosten_bild.toFixed(3)} $).</div></span>
+      <span>Bildweg</span><span class="akt">
+       <label><input type="radio" name="weg610" ${!E.neu&&!E.varianten&&E.waehle==null&&!E.bild?"checked":""} onchange="MON['610'].weg('')"> behalten</label>
+       <label><input type="radio" name="weg610" ${E.neu?"checked":""} onchange="MON['610'].weg('neu')"> neu erzeugen (~${d.kosten_bild.toFixed(3)} $)</label>
+       <label><input type="radio" name="weg610" ${E.varianten?"checked":""} onchange="MON['610'].weg('varianten')"> Varianten</label>
+       ${E.varianten?`<select onchange="MON['610'].E.varianten=+this.value;MON['610'].neuZeichnen()">${[2,3,4,5,6].map(n=>`<option ${E.varianten==n?"selected":""}>${n}</option>`).join("")}</select> <span class="klein">~${(E.varianten*d.kosten_bild).toFixed(3)} $</span>`:""}
+       <label>eigenes Bild <input type="file" accept=".png,.jpg,.jpeg" onchange="MON['610'].hoch(this)"></label>${E.bild?` <span class="geaendert">${esc(E.bildname)} hochgeladen</span>`:""}</span>
+      ${d.reihe_teil1?`<span>Reihen-Erbe</span><span><label><input type="checkbox" ${(E.erbe??d.erbe)!="aus"?"checked":""} onchange="MON['610'].E.erbe=(this.checked?'an':'aus')==M.daten.erbe?null:(this.checked?'an':'aus');MON['610'].zf()"> Illustration von Teil 1 (${esc(d.reihe_teil1)}) übernehmen (0 $)</label></span>`:""}
+     </div>
+     ${d.varianten.length?`<h3>Varianten <span class="klein">${esc((d.varianten_prompt||"")==d.prompt_jetzt?"":"(mit älterem Prompt)")}</span></h3><div class="gal610">${d.varianten.map(v=>`<div class="${E.waehle==v.nr?"sel":""}">${v.url?`<a href="/datei?p=${encodeURIComponent(v.url)}" target="_blank"><img src="/datei?p=${encodeURIComponent(v.url)}"></a>`:`<div class="klein err">nur Text: ${esc(v.nur_text||"")}</div>`}
+        <div class="klein">Nr. ${v.nr} ${v.rot&&v.rot.length?v.rot.map(r=>`<span class="chip" style="border-color:var(--s-stopp)">${esc(this.PN[r]||r)}</span>`).join(""):v.url?'<span class="z frei">grün</span>':""}${d.gewaehlt==v.nr?" · aktuell":""}</div>
+        ${v.url?`<label><input type="radio" name="w610" ${E.waehle==v.nr?"checked":""} onchange="MON['610'].wahl(${v.nr})"> wählen (0 $)</label>`:""}</div>`).join("")}</div>`:""}</div>`;
+    // Annehmen
+    if(d.rot.length||d.angenommen)h+=`<div class="box"><h2>Trotz Rot annehmen</h2>
+      ${d.angenommen?`<div class="klein">angenommen von ${esc(d.angenommen.wer)} ${esc((d.angenommen.wann||"").slice(0,16).replace("T"," "))}: ${esc(d.angenommen.grund)} (rot: ${esc((d.angenommen.rot||[]).join(", "))}) ${d.angenommen.gilt?'<span class="z frei">gilt</span>':'<span class="z mensch">veraltet (anderes Bild)</span>'}</div>`:""}
+      ${d.rot.length?`<div class="akt"><label><input type="checkbox" ${E.an?"checked":""} onchange="MON['610'].E.an=this.checked;MON['610'].neuZeichnen()"> Bild trotz ${d.rot.map(r=>this.PN[r]||r).join(", ")} annehmen</label>
+        ${E.an?`<input type="text" size="60" value="${esc(E.grund)}" placeholder="Grund (Pflicht), z. B. Motiv bewusst klein, wirkt gut" oninput="MON['610'].E.grund=this.value;MON['610'].zf()">`:""}</div>
+        <div class="klein">Gilt nur für genau dieses Bild (bild_hash). Die Sichtprüfung am fertigen Cover folgt in 615.</div>`:""}</div>`;
+    // Regler
+    const sv=k=>E.schwellen[k]??d.schwellen[k];
+    h+=`<div class="box"><h2>Regler je Werk · Schwellen der Bildprüfung</h2><div class="akt">${Object.keys(d.standard).map(k=>`<label>${this.SN[k]} <input type="number" step="any" min="0" value="${sv(k)}" style="width:72px" onchange="MON['610'].sw('${k}',this.value)"></label>`).join(" ")}</div>
+      <div class="klein">Standard: ${Object.entries(d.standard).map(([k,v])=>this.SN[k]+" "+v).join(" · ")}. Schwellen ändern nur die Prüfung (0 $). Modell nicht im Monitor.</div></div>
+    <div class="box"><h2>3 Speichern · 4 Freigeben</h2>
+     <div class="akt"><button class="haupt" onclick="MON['610'].los(false)">Übernehmen und 610 neu prüfen</button>
+      <button onclick="MON['610'].los(true)">Probe (vorhandenes Bild prüfen, nichts schreiben)</button> <span id="zf610" class="klein"></span></div>
+     <div class="klein">Eine Mensch-Freigabe gilt, solange das Bild gleich bleibt. Rücksprung: Ton/Genre falsch → <a href="#${esc(M.book_id)}/600">600</a>. Typografie und Sichtfreigabe → <a href="#${esc(M.book_id)}/615">615</a>.</div>
+     ${d.protokoll.length?`<details style="margin-top:6px"><summary class="klein">Protokoll (${d.protokoll.length})</summary><table class="kapt">${d.protokoll.slice().reverse().map(p=>`<tr><td class="klein">${esc((p.wann||"").slice(0,16).replace("T"," "))}</td><td class="klein">${esc(p.wer)}</td><td class="klein">${esc(Object.entries(p.was||{}).map(([k,v])=>k+": "+v).join(" · "))}</td></tr>`).join("")}</table></details>`:""}</div>`;
+    return h;
+  },
+  danach(){this.zf();},
+  neuZeichnen(){$("inhalt").innerHTML=this.html(M.daten);this.danach();},
+  weg(w){const E=this.E;E.neu=w=="neu";E.varianten=w=="varianten"?(E.varianten||4):null;if(w){E.waehle=null;E.bild=null;}this.neuZeichnen();},
+  wahl(n){const E=this.E;E.waehle=n;E.neu=false;E.varianten=null;E.bild=null;this.neuZeichnen();},
+  sw(k,v){if(v===""||+v==M.daten.schwellen[k])delete this.E.schwellen[k];else this.E.schwellen[k]=+v;this.zf();},
+  async hoch(inp){
+    const f=inp.files[0];if(!f)return;
+    const r=await fetch(`/api/upload?art=cover&name=${encodeURIComponent(f.name)}&wer=${encodeURIComponent($("wer").value)}`,{method:"POST",body:f});
+    const j=await r.json();if(!j.ok){alert(j.fehler);return;}
+    const E=this.E;E.bild=j.pfad;E.bildname=f.name;E.neu=false;E.varianten=null;E.waehle=null;this.neuZeichnen();
+  },
+  zf(){const E=this.E,t=[];
+    if(E.motiv!=null)t.push(E.motiv?"Motiv neu":"Motiv zurück");if(E.neu)t.push("neu erzeugen");if(E.varianten)t.push(E.varianten+" Varianten");
+    if(E.waehle!=null)t.push("Variante "+E.waehle);if(E.bild)t.push("Upload "+E.bildname);if(E.erbe)t.push("Erbe "+E.erbe);
+    const n=Object.keys(E.schwellen).length;if(n)t.push(n+" Schwelle(n)");if(E.an)t.push("annehmen");
+    const el=$("zf610");if(el)el.textContent=t.join(" · ");},
+  los(trocken){
+    const d=M.daten,E=this.E,e={};
+    if(E.motiv!=null)e.motiv=E.motiv;if(E.erbe)e.erbe=E.erbe;if(Object.keys(E.schwellen).length)e.schwellen=E.schwellen;
+    if(E.neu)e.neu=true;if(E.varianten)e.varianten=E.varianten;if(E.waehle!=null)e.waehle=E.waehle;if(E.bild)e.bild=E.bild;
+    if(E.an){if(!E.grund.trim()){alert("Annehmen braucht einen Grund");return;}if(E.neu||E.varianten||E.waehle!=null||E.bild||E.motiv!=null){alert("Annehmen gilt für das vorhandene Bild – nicht zusammen mit einem neuen Bild/Motiv.");return;}e.annehmen=true;e.grund=E.grund.trim();}
+    if(trocken){for(const k of ["neu","varianten","waehle","bild","annehmen","grund","motiv","erbe","schwellen"])delete e[k];e.trocken=true;}
+    const n=E.neu?1:E.varianten||((E.motiv!=null&&!E.waehle&&!E.bild)?1:0);
+    if(!trocken&&!Object.keys(e).length&&!confirm("Nichts geändert – 610 nur neu prüfen?"))return;
+    if(!trocken&&n&&!confirm(`Bild-Erzeugung (Live-Modus, ~${(n*d.kosten_bild).toFixed(3)} $). Weiter?`))return;
+    speichern(e).then(ok=>{if(ok&&!trocken)this.E=this.leer();});
+  }
+};
+MON["615"]={
+  E:null,V:{},timer:null,
+  VN:{text:"Text",audio:"Audio",quadrat:"Quadrat (extern)"},
+  PN:{titel_quelle:"Titelquelle",titel_pruefen:"Titel geprüft",titel_zeilen:"Zeilen",titel_schrift:"Schrift",titel_breite:"Breite",ueberlappung:"Überlappung Motiv",vermerke:"Vermerke",masse:"Maße",sprecher:"Sprecher"},
+  leer(){return {titel:{},umbruch:{},schrift:null,position:null,transparenz:null,sprecher:null,neu:false};},
+  geaendert(){const E=this.E;return Object.keys(E.titel).length||Object.keys(E.umbruch).length||E.schrift!=null||E.position||E.transparenz!=null||E.sprecher;},
+  eingabe(){const E=this.E,e={};
+    if(Object.keys(E.titel).length)e.titel=E.titel;if(Object.keys(E.umbruch).length)e.umbruch=E.umbruch;
+    if(E.schrift!=null)e.schrift=E.schrift;if(E.position)e.position=E.position;if(E.transparenz!=null)e.transparenz=E.transparenz;if(E.sprecher)e.sprecher=E.sprecher;return e;},
+  html(d){
+    if(!this.E)this.E=this.leer();
+    const E=this.E,R=d.regler,rv=k=>E[k]??R[k];
+    const zs=z=>`<span class="z ${esc(z)}">${esc(z)}</span>`;
+    let h=`<div class="box"><h2>1 Anzeigen</h2>
+     ${d.plan_fehler?`<div class="klein err">Probe nicht möglich: ${esc(d.plan_fehler)}</div>`:""}
+     <div class="feld"><span>Illustration</span><span>${d.uebernahme_150?"Cover aus ePub (150), nur eingepasst":`610 ${zs(d.zustand_610)} <a href="#${esc(M.book_id)}/610">Motiv → 610</a>`}</span>
+      <span>Sichtfreigabe</span><span>${d.sichtfreigabe?`erteilt von ${esc(d.sichtfreigabe.wer)} ${esc((d.sichtfreigabe.wann||"").slice(0,16).replace("T"," "))} – Folgevarianten und Änderungen laufen bei Grün automatisch`:d.reihe_folge?"Reihenteil ≥ 2: automatisch bei Grün":'<span class="z mensch">noch nicht erteilt</span> (einmal je Werk)'}</span>
+      <span>Offen</span><span>${d.offen.length?`${d.offen.map(esc).join(", ")} <button class="haupt" onclick="MON['615'].freigeben()">Sichtfreigabe für alle offenen Varianten</button>`:'<span class="klein">keine Variante wartet auf Freigabe</span>'}</span></div></div>`;
+    h+=`<div class="box"><h2>Galerie · Sprache × Variante <span class="klein">${this.geaendert()?'<span class="geaendert">Live-Vorschau mit deinen Änderungen</span>':"gespeicherte Cover"} · Klick vergrößert</span></h2><div class="gal615">${d.kacheln.map((k,i)=>{
+      const v=this.V[k.scope],src=v&&v.bild?v.bild:k.datei?`/datei?p=${encodeURIComponent(k.datei)}&t=${k.stand}`:null;
+      const pr=v?v.ergebnis:k.probe,gr=v?v.gruende:k.gruende;
+      return `<div><div class="kopf615"><b>${esc(k.sprache)}</b> ${this.VN[k.variante]} ${zs(k.zustand)}</div>
+       ${src?`<a href="${src}" target="_blank"><img src="${src}" class="${v?"vorschau":""}"></a>`:'<div class="klein err leer615">noch nicht erzeugt</div>'}
+       <div class="klein">Probe ${zs(pr)}${k.aktuell===false&&!v?' <span class="z mensch">Datei veraltet</span>':""}</div>
+       <div class="klein">${k.pruefungen.map(p=>`<span title="${esc(p.text||"")}"><span class="dot" style="background:var(--s-${p.ok?"frei":p.bei_fehler=="hinweis"?"mensch":"stopp"})"></span>${this.PN[p.name]||p.name}</span>`).join(" ")}</div>
+       ${(gr||[]).length?`<div class="klein err">${gr.map(esc).join("<br>")}</div>`:""}</div>`;}).join("")}</div></div>`;
+    // Typo
+    const L=Object.keys(d.titel);
+    h+=`<div class="box"><h2>2 Bearbeiten · Typografie <span class="klein">Änderungen erscheinen sofort als Vorschau (schreibt nichts)</span></h2>
+     <table class="t400"><tr class="klein"><td>Sprache</td><td>Titel</td><td>Quelle</td><td>Umbruch (Zeilen mit | trennen, leer = automatisch)</td></tr>
+     ${L.map(lg=>{const t=d.titel[lg],um=E.umbruch[lg]??(R.umbruch[lg]||"");return `<tr><td>${esc(lg)}${lg==d.quellsprache?' <span class="klein">Ausgangs.</span>':""}</td>
+       <td><input type="text" size="34" value="${esc(E.titel[lg]??t.titel)}" oninput="MON['615'].tit('${lg}',this.value)"></td>
+       <td class="klein">${esc(t.quelle)}${t.fallback?' <span class="z mensch">Rückfall Original</span>':""}${t.pruefen?' <span class="z mensch">prüfen</span>':""}${E.titel[lg]!=null?' → manuell':""}</td>
+       <td><input type="text" size="34" value="${esc(um)}" placeholder="automatisch" oninput="MON['615'].umb('${lg}',this.value)"></td></tr>`;}).join("")}</table>
+     <div class="klein">Titel falsch übersetzt → besser an der Quelle: <a href="#${esc(M.book_id)}/110">110</a> (Wikidata) bzw. <a href="#${esc(M.book_id)}/310">310</a>. Vermerke fehlen → <a href="#${esc(M.book_id)}/115">115</a>.</div>
+     <div class="akt" style="margin-top:8px">Schrift <select onchange="MON['615'].set('schrift',+this.value)"><option value="0" ${!rv("schrift")?"selected":""}>automatisch</option>${d.schriften.map(p=>`<option value="${p}" ${rv("schrift")==p?"selected":""}>${p} pt</option>`).join("")}</select>
+      Position <select onchange="MON['615'].set('position',this.value)"><option ${rv("position")=="oben"?"selected":""}>oben</option><option ${rv("position")=="unten"?"selected":""}>unten</option></select>
+      Titelkasten-Deckkraft <input type="range" min="0" max="1" step="0.05" value="${rv("transparenz")}" oninput="this.nextElementSibling.textContent=this.value" onchange="MON['615'].set('transparenz',+this.value)"> <span>${rv("transparenz")}</span>
+      <label><input type="checkbox" ${rv("sprecher")!="aus"?"checked":""} onchange="MON['615'].set('sprecher',this.checked?'an':'aus')"> Sprecherzeile (Audio)</label>
+      ${this.geaendert()?`<button onclick="MON['615'].zurueck()">Änderungen verwerfen</button>`:""}</div>
+     <div class="klein">Schwellen fest: ≤ ${d.schwellen.zeilen_max} Zeilen, Schrift ≥ ${d.schwellen.schrift_min} pt, Überlappung Titelkasten/Motiv ≤ ${(d.schwellen.ueberlappung_max*100).toFixed(0)} %. Vermerke an/aus nur Admin.</div></div>
+    <div class="box"><h2>3 Speichern · 4 Freigeben</h2>
+     <div class="akt"><button class="haupt" onclick="MON['615'].los(false)">Übernehmen und 615 neu prüfen</button>
+      <label><input type="checkbox" ${E.neu?"checked":""} onchange="MON['615'].E.neu=this.checked"> alle Varianten neu schreiben</label> <span id="zf615" class="klein"></span></div>
+     <div class="klein">0 $ (CPU). Danach die Galerie ansehen und – falls offen – „Sichtfreigabe“ oben. Eine Freigabe gilt je Variante, solange das Cover gleich bleibt. Rücksprung: Motiv → <a href="#${esc(M.book_id)}/610">610</a> · Sprecher → <a href="#${esc(M.book_id)}/410">410</a> · Autor → <a href="#${esc(M.book_id)}/110">110</a>.</div>
+     ${d.protokoll.length?`<details style="margin-top:6px"><summary class="klein">Protokoll (${d.protokoll.length})</summary><table class="kapt">${d.protokoll.slice().reverse().map(p=>`<tr><td class="klein">${esc((p.wann||"").slice(0,16).replace("T"," "))}</td><td class="klein">${esc(p.wer)}</td><td class="klein">${esc(Object.entries(p.was||{}).map(([k,v])=>k+": "+v).join(" · "))}</td></tr>`).join("")}</table></details>`:""}</div>`;
+    return h;
+  },
+  danach(){this.zf();},
+  neuZeichnen(){$("inhalt").innerHTML=this.html(M.daten);this.danach();},
+  tit(lg,v){const t=M.daten.titel[lg].titel;if(v.trim()==t)delete this.E.titel[lg];else this.E.titel[lg]=v;this.plan();},
+  umb(lg,v){if(v.trim()==(M.daten.regler.umbruch[lg]||""))delete this.E.umbruch[lg];else this.E.umbruch[lg]=v;this.plan();},
+  set(k,v){this.E[k]=v==M.daten.regler[k]?null:v;this.plan(true);},
+  zurueck(){this.E=this.leer();this.V={};this.neuZeichnen();},
+  plan(zeichnen){this.zf();clearTimeout(this.timer);this.timer=setTimeout(()=>this.vorschau(),450);if(zeichnen)this.neuZeichnen();},
+  async vorschau(){
+    if(!this.geaendert()){this.V={};this.neuZeichnen();return;}
+    const e=encodeURIComponent(JSON.stringify(this.eingabe())),V={};
+    for(const k of M.daten.kacheln){
+      const r=await api(`/api/werk/${B()}/monitor/615/teil?vorschau=${encodeURIComponent(k.scope)}&e=${e}`);
+      if(r.fehler){if(!/keine Vorschau/.test(r.fehler)){alert(r.fehler);return;}continue;}
+      V[k.scope]=r;
+    }
+    this.V=V;
+    const fokus=document.activeElement,sel=fokus&&fokus.selectionStart,wert=fokus&&fokus.value,idx=[...document.querySelectorAll("#inhalt input")].indexOf(fokus);
+    this.neuZeichnen();
+    if(idx>=0){const n=document.querySelectorAll("#inhalt input")[idx];if(n&&n.value==wert){n.focus();try{n.setSelectionRange(sel,sel);}catch(x){}}}
+  },
+  zf(){const E=this.E,t=[];
+    for(const [lg,v] of Object.entries(E.titel))t.push(`Titel ${lg}: ${v}`);for(const [lg,v] of Object.entries(E.umbruch))t.push(`Umbruch ${lg}: ${v||"automatisch"}`);
+    if(E.schrift!=null)t.push("Schrift "+(E.schrift||"automatisch"));if(E.position)t.push("Position "+E.position);if(E.transparenz!=null)t.push("Deckkraft "+E.transparenz);if(E.sprecher)t.push("Sprecherzeile "+E.sprecher);
+    const el=$("zf615");if(el)el.textContent=t.join(" · ");},
+  async freigeben(){
+    if(this.geaendert()){alert("Erst die Änderungen übernehmen (oder verwerfen) und das Ergebnis ansehen – dann freigeben.");return;}
+    if(!confirm("Sichtfreigabe für "+M.daten.offen.join(", ")+"?\nGilt einmal je Werk; spätere Varianten laufen bei Grün automatisch."))return;
+    const r=await api(`/api/werk/${B()}/monitor/615`,{freigeben:true,wer:$("wer").value});
+    if(!r.ok)alert(r.fehler);else laufZeigen(r.lauf);
+  },
+  los(trocken){
+    const e=this.eingabe();if(this.E.neu)e.neu=true;
+    for(const lg of Object.keys(e.titel||{}))if(!e.titel[lg].trim()){alert("Titel "+lg+" leer");return;}
+    if(!Object.keys(e).length&&!confirm("Nichts geändert – 615 nur neu prüfen?"))return;
+    speichern(e).then(ok=>{if(ok){this.E=this.leer();this.V={};}});
   }
 };
 MON["190"]={

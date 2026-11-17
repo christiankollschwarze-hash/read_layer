@@ -544,9 +544,19 @@ def upload(art, dateiname, inhalt, wer, meta=None):
     meta = meta or {}
     try:
         wer = s080_mandant.nutzer(wer)
-        if art not in ("epub", "txt"):
+        if art not in ("epub", "txt", "cover"):
             raise ValueError(f"Art {art!r} unbekannt")
         name = _re.sub(r"[^A-Za-z0-9._-]+", "_", os.path.basename(dateiname or f"upload.{art}"))[:80]
+        if art == "cover":                                 # Monitor 610: Bild ablegen, Lauf startet der Monitor
+            if not name.lower().endswith((".png", ".jpg", ".jpeg")):
+                raise ValueError("Cover-Bild: .png oder .jpg")
+            if len(inhalt) > 40 * 1024 * 1024:
+                raise ValueError("Cover-Bild > 40 MB")
+            os.makedirs(UPLOAD_DIR, exist_ok=True)
+            pfad = os.path.join(UPLOAD_DIR, f"{dt.datetime.now():%Y%m%d_%H%M%S}_cover_{name}")
+            with open(pfad, "wb") as f:
+                f.write(inhalt)
+            return {"ok": True, "pfad": os.path.relpath(pfad, BASE).replace("\\", "/")}
         if not name.lower().endswith("." + art):
             raise ValueError(f"Datei ist kein .{art}")
         if art == "txt":
@@ -3269,6 +3279,439 @@ def _m540_argv(book_id, e, wer):
 
 MONITOR_DATEN["540"] = _m540_daten
 MONITOR_SPEICHERN["540"] = _m540_argv
+
+
+# ---- 600 Klappentext (Steckbrief GATE_MONITORE 600: Shop-Vorschau je Sprache, Satz ersetzen, Block neu,
+#      Koeder im Werktext markieren, Sicherheit/Edition annehmen mit Grund; Regler Modus + Laenge-max)
+def _m600_daten(book_id):
+    import contextlib as _cl
+    import io as _io
+    from pipeline import s600_klappentext as P
+    b = bestellung.lesen(book_id)
+    roh = b.roh or {}
+    src = b.quellsprache or config.SOURCE_LANGUAGE
+    langs = [src] + [z for z in (b.zielsprachen or []) if z != src]
+    plan_fehler, g = None, None
+    try:
+        with _cl.redirect_stdout(_io.StringIO()):
+            g = P.run(book_id, wer="monitor", trocken=True)
+    except Exception as e:
+        plan_fehler = f"{type(e).__name__}: {e}"
+    aus = (getattr(g, "aus", None) if g else None) or _m200_lesen(book_id, "600_klappentext.json") or {}
+    altformat = bool(aus) and aus.get("schema") != 2
+    if altformat:
+        aus = {}
+    bef = (getattr(g, "befunde", None) if g else None) or {}
+    met = (g.metriken if g else {}) or {}
+    ents = P.entscheidungen(book_id)
+    reg = roh.get("klappentext_regler") or {}
+    epub_kt = P.epub_klappentext(roh, src)
+    verlag = b.mandant_art == "verlag"
+    modus_auto = "uebernehmen" if (epub_kt or verlag) else "erzeugen"
+    modus = aus.get("modus") or ents.get("modus") or reg.get("modus") or modus_auto
+    ah = met.get("ausgabe_hash")
+    satz = []
+    for art in ("leer", "sprache", "kopie", "lizenz", "markup", "koeder", "vermerk"):
+        for x in bef.get(art) or []:
+            blk, i, lg, t = (list(x) + [None] * 4)[:4]
+            satz.append({"art": art, "block": blk, "i": i, "lg": lg, "text": t})
+    autor = P.autor_laden(book_id) or {}
+    meta = aus.get("meta") or {}
+    ang = {k: dict(v, gilt=bool(ah) and v.get("hash") == ah) for k, v in (ents.get("angenommen") or {}).items()}
+    body = P.quelltext(book_id)
+    return {"vorhanden": bool(aus.get("blurb")), "altformat": altformat, "plan_fehler": plan_fehler, "sprachen": langs, "quelle": src,
+            "modus": modus, "modus_auto": modus_auto, "epub_kt": epub_kt or "", "verlag": verlag,
+            "herkunft": aus.get("herkunft"), "modell": aus.get("modell") or config.MODELS.get("profiler"),
+            "erzeugt": aus.get("erzeugt"), "meta": meta, "blurb": aus.get("blurb") or {},
+            "vermerke": aus.get("vermerke") or {}, "satz_befunde": satz,
+            "laenge": bef.get("laenge") or {}, "laenge_max": int(reg.get("laenge_max") or P.LAENGE_MAX),
+            "laenge_standard": P.LAENGE_MAX,
+            "autor_ungedeckt": list(bef.get("autor_jahre") or []) + list(bef.get("autor_namen") or []),
+            "edition": list(bef.get("edition") or []),
+            "autor": {k: autor.get(k) for k in ("name_display", "geburtsjahr", "todesjahr", "geburtsort",
+                                                 "sterbeort", "wirkungssprache", "verified", "qid")},
+            "autor_pflicht": (b.rechte or {}).get("art") != "eigene",
+            "genres": P.GENRES, "geschlechter": list(P.GESCHLECHT), "annehmbar": list(P.ANNEHMBAR),
+            "manuell": {"genre": ents.get("genre"), "hauptfigur_geschlecht": ents.get("hauptfigur_geschlecht"),
+                        "koeder": ents.get("koeder"), "modus": ents.get("modus"),
+                        "ersetzt": ents.get("ersetzt") or {}},
+            "angenommen": ang, "protokoll": (ents.get("protokoll") or [])[-15:],
+            "werktext": {"vorhanden": bool(body), "zeichen": len(body or "")},
+            "hinweise": (g.ergebnis.get("hinweise") if g else None) or [],
+            "kosten": {"alles": round(P.kosten_schaetzen(len(langs), modus, aus.get("modell")), 4),
+                       "koeder": round(P.kosten_schaetzen(len(langs), modus, aus.get("modell"), "meta"), 4),
+                       "bloecke": round(P.kosten_schaetzen(len(langs), modus, aus.get("modell"), "bloecke"), 4),
+                       "modus_erzeugen": round(P.kosten_schaetzen(len(langs), "erzeugen", aus.get("modell")), 4),
+                       "modus_uebernehmen": round(P.kosten_schaetzen(len(langs), "uebernehmen",
+                                                                     aus.get("modell")), 4)}}
+
+
+def _m600_teil(book_id, q):
+    from pipeline import s600_klappentext as P
+    if q.get("werktext"):
+        t = P.quelltext(book_id)
+        if not t:
+            raise ValueError("raw_modernized.txt (190) fehlt")
+        return {"text": t}
+    raise ValueError("Teil-Abruf 600: werktext=1")
+
+
+def _m600_argv(book_id, e, wer):
+    import re as _re
+    from pipeline import s600_klappentext as P
+    b = bestellung.lesen(book_id)
+    src = b.quellsprache or config.SOURCE_LANGUAGE
+    langs = [src] + [z for z in (b.zielsprachen or []) if z != src]
+    a = [PY, "-m", "pipeline.s600_klappentext", book_id, "--wer", wer]
+    for k, t in (e.get("ersetzen") or {}).items():
+        m = _re.fullmatch(r"(einordnung|autor):(\d+):([a-z]{2})", str(k))
+        if not m:
+            raise ValueError(f"Satz {k!r} ungueltig (nur Einordnung/Autor; Koeder ueber Werktext waehlen)")
+        if m.group(3) not in langs:
+            raise ValueError(f"Sprache {m.group(3)!r} nicht im Werk {langs}")
+        t = " ".join(str(t).split())
+        if not t:
+            raise ValueError(f"{k}: Text leer")
+        a.append(f"--ersetzen={k}={t}")
+    if e.get("koeder") is not None:
+        k = " ".join(str(e["koeder"]).split())
+        if k:
+            body = P.quelltext(book_id) or ""
+            if not P.KP.enthalten(k, body):
+                raise ValueError("Köder-Passage steht so nicht im Werktext (190)")
+            if len(k) > 1200:
+                raise ValueError("Köder-Passage zu lang (max. 1.200 Zeichen)")
+        a.append(f"--koeder={k}")
+    if e.get("genre") is not None:
+        a.append(f"--genre={str(e['genre']).strip()}")
+    if e.get("geschlecht"):
+        if e["geschlecht"] not in P.GESCHLECHT:
+            raise ValueError("Geschlecht weiblich|maennlich|unklar")
+        a.append(f"--geschlecht={e['geschlecht']}")
+    if e.get("modus"):
+        if e["modus"] not in ("uebernehmen", "erzeugen"):
+            raise ValueError("Modus uebernehmen|erzeugen")
+        a.append(f"--modus={e['modus']}")
+    for blk in e.get("block_neu") or []:
+        if blk not in ("koeder", "einordnung", "autor"):
+            raise ValueError(f"Block {blk!r} ungueltig")
+        a.append(f"--block-neu={blk}")
+    if e.get("laenge_max") not in (None, ""):
+        n = int(e["laenge_max"])
+        if not 200 <= n <= 5000:
+            raise ValueError("Länge-max 200–5.000 Zeichen")
+        a.append(f"--laenge-max={n}")
+    if e.get("annehmen"):
+        g = " ".join(str(e.get("grund") or "").split())
+        if not g:
+            raise ValueError("Annehmen braucht einen Grund")
+        for p in e["annehmen"]:
+            if p not in P.ANNEHMBAR:
+                raise ValueError(f"annehmen nur {P.ANNEHMBAR}")
+            a.append(f"--annehmen={p}")
+        a.append(f"--grund={g}")
+        if e.get("trocken"):
+            raise ValueError("Annehmen nicht als Probe")
+    if e.get("neu"):
+        a.append("--neu")
+    if e.get("trocken"):
+        a.append("--trocken")
+    return a
+
+
+MONITOR_DATEN["600"] = _m600_daten
+MONITOR_SPEICHERN["600"] = _m600_argv
+MONITOR_TEIL["600"] = _m600_teil
+
+
+# ---- 610 Cover-Illustration (Steckbrief GATE_MONITORE 610: Bild + Pruefwerte + Prompt; Motiv/Varianten/Upload/Erbe;
+#      annehmen trotz Rot mit Grund; Regler Schwellen der Bildpruefung)
+_M610_NAMEN = {"breite": ("breite_min", "Breite ≥", "px"), "format": ("format_tol", "Format 2:3 ±", ""),
+               "randfarbe": ("delta_e_max", "Randfarbe ΔE ≤", ""), "text_im_bild": ("ocr_woerter_max", "Text im Bild ≤", "Wörter"),
+               "motiv_hoehe": ("motiv_hoehe_min", "Motivhöhe ≥", ""), "zentrum": ("zentrum_tol", "Zentrum ±", ""),
+               "linien": ("linien_min", "Linienanteil", "")}
+
+
+def _m610_daten(book_id):
+    import contextlib as _cl
+    import io as _io
+    from pipeline import s610_cover as P
+    b = bestellung.lesen(book_id)
+    roh = b.roh or {}
+    ordner = config.book_dir(book_id)
+    man = P._json(P.manifest_pfad(book_id)) or {}
+    ents = P.entscheidungen(book_id)
+    if P.uebernahme_150(roh):
+        return {"uebernahme": True, "datei": _rel(os.path.join(ordner, roh.get("cover") or ""))}
+    plan_fehler, g = None, None
+    try:
+        with _cl.redirect_stdout(_io.StringIO()):
+            g = P.run(book_id, wer="monitor", trocken=True)
+    except Exception as e:
+        plan_fehler = f"{type(e).__name__}: {e}"
+    bi = (getattr(g, "bild", None) if g else None) or {}
+    m = bi.get("metriken") or ((man.get("pruefung") or {}).get("metriken")) or {}
+    s = bi.get("schwellen") or {**P.SCHWELLEN, **(ents.get("schwellen") or {})}
+    rot = bi.get("rot") if bi else (P.rot_liste(m, s) if m else [])
+    pruef = []
+    if m.get("lesbar"):
+        pruef = [{"art": "breite", "wert": m.get("breite"), "soll": f"≥ {s['breite_min']:g} px"},
+                 {"art": "format", "wert": m.get("format"), "soll": f"±{s['format_tol']:g}"},
+                 {"art": "randfarbe", "wert": m.get("delta_e"), "soll": f"ΔE ≤ {s['delta_e_max']:g}",
+                  "extra": m.get("rand_rgb")},
+                 {"art": "text_im_bild", "wert": m.get("ocr"), "soll": f"≤ {s['ocr_woerter_max']:g}",
+                  "extra": m.get("ocr_beispiele")},
+                 {"art": "motiv_hoehe", "wert": m.get("motiv_hoehe"), "soll": f"≥ {s['motiv_hoehe_min']:g}"},
+                 {"art": "zentrum", "wert": m.get("zentrum"), "soll": f"±{s['zentrum_tol']:g}"},
+                 {"art": "linien", "wert": m.get("linien"), "soll": f"{s['linien_min']:g}–{s['linien_max']:g}"}]
+        for p in pruef:
+            p["ok"] = p["art"] not in rot
+            if p["art"] == "text_im_bild" and m.get("ocr") is None:
+                p["ok"], p["soll"] = None, "OCR nicht verfügbar – in 615 sichten"
+    var = (man.get("varianten") or {})
+    vl = [dict(v, url=_rel(os.path.join(ordner, v["datei"])) if v.get("datei") else None) for v in var.get("liste") or []]
+    ang = ents.get("angenommen") or {}
+    teil1 = P._reihe_teil1(roh)
+    pfad = bi.get("pfad") or P.bild_pfad(book_id)
+    meta600 = (P._json(config.work_path(book_id, "600_klappentext")) or {}).get("meta") or {}
+    return {"uebernahme": False, "plan_fehler": plan_fehler,
+            "gruende": (g.ergebnis.get("gruende") if g else None) or [],
+            "hinweise": (g.ergebnis.get("hinweise") if g else None) or [],
+            "datei": _rel(pfad) if pfad else None,
+            "stand": int(os.path.getmtime(pfad)) if pfad and os.path.exists(pfad) else None,
+            "herkunft": bi.get("herkunft") or man.get("herkunft"), "prompt": man.get("prompt") or bi.get("prompt"),
+            "prompt_jetzt": bi.get("prompt"), "modell": man.get("modell"),
+            "versuche": (man.get("versuche") or [])[-12:], "metriken": m, "pruefungen": pruef, "rot": rot,
+            "schwellen": s, "standard": P.SCHWELLEN, "schwellen_werk": ents.get("schwellen") or {},
+            "motiv": ents.get("motiv") or "", "motiv_book": (roh.get("cover_motiv") or "").strip(),
+            "titel": roh.get("titel_original") or book_id, "autor": P.autor_name(book_id, roh),
+            "stimmung": P.stimmung(book_id), "genre_gruppe": meta600.get("genre_gruppe"),
+            "reihe_teil1": teil1, "erbe": ents.get("reihen_erbe", "an") if teil1 else None,
+            "varianten": vl, "varianten_prompt": var.get("prompt"), "gewaehlt": ents.get("variante"),
+            "angenommen": dict(ang, gilt=bool(ang) and ang.get("bild_hash") == bi.get("bild_hash")) if ang else None,
+            "mandant": b.mandant_art, "kosten_bild": P.KOSTEN_BILD,
+            "protokoll": [{k: v for k, v in p.items() if k in ("wer", "wann")} | {"was": {k: str(v)[:120] for k, v in p.items()
+                                                                                       if k not in ("wer", "wann")}}
+                          for p in (ents.get("protokoll") or [])[-15:]]}
+
+
+def _m610_argv(book_id, e, wer):
+    from pipeline import s610_cover as P
+    a = [PY, "-m", "pipeline.s610_cover", book_id, "--wer", wer]
+    if e.get("motiv") is not None:
+        a.append(f"--motiv={' '.join(str(e['motiv']).split())}")
+    if e.get("erbe"):
+        if e["erbe"] not in ("an", "aus"):
+            raise ValueError("Erbe an|aus")
+        a.append(f"--erbe={e['erbe']}")
+    for k, v in (e.get("schwellen") or {}).items():
+        if k not in P.SCHWELLEN:
+            raise ValueError(f"Schwelle {k!r} unbekannt")
+        x = float(v)
+        if x < 0:
+            raise ValueError(f"Schwelle {k}: >= 0")
+        a.append(f"--schwelle={k}={x:g}")
+    wege = [x for x in ("neu", "varianten", "waehle", "bild") if e.get(x) not in (None, "", False)]
+    if len(wege) > 1:
+        raise ValueError("nur ein Bildweg je Lauf: neu erzeugen, Varianten, Variante wählen oder Upload")
+    if e.get("neu"):
+        a.append("--neu")
+    if e.get("varianten") not in (None, ""):
+        n = int(e["varianten"])
+        if not 1 <= n <= 6:
+            raise ValueError("Varianten 1–6")
+        a.append(f"--varianten={n}")
+    if e.get("waehle") not in (None, ""):
+        a.append(f"--waehle={int(e['waehle'])}")
+    if e.get("bild"):
+        p = os.path.normpath(os.path.join(BASE, str(e["bild"])))
+        if not p.startswith(os.path.normpath(UPLOAD_DIR)) or not os.path.isfile(p):
+            raise ValueError("Upload-Datei nicht gefunden (erst hochladen)")
+        a.append(f"--bild={p}")
+    if e.get("annehmen"):
+        g = " ".join(str(e.get("grund") or "").split())
+        if not g:
+            raise ValueError("Annehmen braucht einen Grund")
+        if e.get("trocken") or e.get("varianten"):
+            raise ValueError("Annehmen nicht mit Probe/Varianten")
+        a += ["--annehmen", f"--grund={g}"]
+    if e.get("trocken"):
+        if wege:
+            raise ValueError("Probe prüft nur das vorhandene Bild")
+        a.append("--trocken")
+    return a
+
+
+MONITOR_DATEN["610"] = _m610_daten
+MONITOR_SPEICHERN["610"] = _m610_argv
+
+
+# ---- 615 Cover final (Steckbrief GATE_MONITORE 615: Galerie Sprache x Variante, eine Sichtfreigabe;
+#      Typo-Felder mit Live-Vorschau ueber --trocken)
+def _m615_daten(book_id):
+    import contextlib as _cl
+    import io as _io
+    from pipeline import s615_cover_final as P, s610_cover as P610
+    b = bestellung.lesen(book_id)
+    roh = b.roh or {}
+    ents = P.entscheidungen(book_id)
+    man = (P._json(P.manifest_pfad(book_id)) or {}).get("varianten") or {}
+    st = (status.laden(book_id)["stages"].get("615") or {}).get("teile") or {}
+    plan_fehler, gates = None, []
+    try:
+        with _cl.redirect_stdout(_io.StringIO()):
+            gates = P.run(book_id, wer="monitor", trocken=True)
+    except Exception as e:
+        plan_fehler = f"{type(e).__name__}: {e}"
+    gz = {g.scope: g for g in gates}
+    ill, herkunft = P.illustration(book_id, roh)
+    kacheln = []
+    for lg, var in P.varianten(b):
+        sc = f"{lg}:{var}"
+        g, mi, t = gz.get(sc), man.get(sc) or {}, st.get(sc) or {}
+        pfad = P.ausgabe_pfad(book_id, lg, var)
+        da = os.path.exists(pfad)
+        lay = ((g.aus or {}).get("layout") if g and getattr(g, "aus", None) else None) or mi.get("layout") or {}
+        aktuell = None
+        if g and da:
+            aktuell = (g.metriken or {}).get("ausgabe_hash") == mi.get("ausgabe_hash")
+        kacheln.append({"scope": sc, "sprache": lg, "variante": var, "zustand": t.get("zustand") or "offen",
+                        "wer": t.get("wer"), "wann": t.get("wann"),
+                        "probe": (g.ergebnis or {}).get("ergebnis") if g else "uebersprungen",
+                        "gruende": (g.ergebnis or {}).get("gruende") if g else
+                        ["wartet auf Freigabe 410 (Sprecher)"] if var == "audio" else [],
+                        "hinweise": (g.ergebnis or {}).get("hinweise") if g else [],
+                        "pruefungen": [{"name": p["name"], "ok": p["ok"], "wert": p.get("wert"), "text": p.get("text"),
+                                        "bei_fehler": p.get("bei_fehler")} for p in (g.pruefungen if g else [])
+                                       if p["name"] in ("titel_quelle", "titel_pruefen", "titel_zeilen", "titel_schrift",
+                                                        "titel_breite", "ueberlappung", "vermerke", "masse", "sprecher")],
+                        "datei": _rel(pfad) if da else None, "stand": int(os.path.getmtime(pfad)) if da else None,
+                        "aktuell": aktuell, "titel": (g.metriken or {}).get("titel") if g else mi.get("titel"),
+                        "titel_quelle": (g.metriken or {}).get("titel_quelle") if g else mi.get("titel_quelle"),
+                        "layout": {k: lay.get(k) for k in ("titel_zeilen", "schrift", "passt", "ueberlappung",
+                                                            "position", "transparenz", "sprecher", "vermerke")}})
+    titel = {}
+    for lg in b.sprachen:
+        t, q, fb, pr = P.titel(roh, lg, b.quellsprache)
+        titel[lg] = {"titel": t, "quelle": q, "fallback": fb, "pruefen": pr}
+    return {"plan_fehler": plan_fehler, "herkunft": herkunft, "illustration": _rel(ill) if ill else None,
+            "kacheln": kacheln, "titel": titel, "quellsprache": b.quellsprache,
+            "regler": {"umbruch": ents.get("umbruch") or {}, "schrift": ents.get("schrift") or 0,
+                       "position": ents.get("position") or "oben",
+                       "transparenz": ents.get("transparenz") if ents.get("transparenz") is not None else 0.55,
+                       "sprecher": ents.get("sprecher") or "an"},
+            "schriften": list(P.SCHRIFTEN), "schwellen": P.SCHWELLEN,
+            "sichtfreigabe": ents.get("sichtfreigabe"),
+            "offen": [k["scope"] for k in kacheln if k["zustand"] == "mensch"],
+            "reihe_folge": bool(roh.get("reihe")) and str(roh.get("teil") or "1") not in ("", "1"),
+            "zustand_610": status.zustand(book_id, "610"), "uebernahme_150": P610.uebernahme_150(roh),
+            "protokoll": [{"wer": p.get("wer"), "wann": p.get("wann"),
+                           "was": {k: str(v)[:120] for k, v in p.items() if k not in ("wer", "wann")}}
+                          for p in (ents.get("protokoll") or [])[-15:]]}
+
+
+def _m615_regler(e, sprachen):
+    """Monitor-Eingabe -> run()-Argumente (gemeinsam fuer Vorschau und Speichern)."""
+    titel = {}
+    for lg, t in (e.get("titel") or {}).items():
+        if lg not in sprachen:
+            raise ValueError(f"Sprache {lg!r} nicht bestellt")
+        t = " ".join(str(t).split())
+        if not t:
+            raise ValueError(f"Titel {lg}: leer")
+        titel[lg] = t
+    umb = {}
+    for lg, u in (e.get("umbruch") or {}).items():
+        if lg not in sprachen:
+            raise ValueError(f"Sprache {lg!r} nicht bestellt")
+        u = "|".join(z.strip() for z in str(u or "").split("|") if z.strip())
+        umb[lg] = u
+    r = {"titel_neu": titel or None, "umbruch": umb or None}
+    if e.get("schrift") not in (None, ""):
+        n = int(e["schrift"])
+        if n and not 40 <= n <= 120:
+            raise ValueError("Schrift 40–120 pt (0 = automatisch)")
+        r["schrift"] = n
+    if e.get("position"):
+        if e["position"] not in ("oben", "unten"):
+            raise ValueError("Position oben|unten")
+        r["position"] = e["position"]
+    if e.get("transparenz") not in (None, ""):
+        x = float(e["transparenz"])
+        if not 0 <= x <= 1:
+            raise ValueError("Transparenz 0–1")
+        r["transparenz"] = x
+    if e.get("sprecher"):
+        if e["sprecher"] not in ("an", "aus"):
+            raise ValueError("Sprecherzeile an|aus")
+        r["sprecher_an"] = e["sprecher"]
+    return r
+
+
+def _m615_teil(book_id, q):
+    """Live-Vorschau einer Kachel: ?vorschau=<lg>:<variante>&e=<JSON Monitor-Eingabe> -> JPEG (data-URL) + Pruefung."""
+    import base64 as _b64
+    import contextlib as _cl
+    import io as _io
+    import json as _j
+    from pipeline import s615_cover_final as P
+    sc = q.get("vorschau") or ""
+    if ":" not in sc:
+        raise ValueError("Teil-Abruf 615: vorschau=<lg>:<variante>")
+    lg, var = sc.split(":", 1)
+    b = bestellung.lesen(book_id)
+    r = _m615_regler(_j.loads(q.get("e") or "{}"), b.sprachen)
+    with _cl.redirect_stdout(_io.StringIO()):
+        gates = P.run(book_id, wer="monitor", trocken=True, nur=[lg], **r)
+    g = next((x for x in gates if x.scope == sc), None)
+    if not g:
+        raise ValueError(f"{sc}: keine Vorschau (Variante nicht bestellt oder wartet auf 410)")
+    im = (getattr(g, "aus", None) or {}).get("bild")
+    url = None
+    if im is not None:
+        im = im.copy()
+        im.thumbnail((600, 900))
+        buf = _io.BytesIO()
+        im.save(buf, "JPEG", quality=85)
+        url = "data:image/jpeg;base64," + _b64.b64encode(buf.getvalue()).decode()
+    lay = (getattr(g, "aus", None) or {}).get("layout") or {}
+    return {"scope": sc, "bild": url, "ergebnis": g.ergebnis.get("ergebnis"), "gruende": g.ergebnis.get("gruende"),
+            "hinweise": g.ergebnis.get("hinweise"),
+            "layout": {k: lay.get(k) for k in ("titel_zeilen", "schrift", "passt", "ueberlappung", "position",
+                                                "transparenz")}}
+
+
+def _m615_argv(book_id, e, wer):
+    b = bestellung.lesen(book_id)
+    a = [PY, "-m", "pipeline.s615_cover_final", book_id, "--wer", wer]
+    if e.get("freigeben"):
+        if any(e.get(k) not in (None, "", {}, False) for k in ("titel", "umbruch", "schrift", "position",
+                                                                "transparenz", "sprecher", "neu", "trocken")):
+            raise ValueError("Sichtfreigabe allein auslösen (erst Änderungen übernehmen und ansehen)")
+        return a + ["--freigeben"]
+    r = _m615_regler(e, b.sprachen)
+    for lg, t in (r.get("titel_neu") or {}).items():
+        a.append(f"--titel={lg}={t}")
+    for lg, u in (r.get("umbruch") or {}).items():
+        a.append(f"--umbruch={lg}={u}")
+    if "schrift" in r:
+        a.append(f"--schrift={r['schrift']}")
+    if "position" in r:
+        a.append(f"--position={r['position']}")
+    if "transparenz" in r:
+        a.append(f"--transparenz={r['transparenz']:g}")
+    if "sprecher_an" in r:
+        a.append(f"--sprecher={r['sprecher_an']}")
+    if e.get("neu"):
+        a.append("--neu")
+    if e.get("trocken"):
+        a.append("--trocken")
+    return a
+
+
+MONITOR_DATEN["615"] = _m615_daten
+MONITOR_SPEICHERN["615"] = _m615_argv
+MONITOR_TEIL["615"] = _m615_teil
 
 
 # ---- Stage-Ergebnis (Monitor-Abschnitt "Ergebnis", CK 04.11.2026: Ergebnis je Stage ansehen)

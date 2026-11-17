@@ -264,6 +264,38 @@ class T610(unittest.TestCase):
         self.assertFalse(os.path.exists(config.work_path("w", "610_cover")))
         self.assertNotEqual(S.zustand("w", "610"), "frei")
 
+    def test_annehmen_trotz_rot_gilt_bei_gleichem_bild(self):
+        self.antworten = [KLEIN]
+        self.assertEqual(self.lauf().ergebnis["ergebnis"], "mensch")
+        with self.assertRaises(ValueError):
+            self.lauf(annehmen=True)
+        g = self.lauf(annehmen=True, grund="Motiv bewusst klein")
+        self.assertEqual(g.ergebnis["ergebnis"], "auto", g.bericht())
+        self.assertEqual(self.aufrufe, 2)
+        a = P.entscheidungen("w")["angenommen"]
+        self.assertEqual((a["wer"], a["grund"], a["rot"]), ("test", "Motiv bewusst klein", ["motiv_hoehe", "linien"]))
+        self.assertIn("motiv_hoehe", g.bild["rot"])
+        p = os.path.join(self.r, "eigen.png")
+        open(p, "wb").write(bild(motiv=0.35))
+        self.assertEqual(self.lauf(bild=p).ergebnis["ergebnis"], "mensch")     # anderes Bild -> Annahme verfaellt
+        self.assertEqual(P.kosten_schaetzen(4), round(4 * P.KOSTEN_BILD, 4))
+
+    def test_monitor_610_daten_argv(self):
+        from cockpit import werk_api as W
+        self.antworten = [KLEIN]
+        self.lauf()
+        d = W._m610_daten("w")
+        self.assertIsNone(d["plan_fehler"])
+        self.assertIn("motiv_hoehe", d["rot"])
+        self.assertEqual(self.aufrufe, 2)                                   # Monitor = Probe, 0 $
+        a = W._m610_argv("w", {"motiv": "a lighthouse", "schwellen": {"motiv_hoehe_min": 0.3}}, "CK")
+        self.assertIn("--motiv=a lighthouse", a)
+        self.assertIn("--schwelle=motiv_hoehe_min=0.3", a)
+        for e in ({"neu": True, "varianten": 3}, {"annehmen": True}, {"schwellen": {"x": 1}},
+                  {"bild": "../etc/passwd"}, {"varianten": 9}):
+            with self.assertRaises(ValueError):
+                W._m610_argv("w", e, "CK")
+
     # ---------------------------------------------------------- Bildmetriken
     def test_metriken(self):
         self.bild_ablegen("w", GUT)

@@ -261,6 +261,36 @@ class T615(unittest.TestCase):
         self.assertFalse(os.path.exists(config.work_path("w", "615_cover_final")))
         self.assertEqual(S.zustand("w", "615"), "offen")
 
+    def test_trocken_live_vorschau_mit_reglern(self):
+        self.lauf()
+        vor = open(os.path.join(self.r, "w", "book.json"), encoding="utf-8").read()
+        gs = self.lauf(trocken=True, titel_neu={"de": "Das Haus am Fluss"}, umbruch={"de": "Das Haus|am Fluss"},
+                       position="unten", transparenz=0.3, nur=["de"])
+        g = gs["de:text"]
+        self.assertEqual(g.aus["layout"]["titel_zeilen"], ["Das Haus", "am Fluss"])
+        self.assertEqual((g.aus["layout"]["position"], g.aus["layout"]["transparenz"]), ("unten", 0.3))
+        self.assertEqual(g.metriken["titel_quelle"], "manuell")
+        self.assertEqual(open(os.path.join(self.r, "w", "book.json"), encoding="utf-8").read(), vor)
+        self.assertNotIn("position", P.entscheidungen("w"))
+
+    def test_monitor_615_daten_vorschau_argv(self):
+        import json as _j
+        from cockpit import werk_api as W
+        self.lauf()
+        d = W._m615_daten("w")
+        self.assertEqual([k["scope"] for k in d["kacheln"]], ["en:text", "de:text"])
+        self.assertEqual(d["offen"], ["en:text", "de:text"])
+        t = W._m615_teil("w", {"vorschau": "de:text", "e": _j.dumps({"umbruch": {"de": "Das|Haus"}})})
+        self.assertTrue(t["bild"].startswith("data:image/jpeg;base64,"))
+        self.assertEqual(t["layout"]["titel_zeilen"], ["Das", "Haus"])
+        a = W._m615_argv("w", {"titel": {"de": "Das Haus am Fluss"}, "schrift": 0, "transparenz": 0.3}, "CK")
+        self.assertIn("--titel=de=Das Haus am Fluss", a)
+        self.assertIn("--schrift=0", a)
+        self.assertEqual(W._m615_argv("w", {"freigeben": True}, "CK")[-1], "--freigeben")
+        for e in ({"freigeben": True, "position": "unten"}, {"titel": {"fr": "X"}}, {"transparenz": 2}):
+            with self.assertRaises(ValueError):
+                W._m615_argv("w", e, "CK")
+
     def test_kette_neu(self):
         import run
         self.assertIn("615", run.UMGEBAUT)
