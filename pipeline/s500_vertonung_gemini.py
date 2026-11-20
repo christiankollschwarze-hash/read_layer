@@ -7,7 +7,7 @@ Wirkungsweise: Manifest work/500_vertonung.json je Sprache/Satz mit Eingangs-Has
               vertont (Altfassung/geaenderte Stimme -> automatisch neu). Vor jedem kostenpflichtigen Lauf
               Kostenschaetzung: Somnio im Budget (Regler --budget, Standard 0 $) -> auto, sonst Mensch
               (--kosten-freigeben USD). Satzpruefung je Satz
-              (FA: Woerter/Nachklang/Vorlauf/Abbruch; Chatterbox im Modal-Lauf, Gemini lokal) + Dauer je Zeichen
+              (FA: Woerter/Nachklang/Vorlauf/Abbruch; Chatterbox im Modal-Lauf, Gemini per Modal-GPU, Regler --fa modal|cpu) + Dauer je Zeichen
               (Median der Sprache), leer, Clipping; auffaellig -> bis 2x neu (bestes bleibt, Nachklang gekappt).
               Erster Lauf uebernimmt vorhandene WAVs ohne Kosten bei eindeutigem Altbeleg mit gleicher Engine,
               Stimme und Adapter (book.json tts/stimme, gpu_tts/<werk>_<lg>/jobs.json, Alt-500 audio_voice_used).
@@ -40,6 +40,7 @@ import os
 import re
 import statistics
 import sys
+import threading
 import time
 import wave
 
@@ -56,7 +57,9 @@ LANG_CODE = {"en": "en-US", "de": "de-DE", "fr": "fr-FR", "es": "es-ES", "it": "
 REGLER_STD = {"engine": {}, "ex": 0.5, "cfg": 0.5, "block_min": None, "block_ideal": None,
               "block_max": None, "valley_ratio": 0.45, "batch": cb.BATCH_STD, "fp16": False,
               "budget": getattr(config, "BUDGET_500_USD", 0.0), "auffaellig_max": 0.01,
-              "dauer_min": 0.6, "dauer_max": 1.6, "versuche": 2}
+              "dauer_min": 0.6, "dauer_max": 1.6, "versuche": 2, "parallel": 4, "fa": "modal"}
+PRUEF_MODAL_MIN = 20         # ab so vielen Saetzen lohnt der Modal-Start (Container + Upload); darunter CPU
+PRUEF_MODAL_CHUNK = 150      # Saetze je GPU-Aufruf (Modell wird je Aufruf einmal geladen)
 MS_GEMINI = 0.065            # s je Zeichen (Erwartung FA-Pruefer; Dauer-Gate misst den Median der Sprache)
 KOSTEN_PUFFER = 1.15         # Wiederholungen/Fallback
 FALLBACK_HINWEIS = 0.10
@@ -386,6 +389,78 @@ def pruefer_fabrik(ms):
     return FaPruefer(ms)
 
 
+def _wav16_datei(p, ziel):
+    """WAV -> 16 kHz mono 16 Bit (Upload fuer die Modal-Pruefung; der Pruefer rechnet ohnehin auf 16 kHz)."""
+    import numpy as np
+    with wave.open(p, "rb") as w:
+        sr, nch, sw = w.getframerate(), w.getnchannels(), w.getsampwidth()
+        roh = w.readframes(w.getnframes())
+    if sw != 2:
+        raise ValueError(f"{p}: erwarte 16-Bit-PCM")
+    x = np.frombuffer(roh, dtype="<i2").astype("float32") / 32768.0
+    if nch > 1:
+        x = x.reshape(-1, nch).mean(axis=1)
+    n = int(round(len(x) * 16000 / sr)) if sr != 16000 else len(x)
+    y = np.interp(np.linspace(0, len(x) - 1, n), np.arange(len(x)), x) if (len(x) and n != len(x)) else x
+    with wave.open(ziel, "wb") as o:
+        o.setnchannels(1)
+        o.setsampwidth(2)
+        o.setframerate(16000)
+        o.writeframes((np.clip(y, -1, 1) * 32767).astype("<i2").tobytes())
+
+
+def pruefen_modal(jobs, werk, lg, ms):
+    """jobs [(key, text, pfad)] -> {key: befund|{fehler}} ueber gpu_tts/pruef_modal.py (Modal-GPU)."""
+    import tempfile
+    sys.path.insert(0, os.path.join(REPO, "gpu_tts"))
+    from pruef_modal import app, vol, pruefen
+    prefix = f"/s500/{werk}/{lg}/{time.strftime('%Y%m%d%H%M%S')}"
+    arbeit, out = [], {}
+    with app.run():
+        with tempfile.TemporaryDirectory() as tmp:
+            with vol.batch_upload(force=True) as b:
+                for i, (key, text, p) in enumerate(jobs):
+                    lokal, ziel = os.path.join(tmp, f"{i:05d}.wav"), f"{prefix}/{i:05d}.wav"
+                    _wav16_datei(p, lokal)
+                    b.put_file(lokal, ziel)
+                    arbeit.append({"key": key, "wav": ziel, "text": text})
+        print(f"[500] {lg}: Satzpruefung Modal – {len(arbeit)} Saetze hochgeladen", flush=True)
+        stuecke = [arbeit[i:i + PRUEF_MODAL_CHUNK] for i in range(0, len(arbeit), PRUEF_MODAL_CHUNK)]
+        for res in pruefen.map(stuecke, kwargs={"ms": ms}):
+            out.update(res)
+        try:
+            vol.remove_file(prefix, recursive=True)
+        except Exception:
+            pass
+    return out
+
+
+def pruefen_viele(pruefer, jobs, werk, lg, art="modal"):
+    """Satzpruefung fuer viele Saetze: Modal-GPU (Regler fa=modal) mit CPU-Rueckfall je fehlendem Satz.
+    jobs [(key, text, pfad)] -> {key: befund}. Mock/Testpruefer und kleine Mengen laufen lokal."""
+    out = {}
+    if art == "modal" and isinstance(pruefer, FaPruefer) and not mock.aktiv() and len(jobs) >= PRUEF_MODAL_MIN:
+        t0 = time.time()
+        try:
+            res = pruefen_modal(jobs, werk, lg, pruefer.cbp.MS_JE_ZEICHEN)
+            out = {k: v for k, v in res.items() if isinstance(v, dict) and "fehler" not in v}
+            print(f"[500] {lg}: Satzpruefung Modal {len(out)}/{len(jobs)} in {(time.time() - t0) / 60:.1f} min",
+                  flush=True)
+        except Exception as e:
+            print(f"[500] {lg}: Modal-Satzpruefung nicht nutzbar -> CPU: {type(e).__name__}: {str(e)[:120]}",
+                  flush=True)
+        finally:
+            usage_log.log_gpu(werk, STAGE, time.time() - t0, extra={"sprache": lg, "teil": "pruefung"})
+    rest = [j for j in jobs if j[0] not in out]
+    t0 = time.time()
+    for i, (key, text, p) in enumerate(rest, 1):
+        out[key] = dict(pruefer.pruefe(text, p))
+        if i % 50 == 0 or i == len(rest):
+            r = (time.time() - t0) / i * (len(rest) - i)
+            print(f"[500] {lg}: Satzpruefung CPU {i}/{len(rest)} (Rest ~{r / 60:.0f} min)", flush=True)
+    return out
+
+
 def _grund_lokal(info, text, median, rg):
     if info["leer"]:
         return "leer"
@@ -474,7 +549,9 @@ def gemini_vertonen(werk, lg, units, offen, voice, rg, adir, text_tts, out, fall
     reihe = [(u["id"], u["typ"]) for u in units if u["typ"] != "ansage"]
     plan = [("solo", [u["id"]]) for u in units if u["typ"] == "ansage" and u["id"] in offen]
     plan += _bloecke(reihe, offen, rg)
-    n_block = 0
+    n_block = sum(1 for k, _ in plan if k == "block")
+    fa_sperre = threading.Lock()          # Blockschnitt (MMS_FA) seriell: RAM, Modell-Laden (Learning 22.10.)
+    halt = threading.Event()
 
     def solo(t, block=False, fb=None):
         p = os.path.join(adir, f"{t}.wav")
@@ -484,13 +561,20 @@ def gemini_vertonen(werk, lg, units, offen, voice, rg, adir, text_tts, out, fall
             return
         out[t] = {"pfad": p, "block": block, "fallback": fb}
 
-    for kind, ids in plan:
+    def aufgabe(kind, ids):
+        if halt.is_set():
+            return
+        try:
+            _aufgabe(kind, ids)
+        except BaseException:
+            halt.set()                         # z. B. QuotaError: keine weiteren Auftraege starten
+            raise
+
+    def _aufgabe(kind, ids):
         if kind == "solo" or mock.aktiv():
             for t in ids:
                 solo(t)
-            n_block += kind == "block"
-            continue
-        n_block += 1
+            return
         saetze = [{"id": t, "text": _ensure_terminal(text_tts[t])} for t in ids]
         label = f"Block {ids[0]}..{ids[-1]} ({len(ids)})"
         bwav = os.path.join(adir, f"_blockS_{ids[0]}.wav")
@@ -506,8 +590,9 @@ def gemini_vertonen(werk, lg, units, offen, voice, rg, adir, text_tts, out, fall
                 grund = f"Block zu lang ({ist:.0f}s)"
         if grund is None:
             try:
-                rep = audio_fa.fa_cut(bwav, saetze + [{"id": SENTINEL_ID, "text": sent}],
-                                      valley_ratio=float(rg["valley_ratio"]))
+                with fa_sperre:
+                    rep = audio_fa.fa_cut(bwav, saetze + [{"id": SENTINEL_ID, "text": sent}],
+                                          valley_ratio=float(rg["valley_ratio"]))
                 bnds, cuts = rep.get("boundaries", []), rep.get("cuts", [])
                 if not (rep["net"]["ok"] and len(bnds) == len(ids) == len(cuts)
                         and all(b["status"] == "OK" for b in bnds)):
@@ -516,7 +601,8 @@ def gemini_vertonen(werk, lg, units, offen, voice, rg, adir, text_tts, out, fall
                 else:
                     pfade = [os.path.join(adir, f"{t}.wav") for t in ids]
                     st = os.path.join(adir, f"_sentinel_{ids[0]}.wav")
-                    w = audio_fa.slice_block(bwav, cuts, pfade + [st])
+                    with fa_sperre:
+                        w = audio_fa.slice_block(bwav, cuts, pfade + [st])
                     _weg(st)
                     if all(ok for _, ok in w[:len(ids)]):
                         for t, p in zip(ids, pfade):
@@ -533,6 +619,25 @@ def gemini_vertonen(werk, lg, units, offen, voice, rg, adir, text_tts, out, fall
                 solo(t, fb=grund)
         else:
             print(f"  {label}: ok")
+
+    n_par = 1 if mock.aktiv() else max(1, int(rg.get("parallel") or 1))
+    if n_par == 1:
+        for kind, ids in plan:
+            aufgabe(kind, ids)
+        return n_block
+    print(f"  {len(plan)} Auftraege, {n_par} parallel")
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=n_par) as ex:
+        fut = [ex.submit(aufgabe, kind, ids) for kind, ids in plan]
+        fehler = None
+        for f in fut:
+            try:
+                f.result()
+            except BaseException as e:            # QuotaError u. a.: Rest nicht mehr starten, Fertiges bleibt
+                halt.set()
+                fehler = fehler or e
+        if fehler:
+            raise fehler
     return n_block
 
 
@@ -600,7 +705,8 @@ def _regler_gueltig(rg):
                 and rg["fp16"] in (True, False) and float(rg["budget"]) >= 0
                 and 0 <= float(rg["auffaellig_max"]) <= 1
                 and 0 < float(rg["dauer_min"]) < float(rg["dauer_max"])
-                and 0 <= int(rg["versuche"]) <= 3)
+                and 0 <= int(rg["versuche"]) <= 3 and 1 <= int(rg.get("parallel") or 1) <= 8
+                and (rg.get("fa") or "modal") in ("modal", "cpu"))
     except Exception:
         return False
 
@@ -823,14 +929,12 @@ def run(werk, wer=None, regler=None, saetze=None, kapitel=None, nur_lang=None, n
                 befund.setdefault(t, {"grund": None})
             if p["nach"]:
                 alt_q = {t: (m.get(f"{lg}/{t}") or {}) for t in p["nach"]}
-            # Satzpruefung: FA (Gemini lokal; Chatterbox aus Modal) + lokal Dauer/leer/Clipping, bis N x neu
+            # Satzpruefung: FA (Gemini Modal-GPU mit CPU-Rueckfall; Chatterbox aus Modal) + lokal Dauer/leer/Clipping, bis N x neu
             if engine == "gemini" and pruefer_g and not mock.aktiv():
-                t0 = time.time()
-                for i, t in enumerate(neu_ids, 1):
-                    befund[t] = dict(pruefer_g.pruefe(tts[t], neu_ids[t]["pfad"]))
-                    if i % 50 == 0 or i == len(neu_ids):
-                        rest = (time.time() - t0) / i * (len(neu_ids) - i)
-                        print(f"[500] {lg}: Satzpruefung {i}/{len(neu_ids)} (Rest ~{rest / 60:.0f} min)", flush=True)
+                erg = pruefen_viele(pruefer_g, [(t, tts[t], neu_ids[t]["pfad"]) for t in neu_ids], werk, lg,
+                                    rg.get("fa") or "modal")
+                for t in neu_ids:
+                    befund[t] = erg[t]
             med = _median(units, tts, m, lg, {t: wav_dauer(x["pfad"]) for t, x in neu_ids.items()})
             for t, x in neu_ids.items():
                 befund[t]["grund"] = befund[t].get("grund") or _grund_lokal(wav_info(x["pfad"]), tts[t], med, rg)
@@ -1019,9 +1123,10 @@ def main(argv=None):
     ap.add_argument("--engine", action="append", metavar="LG=gemini|chatterbox|auto")
     for k in ("ex", "cfg", "valley-ratio", "budget", "auffaellig-max", "dauer-min", "dauer-max"):
         ap.add_argument(f"--{k}", type=float)
-    for k in ("block-min", "block-ideal", "block-max", "batch", "versuche", "probe"):
+    for k in ("block-min", "block-ideal", "block-max", "batch", "versuche", "probe", "parallel"):
         ap.add_argument(f"--{k}", type=int)
     ap.add_argument("--fp16", choices=("an", "aus"))
+    ap.add_argument("--fa", choices=("modal", "cpu"), help="Satzpruefung Gemini: Modal-GPU (Standard) oder CPU")
     ap.add_argument("--satz", action="append")
     ap.add_argument("--kapitel")
     ap.add_argument("--lang")
@@ -1045,7 +1150,8 @@ def main(argv=None):
               "block_min": a.block_min, "block_ideal": a.block_ideal, "block_max": a.block_max,
               "valley_ratio": a.valley_ratio, "batch": a.batch, "fp16": {"an": True, "aus": False}.get(a.fp16),
               "budget": a.budget, "auffaellig_max": a.auffaellig_max, "dauer_min": a.dauer_min,
-              "dauer_max": a.dauer_max, "versuche": a.versuche}
+              "dauer_max": a.dauer_max, "versuche": a.versuche, "parallel": a.parallel,
+              "fa": a.fa}
     kf = None
     if a.kosten_freigeben:
         kf = {}

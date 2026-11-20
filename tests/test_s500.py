@@ -342,6 +342,40 @@ class T500(unittest.TestCase):
         self.assertTrue(any("Solo-Fallback" in h for h in g.ergebnis["hinweise"]))
         self.assertEqual(self.lesen("500_vertonung.json")["eintraege"]["de/c001_00002_s"]["q"], "fallback")
 
+    def test_gemini_parallel_gleiches_ergebnis_und_quota_stopp(self):
+        import threading, time as _t
+        from pipeline import tts_client
+        echt, akt, spitze, sperre = self.synth, [0], [0], threading.Lock()
+
+        def langsam(text, style, out, voice, lg):
+            with sperre:
+                akt[0] += 1
+                spitze[0] = max(spitze[0], akt[0])
+            _t.sleep(0.05)
+            echt(text, style, out, voice, lg)
+            with sperre:
+                akt[0] -= 1
+        P.synth = langsam
+        self.werk(extra={"vertonung_regler": {"budget": 5.0, "parallel": 3}})
+        g = self.lauf()
+        self.assertEqual(g.ergebnis["ergebnis"], "auto", g.bericht())
+        for t in AUDIO:
+            self.assertTrue(os.path.exists(self.a(f"{t}.wav")), t)
+        self.assertGreater(spitze[0], 1)
+        self.assertLessEqual(spitze[0], 3)
+        # Kontingent erschoepft: keine weiteren Auftraege, Fertiges bleibt verbucht
+        n = [0]
+
+        def quota(text, style, out, voice, lg):
+            n[0] += 1
+            raise tts_client.QuotaError("429")
+        P.synth = quota
+        self.werk(sprech={k: "Neu gesprochen, Satz " + k for k in AUDIO},
+                  extra={"vertonung_regler": {"budget": 5.0, "parallel": 2}})
+        g = self.lauf()
+        self.assertNotEqual(g.ergebnis["ergebnis"], "auto")
+        self.assertLessEqual(n[0], 2)
+
     def test_ansagen(self):
         self.werk(ansagen={"de": [{"id": "ansage_titel", "position": "anfang", "text": "Alice.", "sprechtext": "Alice.",
                                    "direction": "clear", "pause_after_ms": 1500},
@@ -465,6 +499,64 @@ class T500(unittest.TestCase):
         self.assertIn("500", run.UMGEBAUT)
         self.assertIn("500", run.NEU)
         self.assertNotIn("500", run.ALT)
+
+
+class TPruefungModal(unittest.TestCase):
+    """20.11.2026: Satzpruefung Gemini ueber Modal-GPU, CPU-Rueckfall je fehlendem Satz."""
+    class Cpu:
+        def __init__(self): self.n = []
+        def pruefe(self, text, p): self.n.append(p); return {"grund": None, "letzt": 1.0, "dauer": 1.2}
+
+    def setUp(self):
+        self.alt = (P.pruefen_modal, P.usage_log.log_gpu, P.PRUEF_MODAL_MIN)
+        P.usage_log.log_gpu = lambda *a, **k: None
+        P.PRUEF_MODAL_MIN = 2
+        self.jobs = [(f"s{i}", "Ein Satz.", f"/x/s{i}.wav") for i in range(4)]
+
+    def tearDown(self):
+        P.pruefen_modal, P.usage_log.log_gpu, P.PRUEF_MODAL_MIN = self.alt
+
+    def fa(self):
+        f = P.FaPruefer.__new__(P.FaPruefer)          # ohne Modell-Laden
+        cpu = self.Cpu()
+        f.pruefe = cpu.pruefe
+        f.cbp = type("C", (), {"MS_JE_ZEICHEN": 0.065})
+        return f, cpu
+
+    def test_fremder_pruefer_bleibt_lokal(self):
+        P.pruefen_modal = lambda *a: self.fail("kein Modal fuer Test-/Mockpruefer")
+        cpu = self.Cpu()
+        with contextlib.redirect_stdout(io.StringIO()):
+            out = P.pruefen_viele(cpu, self.jobs, "w", "de")
+        self.assertEqual(sorted(out), ["s0", "s1", "s2", "s3"])
+
+    def test_modal_mit_rueckfall_je_satz(self):
+        f, cpu = self.fa()
+        P.pruefen_modal = lambda jobs, werk, lg, ms: {"s0": {"grund": "nachklang", "letzt": 2.0},
+                                                       "s1": {"grund": None}, "s2": {"fehler": "IndexError"}}
+        with contextlib.redirect_stdout(io.StringIO()):
+            out = P.pruefen_viele(f, self.jobs, "w", "de")
+        self.assertEqual(out["s0"]["grund"], "nachklang")
+        self.assertEqual(sorted(cpu.n), ["/x/s2.wav", "/x/s3.wav"])     # Fehler + fehlend -> CPU
+
+    def test_modal_ausfall_cpu(self):
+        f, cpu = self.fa()
+        def kaputt(*a): raise RuntimeError("kein Modal")
+        P.pruefen_modal = kaputt
+        with contextlib.redirect_stdout(io.StringIO()):
+            out = P.pruefen_viele(f, self.jobs, "w", "de")
+        self.assertEqual(len(out), 4)
+        self.assertEqual(len(cpu.n), 4)
+
+    def test_regler_cpu_und_kleine_menge(self):
+        f, cpu = self.fa()
+        P.pruefen_modal = lambda *a: self.fail("fa=cpu bzw. zu wenige Saetze")
+        with contextlib.redirect_stdout(io.StringIO()):
+            P.pruefen_viele(f, self.jobs, "w", "de", "cpu")
+            P.pruefen_viele(f, self.jobs[:1], "w", "de")
+        self.assertEqual(len(cpu.n), 5)
+        self.assertTrue(P._regler_gueltig(dict(P.REGLER_STD, fa="cpu")))
+        self.assertFalse(P._regler_gueltig(dict(P.REGLER_STD, fa="gpu")))
 
 
 if __name__ == "__main__":

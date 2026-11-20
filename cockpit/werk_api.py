@@ -2636,8 +2636,9 @@ def _m500_daten(book_id):
     fr = (P._json(os.path.join(config.work_dir(book_id), "500_kosten.json"), {}) or {}).get("freigaben") or []
     return {"plan_fehler": plan_fehler, "mandant": b.mandant_art, "budget": float(rg["budget"]),
             "kosten_offen": met.get("kosten_usd"), "sprachen": sprachen, "freigaben": fr[-10:],
-            "regler": {k: rg[k] for k in ("budget", "auffaellig_max", "dauer_min", "dauer_max", "versuche")},
-            "standard": {k: P.REGLER_STD[k] for k in ("budget", "auffaellig_max", "dauer_min", "dauer_max", "versuche")},
+            "regler": {k: rg[k] for k in ("budget", "auffaellig_max", "dauer_min", "dauer_max", "versuche", "parallel")},
+            "standard": {k: P.REGLER_STD[k] for k in ("budget", "auffaellig_max", "dauer_min", "dauer_max", "versuche",
+                                                      "parallel")},
             "gruende_probe": (g.ergebnis or {}).get("gruende", []) if g else [],
             "hinweise_probe": (g.ergebnis or {}).get("hinweise", []) if g else []}
 
@@ -2685,7 +2686,7 @@ def _m500_argv(book_id, e, wer):
             raise ValueError("Probe 1–20 Saetze")
         a.append(f"--probe={n}")
     for k, lo, hi, typ in (("budget", 0, 500, float), ("auffaellig_max", 0, 1, float), ("dauer_min", 0.1, 1, float),
-                           ("dauer_max", 1, 5, float), ("versuche", 0, 3, int)):
+                           ("dauer_max", 1, 5, float), ("versuche", 0, 3, int), ("parallel", 1, 8, int)):
         if e.get(k) not in (None, ""):
             x = typ(e[k])
             if not lo <= x <= hi:
@@ -2705,7 +2706,8 @@ MONITOR_SPEICHERN["500"] = _m500_argv
 #      Regler Budget, auffaellig-max, Dauer, Versuche, Naht-dB, Ueberblendung (+ FA-/Stueck-Schwelle))
 M510_REGLER = (("budget", 0, 500, float), ("auffaellig_max", 0, 1, float), ("dauer_min", 0.1, 1, float),
                ("dauer_max", 1, 5, float), ("versuche", 0, 3, int), ("naht_db", 0.5, 20, float),
-               ("ueberblend_ms", 0, 100, int), ("fa_min", 0.1, 1, float), ("stueck_min", 0.01, 2, float))
+               ("ueberblend_ms", 0, 100, int), ("fa_min", 0.1, 1, float), ("stueck_min", 0.01, 2, float),
+               ("parallel", 1, 8, int))
 
 
 def _m510_daten(book_id):

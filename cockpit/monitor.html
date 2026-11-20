@@ -1691,8 +1691,9 @@ MON["500"]={
      <div class="akt">Budget (Somnio) <input type="number" min="0" step="0.5" value="${rg("budget")}" style="width:70px" onchange="MON['500'].rg('budget',+this.value)"> $
       · auffällig ≤ <input type="number" min="0" max="100" step="0.5" value="${+(100*rg("auffaellig_max")).toFixed(2)}" style="width:60px" onchange="MON['500'].rg('auffaellig_max',+this.value/100)"> %
       · Dauer je Zeichen <input type="number" min="0.1" max="1" step="0.05" value="${rg("dauer_min")}" style="width:60px" onchange="MON['500'].rg('dauer_min',+this.value)"> – <input type="number" min="1" max="5" step="0.1" value="${rg("dauer_max")}" style="width:60px" onchange="MON['500'].rg('dauer_max',+this.value)"> × Median
-      · Wiederholungen <input type="number" min="0" max="3" value="${rg("versuche")}" style="width:50px" onchange="MON['500'].rg('versuche',+this.value)"></div>
-     <div class="klein">Standard: Budget ${d.standard.budget} $, auffällig ${100*d.standard.auffaellig_max} %, Dauer ${d.standard.dauer_min}–${d.standard.dauer_max}, ${d.standard.versuche} Wiederholungen. Technik (Engine, Blöcke, cfg, fp16, Batch) nicht im Monitor.</div></div>
+      · Wiederholungen <input type="number" min="0" max="3" value="${rg("versuche")}" style="width:50px" onchange="MON['500'].rg('versuche',+this.value)">
+      · Gemini parallel <input type="number" min="1" max="8" value="${rg("parallel")}" style="width:50px" onchange="MON['500'].rg('parallel',+this.value)"></div>
+     <div class="klein">Standard: Budget ${d.standard.budget} $, auffällig ${100*d.standard.auffaellig_max} %, Dauer ${d.standard.dauer_min}–${d.standard.dauer_max}, ${d.standard.versuche} Wiederholungen, ${d.standard.parallel} Gemini-Blöcke gleichzeitig (Kosten gleich, nur schneller; bei Rate-Limit-Fehlern senken). Technik (Engine, Blöcke, cfg, fp16, Batch) nicht im Monitor.</div></div>
     <div class="box"><h2>3 Speichern · 4 Freigeben</h2>
      <div class="akt"><input type="text" size="50" placeholder="Grund (Pflicht beim Annehmen)" value="${esc(E.grund)}" oninput="MON['500'].E.grund=this.value">
       <button class="haupt" onclick="MON['500'].los(false)">Übernehmen und 500 starten</button>
@@ -1810,9 +1811,9 @@ MON["510"]={
     const R=(k,lab,min,max,st,w,f,inv)=>`${lab} <input type="number" min="${min}" max="${max}" step="${st}" value="${f?f(rg(k)):rg(k)}" style="width:${w||60}px" onchange="MON['510'].rg('${k}',${inv?inv:"+this.value"})">`;
     return `<div class="box"><h2>Regler je Werk</h2>
      <div class="akt">${R("budget","Budget (Somnio)",0,500,0.5,70)} $ · ${R("auffaellig_max","auffällig ≤",0,100,0.5,60,v=>+(100*v).toFixed(2),"+this.value/100")} %
-      · ${R("dauer_min","Dauer",0.1,1,0.05)} – ${R("dauer_max","",1,5,0.1)} × Satz 500 · ${R("versuche","Wiederholungen",0,3,1,50)}</div>
+      · ${R("dauer_min","Dauer",0.1,1,0.05)} – ${R("dauer_max","",1,5,0.1)} × Satz 500 · ${R("versuche","Wiederholungen",0,3,1,50)} · ${R("parallel","Gemini parallel",1,8,1,50)}</div>
      <div class="akt">${R("naht_db","Naht ≤",0.5,20,0.5)} dB · ${R("ueberblend_ms","Überblendung",0,100,1)} ms · ${R("fa_min","FA-Wörter ≥",10,100,1,60,v=>Math.round(100*v),"+this.value/100")} % · ${R("stueck_min","Stück ≥",0.01,2,0.01)} s</div>
-     <div class="klein">Standard: Budget ${d.standard.budget} $, auffällig ${100*d.standard.auffaellig_max} %, Dauer ${d.standard.dauer_min}–${d.standard.dauer_max}, ${d.standard.versuche} Wiederholungen, Naht ${d.standard.naht_db} dB, Überblendung ${d.standard.ueberblend_ms} ms, FA ${100*d.standard.fa_min} %, Stück ${d.standard.stueck_min} s. Technik (Schnitt Modal/CPU, Lautheit, Stil) nicht im Monitor. Neue Schwellen wirken auf die nächste Prüfung; Naht/Überblendung bauen betroffene Sätze neu (0 $).</div></div>
+     <div class="klein">Standard: Budget ${d.standard.budget} $, auffällig ${100*d.standard.auffaellig_max} %, Dauer ${d.standard.dauer_min}–${d.standard.dauer_max}, ${d.standard.versuche} Wiederholungen, Naht ${d.standard.naht_db} dB, Überblendung ${d.standard.ueberblend_ms} ms, FA ${100*d.standard.fa_min} %, Stück ${d.standard.stueck_min} s, ${d.standard.parallel} Takes gleichzeitig (Kosten gleich). Technik (Schnitt Modal/CPU, Lautheit, Stil) nicht im Monitor. Neue Schwellen wirken auf die nächste Prüfung; Naht/Überblendung bauen betroffene Sätze neu (0 $).</div></div>
     <div class="box"><h2>3 Speichern · 4 Freigeben</h2>
      <div class="akt"><button class="haupt" onclick="MON['510'].los(false)">Übernehmen und 510 starten</button>
       <button onclick="MON['510'].los(true)">Probe (schreibt nichts)</button> <span id="zf510" class="klein"></span></div>

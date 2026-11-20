@@ -328,6 +328,34 @@ class T510(unittest.TestCase):
         self.assertEqual((e["q"], e["pruefung"]), ("erzaehler", "policy"))
         self.assertIn("1 Policy-Ablehnungen", g.bericht())
 
+    def test_takes_parallel_und_quota_stopp(self):
+        import threading, time as _t
+        from pipeline import tts_client
+        echt, akt, spitze, sp = self.synth, [0], [0], threading.Lock()
+
+        def langsam(text, style, out, voice, lg):
+            with sp:
+                akt[0] += 1
+                spitze[0] = max(spitze[0], akt[0])
+            _t.sleep(0.05)
+            echt(text, style, out, voice, lg)
+            with sp:
+                akt[0] -= 1
+        P5.synth = langsam
+        self.lauf()
+        for t in FIG:
+            self.assertTrue(os.path.exists(self.h(f"{t}.wav")), t)
+        self.assertGreater(spitze[0], 1)
+        n = [0]
+
+        def quota(*a, **k):
+            n[0] += 1
+            raise tts_client.QuotaError("429")
+        P5.synth = quota
+        g = self.lauf(neu=True, regler={"parallel": 2})
+        self.assertNotEqual(g.ergebnis["ergebnis"], "auto")
+        self.assertLessEqual(n[0], 2)
+
     def test_naht_auffaellig(self):
         self.amp = 20000
         g = self.lauf(regler={"lautheit": False})

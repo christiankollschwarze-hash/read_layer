@@ -35,6 +35,7 @@ import os
 import re
 import shutil
 import sys
+import threading
 import time
 import wave
 
@@ -53,7 +54,7 @@ ERZ = s420.ERZ
 VERSION = 2          # 2: Pegel an die Erzaehlerstuecke im Satz (aktiver Pegel), CK 16.11.2026
 REGLER_STD = {"schnitt": "modal", "ueberblend_ms": 12, "lautheit": True,
               "budget": float(getattr(config, "BUDGET_510_USD", 0.0)), "auffaellig_max": 0.01, "naht_db": 3.0,
-              "stueck_min": 0.15, "dauer_min": 0.7, "dauer_max": 1.5, "fa_min": 0.9, "versuche": 2}
+              "stueck_min": 0.15, "dauer_min": 0.7, "dauer_max": 1.5, "fa_min": 0.9, "versuche": 2, "parallel": 4}
 STIL_FIGUR = ("Character dialogue in an audio drama. Speak this line in character, naturally, as spoken "
               "dialogue – not as narration.")
 RETRIES = 3
@@ -386,7 +387,8 @@ def _regler_gueltig(rg):
                 and rg["lautheit"] in (True, False) and float(rg["budget"]) >= 0
                 and 0 <= float(rg["auffaellig_max"]) <= 1 and 0 < float(rg["naht_db"]) <= 20
                 and 0 < float(rg["stueck_min"]) <= 2 and 0 < float(rg["dauer_min"]) < float(rg["dauer_max"])
-                and 0 < float(rg["fa_min"]) <= 1 and 0 <= int(rg["versuche"]) <= 3)
+                and 0 < float(rg["fa_min"]) <= 1 and 0 <= int(rg["versuche"]) <= 3
+                and 1 <= int(rg.get("parallel") or 1) <= 8)
     except Exception:
         return False
 
@@ -649,18 +651,43 @@ def _bauen(werk, lg, p, m, m500, rg, ent):
         return os.path.join(tdir, f"{t}__{f}.wav")
 
     def takes_erzeugen(ids, alle=False):
-        for t in ids:
-            for f in (p["sel"][t][3] if alle else p["take_neu"].get(t, [])):
-                if mock.aktiv():
-                    os.makedirs(tdir, exist_ok=True)
-                    mock.wav(tp(t, f))
-                    continue
+        """Gemini-Takes, bis rg parallel gleichzeitig (wie 500); Policy-Ablehnung -> Satz 'policy' (weitere Takes des
+        Satzes entfallen), QuotaError haelt alle weiteren Auftraege an."""
+        auftr = [(t, f) for t in ids for f in (p["sel"][t][3] if alle else p["take_neu"].get(t, []))]
+        if mock.aktiv():
+            os.makedirs(tdir, exist_ok=True)
+            for t, f in auftr:
+                mock.wav(tp(t, f))
+            return
+        halt = threading.Event()
+
+        def eins(t, f):
+            if halt.is_set() or befund.get(t) == "policy":
+                return
+            try:
+                take(p["texte"][t][f], tp(t, f), p["ens"][f]["gemini_id"], lg)
+            except PolicyError as e:
+                befund[t] = "policy"
+                print(f"  policy {t} ({f}): {e}")
+            except BaseException:
+                halt.set()
+                raise
+        n_par = max(1, int(rg.get("parallel") or 1))
+        if n_par == 1:
+            for t, f in auftr:
+                eins(t, f)
+            return
+        from concurrent.futures import ThreadPoolExecutor
+        with ThreadPoolExecutor(max_workers=n_par) as ex:
+            fut = [ex.submit(eins, t, f) for t, f in auftr]
+            fehler = None
+            for x in fut:
                 try:
-                    take(p["texte"][t][f], tp(t, f), p["ens"][f]["gemini_id"], lg)
-                except PolicyError as e:
-                    befund[t] = "policy"
-                    print(f"  policy {t} ({f}): {e}")
-                    break
+                    x.result()
+                except BaseException as e:
+                    fehler = fehler or e
+            if fehler:
+                raise fehler
 
     def schneiden(ids, art):
         ids = [t for t in ids if befund.get(t) != "policy"]
@@ -794,7 +821,7 @@ def main(argv=None):
     ap.add_argument("--lautheit", choices=("an", "aus"))
     for k in ("budget", "auffaellig-max", "naht-db", "stueck-min", "dauer-min", "dauer-max", "fa-min"):
         ap.add_argument(f"--{k}", type=float)
-    for k in ("versuche", "probe"):
+    for k in ("versuche", "probe", "parallel"):
         ap.add_argument(f"--{k}", type=int)
     ap.add_argument("--behalten", action="append", metavar="LG/TID")
     ap.add_argument("--bauen", action="append", metavar="LG/TID")
@@ -812,7 +839,7 @@ def main(argv=None):
     regler = {"schnitt": a.schnitt, "ueberblend_ms": a.ueberblend, "lautheit": {"an": True, "aus": False}.get(a.lautheit),
               "budget": a.budget, "auffaellig_max": a.auffaellig_max, "naht_db": a.naht_db,
               "stueck_min": a.stueck_min, "dauer_min": a.dauer_min, "dauer_max": a.dauer_max, "fa_min": a.fa_min,
-              "versuche": a.versuche}
+              "versuche": a.versuche, "parallel": a.parallel}
     kf = None
     if a.kosten_freigeben:
         kf = {}
