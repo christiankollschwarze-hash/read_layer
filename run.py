@@ -3,7 +3,7 @@ READ LAYER — Orchestrator (Phase 2, Fundament 6, 01.11.2026)
 ============================================================
 Eine Kette fuer jedes Werk, Reihenfolge laut Gate-Katalog (pipeline.status.STAGES):
   080 090 095 100 110 150 115 120 190 195 200 210 300 310 320 330 340 400 410 420
-  500 510 530 520 540 600 610 615 620 630 640 650 700 710
+  500 510 530 520 540 600 610 615 650 620 630 640 700 710
 - Welche Stages laufen bzw. entfallen, kommt aus der Bestellung in book.json (095, pipeline.kette.bedarf
   -> status.bedarf_setzen). Linien (--line epub/audio) gibt es nicht mehr.
 - Jede Stage startet nur bei freiem Vorgaenger-Gate (gate.vorgaenger_frei, Katalog-Eingaenge aus
@@ -25,6 +25,8 @@ Aufruf:
   python run.py <werk> --from 600         ab Stage 600
   python run.py <werk> --to 400           bis einschliesslich 400
   python run.py <werk> --only 630         nur eine Stage
+                                          (--only/--from nehmen Nachbar-Stages mit: 310 -> 300, 330 -> 320,
+                                          095 -> 090; ohne --force fuer die Mitlaeufer, s. kette.NACHBAR)
   python run.py <werk> --lang de          sprachweise Stages (500 510 520 630 710) nur fuer de
   python run.py <werk> --force            frei/Ausgabe vorhanden ignorieren, neu ausfuehren
   python run.py <werk> --live             RUN_MODE=live fuer diesen Lauf
@@ -398,13 +400,17 @@ def run_pipeline(book_id, start_from=None, stop_to=None, only=None, force=False,
             return 1
     start_from, stop_to, only = [status._norm(x) if x else None for x in (start_from, stop_to, only)]
     idx = status.STAGES.index
+    ziel = only or start_from
+    mit = set(kette.mitlaeufer(ziel)) if ziel else set()       # Nachbar-Stages laufen mit (21.11.2026)
+    if mit:
+        print(f"  mit {ziel} laufen: {', '.join(sorted(mit, key=idx))}")
     t_start = time.time()
     ergebnis = "auto"
 
     for s in status.STAGES:
-        if only and s != only:
+        if only and s != only and s not in mit:
             continue
-        if start_from and idx(s) < idx(start_from):
+        if start_from and idx(s) < idx(start_from) and s not in mit:
             continue
         if stop_to and idx(s) > idx(stop_to):
             break
@@ -422,7 +428,8 @@ def run_pipeline(book_id, start_from=None, stop_to=None, only=None, force=False,
                 status.zuruecksetzen(book_id, s, wer=wer, grund="Bestellung seit Freigabe geaendert")
         # Zielstage von --only/--from laeuft immer (09.11.2026: Cockpit "neu pruefen"/"Ruecksprung" auf eine
         # freie Stage wurde sonst nur uebersprungen); Folgestages wie bisher nur bei offen/veraltet/fehlenden Teilen
-        if not force and s not in IMMER and s != (only or start_from) and status.ist_frei(book_id, s):
+        force_s = force and s not in mit                      # Mitlaeufer nur bei offen/veraltet
+        if not force_s and s not in IMMER and s != ziel and status.ist_frei(book_id, s):
             fehlt = fehlende_teile(book_id, s, b)
             alt = veraltet(book_id, s, laeuft)
             if not fehlt and not alt:
@@ -446,7 +453,7 @@ def run_pipeline(book_id, start_from=None, stop_to=None, only=None, force=False,
         print(f"\n--- Stage {s} ---")
         t0 = time.time()
         try:
-            z = _stage_ausfuehren(book_id, s, b, force, only_lang, wer=wer)
+            z = _stage_ausfuehren(book_id, s, b, force_s, only_lang, wer=wer)
         except gate.GateHalt as e:
             _melden(book_id, s, e.ergebnis if e.ergebnis in ("mensch", "stopp") else "stopp", e.gruende)
             return e.exit_code

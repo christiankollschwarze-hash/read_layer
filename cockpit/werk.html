@@ -18,6 +18,8 @@ div.akt input[type=text]{min-width:220px}
 #global .g{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;font-size:12px;cursor:pointer;border:1px solid var(--line);background:var(--paper)!important;color:var(--ink)}
 #global .g::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--c)}
 #global .g.blink{animation:none}#global .g.blink::before{animation:puls 1s infinite}
+.st.mit>.kopf{color:var(--ink-3);font-size:12px;padding:3px 4px}
+.st.mit>.kopf>b{font-weight:400;padding-left:12px}
 </style></head><body>
 <header>
  <a class="marke" href="/"></a><span class="seitentitel">Einzeltitel</span>
@@ -70,7 +72,7 @@ function zeichnen(){
    <div>Bestellung: ${esc(prod)||"–"} <span class="klein">(${esc(b.quellsprache)}→${esc((b.zielsprachen||[]).join(","))}, Mandant ${esc(b.mandant)})</span></div>
    ${d.bestellung_fehler.length?`<div class="err">${d.bestellung_fehler.map(esc).join("<br>")}</div>`:""}
    <div>Kosten (Ist): <b>${usd(d.kosten_gesamt)||"0"}</b> · Status aktualisiert ${esc(d.aktualisiert||"–")}${d.status_vorhanden?"":" <span class='err'>(status.json fehlt)</span>"}</div>
-   <div>Nächster Schritt: ${n?`<b>${n.stage}</b> ${zb(n.zustand)} ${esc(n.grund)}${n.ruecksprung?" → Rücksprung "+esc(n.ruecksprung):""} <a href="/monitor#${encodeURIComponent(d.book_id)}/${n.stage}">Monitor öffnen →</a>`:"<b>alles frei</b>"}</div>
+   <div>Nächster Schritt: ${n?`<b>${n.stage}</b> ${zb(n.zustand)} ${esc(n.grund)}${n.ruecksprung?" → Rücksprung "+esc(n.ruecksprung):""} <a href="/monitor#${encodeURIComponent(d.book_id)}/${n.monitor||n.stage}">Monitor ${n.monitor&&n.monitor!=n.stage?n.monitor+" ":""}öffnen →</a>`:"<b>alles frei</b>"}</div>
    <div class="klein">Nutzer ${esc(d.wer)} (${esc(d.rolle)}) · darf: ${Object.entries(d.rechte).filter(([k,v])=>v.ok).map(([k])=>k).join(", ")||"nichts"}</div>`;
   $("stages").innerHTML=d.stages.filter(s=>s.bestellt||$("weg").checked||!["entfaellt"].includes(s.zustand)).map(stageHtml).join("");
   $("protokoll").innerHTML="<table>"+d.protokoll.map(p=>`<tr><td class="klein">${esc((p.wann||"").slice(5,16).replace("T"," "))}</td><td>${esc(p.wer)}</td><td>${esc(p.aktion)} ${esc(p.stage||"")}${p.scope?"/"+esc(p.scope):""}</td><td>${p.von?esc(p.von)+"→"+esc(p.nach):""}</td><td class="klein">${esc(p.grund||"")}</td></tr>`).join("")+"</table>";
@@ -79,8 +81,9 @@ function zeichnen(){
 function stageHtml(s){
   const nt=Object.keys(s.teile).length;
   const flags=(s.fehlende_teile.length?`<span class="flag">Teile offen</span>`:"")+(s.veraltet.length?`<span class="flag">veraltet</span>`:"")+(s.bedarf_abweichung?`<span class="flag">Bedarf ≠ Status</span>`:"")+(s.befunde.length?`<span class="flag" style="color:var(--r)">${s.befunde.length} Befund(e)</span>`:"");
-  return `<div class="st ${s.bestellt?"":"weg"} ${offen.has(s.stage)?"auf":""}" id="st${s.stage}">
-   <div class="kopf" onclick="umschalten('${s.stage}')"><b>${s.stage}</b><span>${esc(s.name)}${hilfeKnopf(s.stage)}${flags}</span><span>${zb(s.zustand)}</span><span class="klein">${nt?nt+" Teile":""}</span><span class="klein">${usd(s.kosten)}</span></div>
+  const mit=s.nachbar?` <span class="klein">↳ läuft mit ${esc(s.nachbar)}</span>`:"";
+  return `<div class="st ${s.bestellt?"":"weg"} ${s.nachbar?"mit":""} ${offen.has(s.stage)?"auf":""}" id="st${s.stage}">
+   <div class="kopf" onclick="umschalten('${s.stage}')"><b>${s.stage}</b><span>${esc(s.name)}${mit}${hilfeKnopf(s.stage)}${flags}</span><span>${zb(s.zustand)}</span><span class="klein">${nt?nt+" Teile":""}</span><span class="klein">${usd(s.kosten)}</span></div>
    <div class="detail">${offen.has(s.stage)?detailHtml(s):""}</div></div>`;
 }
 function umschalten(st){offen.has(st)?offen.delete(st):offen.add(st);zeichnen();}
@@ -88,7 +91,8 @@ function liste(t,a,cls){return a&&a.length?`<div class="${cls}"><b>${t}:</b> ${a
 function metr(m){const e=Object.entries(m||{});return e.length?"<table>"+e.map(([k,v])=>`<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join("")+"</table>":"";}
 function detailHtml(s){
   const rs=s.ruecksprung_ziele.map(r=>r.ziel+(r.scope?` (${r.scope})`:"")).join(", ");
-  let h=`<div><a href="/monitor#${encodeURIComponent(W.book_id)}/${s.stage}">Monitor ${s.stage} öffnen →</a></div><div class="klein">Gate ${esc(s.gate||"–")} · ${esc(s.wer||"")} ${esc((s.wann||"").replace("T"," ").slice(0,16))} · Versuche ${s.versuche}${s.sprachen?" · Sprachen "+esc(s.sprachen.join(",")):""}${s.vorgaenger.length?" · nach "+esc(s.vorgaenger.join(",")):""}</div>`;
+  const mon=s.nachbar||s.stage;
+  let h=`<div><a href="/monitor#${encodeURIComponent(W.book_id)}/${mon}">Monitor ${mon} öffnen →</a>${s.nachbar?` <span class="klein">(kein eigener Monitor – läuft automatisch mit ${esc(s.nachbar)} oder springt zurück)</span>`:""}</div><div class="klein">Gate ${esc(s.gate||"–")} · ${esc(s.wer||"")} ${esc((s.wann||"").replace("T"," ").slice(0,16))} · Versuche ${s.versuche}${s.sprachen?" · Sprachen "+esc(s.sprachen.join(",")):""}${s.vorgaenger.length?" · nach "+esc(s.vorgaenger.join(",")):""}</div>`;
   h+=liste("Befunde",s.befunde,"bef")+(rs?`<div><b>Rücksprung:</b> ${esc(rs)}</div>`:"")+liste("Gründe (Gate)",s.befunde.length?[]:s.gruende,"hin")+liste("Hinweise",s.hinweise,"hin");
   if(s.fehlende_teile.length)h+=`<div class="flag">Teile laut Bestellung offen: ${esc(s.fehlende_teile.join(", "))}</div>`;
   if(s.veraltet.length)h+=`<div class="flag">veraltet nach: ${esc(s.veraltet.map(v=>v[0]+" ("+v[1].slice(5,16)+")").join(", "))}</div>`;
@@ -105,10 +109,11 @@ function detailHtml(s){
 }
 function aktHtml(s,sc,z){
   const r=W.rechte,k=`${s.stage}_${sc||""}`.replace(/[^\w]/g,"_");let b="";
-  if(z=="mensch"&&r.entscheiden.ok)b+=["frei","stopp","offen"].map(n=>`<button onclick="akt('entscheiden','${s.stage}',${sc?`'${esc(sc)}'`:"null"},'${n}','${k}')">${n}</button>`).join("");
+  if(z=="mensch"&&r.entscheiden.ok)b+=(s.nur_kosten?["stopp","offen"]:["frei","stopp","offen"]).map(n=>`<button onclick="akt('entscheiden','${s.stage}',${sc?`'${esc(sc)}'`:"null"},'${n}','${k}')">${n}</button>`).join("");
   if(r.zuruecksetzen.ok&&z!="entfaellt"&&z!="offen")b+=`<button onclick="akt('zuruecksetzen','${s.stage}',${sc?`'${esc(sc)}'`:"null"},null,'${k}')">zurücksetzen</button>`;
   if(r.override.ok)b+=`<select id="ov_${k}">${["frei","stopp","offen","entfaellt"].map(n=>`<option>${n}</option>`).join("")}</select><button onclick="akt('override','${s.stage}',${sc?`'${esc(sc)}'`:"null"},$('ov_${k}').value,'${k}')">Override</button>`;
   if(!b)return"";
+  if(s.nur_kosten&&z=="mensch")b=`<span class="klein">Reiner Kostenbefund – Freigabe über die Kostenfreigabe je Sprache im <a href="/monitor#${encodeURIComponent(W.book_id)}/${s.stage}">Monitor ${s.stage}</a></span> `+b;
   return `<div class="akt">${sc?"":"<b>Stage:</b>"}<input type="text" id="gr_${k}" placeholder="Grund (Pflicht)">${b}</div>`;
 }
 async function akt(art,stage,scope,nach,k){

@@ -71,7 +71,9 @@ class T(unittest.TestCase):
         self.assertFalse(st["500"]["bestellt"])
         self.assertEqual(st["500"]["zustand"], "entfaellt")
         self.assertEqual(st["310"]["vorgaenger"], ["300"])
-        self.assertEqual(d["naechster"], {"stage": "310", "zustand": "mensch", "ruecksprung": "300", "grund": "mensch"})
+        self.assertEqual(d["naechster"], {"stage": "310", "monitor": "310", "zustand": "mensch", "ruecksprung": "300",
+                                          "grund": "mensch"})
+        self.assertEqual((st["300"]["nachbar"], st["310"]["mitlaeufer"], st["310"]["nachbar"]), ("310", ["300"], None))
         self.assertTrue(d["rechte"]["override"]["ok"])
         self.assertIn("095", [s["stage"] for s in d["stages"] if s["regler"]])
 
@@ -94,6 +96,76 @@ class T(unittest.TestCase):
         self.assertEqual(S.zustand(self.w, "310", "c002/de"), "offen")
         self.assertTrue(A.aktion(self.w, "override", "320", "CK", "Smoke", nach="frei")["ok"])
         self.assertEqual(S.laden(self.w)["stages"]["320"]["override"]["grund"], "Smoke")
+
+    def test_nachbar_monitor(self):
+        self._stand()
+        S.ergebnis(self.w, "300", "stopp", gruende=["Luecke"], ruecksprung="210")
+        d = A.werk(self.w)
+        self.assertEqual((d["naechster"]["stage"], d["naechster"]["monitor"]), ("300", "310"))
+        m = A.monitor(self.w, "310")
+        self.assertEqual([x["stage"] for x in m["mitlaeufer"]], ["300"])
+        self.assertEqual(m["mitlaeufer"][0]["ruecksprung_ziele"], [{"ziel": "210", "scope": None}])
+        self.assertEqual({k["stage"]: k["nachbar"] for k in m["kette"]}["320"], "330")
+        self.assertEqual(A.monitor(self.w, "330")["mitlaeufer"][0]["stage"], "320")
+        # Monitor 310 "uebernehmen": 300 nicht frei -> run.py --only 300 vorweg; frei -> nichts
+        self.assertEqual([a[1:5] for a in A.mitlauf_argv(self.w, "310", "CK")], [["run.py", self.w, "--only", "300"]])
+        S.ergebnis(self.w, "300", "auto")
+        self.assertEqual(A.mitlauf_argv(self.w, "310", "CK"), [])
+        self.assertEqual(A.mitlauf_argv(self.w, "095", "CK"), [])                    # 080 laeuft ohnehin
+
+    def test_kostenbefund_nicht_freigeben(self):
+        from pipeline import kette
+        S.bedarf_setzen(self.w, kette.bedarf(B()) | {"500"})
+        S.ergebnis(self.w, "500", "mensch", ruecksprung="500", gruende=[
+            "de: Kosten ~1.20 $ fuer 40 Saetze (gemini) nicht freigegeben – Mandant user – Freigabe im Cockpit (Monitor 500)"])
+        st = S.laden(self.w)["stages"]["500"]
+        self.assertTrue(A.nur_kosten("500", st))
+        r = A.aktion(self.w, "entscheiden", "500", "CK", "ok", nach="frei")
+        self.assertFalse(r["ok"])
+        self.assertIn("Kostenfreigabe je Sprache", r["fehler"])
+        self.assertEqual(S.zustand(self.w, "500"), "mensch")
+        self.assertTrue(A.aktion(self.w, "entscheiden", "500", "CK", "spaeter", nach="stopp")["ok"])
+        S.ergebnis(self.w, "500", "mensch", gruende=["de: Kosten ~1 $ nicht freigegeben", "Hoerprobe anhoeren"])
+        self.assertFalse(A.nur_kosten("500", S.laden(self.w)["stages"]["500"]))   # gemischt: Knopf bleibt
+        self.assertFalse(A.nur_kosten("310", {"zustand": "mensch", "gate": {"gruende": ["Kosten nicht freigegeben"]}}))
+
+    def test_freigeben_gibt_teile_frei(self):
+        self._stand()
+        S.ergebnis(self.w, "310", "mensch", gruende=["Treue 97 %"], scope="c003/de")
+        r = A.aktion(self.w, "entscheiden", "310", "CK", "alles gehoert", nach="frei")   # Stage ohne Scope
+        self.assertEqual(r, {"ok": True, "zustand": "frei", "teile": ["c002/de", "c003/de"]})
+        self.assertEqual((S.zustand(self.w, "310", "c002/de"), S.zustand(self.w, "310", "c003/de")), ("frei", "frei"))
+        pr = [p for p in S.laden(self.w)["protokoll"] if p["aktion"] == "entscheidung"]
+        self.assertEqual([p["scope"] for p in pr], ["c002/de", "c003/de"])
+        S.ergebnis(self.w, "310", "mensch", gruende=["x"], scope="c004/de")
+        S.ergebnis(self.w, "310", "stopp", gruende=["y"], scope="c005/de")
+        r = A.aktion(self.w, "entscheiden", "310", "CK", "ok", nach="frei")               # Stopp-Teil bleibt
+        self.assertEqual((r["zustand"], r["teile"]), ("stopp", ["c004/de"]))
+
+    def test_lauf_folge(self):
+        L = A.Laeufe()
+        A_LOG = A.LOGDIR
+        A.LOGDIR = self.tmp.name
+        try:
+            L.start(self.w, [[sys.executable, "-c", "print('eins')"], [sys.executable, "-c", "print('zwei')"]], "folge")
+            for _ in range(200):
+                if not L.state(self.w)["laeuft"]:
+                    break
+                time.sleep(0.05)
+            st = L.state(self.w)
+            self.assertEqual(st["exit"], 0)
+            self.assertIn("eins", st["log"]); self.assertIn("zwei", st["log"])
+            self.assertIn(" && ", st["cmd"])
+            L.start(self.w, [[sys.executable, "-c", "import sys; sys.exit(2)"], [sys.executable, "-c", "print('nie')"]], "f2")
+            for _ in range(200):
+                if not L.state(self.w)["laeuft"]:
+                    break
+                time.sleep(0.05)
+            st = L.state(self.w)
+            self.assertEqual(st["exit"], 2)
+            self.assertNotIn("nie", st["log"].replace("print('nie')", ""))
+        finally:
+            A.LOGDIR = A_LOG
 
     def test_lauf_argv(self):
         self.assertEqual(A.lauf_argv(self.w, "fortsetzen", "CK")[1:], ["run.py", self.w, "--wer", "CK"])

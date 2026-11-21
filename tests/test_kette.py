@@ -76,6 +76,20 @@ class Vorgaenger(unittest.TestCase):
         self.assertNotIn("500", v)
 
 
+class Nachbar(unittest.TestCase):
+    """Nachbar-Stages (21.11.2026): ohne Mensch-Entscheidung, laufen mit der Nachbar-Stage."""
+    def test_zuordnung(self):
+        self.assertEqual(kette.mitlaeufer("310"), ["300"])
+        self.assertEqual(kette.mitlaeufer("330"), ["320"])
+        self.assertEqual(kette.mitlaeufer("095"), ["080", "090"])
+        self.assertEqual(kette.nachbar("320"), "330")
+        self.assertIsNone(kette.nachbar("630"))          # 630 hat Mensch-Pruefungen wie 620
+        self.assertEqual(kette.mitlaeufer("620"), [])
+        for s, n in kette.NACHBAR.items():
+            self.assertIn(s, S.STAGES)
+            self.assertNotIn(n, kette.NACHBAR)             # keine Ketten von Nachbarn
+
+
 class Kette(unittest.TestCase):
     """run.py mit Attrappen-Stages: Start nur bei freiem Vorgaenger, Exit-Codes, Bedarf in status.json."""
     def setUp(self):
@@ -184,6 +198,31 @@ class Kette(unittest.TestCase):
         n = len(d["protokoll"])
         self.lauf()                                    # zweiter Lauf: alles frei, kein neuer Bedarf
         self.assertEqual(len(S.laden("u-test")["protokoll"]), n)
+
+    def test_nachbar_laeuft_mit(self):
+        b = json.load(open(os.path.join(self.tmp.name, "book.json")))
+        b["produkte"] = TAELLA_DE
+        json.dump(b, open(os.path.join(self.tmp.name, "book.json"), "w"))
+        config.werk_sprachen = lambda b: ("en", ["de"])
+        rc, out = self.lauf(stop_to="330")
+        self.assertEqual(rc, 0, out)
+        self.assertIn("300", self.gelaufen)
+        self.gelaufen.clear()
+        S.zuruecksetzen("u-test", "300", "test", "Nachbar-Test")
+        rc, out = self.lauf(only="310")                  # 300 offen -> laeuft mit 310
+        self.assertEqual(self.gelaufen, ["300", "310"], out)
+        self.assertIn("mit 310 laufen: 300", out)
+        self.gelaufen.clear()
+        rc, out = self.lauf(only="310", force=True)      # 300 frei -> Mitlaeufer nicht forciert
+        self.assertEqual(self.gelaufen, ["310"], out)
+        self.gelaufen.clear()
+        rc, out = self.lauf(start_from="330", stop_to="330")   # 320 frei -> uebersprungen
+        self.assertEqual(self.gelaufen, ["330"], out)
+        self.assertIn("[skip] Stage 320", out)
+        self.gelaufen.clear()
+        S.zuruecksetzen("u-test", "320", "test", "Nachbar-Test")
+        rc, out = self.lauf(start_from="330", stop_to="330")   # 320 offen -> laeuft mit 330
+        self.assertEqual(self.gelaufen, ["320", "330"], out)
 
     def test_stopp_vorgaenger(self):
         self.e610 = "stopp"

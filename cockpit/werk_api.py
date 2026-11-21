@@ -9,6 +9,7 @@ Exit-Codes: 0 frei, 1 Fehler, 2 Stopp, 3 Mensch (3 ist kein Fehler).
 import datetime as dt
 import glob
 import os
+import re
 import subprocess
 import sys
 import threading
@@ -110,6 +111,23 @@ def _eintrag(t):
             "wann": t.get("wann"), "override": t.get("override"), "stand": t.get("stand")}
 
 
+KOSTEN_STAGES = ("500", "510")
+_KOSTEN = re.compile(r"Kosten.*(nicht freigegeben|Kostenfreigabe je Sprache noetig)")
+
+
+def nur_kosten(stage, st):
+    """500/510: Mensch-Halt allein wegen fehlender Kostenfreigabe (Stage oder Teil). Dann gibt der allgemeine
+    Knopf 'Freigeben' nichts frei (19.11.2026: 500 wurde so frei, ohne dass ein Satz vertont war); die Freigabe
+    laeuft ueber die Kostenfreigabe je Sprache im Monitor."""
+    if status._norm(stage) not in KOSTEN_STAGES or not st or st.get("zustand") != "mensch":
+        return False
+    gr = list((st.get("gate") or {}).get("gruende") or [])
+    if not gr:
+        gr = [x for t in (st.get("teile") or {}).values() if t.get("zustand") == "mensch"
+              for x in ((t.get("gate") or {}).get("gruende") or ["?"])]
+    return bool(gr) and all(_KOSTEN.search(g) for g in gr)
+
+
 def befunde(st):
     """Offene Befunde (mensch/stopp) der Stage bzw. ihrer Teile + Ruecksprungziele [(ziel, scope)]."""
     if not st:
@@ -195,11 +213,13 @@ def werk(book_id, wer=None):
                  teile={sc: _eintrag(t) for sc, t in sorted((st.get("teile") or {}).items())},
                  vorgaenger=kette.wirksame_vorgaenger(s, laeuft, RUN.IN_KETTE) if bestellt else [],
                  sprachen=sprachen, fehlende_teile=fehlt, veraltet=alt,
+                 nachbar=kette.nachbar(s), mitlaeufer=kette.mitlaeufer(s), nur_kosten=nur_kosten(s, st),
                  kosten=(kosten.get("stages") or {}).get(s), regler=REGLER.get(s),
                  manifeste=_manifeste(book_id, s))
         stages.append(e)
         if naechster is None and bestellt and (z not in status.FREI or fehlt or alt):
-            naechster = {"stage": s, "zustand": z, "ruecksprung": rs[0][0] if rs else None,
+            naechster = {"stage": s, "monitor": kette.nachbar(s) or s, "zustand": z,
+                         "ruecksprung": rs[0][0] if rs else None,
                          "grund": "Teile offen" if fehlt else ("veraltet" if alt else z)}
 
     wer = s080_mandant.nutzer(wer)
@@ -229,13 +249,30 @@ def aktion(book_id, art, stage, wer, grund, scope=None, nach=None):
             raise ValueError(f"Aktion {art!r} unbekannt")
         rolle = s080_mandant.darf(book_id, art, wer)
         scope = scope or None
+        teile = []
+        if art == "entscheiden" and nach == "frei":
+            st = status.laden(book_id)["stages"].get(status._norm(stage)) or {}
+            tl = st.get("teile") or {}
+            # 21.11.2026: Freigabe der Stage gibt alle Teile im Zustand mensch mit frei (650 stoppte sonst an
+            # "615 en:quadrat (mensch)", obwohl 615 freigegeben war); je Teil ein Protokolleintrag
+            teile = sorted(sc for sc, x in tl.items() if x.get("zustand") == "mensch") if scope is None else []
+            for z in ([tl.get(scope)] if scope else [st] + [tl[sc] for sc in teile]):
+                if nur_kosten(stage, z):
+                    raise ValueError(f"Reiner Kostenbefund: Freigeben gibt nichts frei – Kostenfreigabe je Sprache "
+                                     f"im Monitor {status._norm(stage)} (Admin: Override)")
         if art == "entscheiden":
-            status.entscheiden(book_id, stage, nach, wer, grund, scope, rolle)
+            for sc in teile:
+                status.entscheiden(book_id, stage, nach, wer, grund, sc, rolle)
+            if not teile or status.zustand(book_id, stage) == "mensch":
+                status.entscheiden(book_id, stage, nach, wer, grund, scope, rolle)
         elif art == "override":
             status.override(book_id, stage, wer, rolle, grund, nach or "frei", scope)
         else:
             status.zuruecksetzen(book_id, stage, wer, grund, scope)
-        return {"ok": True, "zustand": status.zustand(book_id, stage, scope)}
+        r = {"ok": True, "zustand": status.zustand(book_id, stage, scope)}
+        if teile:
+            r["teile"] = teile
+        return r
     except (ValueError, PermissionError, RuntimeError, TimeoutError) as e:
         return {"ok": False, "fehler": str(e)}
 
@@ -296,6 +333,8 @@ class Laeufe:
         self.jobs = {}
 
     def start(self, book_id, argv, art):
+        """argv: ein Aufruf oder Liste von Aufrufen (nacheinander, Abbruch beim ersten Exit != 0)."""
+        folge = argv if argv and isinstance(argv[0], (list, tuple)) else [argv]
         with self.lock:
             j = self.jobs.get(book_id)
             if j and j["exit"] is None:
@@ -304,15 +343,23 @@ class Laeufe:
             log = os.path.join(LOGDIR, f"werk_{book_id}_{dt.datetime.now():%Y%m%d_%H%M%S}.log")
             env = dict(os.environ, PYTHONIOENCODING="utf-8", PYTHONUNBUFFERED="1")
             fh = open(log, "w", encoding="utf-8")
-            fh.write("$ " + " ".join(argv[1:]) + "\n")
+            fh.write("$ " + " ".join(folge[0][1:]) + "\n")
             fh.flush()
-            p = subprocess.Popen(argv, cwd=BASE, stdout=fh, stderr=subprocess.STDOUT, env=env)
-            j = {"art": art, "cmd": " ".join(argv[1:]), "log": log, "start": dt.datetime.now().isoformat(timespec="seconds"),
-                 "ende": None, "exit": None, "proc": p}
+            p = subprocess.Popen(folge[0], cwd=BASE, stdout=fh, stderr=subprocess.STDOUT, env=env)
+            j = {"art": art, "cmd": " && ".join(" ".join(a[1:]) for a in folge), "log": log,
+                 "start": dt.datetime.now().isoformat(timespec="seconds"), "ende": None, "exit": None, "proc": p,
+                 "gestoppt": False}
             self.jobs[book_id] = j
 
         def warten():
             rc = p.wait()
+            for a in folge[1:]:
+                if rc != 0 or j["gestoppt"]:
+                    break
+                fh.write("$ " + " ".join(a[1:]) + "\n")
+                fh.flush()
+                j["proc"] = subprocess.Popen(a, cwd=BASE, stdout=fh, stderr=subprocess.STDOUT, env=env)
+                rc = j["proc"].wait()
             fh.close()
             j.update(exit=rc, ende=dt.datetime.now().isoformat(timespec="seconds"))
         threading.Thread(target=warten, daemon=True).start()
@@ -321,6 +368,7 @@ class Laeufe:
     def stop(self, book_id):
         j = self.jobs.get(book_id)
         if j and j["exit"] is None:
+            j["gestoppt"] = True
             j["proc"].terminate()
             return True
         return False
@@ -617,11 +665,14 @@ def monitor(book_id, stage, wer=None):
             daten = f(book_id)
         except Exception as e:
             dfehler = f"{type(e).__name__}: {e}"
-    kette_kurz = [{"stage": s["stage"], "name": s["name"], "zustand": s["zustand"]} for s in w["stages"] if s["bestellt"]]
+    kette_kurz = [{"stage": s["stage"], "name": s["name"], "zustand": s["zustand"], "nachbar": s["nachbar"]}
+                  for s in w["stages"] if s["bestellt"]]
+    mit = [s for s in w["stages"] if s["stage"] in kette.mitlaeufer(stage) and s["bestellt"]]
     return {"book_id": book_id, "wer": w["wer"], "rolle": w["rolle"], "rechte": w["rechte"], "ampel": w["ampel"],
             "run_mode": w["run_mode"], "lauf": w["lauf"], "naechster": w["naechster"], "kette": kette_kurz,
             "titel": _titel(book_id),
-            "stage": st, "monitor": stage in MONITOR_DATEN, "daten": daten, "daten_fehler": dfehler}
+            "stage": st, "monitor": stage in MONITOR_DATEN, "daten": daten, "daten_fehler": dfehler,
+            "mitlaeufer": mit}
 
 
 MONITOR_TEIL = {}        # stage -> f(book_id, query) -> dict (nachgeladene Teile, z. B. ein Kapitel)
@@ -644,6 +695,28 @@ def _titel(book_id):
         return book_id
 
 
+def mitlauf_argv(book_id, stage, wer):
+    """run.py-Aufrufe fuer Nachbar-Stages von <stage>, die offen, angehalten oder veraltet sind (21.11.2026)."""
+    out = []
+    try:
+        b = bestellung.lesen(book_id)
+        laeuft = kette.bedarf(b)
+    except Exception:
+        return out
+    d = status.laden(book_id)
+    for m in kette.mitlaeufer(stage):
+        if m == "080" or m not in laeuft:
+            continue
+        frei = (d["stages"].get(m) or {}).get("zustand") in status.FREI
+        try:
+            alt = bool(RUN.veraltet(book_id, m, laeuft, d=d)) if frei else False
+        except Exception:
+            alt = False
+        if not frei or alt:
+            out.append([PY, "run.py", book_id, "--only", m, "--wer", s080_mandant.nutzer(wer)])
+    return out
+
+
 def monitor_speichern(book_id, stage, eingabe, wer):
     """'Uebernehmen und neu pruefen': Stage-Modul als Unterprozess mit den Monitor-Werten."""
     try:
@@ -653,9 +726,10 @@ def monitor_speichern(book_id, stage, eingabe, wer):
             raise ValueError(f"Stage {stage}: kein Monitor zum Speichern")
         _recht(book_id, "bestellen", wer)
         argv = f(book_id, eingabe or {}, s080_mandant.nutzer(wer))
+        folge = mitlauf_argv(book_id, stage, wer) + [argv]
         if eingabe.get("nur_vorschau"):
-            return {"ok": True, "cmd": " ".join(argv[1:])}
-        return {"ok": True, "lauf": LAEUFE.start(book_id, argv, f"Monitor {stage}: übernehmen und neu prüfen")}
+            return {"ok": True, "cmd": " && ".join(" ".join(a[1:]) for a in folge)}
+        return {"ok": True, "lauf": LAEUFE.start(book_id, folge, f"Monitor {stage}: übernehmen und neu prüfen")}
     except (ValueError, PermissionError, RuntimeError, OSError) as e:
         return {"ok": False, "fehler": str(e)}
 

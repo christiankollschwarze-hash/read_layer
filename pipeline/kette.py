@@ -6,6 +6,7 @@
   wirksame_vorgaenger(...)  Vorgaenger, die entfallen oder (noch) nicht in der Kette laufen,
                             werden durch ihre eigenen Vorgaenger ersetzt (transitiv)
   sprachen(stage, b)        Sprachliste je Stage (None = sprachunabhaengig)
+  NACHBAR / mitlaeufer(s)   Stages ohne Mensch-Entscheidung laufen mit ihrer Nachbar-Stage (21.11.2026)
 
 Reihenfolge = status.STAGES. Keine Ausfuehrung hier (das macht run.py).
 """
@@ -50,6 +51,22 @@ VORGAENGER = {
     "700": None,             # nach der letzten bestellten Stage: alle Stages davor
     "710": ["700"],
 }
+
+# Nachbar-Stages (CK 21.11.2026): Stages ohne Mensch-Entscheidung bekommen keinen eigenen Monitor. Sie laufen
+# mit ihrer Nachbar-Stage (run.py --only/--from <Nachbar> nimmt sie mit); Befunde und Ruecksprung zeigt der
+# Monitor der Nachbar-Stage. 630 hat Mensch-Pruefungen (wie 620) und ist deshalb kein Nachbar.
+NACHBAR = {"080": "095", "090": "095", "300": "310", "320": "330"}
+
+
+def nachbar(stage):
+    """Nachbar-Stage, mit der <stage> laeuft (None = eigene Stage mit Monitor)."""
+    return NACHBAR.get(status._norm(stage))
+
+
+def mitlaeufer(stage):
+    """Stages, die mit <stage> laufen, in Katalog-Reihenfolge."""
+    s = status._norm(stage)
+    return [m for m in status.STAGES if NACHBAR.get(m) == s]
 
 
 def vorgaenger(stage):

@@ -67,6 +67,10 @@ details.ausnahme{margin-top:10px}
 .gal610{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}.gal610>div{border:1px solid var(--line);border-radius:var(--r-s);padding:6px}.gal610>div.sel{border:2px solid var(--ink)}.gal610 img{width:100%}
 .gal615{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}.gal615 img{width:100%;border:1px solid var(--line);border-radius:var(--r-s)}.gal615 img.vorschau{outline:2px solid var(--s-mensch)}
 .kopf615{margin-bottom:4px}.leer615{height:280px;display:flex;align-items:center;justify-content:center;border:1px dashed var(--line)}
+.schritt a.mit{font-size:9px;padding:3px 6px;color:var(--ink-3);border-style:dashed}
+.schritt a.mit::before{width:4px;height:4px}
+.mitl{margin-top:6px;padding:4px 8px;border-left:2px dashed var(--line);font-size:12px;color:var(--ink-3)}
+.mitl.halt{color:inherit;border-left-color:var(--s-stopp)}
 </style></head><body>
 <header>
  <a class="marke" href="/"></a><span class="seitentitel">Gate-Monitor</span>
@@ -101,12 +105,14 @@ async function start(){
 }
 async function laden(){
   const z=ziel();if(!z.id){$("gate").innerHTML="Aufruf: /monitor#&lt;book-id&gt;/&lt;stage&gt;";return;}
-  if(!z.stage){const w=await api(`/api/werk/${encodeURIComponent(z.id)}`);location.hash=`${z.id}/${(w.naechster||{}).stage||"100"}`;return;}
+  if(!z.stage){const w=await api(`/api/werk/${encodeURIComponent(z.id)}`);const n=w.naechster||{};location.hash=`${z.id}/${n.monitor||n.stage||"100"}`;return;}
   const d=await api(`/api/werk/${encodeURIComponent(z.id)}/monitor/${z.stage}?wer=${encodeURIComponent($("wer").value)}`);
   if(d.fehler){$("gate").innerHTML=`<span class="err">${esc(d.fehler)}</span>`;return;}
   M=d;$("zurueck").href="/werk#"+encodeURIComponent(d.book_id);
   $("kopfwerk").innerHTML=`<b>${esc(d.titel)}</b> <span class="klein">${esc(d.book_id)}</span>`;
-  $("kette").innerHTML=d.kette.map(k=>`<a class="${esc(k.zustand)} ${k.stage==d.stage.stage?"akt":""}" title="${esc(k.name)}: ${esc(k.zustand)}" href="#${esc(d.book_id)}/${k.stage}">${k.stage}</a>`).join("");
+  $("kette").innerHTML=d.kette.map(k=>k.nachbar
+   ?`<a class="mit ${esc(k.zustand)} ${k.stage==d.stage.stage?"akt":""}" title="${esc(k.name)}: ${esc(k.zustand)} – läuft mit ${esc(k.nachbar)}" href="#${esc(d.book_id)}/${k.nachbar}">${k.stage}</a>`
+   :`<a class="${esc(k.zustand)} ${k.stage==d.stage.stage?"akt":""}" title="${esc(k.name)}: ${esc(k.zustand)}" href="#${esc(d.book_id)}/${k.stage}">${k.stage}</a>`).join("");
   document.title=`${d.stage.stage} ${d.stage.name} – ${d.book_id}`;
   LAUF=d.lauf||null;ampelZeigen(d.ampel);gateZeigen();
   const mon=MON[d.stage.stage];
@@ -133,6 +139,7 @@ function gateZeigen(){
   else if(s.gruende.length)h+=`<div class="hin">${s.gruende.map(esc).join("<br>")}</div>`;
   else h+=`<div class="klein">keine Befunde</div>`;
   if(s.hinweise.length)h+=`<div class="hin klein" style="margin-top:4px"><b>Hinweise:</b> ${s.hinweise.map(esc).join(" · ")}</div>`;
+  h+=mitHtml(s);
   const kn=[];
   if(r.lauf.ok){
     kn.push(`<button onclick="pruefen()">${s.stage} neu prüfen</button>`);
@@ -143,9 +150,25 @@ function gateZeigen(){
   $("gate").innerHTML=h;
   const f2=$("freigabe2");if(f2)f2.innerHTML=s.zustand=="mensch"&&r.entscheiden.ok?`<div class="box">${freigabeHtml("2")}</div>`:"";
 }
+// Nachbar-Stages (21.11.2026): laufen mit dieser Stage, Befunde und Rücksprung erscheinen hier
+function mitHtml(s){
+  return (M.mitlaeufer||[]).map(m=>{
+    const halt=["stopp","mensch"].includes(m.zustand),rs=m.ruecksprung_ziele||[];
+    let h=`<div class="mitl ${halt?"halt":""}">↳ <b>${m.stage} ${esc(m.name)}</b> ${zb(m.zustand)} <span class="klein">läuft automatisch mit ${s.stage}</span>`;
+    if(halt){
+      h+=m.befunde.length?`<div class="bef">${m.befunde.map(esc).join("<br>")}</div>`:(m.gruende.length?`<div class="hin">${m.gruende.map(esc).join("<br>")}</div>`:"");
+      if(M.rechte.lauf.ok&&rs.length)h+=`<div class="akt">${rs.map(z=>`<button onclick="laufLos('ab','${esc(z.ziel)}')">Rücksprung ${esc(z.ziel)}${z.scope?" ("+esc(z.scope)+")":""}</button>`).join("")}</div>`;
+    }
+    return h+"</div>";
+  }).join("");
+}
 function freigabeHtml(k){
+  if(M.stage.nur_kosten)return `<div class="freigabe"><h3>Kostenfreigabe nötig</h3>
+   <div class="klein">${M.stage.stage} wartet nur auf die Kostenfreigabe. „Freigeben – weiter in der Kette“ würde nichts vertonen und ist hier gesperrt: Kostenfreigabe je Sprache unten im Monitor erteilen – danach läuft ${M.stage.stage} los.</div>
+   <div class="akt"><input type="text" id="ausgrund${k}" placeholder="Begründung (Pflicht)" size="52">
+    <button onclick="entscheide('stopp','${k}')">Anhalten (Stopp)</button></div></div>`;
   return `<div class="freigabe"><h3>Entscheidung nötig</h3>
-   <div class="klein">Die Stage wartet auf dich. Entweder oben/unten korrigieren und neu prüfen – oder so wie sie ist entscheiden:</div>
+   <div class="klein">Die Stage wartet auf dich. Entweder oben/unten korrigieren und neu prüfen – oder so wie sie ist entscheiden:${(()=>{const n=Object.values(M.stage.teile||{}).filter(x=>x.zustand=="mensch").length;return n?` „Freigeben“ gibt auch die ${n} offenen Teile frei.`:"";})()}</div>
    <div class="akt"><input type="text" id="ausgrund${k}" placeholder="Begründung (Pflicht), z. B. Reste geprüft, klingt richtig" size="52">
     <button class="haupt" onclick="entscheide('frei','${k}')">Freigeben – weiter in der Kette</button>
     <button onclick="entscheide('stopp','${k}')">Anhalten (Stopp)</button></div></div>`;
@@ -157,7 +180,10 @@ async function entscheide(nach,k){
 }
 function allgemein(s){
   const m=Object.entries(s.metriken||{});
-  return `<div class="box"><h2>Daten des Gates</h2><div class="klein">Für diese Stage ist der Monitor noch nicht gebaut (GATE_MONITORE.md). Angezeigt: Prüfwerte und Teile; die Dateien stehen unter „Ergebnis“.</div>
+  const kopf=s.nachbar
+   ?`Diese Stage braucht keinen Monitor – sie läuft automatisch mit <a href="#${esc(M.book_id)}/${s.nachbar}">${s.nachbar}</a> oder springt zurück. Befunde und Rücksprung zeigt der Monitor ${s.nachbar}.`
+   :`Angezeigt: Prüfwerte und Teile; die Dateien stehen unter „Ergebnis“.`;
+  return `<div class="box"><h2>Daten des Gates</h2><div class="klein">${kopf}</div>
    ${m.length?"<table>"+m.map(([k,v])=>`<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join("")+"</table>":""}
    ${Object.entries(s.teile||{}).map(([sc,t])=>`<h3>${esc(sc)} ${zb(t.zustand)}</h3>${(t.gruende||[]).map(esc).join("<br>")}`).join("")}
    </div>`;
