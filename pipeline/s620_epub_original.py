@@ -11,7 +11,7 @@ Eingang:      Text Ausgangssprache: work/modernized/chapter-N.json (190); Zielsp
 Ausgabe:      fassungen/<lg>/output/<werk>_<lg>[_audio].epub; work/620_epub.json (je Scope <lg>:<variante>:
               Eingangs-/Ausgabe-Hash, Pruefmetriken); Gate je Scope in status.json (Stage 620 bzw. 630).
 Regler:       --variante text|audio, --mobil an|aus, --mobil-laenge N, --bilder an|aus, --fussnoten an|aus,
-              --kolophon LG=TEXT (nur Admin), --sprache LG, --neu, --freigeben, --trocken
+              --kolophon LG=TEXT (nur Admin), --sprache LG, --neu, --freigeben [--grund TEXT], --trocken
 Kosten:       0 $ (CPU, Java epubcheck).
 Aufruf:       python -m pipeline.s620_epub_original <werk> [Regler] [--wer CK]
 """
@@ -413,7 +413,7 @@ def pruefen(pfad, kapitel, lg, vermerke, n_bilder, n_noten, audio):
 
 # ------------------------------------------------------------ Lauf
 def lauf(werk, stage=STAGE_Q, wer=None, nur=None, nur_var=None, neu=False, trocken=False, freigeben=False,
-         regler=None):
+         regler=None, grund=None):
     """-> Liste der Gates (je Scope <lg>:<variante>)."""
     wer = wer or "pipeline"
     b = bestellung.lesen(werk)
@@ -425,7 +425,7 @@ def lauf(werk, stage=STAGE_Q, wer=None, nur=None, nur_var=None, neu=False, trock
         entscheidung_setzen(werk, wer, **r)
     ents = entscheidungen(werk)
     if freigeben and not trocken:
-        return _freigeben(werk, stage, wer)
+        return _freigeben(werk, stage, wer, grund)
 
     mobil = int(ents.get("mobil_laenge") or 0) if ents.get("mobil", "an") != "aus" else 0
     bilder_an, fussnoten_an = ents.get("bilder", "an") != "aus", ents.get("fussnoten", "an") != "aus"
@@ -612,12 +612,12 @@ def run(werk, wer=None, **kw):
     return lauf(werk, STAGE_Q, wer=wer, **kw)
 
 
-def _freigeben(werk, stage, wer):
+def _freigeben(werk, stage, wer, grund=None):
     d = status.laden(werk)
     teile = ((d["stages"].get(stage) or {}).get("teile") or {})
     offen = [s for s, t in teile.items() if t.get("zustand") == "mensch"]
     for s in offen:
-        status.entscheiden(werk, stage, "frei", wer=wer, grund=f"Freigabe ePub {stage}", scope=s)
+        status.entscheiden(werk, stage, "frei", wer=wer, grund=grund or f"Freigabe ePub {stage}", scope=s)
     print(f"[{stage}] Freigabe: {', '.join(offen) or 'nichts offen'}")
     return []
 
@@ -636,6 +636,7 @@ def main(argv=None, stage=STAGE_Q):
     ap.add_argument("--neu", action="store_true", help="neu bauen")
     ap.add_argument("--force", action="store_true", help=argparse.SUPPRESS)
     ap.add_argument("--freigeben", action="store_true", help="Mensch-Faelle freigeben")
+    ap.add_argument("--grund", help="Begruendung zur Freigabe (Monitor)")
     ap.add_argument("--trocken", action="store_true", help="nur pruefen, nichts schreiben")
     ap.add_argument("--lang", help=argparse.SUPPRESS)
     a = ap.parse_args(argv)
@@ -660,7 +661,7 @@ def main(argv=None, stage=STAGE_Q):
             from pipeline import s080_mandant
             s080_mandant.darf(a.werk, "override" if kol else "entscheiden", a.wer or "pipeline")
         nur = a.sprache or (a.lang.split(",") if a.lang else None)
-        gates = lauf(a.werk, stage, a.wer, nur, a.variante, a.neu or a.force, a.trocken, a.freigeben, regler or None)
+        gates = lauf(a.werk, stage, a.wer, nur, a.variante, a.neu or a.force, a.trocken, a.freigeben, regler or None, a.grund)
     except gate.GateHalt as e:
         print(e)
         return e.exit_code

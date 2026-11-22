@@ -11,6 +11,7 @@ main{max-width:1200px;margin:0 auto}
 .geaendert{color:var(--s-mensch);font-weight:600}
 details.ausnahme{margin-top:10px}
 .freigabe{margin-top:12px;padding:12px 14px;border:2px solid var(--s-mensch);border-radius:var(--r-s);background:color-mix(in srgb,var(--s-mensch) 6%,transparent)}
+.schritt{border:2px solid var(--ink)}.schritt h2{margin-bottom:4px}a.knopf{display:inline-block;padding:9px 18px;border:1px solid var(--ink);border-radius:999px;text-decoration:none;font:600 13px/1 var(--ui)}a.knopf.haupt{background:var(--ink);color:var(--paper)}
 .freigabe h3{margin:0 0 4px}details.ausnahme summary{cursor:pointer;color:var(--ink-3);font-size:12px}
 .dateien{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
 .dateien button.akt{background:var(--ink);color:var(--paper);border-color:var(--ink)}
@@ -71,6 +72,9 @@ details.ausnahme{margin-top:10px}
 .schritt a.mit::before{width:4px;height:4px}
 .mitl{margin-top:6px;padding:4px 8px;border-left:2px dashed var(--line);font-size:12px;color:var(--ink-3)}
 .mitl.halt{color:inherit;border-left-color:var(--s-stopp)}
+.fsbar{display:inline-block;width:240px;height:10px;border:1px solid #8886;border-radius:5px;overflow:hidden;vertical-align:middle;background:#8881}
+.fsbar>span{display:block;height:100%;background:var(--s-frei,#3a3);transition:width .8s}
+.fsbar.k{width:80px;height:7px;margin-left:6px}
 </style></head><body>
 <header>
  <a class="marke" href="/"></a><span class="seitentitel">Gate-Monitor</span>
@@ -130,9 +134,10 @@ function gateZeigen(){
   const rs=s.ruecksprung_ziele||[];
   if(LAUF&&LAUF.laeuft){
     $("gate").innerHTML=`<h2>${s.stage} ${esc(s.name)} ${hilfeKnopf(s.stage)} <span class="z laeuft">läuft</span> <span class="klein">seit ${esc(String(LAUF.start||"").replace("T"," ").slice(0,16))}</span></h2>
+     <div id="fsgate" style="margin:4px 0"></div>
      <div class="hin">Ein Lauf ist aktiv (${esc(LAUF.art||"")} · ${esc(laufCmd(LAUF))}). Befunde und Entscheidung erscheinen, sobald der Lauf fertig ist – Fortschritt unten im Kasten „Lauf“.</div>
      <div class="klein" style="margin-top:4px">Letzter Stand vor dem Lauf: ${esc(s.zustand)}${s.wann?" · "+esc(s.wann.replace("T"," ").slice(0,16)):""}</div>`;
-    const f2=$("freigabe2");if(f2)f2.innerHTML="";return;
+    const f2=$("freigabe2");if(f2)f2.innerHTML="";fsGate();return;
   }
   let h=`<h2>${s.stage} ${esc(s.name)} ${hilfeKnopf(s.stage)} ${zb(s.zustand)} <span class="klein">${esc(s.wer||"")} ${esc((s.wann||"").replace("T"," ").slice(0,16))}</span></h2>`;
   if(s.befunde.length)h+=`<div class="bef"><b>Befunde:</b><br>${s.befunde.map(esc).join("<br>")}</div>`;
@@ -167,14 +172,25 @@ function freigabeHtml(k){
    <div class="klein">${M.stage.stage} wartet nur auf die Kostenfreigabe. „Freigeben – weiter in der Kette“ würde nichts vertonen und ist hier gesperrt: Kostenfreigabe je Sprache unten im Monitor erteilen – danach läuft ${M.stage.stage} los.</div>
    <div class="akt"><input type="text" id="ausgrund${k}" placeholder="Begründung (Pflicht)" size="52">
     <button onclick="entscheide('stopp','${k}')">Anhalten (Stopp)</button></div></div>`;
+  const mon=MON[M.stage.stage];
+  if(mon&&mon.entscheidungText&&M.daten)return `<div class="freigabe"><h3>Entscheidung nötig</h3>
+   <div>${mon.entscheidungText(M.daten)}</div>
+   <div class="akt"><input type="text" id="ausgrund${k}" placeholder="Begründung (Pflicht), z. B. angehört, klingt richtig" size="52">
+    <button class="haupt" onclick="entscheide('frei','${k}')">Freigeben – weiter in der Kette</button>
+    <button onclick="entscheide('stopp','${k}')">Anhalten (Stopp)</button></div></div>`;
   return `<div class="freigabe"><h3>Entscheidung nötig</h3>
    <div class="klein">Die Stage wartet auf dich. Entweder oben/unten korrigieren und neu prüfen – oder so wie sie ist entscheiden:${(()=>{const n=Object.values(M.stage.teile||{}).filter(x=>x.zustand=="mensch").length;return n?` „Freigeben“ gibt auch die ${n} offenen Teile frei.`:"";})()}</div>
    <div class="akt"><input type="text" id="ausgrund${k}" placeholder="Begründung (Pflicht), z. B. Reste geprüft, klingt richtig" size="52">
     <button class="haupt" onclick="entscheide('frei','${k}')">Freigeben – weiter in der Kette</button>
     <button onclick="entscheide('stopp','${k}')">Anhalten (Stopp)</button></div></div>`;
 }
+async function entscheideStandard(nach,grund){
+  const r=await api(`/api/werk/${B()}/aktion`,{art:"entscheiden",stage:M.stage.stage,nach,grund,wer:$("wer").value});
+  if(!r.ok)alert(r.fehler);laden();
+}
 async function entscheide(nach,k){
   const grund=$("ausgrund"+(k||"1")).value.trim();if(!grund){alert("Begründung ist Pflicht");$("ausgrund"+(k||"1")).focus();return;}
+  const mon=MON[M.stage.stage];if(nach=="frei"&&mon&&mon.freigeben&&M.daten)return mon.freigeben(grund);
   const r=await api(`/api/werk/${B()}/aktion`,{art:"entscheiden",stage:M.stage.stage,nach,grund,wer:$("wer").value});
   if(!r.ok)alert(r.fehler);laden();
 }
@@ -267,7 +283,16 @@ function laufZeigen(l){
   if(l.laeuft){sahLaufen=true;poll=setTimeout(async()=>laufZeigen(await api(`/api/werk/${B()}/lauf`)),1500);}
   else if(sahLaufen){sahLaufen=false;laden();}
 }
-function ampelZeigen(a){if(!a)return;$("ampel").className="ampel a-"+a.farbe+(a.blink?" blink":"");$("ampeltext").textContent=a.text;}
+// ---------- Fortschritt je Stage (TODO 22.11. Punkt 7): work/_fortschritt/<stage>.json ueber die Ampel
+function dauerTxt(s){return s==null?"–":s<90?Math.round(s)+" s":s<5400?Math.round(s/60)+" min":(s/3600).toFixed(1).replace(".",",")+" h";}
+function fsHtml(f,kompakt){
+  if(!f)return"";const p=f.gesamt?Math.min(100,100*f.erledigt/f.gesamt):0;
+  return `<span class="fsbar${kompakt?" k":""}" title="${f.erledigt}/${f.gesamt} ${esc(f.einheit)}"><span style="width:${p.toFixed(1)}%"></span></span> <span class="klein">${f.erledigt.toLocaleString("de-DE")}/${f.gesamt.toLocaleString("de-DE")} ${esc(f.einheit)} · Rest ${dauerTxt(f.rest_s)}${f.fertig_um?" · fertig ~"+esc(f.fertig_um):""}`+
+   (kompakt?"":` · ${f.spuren} Spuren · läuft ${dauerTxt(f.lauf_s)}${f.erwartet_s!=null?` · Erwartung beim Start ${dauerTxt(f.erwartet_s)} (fertig ~${esc(f.erwartet_fertig)})`:" · keine Erwartung (erster Lauf)"}`)+`</span>`;
+}
+function fsGate(){const el=$("fsgate");if(!el||!M||!window._ampel)return;
+  const x=(window._ampel.laufend||[]).find(l=>l.stage==M.stage.stage&&l.fortschritt);el.innerHTML=x?fsHtml(x.fortschritt):"";}
+function ampelZeigen(a){if(!a)return;window._ampel=a;$("ampel").className="ampel a-"+a.farbe+(a.blink?" blink":"");$("ampeltext").textContent=a.text;fsGate();}
 async function ampelPoll(){try{if(M)ampelZeigen(await api(`/api/werk/${B()}/ampel`));}catch(e){}setTimeout(ampelPoll,4000);}
 
 // ---------- Baustein Text-Editor (CodeMirror 6, lokal)
@@ -440,7 +465,62 @@ MON["115"]={
   los(){const r=document.querySelector("input[name=fa]:checked");if(!r){alert("Fassung wählen");return;}speichern({fassung:r.value});}
 };
 MON["120"]={
-  E:{kapitel:new Set(),absatz:new Set(),texte:{},orig:{}},K:null,nurAuff:false,
+  E:{kapitel:new Set(),absatz:new Set(),texte:{},orig:{},fremd:{},ftext:{},fannehmen:new Set(),fneu:new Set(),fregler:{},abk:{},abkwerk:{},abklese:null},K:null,nurAuff:false,
+  FE:{offen:["mensch","offen – entscheiden"],uebertragen:["frei","übertragen"],behalten:["frei","Original behalten"],kein:["frei","kein Fremdtext"]},
+  fremdBox(d){const F=d.fremd||{zitate:[],regler:{}},E=this.E,zs=F.zitate,rg=F.regler,sn=x=>(F.sprachnamen||{})[x]||x;
+    const ent=z=>E.fremd[z.id]||z.entscheidung||"offen";
+    const opt=z=>Object.entries({offen:"offen",uebertragen:"übertragen",behalten:"Original behalten",kein:"kein Fremdtext"})
+      .map(([k,v])=>`<option value="${k}" ${ent(z)==k?"selected":""}>${v}</option>`).join("");
+    const ueb=z=>{if(z.id in E.ftext)return `<textarea oninput="MON['120'].E.ftext['${z.id}']=this.value;MON['120'].zf()">${esc(E.ftext[z.id])}</textarea><div class="klein">Sätze mit || trennen</div>`;
+      if(z.uebertragung&&z.uebertragung.length)return `<div class="neu" title="klicken zum Bearbeiten" onclick="MON['120'].ftx('${z.id}')">${esc(z.uebertragung.join(" "))}</div><div class="klein">${z.herkunft=="hand"?"von Hand":"LLM"}${z.angenommen?" · angenommen":""}</div>`;
+      if(ent(z)=="uebertragen")return `<span class="klein">wird beim Übernehmen übertragen (~${(z.kosten_usd||0).toFixed(4)} $)</span>${z.fehler?`<div class="err klein">${esc(z.fehler)}</div>`:""}`;
+      return `<span class="klein">–</span> <a class="klein" href="javascript:MON['120'].ftx('${z.id}')">von Hand</a>`;};
+    const akt=z=>z.uebertragung&&z.uebertragung.length&&ent(z)=="uebertragen"?`${z.angenommen?"":`<label class="klein"><input type="checkbox" ${E.fannehmen.has(z.id)?"checked":""} onchange="MON['120'].fset('fannehmen','${z.id}',this.checked)"> annehmen</label><br>`}<label class="klein"><input type="checkbox" ${E.fneu.has(z.id)?"checked":""} onchange="MON['120'].fset('fneu','${z.id}',this.checked)"> neu übertragen</label>`:"";
+    return `<div class="box"><h2>Fremdsprachige Zitate · ${zs.length}</h2>
+     <div class="klein">Je Zitat entscheiden: <b>übertragen</b> (Übertragung in die Werksprache ersetzt das Original im Lesetext und Hörbuch; Original bleibt gespeichert, Rücknahme jederzeit) · <b>Original behalten</b> (bleibt in allen Fassungen so, 310 übersetzt nicht, das Hörbuch spricht es in der Originalsprache – z. B. „Je ne regrette rien“) · <b>kein Fremdtext</b> (Fehlalarm). Übertragungen einmal prüfen und annehmen. Erkennung: ${esc(F.verfahren||"–")}.</div>
+     ${zs.length?`<table class="kapt t120f"><tr><th>Kap.</th><th>Original</th><th>Übertragung</th><th>Sprache</th><th>Entscheidung</th><th></th></tr>
+      ${zs.map(z=>`<tr class="${ent(z)=="offen"||(ent(z)=="uebertragen"&&!z.angenommen)?"ohne":""}"><td>${z.kapitel}</td><td>${z.saetze.map(esc).join(" ")}</td><td>${ueb(z)}</td>
+        <td class="klein">${esc(sn(z.sprache))}<br>p ${z.p}</td>
+        <td><select onchange="MON['120'].fent('${z.id}',this.value,'${z.entscheidung}')">${opt(z)}</select><div class="klein">${z.wer?esc(z.wer)+" "+esc((z.wann||"").slice(0,16).replace("T"," ")):""}</div></td><td>${akt(z)}</td></tr>`).join("")}</table>
+      <div class="akt"><button onclick="MON['120'].falle('uebertragen')">alle offenen: übertragen</button> <button onclick="MON['120'].falle('behalten')">alle offenen: Original behalten</button>
+       ${zs.some(z=>z.uebertragung&&!z.angenommen)?`<label class="klein"><input type="checkbox" ${E.fannehmen.has("alle")?"checked":""} onchange="MON['120'].fset('fannehmen','alle',this.checked)"> alle Übertragungen annehmen</label>`:""}</div>`
+      :'<div class="klein">keine fremdsprachigen Sätze gefunden</div>'}
+     <div class="akt">Schwelle <input type="number" step="0.05" min="0.05" max="0.95" value="${E.fregler.schwelle??rg.schwelle}" style="width:70px" onchange="MON['120'].freg('schwelle',+this.value)">
+      Mindestwörter <input type="number" min="1" max="20" value="${E.fregler.min_woerter??rg.min_woerter}" style="width:60px" onchange="MON['120'].freg('min_woerter',+this.value)">
+      Vorgabe für neue Funde <select onchange="MON['120'].freg('vorgabe',this.value)">${(F.vorgaben||[]).map(v=>`<option ${(E.fregler.vorgabe??rg.vorgabe)==v?"selected":""}>${v}</option>`).join("")}</select></div></div>`;},
+  abkBox(d){const A=d.abk;if(!A)return "";const E=this.E,lg=A.sprache;
+    const an=E.abklese!=null?E.abklese=="an":(A.aktiv);
+    const schalter=d.fassung=="modernisiert"?`<label class="klein"><input type="checkbox" ${an?"checked":""} onchange="MON['120'].abkLese(this.checked)"> Abkürzungen im Lesetext ausschreiben</label>`:"";
+    if(!A.aktiv)return `<div class="box"><h2>Abkürzungen im Lesetext</h2><div class="klein">${d.fassung=="modernisiert"?"abgeschaltet – Lesetext behält die Abkürzungen, 400 spricht sie aus.":"Fassung original: Lesetext bleibt unverändert, 400 spricht die Abkürzungen aus."}</div><div class="akt">${schalter}</div></div>`;
+    const hand=i=>E.abk[i]!==undefined?E.abk[i]:(A.entscheidungen[i]?A.entscheidungen[i].wort:undefined);
+    const wahl=b=>{const h=hand(b.id),vs=b.vorschlaege;const sel=h===undefined?"offen":h===""?"bleibt":vs.includes(h)?"v:"+h:"eigen";
+      return `<select onchange="MON['120'].abkWahl('${b.id}',this.value)"><option value="offen" ${sel=="offen"?"selected":""}>offen</option>
+        ${vs.map(v=>`<option value="v:${esc(v)}" ${sel=="v:"+v?"selected":""}>ausschreiben: ${esc(v)}</option>`).join("")}
+        <option value="eigen" ${sel=="eigen"?"selected":""}>eigenes Wort …</option><option value="bleibt" ${sel=="bleibt"?"selected":""}>bleibt stehen</option></select>
+        ${sel=="eigen"?`<input value="${esc((h||"").trim())}" style="width:140px" onchange="MON['120'].abkSet('${b.id}',this.value.trim()||' ')">`:""}`;};
+    const wt=b=>{const key=lg+":"+b.abk;return `<input placeholder="Wort für Werktabelle" value="${esc(E.abkwerk[key]??"")}" style="width:150px" onchange="MON['120'].abkWerk('${esc(key)}',this.value)">`;};
+    const herk={sprache:"Sprachtabelle",werk:"Werktabelle",hand:"von Hand"};
+    return `<div class="box"><h2>Abkürzungen im Lesetext · ${A.stellen.length} ausgeschrieben · ${A.befunde.length} offen</h2>
+     <div class="klein">Gleiche Tabelle wie 400 (Sprache ${esc(lg)} + Werktabelle), Ziffern bleiben („ch. 65“ → „chapter 65“). Deterministisch, 0 $. Offene Stellen: <b>ausschreiben</b> (Wort wählen) · <b>bleibt stehen</b> · <b>in die Werktabelle</b> (gilt für alle gleichen Stellen und für 400).</div>
+     ${A.befunde.length?`<table class="kapt"><tr><th>Stelle</th><th>Kontext</th><th>Entscheidung</th><th>Werktabelle</th></tr>
+      ${A.befunde.map(b=>`<tr class="${hand(b.id)===undefined?"ohne":""}"><td class="klein">${b.kapitel}:${b.absatz}</td><td>${esc(b.kontext)}</td><td>${wahl(b)}</td><td>${wt(b)}</td></tr>`).join("")}</table>`:'<div class="klein">keine offenen Abkürzungen</div>'}
+     <details style="margin-top:8px"><summary class="klein">ausgeschriebene Stellen (${A.stellen.length}) · ${Object.entries(A.herkunft||{}).map(([k,v])=>esc(herk[k]||k)+" "+v).join(" · ")}</summary>
+      <table class="kapt"><tr><th>Stelle</th><th>Kontext</th><th>wird</th><th>Herkunft</th><th></th></tr>
+      ${A.stellen.map(x=>`<tr><td class="klein">${x.kapitel}:${x.absatz}</td><td>${esc(x.kontext)}</td><td>${esc(x.wort)}</td><td class="klein">${esc(herk[x.herkunft]||x.herkunft)}</td>
+        <td><label class="klein"><input type="checkbox" ${E.abk[x.id]===""?"checked":""} onchange="MON['120'].abkZurueck('${x.id}',this.checked,'${x.herkunft}')"> ${x.herkunft=="hand"?"Handentscheidung zurücksetzen":"stehen lassen"}</label></td></tr>`).join("")}</table></details>
+     ${A.verwaist.length?`<div class="klein err">${A.verwaist.length} Entscheidungen ohne Stelle im Text (Text geändert)</div>`:""}
+     <div class="akt">${schalter} <span class="klein">Werktabelle (${A.werk.length}): ${A.werk.map(e=>esc(e.abk)+" → "+esc(e.wort||"bleibt")).join(", ")||"leer"}</span></div></div>`;},
+  abkLese(an){const A=M.daten.abk;if(an==A.aktiv)this.E.abklese=null;else this.E.abklese=an?"an":"aus";this.zf();},
+  abkWahl(id,v){if(v=="offen")this.abkSet(id,undefined);else if(v=="bleibt")this.abkSet(id,"");else if(v=="eigen")this.E.abk[id]=" ";else this.abkSet(id,v.slice(2));this.neuZeichnen();},
+  abkSet(id,w){const alt=(M.daten.abk.entscheidungen[id]||{}).wort;if(w===undefined){if(alt!==undefined)this.E.abk[id]="offen";else delete this.E.abk[id];}else if(w===alt)delete this.E.abk[id];else this.E.abk[id]=w;this.zf();},
+  abkWerk(key,w){w=w.trim();if(w)this.E.abkwerk[key]=w;else delete this.E.abkwerk[key];this.zf();},
+  abkZurueck(id,an,herk){if(!an)delete this.E.abk[id];else this.E.abk[id]=herk=="hand"?"offen":"";this.zf();},
+  fent(id,v,alt){if(v==alt)delete this.E.fremd[id];else this.E.fremd[id]=v;this.zf();},
+  ftx(id){const z=M.daten.fremd.zitate.find(x=>x.id==id);this.E.ftext[id]=(z.uebertragung||z.saetze).join(" || ");this.neuZeichnen();},
+  fset(art,id,an){an?this.E[art].add(id):this.E[art].delete(id);this.zf();},
+  falle(v){for(const z of M.daten.fremd.zitate)if((z.entscheidung||"offen")=="offen")this.E.fremd[z.id]=v;this.neuZeichnen();},
+  freg(k,v){const rg=M.daten.fremd.regler;if(v==rg[k])delete this.E.fregler[k];else this.E.fregler[k]=v;this.zf();},
+  neuZeichnen(){$("inhalt").innerHTML=this.html(M.daten);this.danach(M.daten);},
   html(d){
     if(d.fehler)return `<div class="box"><span class="err">${esc(d.fehler)}</span></div>`;
     const mod=d.fassung=="modernisiert",ref=d.referenz||[],g=d.grenzen;
@@ -466,6 +546,8 @@ MON["120"]={
      <div class="akt"><label><input type="checkbox" id="kok120"> Kapitelstruktur bestätigen</label></div>
      <div class="klein">Grenzen falsch? Dann Rücksprung 100 und dort den Rohtext korrigieren (Kapitelüberschriften); 120 erkennt danach neu. Länge ${g.laenge[0]}–${g.laenge[1]} je Kapitel, Absatz-Ausreißer außerhalb ${g.ausreisser[0]}–${g.ausreisser[1]}.</div>
     </div>
+    ${this.fremdBox(d)}
+    ${this.abkBox(d)}
     <div class="box" id="paarbox"><h2>2 Bearbeiten · Gegenüberstellung</h2><div class="klein">Kapitel in der Liste anklicken.</div></div>
     ${mod?`<div class="box"><h2>Regler</h2><div class="akt">
       Stärke <select id="st120">${d.staerken.map(x=>`<option ${x==par.staerke?"selected":""}>${x}</option>`).join("")}</select>
@@ -482,7 +564,12 @@ MON["120"]={
   danach(d){this.zf();if(this.K)this.zeige(this.K);},
   kap(k,an){an?this.E.kapitel.add(k):this.E.kapitel.delete(k);this.zf();},
   zf(){const e=this.E,t=[];if(e.kapitel.size)t.push(e.kapitel.size+" Kapitel neu");if(e.absatz.size)t.push(e.absatz.size+" Absätze neu");
-    const m=Object.keys(e.texte).length;if(m)t.push(m+" Absätze manuell");const el=$("zf120");if(el)el.textContent=t.join(" · ");},
+    const m=Object.keys(e.texte).length;if(m)t.push(m+" Absätze manuell");
+    const nf=Object.keys(e.fremd).length+Object.keys(e.ftext).length+e.fannehmen.size+e.fneu.size;if(nf)t.push(nf+" Zitat-Entscheidungen");
+    const kz=(M.daten.fremd?.zitate||[]).filter(z=>(e.fremd[z.id]=="uebertragen"&&!z.uebertragung)||e.fneu.has(z.id)).reduce((s,z)=>s+(z.kosten_usd||0),0);
+    if(kz)t.push(`Übertragen ~${kz.toFixed(4)} $`);if(Object.keys(e.fregler).length)t.push("Regler Fremdsprache");
+    const na=Object.keys(e.abk).length+Object.keys(e.abkwerk).length;if(na)t.push(na+" Abkürzungs-Entscheidungen");if(e.abklese)t.push("Abkürzungen "+e.abklese);
+    const el=$("zf120");if(el)el.textContent=t.join(" · ");},
   async zeige(k){
     this.K=k;document.querySelectorAll(".kapt tr").forEach(r=>r.classList.toggle("sel",r.id=="kz"+k));
     const box=$("paarbox");box.innerHTML=`<h2>2 Bearbeiten · Kapitel ${k}</h2><div class="klein">lädt …</div>`;
@@ -523,8 +610,14 @@ MON["120"]={
       const tx={};for(const[k,v]of Object.entries(E.texte))if(v.trim()&&v!==E.orig[k])tx[k]=v;
       if(Object.keys(tx).length)e.absatz_text=tx;
     }
+    if(Object.keys(E.fremd).length)e.fremd=E.fremd;
+    const ft={};for(const[k,v]of Object.entries(E.ftext))if(v.trim())ft[k]=v;if(Object.keys(ft).length)e.fremd_text=ft;
+    if(E.fannehmen.size)e.fremd_annehmen=[...E.fannehmen];if(E.fneu.size)e.fremd_neu=[...E.fneu];
+    if(Object.keys(E.fregler).length)e.fremd_regler=E.fregler;
+    const ab={};for(const[k,v]of Object.entries(E.abk))if(v!==" ")ab[k]=v.trim();if(Object.keys(ab).length)e.abk=ab;
+    const aw=Object.entries(E.abkwerk).map(([k,v])=>k+"="+v);if(aw.length)e.abk_werk=aw;if(E.abklese)e.abk_lesetext=E.abklese;
     if(!Object.keys(e).length&&!confirm("Nichts geändert – 120 nur neu prüfen?"))return;
-    speichern(e).then(ok=>{if(ok)this.E={kapitel:new Set(),absatz:new Set(),texte:{},orig:{}};});
+    speichern(e).then(ok=>{if(ok)this.E={kapitel:new Set(),absatz:new Set(),texte:{},orig:{},fremd:{},ftext:{},fannehmen:new Set(),fneu:new Set(),fregler:{},abk:{},abkwerk:{},abklese:null};});
   }
 };
 MON["150"]={
@@ -876,7 +969,7 @@ MON["210"]={
 };
 MON["310"]={
   E:null,lg:null,fa:"",fk:"",
-  leer(){return {spr:{},modell:null,batch:null,laenge:null,anker:null,alle:false};},
+  leer(){return {spr:{},modell:null,batch:null,spuren:null,laenge:null,anker:null,alle:false};},
   S(lg){return this.E.spr[lg]=this.E.spr[lg]||{text:{},aktion:{}};},
   html(d){
     if(!this.E)this.E=this.leer();
@@ -889,6 +982,10 @@ MON["310"]={
      <div class="feld">
       <span>Werk</span><span>${esc(d.sprache)} → ${esc(d.ziele.join(", ")||"–")} · ${d.saetze.toLocaleString("de-DE")} Sätze · ${d.kapitel.length} Kapitel · ${d.zeichen.toLocaleString("de-DE")} Zeichen · Modell ${esc(d.modell)} · Batch ${d.batch} · Anker ${d.anker?"an":'<span class="z mensch">aus</span>'}</span>
       <span>Kosten</span><span>Ist ${ki!=null?ki.toFixed(4)+" $":"–"} · alles neu übersetzen ~${d.kosten_neu.toFixed(3)} $ · je Satz ~${d.kosten_satz.toFixed(4)} $</span>
+      <span>Laufzeit</span><span>${(()=>{const w=d.erwartung;if(!w)return"–";
+        const t=(e,f)=>e==null?"keine Schätzung (kein früherer Lauf)":`~${dauerTxt(e)} · fertig ~${esc(f)}`;
+        return (w.offen?`offen ${w.offen.toLocaleString("de-DE")} Sätze: ${t(w.erwartet_s,w.fertig_um)}`:"nichts offen (Neulauf nur Prüfung)")+
+          ` · alle Kapitel neu: ${t(w.alle.erwartet_s,w.alle.fertig_um)} <span class="klein">(${w.spuren} Spuren, aus früheren Läufen)</span>`;})()}</span>
       <span>Zielsprache</span><span>${d.ziele.map(z=>{const n=Object.keys(this.S(z).text).length+Object.keys(this.S(z).aktion).length;
         return `<button class="${z==lg?"haupt":""}" onclick="MON['310'].wechsel('${z}')">${esc(z)} · ${(d.sprachen[z]||{befunde:[]}).befunde.length} Befunde${n?" · "+n+" geändert":""}</button>`;}).join(" ")}</span></div></div>
     <div class="box"><h2>Zielsprache ${esc(lg)}</h2><div class="feld">
@@ -907,8 +1004,9 @@ MON["310"]={
       Batch <input type="number" min="1" max="100" value="${E.batch??d.batch}" style="width:64px" onchange="MON['310'].E.batch=+this.value==M.daten.batch?null:+this.value;MON['310'].zf()">
       Länge Ziel/Quelle <input id="lo310" type="number" step="0.05" min="0.1" max="1" value="${lo}" style="width:64px" onchange="MON['310'].lae()"> – <input id="hi310" type="number" step="0.05" min="1" max="5" value="${hi}" style="width:64px" onchange="MON['310'].lae()">
       <label><input type="checkbox" ${(E.anker??(d.anker?"an":"aus"))=="an"?"checked":""} onchange="MON['310'].E.anker=(this.checked?'an':'aus')==(M.daten.anker?'an':'aus')?null:(this.checked?'an':'aus');MON['310'].zf()"> Anker (Vorübersetzung 300)</label>
+      Spuren <input type="number" min="1" max="64" value="${E.spuren??d.spuren}" style="width:56px" title="gleichzeitige Aufrufe (zusätzlich zentrale DeepSeek-Grenze)" onchange="MON['310'].E.spuren=+this.value==M.daten.spuren?null:+this.value;MON['310'].zf()">
       <label><input type="checkbox" ${E.alle?"checked":""} onchange="MON['310'].E.alle=this.checked;MON['310'].zf()"> alle Kapitel neu übersetzen</label> <span class="klein">~${d.kosten_neu.toFixed(3)} $</span></div>
-      <div class="klein">Standard: Modell ${esc(d.standard_modell)}, Batch ${d.standard_batch}, Länge ${d.standard_laenge.join("–")}. Modell- oder Anker-Wechsel übersetzt alle Kapitel neu (kostet); Batch wirkt nur auf offene Sätze; Länge ändert nur die Prüfung.</div></div>
+      <div class="klein">Standard: Modell ${esc(d.standard_modell)}, Batch ${d.standard_batch}, Spuren ${d.standard_spuren}, Länge ${d.standard_laenge.join("–")}. Spuren ändern nur die Wartezeit, nicht Ergebnis oder Kosten. Modell- oder Anker-Wechsel übersetzt alle Kapitel neu (kostet); Batch wirkt nur auf offene Sätze; Länge ändert nur die Prüfung.</div></div>
     <div class="box"><h2>3 Speichern · 4 Freigeben</h2>
      <div class="akt"><button class="haupt" onclick="MON['310'].los(false)">Übernehmen und 310 neu prüfen</button>
       <button onclick="MON['310'].los(true)">Probe (schreibt nichts, kein LLM)</button> <span id="zf310" class="klein"></span></div>
@@ -938,7 +1036,7 @@ MON["310"]={
     for(const [lg,S] of Object.entries(E.spr)){const m=Object.keys(S.text).length,a=Object.values(S.aktion);
       const n=a.filter(v=>v=="neu").length,an=a.filter(v=>v=="annehmen").length;
       if(m||n||an)t.push(`${lg}: `+[m&&m+" manuell",n&&n+" neu",an&&an+" angenommen"].filter(Boolean).join(", "));}
-    if(E.modell)t.push("Modell "+E.modell+" (alles neu, kostet)");if(E.batch)t.push("Batch "+E.batch);if(E.laenge)t.push("Länge "+E.laenge.join("–"));
+    if(E.modell)t.push("Modell "+E.modell+" (alles neu, kostet)");if(E.batch)t.push("Batch "+E.batch);if(E.spuren)t.push("Spuren "+E.spuren);if(E.laenge)t.push("Länge "+E.laenge.join("–"));
     if(E.anker)t.push("Anker "+E.anker+" (alles neu, kostet)");if(E.alle)t.push("alle Kapitel neu (kostet)");
     const el=$("zf310");if(el)el.textContent=t.join(" · ");},
   los(trocken){
@@ -949,7 +1047,7 @@ MON["310"]={
       const txt=Object.fromEntries(Object.entries(S.text).filter(([id,t])=>t.trim()&&t.trim()!=(d.sprachen[lg].befunde.find(x=>x.id==id)||{}).ziel));
       if(Object.keys(txt).length)e.satz_text=txt;
       const a=Object.entries(S.aktion);e.satz=a.filter(([,v])=>v=="neu").map(([k])=>k);e.annehmen=a.filter(([,v])=>v=="annehmen").map(([k])=>k);}
-    if(E.modell)e.modell=E.modell;if(E.batch)e.batch=E.batch;if(E.laenge)e.laenge=E.laenge;if(E.anker)e.anker=E.anker;if(E.alle)e.alle=true;
+    if(E.modell)e.modell=E.modell;if(E.batch)e.batch=E.batch;if(E.spuren)e.spuren=E.spuren;if(E.laenge)e.laenge=E.laenge;if(E.anker)e.anker=E.anker;if(E.alle)e.alle=true;
     if(trocken)e.trocken=true;
     const teuer=E.modell||E.anker||E.alle,n=(e.satz||[]).length;
     if(!trocken&&!Object.keys(e).length&&!confirm("Nichts geändert – 310 nur neu prüfen?"))return;
@@ -1248,8 +1346,8 @@ MON["095"]={
 };
 MON["400"]={
   E:null,lg:null,fa:"",fk:"",seite:0,N:40,
-  AN:{roemisch_h:"römisch (Überschrift)",roemisch:"römisch",reste:"Reste (Ziffern § & %)",laenge:"Länge",style:"Style",manuell:"manuell"},
-  leer(){return {spr:{},regler:{},pausen:{},aussprache:{},skip:new Set(),skip_weg:new Set(),laenge_max:null,style_max:null};},
+  AN:{roemisch_h:"römisch (Überschrift)",roemisch:"römisch",reste:"Reste (Ziffern § & %)",abkuerzung:"Abkürzung offen",laenge:"Länge",style:"Style",manuell:"manuell"},
+  leer(){return {spr:{},regler:{},pausen:{},aussprache:{},skip:new Set(),skip_weg:new Set(),laenge_max:null,style_max:null,abk:{}};},
   S(lg){return this.E.spr[lg]=this.E.spr[lg]||{text:{}};},
   diff(a,b){/* Wortdiff: -> [htmlA, htmlB] mit markierten Abweichungen */
     const x=a.split(/(\s+)/),y=b.split(/(\s+)/),n=x.length,m=y.length;
@@ -1291,6 +1389,7 @@ MON["400"]={
       Kapitel <select onchange="MON['400'].fk=this.value;MON['400'].seite=0;MON['400'].liste()"><option value="">alle</option>${[...new Set(sp.befunde.map(x=>x.kapitel))].sort().map(k=>`<option ${this.fk==k?"selected":""}>${k}</option>`).join("")}</select>
       <span id="seiten400"></span> <span class="klein">Sprechtext anklicken = von Hand setzen (gilt, bis sich der Lesetext ändert). Abweichungen: <span class="d400a">Text</span> → <span class="d400b">Sprechtext</span>.</span></div>
      <div id="bl400"></div></div>
+    ${this.abkBox(d,lg)}
     <div class="box"><h2>Aussprache · Figuren und Unübersetztes</h2>
      <div class="klein">Herkunft 210 = Profil (Figuren pflegen in <a href="#${esc(M.book_id)}/210">210</a>); 400 = Werk-Hinweis hier, gilt zusätzlich und hat Vorrang (näher am Audio). „überspringen“ nimmt einen Begriff aus der Aussprache-Prüfung.</div>
      <table class="kapt t400"><tr><th>Begriff</th><th>Art</th>${d.audio.map(z=>`<th>${esc(z)}</th>`).join("")}<th>210</th><th>400-Hinweis</th><th>überspringen</th></tr>
@@ -1314,6 +1413,17 @@ MON["400"]={
   danach(){this.liste();this.zf();},
   neuZeichnen(){$("inhalt").innerHTML=this.html(M.daten);this.danach();},
   wechsel(lg){this.lg=lg;this.fa="";this.fk="";this.seite=0;this.neuZeichnen();},
+  abkBox(d,lg){const A=(d.abk||{})[lg]||{werk:[],standard:[]},V=this.E.abk[lg]||{},q=k=>esc(JSON.stringify(k));
+    const zeile=(e,w)=>`<tr><td><b>${esc(e.abk)}</b></td><td>${esc(e.wort)||'<span class="klein">(bleibt stehen)</span>'}</td><td class="klein">${esc(e.bedingung||"immer")}${e.plural?" · Plural "+esc(e.plural):""}${e.zahl_sprechen?" · Zahl als Wort":""}</td><td>${w?`<button onclick="MON['400'].ab(${q(e.abk)},'-')">löschen</button>`:""}</td></tr>`;
+    return `<div class="box"><h2>Abkürzungen · Werktabelle ${esc(lg)}</h2>
+     <div class="klein">Befund „Abkürzung offen“: Sprechtext oben von Hand setzen oder die Abkürzung hier in die Werktabelle übernehmen (gilt für alle Stellen dieses Werks, vor der Sprachtabelle; leeres Wort = bleibt stehen, kein Befund). Mehrdeutige (f., p., ed.) löst die Regel nur mit Zahl bzw. Name auf. Satzgrenzen: dieselben Abkürzungen gelten in <a href="#${esc(M.book_id)}/200">200</a> – nach Änderung 200 neu laufen lassen.</div>
+     <table class="kapt">${A.werk.map(e=>zeile(e,true)).join("")||'<tr><td class="klein" colspan="4">noch keine Werk-Einträge</td></tr>'}
+      ${Object.entries(V).map(([k,v])=>`<tr class="geaendert"><td><b>${esc(k)}</b></td><td>${v=="-"?"(löschen)":esc(v)||"(bleibt stehen)"}</td><td class="klein">vorgemerkt</td><td><button onclick="MON['400'].ab(${q(k)},null)">verwerfen</button></td></tr>`).join("")}</table>
+     <div class="akt">Abkürzung <input id="abk400" placeholder="fol." style="width:90px"> → <input id="abkw400" placeholder="folio" style="width:200px">
+      <button onclick="MON['400'].ab($('abk400').value.trim(),$('abkw400').value.trim())">vormerken</button></div>
+     <details><summary class="klein">Sprachtabelle ${esc(lg)} (config/abk_sprech_${esc(lg)}.json, ${A.standard.length} Einträge)</summary><table class="kapt">${A.standard.map(e=>zeile(e,false)).join("")}</table></details></div>`;},
+  ab(k,v){if(!k)return;const E=this.E,lg=this.lg;E.abk[lg]=E.abk[lg]||{};if(v==null)delete E.abk[lg][k];else E.abk[lg][k]=v;
+    if(!Object.keys(E.abk[lg]).length)delete E.abk[lg];this.neuZeichnen();},
   liste(){
     const d=M.daten,lg=this.lg,sp=d.sprachen[lg]||{befunde:[]},S=this.S(lg),N=this.N;
     const l=sp.befunde.filter(x=>(!this.fa||x.arten.includes(this.fa))&&(!this.fk||x.kapitel==this.fk)),ns=Math.max(1,Math.ceil(l.length/N));
@@ -1344,6 +1454,7 @@ MON["400"]={
     const na=Object.keys(E.aussprache).length;if(na)t.push(na+" Aussprache-Hinweise");
     if(E.skip.size||E.skip_weg.size)t.push(`überspringen +${E.skip.size}/−${E.skip_weg.size}`);
     if(E.laenge_max)t.push("Länge "+E.laenge_max);if(E.style_max)t.push("Style "+E.style_max);
+    const nk=Object.values(E.abk).reduce((n,x)=>n+Object.keys(x).length,0);if(nk)t.push(nk+" Abkürzungen");
     const el=$("zf400");if(el)el.textContent=t.join(" · ");},
   los(trocken){
     const E=this.E,e={};
@@ -1355,6 +1466,7 @@ MON["400"]={
     Object.assign(e,E.regler);if(Object.keys(E.pausen).length)e.pausen=E.pausen;if(Object.keys(E.aussprache).length)e.aussprache=E.aussprache;
     if(E.skip.size)e.skip=[...E.skip];if(E.skip_weg.size)e.skip_weg=[...E.skip_weg];
     if(E.laenge_max)e.laenge_max=E.laenge_max;if(E.style_max)e.style_max=E.style_max;if(trocken)e.trocken=true;
+    if(Object.keys(E.abk).length)e.abk_sprech=E.abk;
     if(!trocken&&!Object.keys(e).length&&!confirm("Nichts geändert – 400 nur neu prüfen?"))return;
     speichern(e).then(ok=>{if(ok&&!trocken)this.E=this.leer();});
   }
@@ -1718,7 +1830,7 @@ MON["500"]={
       · auffällig ≤ <input type="number" min="0" max="100" step="0.5" value="${+(100*rg("auffaellig_max")).toFixed(2)}" style="width:60px" onchange="MON['500'].rg('auffaellig_max',+this.value/100)"> %
       · Dauer je Zeichen <input type="number" min="0.1" max="1" step="0.05" value="${rg("dauer_min")}" style="width:60px" onchange="MON['500'].rg('dauer_min',+this.value)"> – <input type="number" min="1" max="5" step="0.1" value="${rg("dauer_max")}" style="width:60px" onchange="MON['500'].rg('dauer_max',+this.value)"> × Median
       · Wiederholungen <input type="number" min="0" max="3" value="${rg("versuche")}" style="width:50px" onchange="MON['500'].rg('versuche',+this.value)">
-      · Gemini parallel <input type="number" min="1" max="8" value="${rg("parallel")}" style="width:50px" onchange="MON['500'].rg('parallel',+this.value)"></div>
+      · Gemini parallel <input type="number" min="1" max="16" value="${rg("parallel")}" style="width:50px" onchange="MON['500'].rg('parallel',+this.value)"></div>
      <div class="klein">Standard: Budget ${d.standard.budget} $, auffällig ${100*d.standard.auffaellig_max} %, Dauer ${d.standard.dauer_min}–${d.standard.dauer_max}, ${d.standard.versuche} Wiederholungen, ${d.standard.parallel} Gemini-Blöcke gleichzeitig (Kosten gleich, nur schneller; bei Rate-Limit-Fehlern senken). Technik (Engine, Blöcke, cfg, fp16, Batch) nicht im Monitor.</div></div>
     <div class="box"><h2>3 Speichern · 4 Freigeben</h2>
      <div class="akt"><input type="text" size="50" placeholder="Grund (Pflicht beim Annehmen)" value="${esc(E.grund)}" oninput="MON['500'].E.grund=this.value">
@@ -1837,7 +1949,7 @@ MON["510"]={
     const R=(k,lab,min,max,st,w,f,inv)=>`${lab} <input type="number" min="${min}" max="${max}" step="${st}" value="${f?f(rg(k)):rg(k)}" style="width:${w||60}px" onchange="MON['510'].rg('${k}',${inv?inv:"+this.value"})">`;
     return `<div class="box"><h2>Regler je Werk</h2>
      <div class="akt">${R("budget","Budget (Somnio)",0,500,0.5,70)} $ · ${R("auffaellig_max","auffällig ≤",0,100,0.5,60,v=>+(100*v).toFixed(2),"+this.value/100")} %
-      · ${R("dauer_min","Dauer",0.1,1,0.05)} – ${R("dauer_max","",1,5,0.1)} × Satz 500 · ${R("versuche","Wiederholungen",0,3,1,50)} · ${R("parallel","Gemini parallel",1,8,1,50)}</div>
+      · ${R("dauer_min","Dauer",0.1,1,0.05)} – ${R("dauer_max","",1,5,0.1)} × Satz 500 · ${R("versuche","Wiederholungen",0,3,1,50)} · ${R("parallel","Gemini parallel",1,16,1,50)}</div>
      <div class="akt">${R("naht_db","Naht ≤",0.5,20,0.5)} dB · ${R("ueberblend_ms","Überblendung",0,100,1)} ms · ${R("fa_min","FA-Wörter ≥",10,100,1,60,v=>Math.round(100*v),"+this.value/100")} % · ${R("stueck_min","Stück ≥",0.01,2,0.01)} s</div>
      <div class="klein">Standard: Budget ${d.standard.budget} $, auffällig ${100*d.standard.auffaellig_max} %, Dauer ${d.standard.dauer_min}–${d.standard.dauer_max}, ${d.standard.versuche} Wiederholungen, Naht ${d.standard.naht_db} dB, Überblendung ${d.standard.ueberblend_ms} ms, FA ${100*d.standard.fa_min} %, Stück ${d.standard.stueck_min} s, ${d.standard.parallel} Takes gleichzeitig (Kosten gleich). Technik (Schnitt Modal/CPU, Lautheit, Stil) nicht im Monitor. Neue Schwellen wirken auf die nächste Prüfung; Naht/Überblendung bauen betroffene Sätze neu (0 $).</div></div>
     <div class="box"><h2>3 Speichern · 4 Freigeben</h2>
@@ -2474,6 +2586,357 @@ MON["615"]={
     if(!Object.keys(e).length&&!confirm("Nichts geändert – 615 nur neu prüfen?"))return;
     speichern(e).then(ok=>{if(ok){this.E=this.leer();this.V={};}});
   }
+};
+// ---------- Nächster Schritt (UX-Regel CK 22.11.2026: je Monitor genau ein sichtbarer nächster Schritt)
+function schritt(text,knopf){return `<div class="box schritt"><h2>Nächster Schritt</h2><div>${text}</div>${knopf?`<div class="akt">${knopf}</div>`:""}</div>`;}
+function schrittFertig(st){const k=M.kette,i=k.findIndex(x=>x.stage==st),n=k.slice(i+1).find(x=>!x.nachbar);
+  return schritt(`${st} ist fertig.${n?` Weiter mit <b>${n.stage} ${esc(n.name)}</b>.`:" Das Werk ist vollständig durchgelaufen."}`,n?`<a class="knopf haupt" href="#${esc(M.book_id)}/${n.stage}">→ ${n.stage} öffnen</a>`:"");}
+MON["650"]={
+  E:null,lg:null,pf:null,
+  PN:{lufs:"Lautheit",peak:"Spitze",rauschen:"Rauschen",kopf:"Stille vorn",schluss:"Stille hinten",rate:"Abtastrate",bitrate:"Bitrate",dauer:"Dauer",laenge:"Kapitellänge"},
+  leer(){return {ausgabe:null,ansagen:null,neu:new Set(),profil:{}};},
+  geaendert(){const E=this.E;return E.ausgabe!=null||E.ansagen!=null||E.neu.size||Object.keys(E.profil).length;},
+  laie(g){return g.replace(/Kanal extern: Hoerprobe.*$/,"Plattform-Auslieferung: einmal reinhören (Hörprobe unten)")
+    .replace(/Profil (lufs|peak|rauschen)/,(m,k)=>({lufs:"Lautstärke",peak:"Spitzenpegel",rauschen:"Grundrauschen"})[k]).replace(/Kapiteldauer/,"Kapiteldauer weicht ab").replace(/Ansagen vollstaendig/,"Ansagen (Titel, Autor, Sprecher, Ende) fehlen");},
+  entscheidungText(){const s=(M.daten.sprachen||[]).filter(x=>x.zustand=="mensch");
+    return `Das Hörbuch ist gebaut und wartet auf ein Ohr: ${s.map(x=>`<b>${esc(x.sprache)}</b> – ${x.gruende.map(g=>esc(this.laie(g))).join("; ")}`).join(" · ")}. Hörprobe unten anhören; klingt alles richtig, Begründung eintragen und freigeben. Sonst unten korrigieren bzw. zurückspringen.`;},
+  freigeben(grund){api(`/api/werk/${B()}/monitor/650`,{freigeben:true,grund,wer:$("wer").value}).then(r=>{if(!r.ok)alert(r.fehler);else laufZeigen(r.lauf);});},
+  naechster(d){
+    const off=d.sprachen.filter(s=>s.zustand=="mensch"),st=M.stage.zustand;
+    if(this.geaendert())return schritt("Du hast etwas geändert. Übernehmen baut das Hörbuch neu (0 $, nur geänderte Kapitel).",`<button class="haupt" onclick="MON['650'].los(false)">Übernehmen und 650 neu bauen</button>`);
+    if(off.length)return schritt(`Hörprobe ${off.map(s=>esc(s.sprache)).join(", ")} anhören – Anfang, Schluss und Ansagen. Klingt es richtig: oben im Kasten „Entscheidung nötig“ freigeben.`,
+      off.map(s=>{const p=s.profile.extern||Object.values(s.profile)[0];return p&&p.hoerprobe?`${esc(s.sprache)} <audio controls preload="none" src="/datei?p=${encodeURIComponent(p.hoerprobe)}" style="height:30px"></audio>`:"";}).join(" "));
+    if(st=="stopp")return schritt("650 ist angehalten. Ursache steht oben unter „Befunde“ – dort mit „Rücksprung“ an die Stelle springen, die das Problem verursacht.","");
+    if(["frei","auto"].includes(st))return schrittFertig("650");
+    return schritt("Das Hörbuch ist noch nicht gebaut.",`<button class="haupt" onclick="pruefen()">650 bauen</button>`);
+  },
+  html(d){
+    if(!this.E)this.E=this.leer();
+    const E=this.E,L=d.sprachen.map(s=>s.sprache);
+    if(!this.lg||!L.includes(this.lg))this.lg=L[0];
+    const s=d.sprachen.find(x=>x.sprache==this.lg),admin=M.rolle=="admin";
+    let h=this.naechster(d);
+    if(d.plan_fehler)h+=`<div class="box klein err">Probe nicht möglich: ${esc(d.plan_fehler)}</div>`;
+    if(d.ohne_hoerbuch.length)h+=`<div class="box klein">Ohne Hörbuch-Datei in 650: ${d.ohne_hoerbuch.map(esc).join(", ")} (650 baut nur Hörbuch-Stufe basic; premium/Hörspiel folgen).</div>`;
+    if(!s)return h+'<div class="box klein">Kein Hörbuch bestellt.</div>';
+    const P=Object.keys(s.profile);if(!this.pf||!P.includes(this.pf))this.pf=P[0];
+    const p=s.profile[this.pf],pl=(x,w)=>x?`<audio controls preload="none" src="/datei?p=${encodeURIComponent(x)}" style="width:${w||200}px;height:30px"></audio>`:'<span class="klein">–</span>';
+    h+=`<div class="box"><h2>1 Anzeigen ${L.length>1?'<span class="tabs" style="display:inline-flex;margin:0">'+L.map(lg=>`<button class="${lg==this.lg?"akt":""}" onclick="MON['650'].lg='${lg}';MON['650'].neuZeichnen()">${esc(lg)}</button>`).join(" ")+"</span>":"· "+esc(s.sprache)}</h2>
+     <div class="feld"><span>Zustand</span><span>${zb(s.zustand)} ${s.wer?`<span class="klein">${esc(s.wer)} ${esc((s.wann||"").slice(0,16).replace("T"," "))}</span>`:""}${s.gruende.length?`<br><span class="klein">${s.gruende.map(g=>esc(this.laie(g))).join("<br>")}</span>`:""}</span>
+      <span>Hörprobe</span><span>${P.map(q=>`${q=="extern"?"Plattform":"ePub"} ${pl(s.profile[q].hoerprobe,240)}`).join(" ")}<br><span class="klein">Anfang (20 s), Schluss (20 s) und Ansagen.</span></span>
+      <span>Freigabe Plattform</span><span>${!s.extern?'<span class="klein">nicht nötig (kein Kanal extern)</span>':s.freigabe?`erteilt von ${esc(s.freigabe.wer)} ${esc((s.freigabe.wann||"").slice(0,16).replace("T"," "))}${s.freigabe.grund?" – "+esc(s.freigabe.grund):""}`:'<span class="klein">noch nicht erteilt (einmal je Sprache)</span>'}</span>
+      ${s.extern?`<span>Cover</span><span>${s.cover?`<a href="/datei?p=${encodeURIComponent(s.cover)}&t=${s.cover_stand}" target="_blank"><img src="/datei?p=${encodeURIComponent(s.cover)}&t=${s.cover_stand}" style="width:90px"></a>`:'<span class="err">fehlt</span>'} <a href="#${esc(M.book_id)}/615">→ 615</a></span>`:""}
+      <span>Dauer</span><span>${P.map(q=>`${q=="extern"?"Plattform":"ePub"} ${s.profile[q].dauer_min} min, ${s.profile[q].kapitel.length} Dateien`).join(" · ")}${s.profile.extern&&s.profile.extern.m4b?` · <a href="/datei?p=${encodeURIComponent(s.profile.extern.m4b)}">M4B</a>`:""}</span></div></div>
+    <div class="box"><h2>Ansagen <span class="klein">aus <a href="#${esc(M.book_id)}/400">400</a> – Text dort ändern</span></h2>
+     ${s.ansagen.length?`<table class="kapt"><tr><th>Ansage</th><th>Wo</th><th>Gesprochen</th><th></th></tr>${s.ansagen.map(a=>`<tr><td class="klein">${esc(a.id)}</td><td class="klein">${esc(a.position||"")}</td><td>${esc(a.sprechtext||a.text||"")}</td><td>${pl(a.audio)}</td></tr>`).join("")}</table>`:'<div class="klein">keine Ansagen</div>'}</div>
+    <div class="box"><h2>Kapitel <span class="tabs" style="display:inline-flex;margin:0">${P.map(q=>`<button class="${q==this.pf?"akt":""}" onclick="MON['650'].pf='${q}';MON['650'].neuZeichnen()">${q=="extern"?"Plattform (extern)":"ePub"}${s.profile[q].auffaellig?` (${s.profile[q].auffaellig} rot)`:""}</button>`).join(" ")}</span></h2>
+     ${p.kapitel.length?`<table class="kapt"><tr><th>Nr</th><th>Kapitel</th><th>Dauer</th><th>Lautheit</th><th>Spitze</th><th>Rauschen</th><th>Stille vorn/hinten</th><th>Format</th><th></th></tr>
+      ${p.kapitel.map(k=>{const c=x=>k.ok[x]?"":"err";return `<tr><td>${k.nr}</td><td>${esc(k.titel||k.kapitel)} <span class="klein">${k.saetze} Sätze</span></td>
+       <td class="${c("dauer")} ${c("laenge")}">${(k.dauer/60).toFixed(1)} min</td><td class="${c("lufs")}">${k.lufs} LUFS</td><td class="${c("peak")}">${k.peak} dB</td><td class="${c("rauschen")}">${k.rauschen} dB</td>
+       <td class="${c("kopf")} ${c("schluss")}">${k.kopf}/${k.schluss} s</td><td class="klein ${c("rate")} ${c("bitrate")}">${k.rate/1000} kHz · ${Math.round(k.bitrate/1000)}k</td><td>${pl(k.audio)}</td></tr>`;}).join("")}</table>
+      <div class="klein">Profil ${this.pf=="extern"?"Plattform":"ePub"}: ${p.werte.lufs} ± ${p.werte.lufs_tol} LUFS, Spitze ≤ ${p.werte.peak} dB, Rauschen ≤ ${p.werte.rauschen} dB, Stille ${p.werte.kopf}/${p.werte.schluss} s, Kapitel ≤ ${p.werte.kapitel_max_min} min, ${p.werte.bitrate} · ${p.werte.rate/1000} kHz. Rot = außerhalb. Lautheit/Rauschen falsch → <a href="#${esc(M.book_id)}/530">530</a>, Kapitelzahl → <a href="#${esc(M.book_id)}/400">400</a>, Sprecher → <a href="#${esc(M.book_id)}/410">410</a>.</div>`
+      :'<div class="klein">Noch nicht gebaut.</div>'}</div>`;
+    const R=d.regler,rv=k=>E[k]??R[k];
+    h+=`<div class="box"><h2>2 Bearbeiten</h2>
+     <div class="akt">Plattform-Ausgabe <select onchange="MON['650'].set('ausgabe',this.value)">${["mp3","m4b","beide"].map(x=>`<option ${rv("ausgabe")==x?"selected":""}>${x}</option>`).join("")}</select>
+      <label><input type="checkbox" ${rv("ansagen")!="aus"?"checked":""} onchange="MON['650'].set('ansagen',this.checked?'an':'aus')"> Ansagen</label>
+      · neu bauen: ${L.map(lg=>`<label><input type="checkbox" ${E.neu.has(lg)?"checked":""} onchange="MON['650'].neu('${lg}',this.checked)"> ${esc(lg)}</label>`).join(" ")}</div>
+     ${admin?`<details><summary class="klein">Profilwerte je Werk (Admin)</summary><table class="kapt"><tr><th></th>${d.werte.map(k=>`<th class="klein">${k}</th>`).join("")}</tr>
+      ${Object.keys(d.standard).map(q=>`<tr><td>${q}</td>${d.werte.map(k=>{const v=(E.profil[q]||{})[k]??((R.profile[q]||{})[k]??d.standard[q][k]);
+        return `<td><input type="${typeof d.standard[q][k]=="string"?"text":"number"}" step="any" value="${esc(v)}" style="width:62px" onchange="MON['650'].prof('${q}','${k}',this.value)"></td>`;}).join("")}</tr>`).join("")}</table></details>`
+      :`<div class="klein">Profilwerte (Lautheit, Bitrate …) ändert nur Admin.</div>`}</div>
+    <div class="box"><h2>3 Speichern</h2>
+     <div class="akt"><button onclick="MON['650'].los(false)">Übernehmen und 650 neu bauen</button> <button onclick="MON['650'].los(true)">Probe (schreibt nichts)</button> <span id="zf650" class="klein"></span></div>
+     <div class="klein">0 $ (ffmpeg). Unveränderte Kapitel bleiben stehen.</div>
+     ${d.protokoll.length?`<details style="margin-top:6px"><summary class="klein">Protokoll (${d.protokoll.length})</summary><table class="kapt">${d.protokoll.slice().reverse().map(p=>`<tr><td class="klein">${esc((p.wann||"").slice(0,16).replace("T"," "))}</td><td class="klein">${esc(p.wer)}</td><td class="klein">${esc(Object.entries(p.was||{}).map(([k,v])=>k+": "+v).join(" · "))}</td></tr>`).join("")}</table></details>`:""}</div>`;
+    return h;
+  },
+  danach(){this.zf();},
+  neuZeichnen(){$("inhalt").innerHTML=this.html(M.daten);this.danach();},
+  set(k,v){this.E[k]=v==M.daten.regler[k]?null:v;this.neuZeichnen();},
+  neu(lg,an){an?this.E.neu.add(lg):this.E.neu.delete(lg);this.neuZeichnen();},
+  prof(q,k,v){const d=M.daten,alt=(d.regler.profile[q]||{})[k]??d.standard[q][k];v=typeof alt=="string"?v.trim():+v;
+    const o=this.E.profil[q]=this.E.profil[q]||{};if(v==alt)delete o[k];else o[k]=v;if(!Object.keys(o).length)delete this.E.profil[q];this.neuZeichnen();},
+  zf(){const E=this.E,t=[];if(E.ausgabe)t.push("Ausgabe "+E.ausgabe);if(E.ansagen)t.push("Ansagen "+E.ansagen);if(E.neu.size)t.push("neu: "+[...E.neu].join(", "));
+    for(const [q,o] of Object.entries(E.profil))for(const [k,v] of Object.entries(o))t.push(`${q}:${k}=${v}`);const el=$("zf650");if(el)el.textContent=t.join(" · ");},
+  los(trocken){const E=this.E,e={};if(E.ausgabe)e.ausgabe=E.ausgabe;if(E.ansagen)e.ansagen=E.ansagen;
+    if(E.neu.size){e.neu=true;e.sprache=[...E.neu];}if(Object.keys(E.profil).length)e.profil=E.profil;if(trocken)e.trocken=true;
+    if(!trocken&&!Object.keys(e).length&&!confirm("Nichts geändert – 650 nur neu prüfen?"))return;
+    speichern(e).then(ok=>{if(ok&&!trocken)this.E=this.leer();});}
+};
+MON["620"]={
+  E:null,lg:null,L:null,
+  WN:{epubcheck:"epubcheck",textabgleich:"Textabgleich",kapitel:"Kapitel",vermerke:"Vermerke",bilder:"Bilder",fussnoten:"Fußnoten",fallback:"Rückfall Original",smil:"Satz-Audio (SMIL)"},
+  leer(){return {mobil:null,mobil_laenge:null,bilder:null,fussnoten:null,kolophon:{},neu:new Set()};},
+  geaendert(){const E=this.E;return ["mobil","mobil_laenge","bilder","fussnoten"].some(k=>E[k]!=null)||Object.keys(E.kolophon).length||E.neu.size;},
+  laie(g){return g.replace(/Absaetze geklebt: Kapitel ([\d, ]+).*/,"In Kapitel $1 hängen Absätze zusammen – in der Leseansicht prüfen, ob es so lesbar ist (sonst Absatzgrenzen in 200 korrigieren)")
+    .replace(/Vorschau ePub \(Mandant verlag\).*/,"Verlag: ePub einmal ansehen und freigeben").replace(/Gate (\d+)( \S+)? frei \((\w+)\)/,"wartet auf Stage $1 ($3)");},
+  entscheidungText(d){const st=M.stage.stage,k=d.kacheln.filter(x=>x.stage==st&&x.zustand=="mensch");
+    return `Das ePub ist gebaut und wartet auf einen Blick: ${k.map(x=>`<b>${esc(x.sprache)} ${x.variante=="audio"?"mit Audio":"Text"}</b> – ${x.gruende.map(g=>esc(this.laie(g))).join("; ")}`).join(" · ")}. Unten in der Leseansicht durchblättern; passt es, Begründung eintragen und freigeben.`;},
+  freigeben(grund){api(`/api/werk/${B()}/monitor/${M.stage.stage}`,{freigeben:true,grund,wer:$("wer").value}).then(r=>{if(!r.ok)alert(r.fehler);else laufZeigen(r.lauf);});},
+  naechster(d){
+    const st=M.stage.stage,K=d.kacheln,mich=K.filter(x=>x.stage==st),and=K.filter(x=>x.stage!=st);
+    if(this.geaendert())return schritt("Du hast etwas geändert. Übernehmen baut die betroffenen ePubs neu (0 $).",`<button class="haupt" onclick="MON['620'].los()">Übernehmen und ePub neu bauen</button>`);
+    const m=mich.find(x=>x.zustand=="mensch");
+    if(m)return schritt(`${esc(m.sprache)} ${m.variante=="audio"?"mit Audio":"Text"} in der Leseansicht ansehen. Passt es: oben im Kasten „Entscheidung nötig“ freigeben.`,`<button onclick="MON['620'].lesen('${m.scope}',0)">Leseansicht ${esc(m.scope)}</button>`);
+    const a=and.find(x=>x.zustand=="mensch");
+    if(a)return schritt(`Das ePub ${esc(a.sprache)} gehört zu Stage ${a.stage} und wartet dort auf Freigabe.`,`<a class="knopf haupt" href="#${esc(M.book_id)}/${a.stage}">→ ${a.stage} öffnen</a>`);
+    if(mich.some(x=>x.zustand=="stopp"))return schritt(`${st} ist angehalten. Ursache oben unter „Befunde“ – mit „Rücksprung“ an die Stelle springen, die das Problem verursacht.`,"");
+    if(mich.some(x=>!["frei","auto"].includes(x.zustand)))return schritt(`Das ePub (${st}) ist noch nicht gebaut.`,`<button class="haupt" onclick="pruefen()">${st} bauen</button>`);
+    if(and.some(x=>!["frei","auto"].includes(x.zustand))){const s2=and[0].stage;return schritt(`${st} ist fertig. Das ePub der ${s2=="630"?"Zielsprachen":"Ausgangssprache"} (${s2}) fehlt noch.`,`<a class="knopf haupt" href="#${esc(M.book_id)}/${s2}">→ ${s2} öffnen</a>`);}
+    return schrittFertig(M.kette.some(x=>x.stage=="630")?"630":"620");
+  },
+  html(d){
+    if(!this.E)this.E=this.leer();
+    const E=this.E,S=d.sprachen;if(!this.lg||!S.includes(this.lg))this.lg=S[0];
+    const admin=M.rolle=="admin";
+    let h=this.naechster(d);
+    if(!d.kacheln.length)return h+'<div class="box klein">Kein ePub bestellt.</div>';
+    h+=`<div class="box"><h2>1 Anzeigen <span class="tabs" style="display:inline-flex;margin:0">${S.map(lg=>{const n=d.kacheln.filter(k=>k.sprache==lg&&k.zustand=="mensch").length;
+      return `<button class="${lg==this.lg?"akt":""}" onclick="MON['620'].lg='${lg}';MON['620'].L=null;MON['620'].neuZeichnen()">${esc(lg)}${lg==d.quellsprache?" (Original, 620)":" (630)"}${n?" ●":""}</button>`;}).join("")}</span></h2>
+     <div class="gal615">${d.kacheln.filter(k=>k.sprache==this.lg).map(k=>`<div><div class="kopf615"><b>${k.variante=="audio"?"mit Audio":"Text"}</b> ${zb(k.zustand)} <span class="klein">Stage ${k.stage}</span></div>
+      <table class="kapt">${k.werte.map(w=>`<tr><td class="klein">${this.WN[w.name]||w.name}</td><td class="${w.ok===false?"err":""}">${w.ist??"–"}${w.soll!=null?` <span class="klein">/ ${w.soll}</span>`:""} ${w.einheit?`<span class="klein">${w.einheit}</span>`:""}</td></tr>`).join("")}
+       ${k.warnungen?`<tr><td class="klein">Warnungen</td><td>${k.warnungen}</td></tr>`:""}</table>
+      ${k.geklebt.length?`<div class="klein"><span class="z mensch">geklebt</span> Kapitel ${k.geklebt.join(", ")} → <a href="#${esc(M.book_id)}/200">200</a></div>`:""}
+      ${k.fallback_ids.length?`<div class="klein err">Rückfall: ${k.fallback_ids.slice(0,5).map(esc).join(", ")} → <a href="#${esc(M.book_id)}/310">310</a></div>`:""}
+      ${k.meldungen.length?`<div class="klein err">${k.meldungen.map(esc).join("<br>")}</div>`:""}
+      ${k.gruende.length?`<div class="klein">${k.gruende.map(g=>esc(this.laie(g))).join("<br>")}</div>`:""}
+      <div class="akt">${k.datei?`<button onclick="MON['620'].lesen('${k.scope}',0)">Leseansicht</button> <a href="/datei?p=${encodeURIComponent(k.datei)}" class="klein">ePub laden (${k.mb} MB)</a>`:'<span class="klein">noch nicht gebaut</span>'}</div>
+      <div class="klein">${k.gebaut?"gebaut "+esc(k.gebaut.slice(0,16).replace("T"," ")):""}</div></div>`).join("")}</div></div>
+    <div class="box" id="lese620"><h2>Leseansicht</h2><div class="klein">„Leseansicht“ an einer Kachel öffnet das gebaute ePub (Kapitel blättern; mit Audio: abspielen, der Satz läuft mit).</div></div>`;
+    const R=d.regler,rv=k=>E[k]??R[k];
+    h+=`<div class="box"><h2>2 Bearbeiten</h2>
+     <div class="akt"><label><input type="checkbox" ${rv("mobil")!="aus"?"checked":""} onchange="MON['620'].set('mobil',this.checked?'an':'aus')"> Mobil-Absätze</label>
+      bis <input type="number" min="80" max="2000" step="10" value="${rv("mobil_laenge")}" style="width:70px" onchange="MON['620'].set('mobil_laenge',+this.value)"> Zeichen
+      · <label><input type="checkbox" ${rv("bilder")!="aus"?"checked":""} onchange="MON['620'].set('bilder',this.checked?'an':'aus')"> Bilder</label>
+      <label><input type="checkbox" ${rv("fussnoten")!="aus"?"checked":""} onchange="MON['620'].set('fussnoten',this.checked?'an':'aus')"> Fußnoten</label>
+      · neu bauen: ${S.map(lg=>`<label><input type="checkbox" ${E.neu.has(lg)?"checked":""} onchange="MON['620'].neu('${lg}',this.checked)"> ${esc(lg)}</label>`).join(" ")}</div>
+     ${admin?`<div class="akt">Kolophon-Zusatz ${S.map(lg=>`${esc(lg)} <input type="text" size="28" value="${esc(E.kolophon[lg]??((R.kolophon||{})[lg]||""))}" onchange="MON['620'].kol('${lg}',this.value)">`).join(" ")} <span class="klein">(Admin)</span></div>`:""}
+     <div class="klein">Mobil-Absätze teilen lange Absätze an Satzgrenzen (besser lesbar auf dem Handy). Rücksprung: Absätze → <a href="#${esc(M.book_id)}/200">200</a> · Übersetzung → <a href="#${esc(M.book_id)}/310">310</a> · Klappentext → <a href="#${esc(M.book_id)}/600">600</a> · Cover → <a href="#${esc(M.book_id)}/615">615</a> · Audio → <a href="#${esc(M.book_id)}/650">650</a> · Fußnoten/Bilder → <a href="#${esc(M.book_id)}/150">150</a>.</div></div>
+    <div class="box"><h2>3 Speichern</h2><div class="akt"><button onclick="MON['620'].los()">Übernehmen und ePub neu bauen</button> <span id="zf620" class="klein"></span></div>
+     <div class="klein">0 $. Regler gelten für 620 und 630 gemeinsam; beide werden neu gebaut, unveränderte ePubs bleiben stehen.</div>
+     ${d.protokoll.length?`<details style="margin-top:6px"><summary class="klein">Protokoll (${d.protokoll.length})</summary><table class="kapt">${d.protokoll.slice().reverse().map(p=>`<tr><td class="klein">${esc((p.wann||"").slice(0,16).replace("T"," "))}</td><td class="klein">${esc(p.wer)}</td><td class="klein">${esc(p.was)}</td></tr>`).join("")}</table></details>`:""}</div>`;
+    return h;
+  },
+  danach(){this.zf();if(this.L)this.lesen(this.L.scope,this.L.seite);},
+  neuZeichnen(){$("inhalt").innerHTML=this.html(M.daten);this.danach();},
+  set(k,v){this.E[k]=v==M.daten.regler[k]?null:v;this.neuZeichnen();},
+  neu(lg,an){an?this.E.neu.add(lg):this.E.neu.delete(lg);this.neuZeichnen();},
+  kol(lg,v){v=v.trim();if(v==((M.daten.regler.kolophon||{})[lg]||""))delete this.E.kolophon[lg];else this.E.kolophon[lg]=v;this.zf();},
+  async lesen(scope,seite){
+    const el=$("lese620");if(!el)return;
+    const r=await api(`/api/werk/${B()}/monitor/${M.stage.stage}/teil?scope=${encodeURIComponent(scope)}&seite=${seite}`);
+    if(r.fehler){el.innerHTML=`<h2>Leseansicht</h2><div class="err">${esc(r.fehler)}</div>`;return;}
+    this.L={scope,seite:r.seite,clips:r.clips};
+    el.innerHTML=`<h2>Leseansicht ${esc(scope)}</h2>
+     <div class="akt"><button onclick="MON['620'].lesen('${scope}',${r.seite-1})" ${r.seite<=0?"disabled":""}>‹</button>
+      <select onchange="MON['620'].lesen('${scope}',+this.value)">${r.seiten.map((t,i)=>`<option value="${i}" ${i==r.seite?"selected":""}>${i+1}. ${esc(t)}</option>`).join("")}</select>
+      <button onclick="MON['620'].lesen('${scope}',${r.seite+1})" ${r.seite>=r.seiten.length-1?"disabled":""}>›</button>
+      ${r.audio?`<audio id="au620" controls preload="none" src="/datei?p=${encodeURIComponent(r.audio)}" style="height:30px;width:340px"></audio> <span class="klein">${r.clips.length} Sätze mit Zeitmarke</span>`:""}</div>
+     <iframe id="if620" style="width:100%;height:70vh;border:1px solid var(--line);border-radius:var(--r-s);background:#fff"></iframe>`;
+    const f=$("if620");f.srcdoc=r.html.replace("</head>","<style>.rl-an{background:#ffe8a3;outline:2px solid #ffe8a3}</style></head>");
+    const au=$("au620");
+    if(au){let alt=null;au.ontimeupdate=()=>{const t=au.currentTime,c=r.clips.find(x=>t>=x[1]&&t<x[2]),doc=f.contentDocument;if(!doc)return;
+      const id=c?c[0]:null;if(id==alt)return;if(alt){const o=doc.getElementById(alt);o&&o.classList.remove("rl-an");}
+      if(id){const n=doc.getElementById(id);if(n){n.classList.add("rl-an");n.scrollIntoView({block:"center",behavior:"smooth"});}}alt=id;};
+      f.onload=()=>{const doc=f.contentDocument;doc&&doc.addEventListener("click",ev=>{let n=ev.target;while(n&&!(n.id&&r.clips.some(x=>x[0]==n.id)))n=n.parentElement;
+        if(n){const c=r.clips.find(x=>x[0]==n.id);au.currentTime=c[1];au.play();}});};}
+  },
+  zf(){const E=this.E,t=[];for(const k of ["mobil","mobil_laenge","bilder","fussnoten"])if(E[k]!=null)t.push(k+" "+E[k]);
+    for(const [lg,v] of Object.entries(E.kolophon))t.push(`Kolophon ${lg}: ${v||"leer"}`);if(E.neu.size)t.push("neu: "+[...E.neu].join(", "));
+    const el=$("zf620");if(el)el.textContent=t.join(" · ");},
+  los(){const E=this.E,e={};for(const k of ["mobil","mobil_laenge","bilder","fussnoten"])if(E[k]!=null)e[k]=E[k];
+    if(Object.keys(E.kolophon).length)e.kolophon=E.kolophon;if(E.neu.size){e.sprache=[...E.neu];e.neu=true;}
+    if(!Object.keys(e).length&&!confirm(`Nichts geändert – ${M.stage.stage} nur neu prüfen?`))return;
+    speichern(e).then(ok=>{if(ok)this.E=this.leer();});}
+};
+MON["630"]=MON["620"];
+MON["640"]={
+  E:null,lg:null,
+  BN:{koeder:"Köder",einordnung:"Einordnung",autor:"Autor"},
+  leer(){return {satz:new Set(),an:new Set(),grund:"",stimme:{},stil:{},engine:{},tempo:{},aussprache:null,neu:new Set()};},
+  geaendert(){const E=this.E;return E.satz.size||E.an.size||E.neu.size||E.aussprache!=null||["stimme","stil","engine","tempo"].some(k=>Object.keys(E[k]).length);},
+  kosten(){const d=M.daten,E=this.E;let k=0;for(const x of E.satz){const [lg,id]=x.split(":");const s=d.sprachen.find(y=>y.sprache==lg);const z=s&&s.saetze.find(y=>y.id==id);k+=(z&&z.kosten)||0;}
+    for(const lg of E.neu){const s=d.sprachen.find(y=>y.sprache==lg);k+=(s&&s.kosten_alle)||0;}return k;},
+  laie(g){return g.replace(/Auffaellige Saetze nach \dx neu: (\d+).*/,"$1 Satz/Sätze klingen auffällig – unten anhören").replace(/Mandant verlag: Teaser anhoeren und freigeben/,"Verlag: Teaser einmal anhören und freigeben");},
+  entscheidungText(d){const s=d.sprachen.filter(x=>x.zustand=="mensch");
+    return `Der Teaser (vertonter Klappentext fürs Schaufenster) wartet auf ein Ohr: ${s.map(x=>`<b>${esc(x.sprache)}</b> – ${x.gruende.map(g=>esc(this.laie(g))).join("; ")}`).join(" · ")}. Unten „am Stück abspielen“; klingt es gut, Begründung eintragen und freigeben. Einzelne Sätze kannst du unten neu vertonen lassen (kostet) oder trotz Befund annehmen.`;},
+  naechster(d){
+    const off=d.sprachen.filter(s=>s.zustand=="mensch"),st=M.stage.zustand;
+    if(this.geaendert()){const k=this.kosten();return schritt(`Du hast etwas geändert.${k>0?` Neu vertonen kostet ca. <b>${k.toFixed(3)} $</b>.`:" Kosten 0 $."}`,`<button class="haupt" onclick="MON['640'].los(false)">Übernehmen und 640 starten</button>`);}
+    if(off.length)return schritt(`Teaser ${off.map(s=>esc(s.sprache)).join(", ")} am Stück anhören. Klingt es gut: oben im Kasten „Entscheidung nötig“ freigeben.`,`<button onclick="MON['640'].abspielen('${off[0].sprache}')">▶ Teaser ${esc(off[0].sprache)} am Stück</button>`);
+    if(st=="stopp")return schritt("640 ist angehalten. Ursache steht oben unter „Befunde“ – mit „Rücksprung“ dorthin springen (Text → 600, Stimme → 410).","");
+    if(["frei","auto"].includes(st))return schrittFertig("640");
+    return schritt("Der Teaser ist noch nicht vertont.",`<button class="haupt" onclick="pruefen()">640 starten</button>`);
+  },
+  html(d){
+    if(!this.E)this.E=this.leer();
+    const E=this.E,L=d.sprachen.map(s=>s.sprache);if(!this.lg||!L.includes(this.lg))this.lg=L[0];
+    const s=d.sprachen.find(x=>x.sprache==this.lg);
+    let h=this.naechster(d);
+    if(!s)return h+'<div class="box klein">Kein Teaser bestellt.</div>';
+    const pl=x=>x?`<audio controls preload="none" src="/datei?p=${encodeURIComponent(x)}" style="width:190px;height:30px"></audio>`:'<span class="klein">–</span>';
+    const ki=(M.stage.kosten||{}).usd;
+    h+=`<div class="box"><h2>1 Anzeigen <span class="tabs" style="display:inline-flex;margin:0">${L.map(lg=>{const x=d.sprachen.find(y=>y.sprache==lg);return `<button class="${lg==this.lg?"akt":""}" onclick="MON['640'].lg='${lg}';MON['640'].neuZeichnen()">${esc(lg)}${x.auffaellig?" ("+x.auffaellig+")":""}</button>`;}).join("")}</span></h2>
+     <div class="feld"><span>Zustand</span><span>${zb(s.zustand)}${s.gruende.length?` <span class="klein">${s.gruende.map(g=>esc(this.laie(g))).join("; ")}</span>`:""}</span>
+      <span>Teaser</span><span><button onclick="MON['640'].abspielen('${s.sprache}')">▶ am Stück</button> <span id="tz640" class="klein"></span><audio id="au640" style="display:none"></audio></span>
+      <span>Stimme</span><span>${s.stimme?`<b>${esc(s.stimme)}</b> · ${esc(s.engine||"")} <span class="klein">${esc(s.stimm_grund||"")}</span>`:`<span class="err">${esc(s.stimm_fehler||"–")}</span>${s.stimm_ruecksprung?` <a href="#${esc(M.book_id)}/${esc(s.stimm_ruecksprung)}">→ ${esc(s.stimm_ruecksprung)}</a>`:""}`}
+       ${s.audio_bestellt?' <span class="klein">(Erzähler des Werks aus Casting → <a href="#'+esc(M.book_id)+'/410">410</a>)</span>':""}</span>
+      <span>Stil · Tempo</span><span>${esc(s.stil||"–")} · ${s.tempo??"–"}</span>
+      <span>Kosten</span><span>bisher ${ki!=null?(+ki).toFixed(3)+" $":"–"} · alles neu ca. ${s.kosten_alle!=null?s.kosten_alle.toFixed(3)+" $":"–"}</span></div></div>
+    <div class="box"><h2>2 Bearbeiten · Sätze ${esc(s.sprache)}</h2>
+     <table class="kapt"><tr><th>Block</th><th>Text · erkannt</th><th>Audio</th><th>Befund</th><th></th></tr>
+     ${s.saetze.map(z=>{const k=s.sprache+":"+z.id;return `<tr class="${E.satz.has(k)||E.an.has(k)?"sel":""}"><td class="klein">${this.BN[z.block]||esc(z.block||"")}</td>
+      <td style="max-width:440px">${esc(z.text)}${z.abschrift&&z.cer>0.02?`<br><span class="klein">erkannt: ${esc(z.abschrift)}</span>`:""}</td>
+      <td>${pl(z.audio)}<br><span class="klein">${z.dauer!=null?(+z.dauer).toFixed(1)+" s":""}${z.versuche>1?" · "+z.versuche+" Versuche":""}</span></td>
+      <td>${z.grund?(z.angenommen?'<span class="z frei">angenommen</span>':`<span class="z mensch">${esc(z.grund_text)}</span>`):'<span class="klein">ok</span>'}${!z.aktuell?' <span class="klein err">Text geändert</span>':""}</td>
+      <td class="klein"><label><input type="checkbox" ${E.satz.has(k)?"checked":""} onchange="MON['640'].tg('satz','${k}',this.checked)"> neu vertonen (~${(z.kosten||0).toFixed(3)} $)</label>
+       ${z.grund&&!z.angenommen?`<br><label><input type="checkbox" ${E.an.has(k)?"checked":""} onchange="MON['640'].tg('an','${k}',this.checked)"> annehmen</label>`:""}</td></tr>`;}).join("")}</table>
+     ${E.an.size?`<div class="akt"><input type="text" size="50" placeholder="Grund fürs Annehmen (Pflicht)" value="${esc(E.grund)}" oninput="MON['640'].E.grund=this.value"></div>`:""}
+     <div class="klein">Text falsch → <a href="#${esc(M.book_id)}/600">600</a> · Stimme gehört zum Werk → <a href="#${esc(M.book_id)}/410">410</a> · Aussprache → <a href="#${esc(M.book_id)}/400">400</a>.</div></div>`;
+    const R=d.regler,rv=(k,lg)=>E[k][lg]!==undefined?E[k][lg]:(R[k]||{})[lg]??"";
+    h+=`<div class="box"><h2>Regler ${esc(s.sprache)}</h2>
+     <div class="akt">Stimme <input type="text" size="14" value="${esc(rv("stimme",s.sprache))}" placeholder="${esc(s.stimme||"automatisch")}" onchange="MON['640'].rg('stimme','${s.sprache}',this.value.trim())">
+      Engine <select onchange="MON['640'].rg('engine','${s.sprache}',this.value)"><option value="">automatisch</option>${["gemini","chatterbox"].map(x=>`<option ${rv("engine",s.sprache)==x?"selected":""}>${x}</option>`).join("")}</select>
+      Tempo <input type="number" min="0.5" max="2" step="0.01" style="width:62px" value="${esc(rv("tempo",s.sprache))}" placeholder="${s.tempo??1}" onchange="MON['640'].rg('tempo','${s.sprache}',this.value)">
+      <label><input type="checkbox" ${(E.aussprache??R.aussprache)!="aus"?"checked":""} onchange="MON['640'].E.aussprache=(this.checked?'an':'aus')==M.daten.regler.aussprache?null:(this.checked?'an':'aus');MON['640'].neuZeichnen()"> Aussprachehinweis Autor</label>
+      <label><input type="checkbox" ${E.neu.has(s.sprache)?"checked":""} onchange="MON['640'].nn('${s.sprache}',this.checked)"> alle Sätze neu (~${(s.kosten_alle||0).toFixed(3)} $)</label></div>
+     <div class="akt">Stil (Gemini) <input type="text" size="60" value="${esc(rv("stil",s.sprache))}" placeholder="${esc(s.stil||"aus dem Ton des Klappentexts")}" onchange="MON['640'].rg('stil','${s.sprache}',this.value.trim())"></div>
+     <div class="klein">Leer = automatisch. Stimme/Engine/Stil/Tempo ändern vertont die Sprache neu (kostet).</div></div>
+    <div class="box"><h2>3 Speichern</h2><div class="akt"><button onclick="MON['640'].los(false)">Übernehmen und 640 starten</button> <button onclick="MON['640'].los(true)">Probe (Kosten schätzen, schreibt nichts)</button> <span id="zf640" class="klein"></span></div>
+     ${d.protokoll.length?`<details style="margin-top:6px"><summary class="klein">Protokoll (${d.protokoll.length})</summary><table class="kapt">${d.protokoll.slice().reverse().map(p=>`<tr><td class="klein">${esc((p.wann||"").slice(0,16).replace("T"," "))}</td><td class="klein">${esc(p.wer)}</td><td class="klein">${esc(Object.entries(p.was||{}).map(([k,v])=>k+": "+v).join(" · "))}</td></tr>`).join("")}</table></details>`:""}</div>`;
+    return h;
+  },
+  danach(){this.zf();},
+  neuZeichnen(){$("inhalt").innerHTML=this.html(M.daten);this.danach();},
+  abspielen(lg){const s=M.daten.sprachen.find(x=>x.sprache==lg),q=s.saetze.filter(z=>z.audio),au=$("au640");if(!au||!q.length)return;
+    if(this.lg!=lg){this.lg=lg;this.neuZeichnen();return this.abspielen(lg);}
+    let i=0;const los=()=>{if(i>=q.length){$("tz640").textContent="";return;}$("tz640").textContent=`${i+1}/${q.length}: ${q[i].text.slice(0,60)}…`;au.src="/datei?p="+encodeURIComponent(q[i].audio);au.play();i++;};
+    au.onended=()=>setTimeout(los,350);los();},
+  tg(was,k,an){const s=this.E[was];an?s.add(k):s.delete(k);if(an)this.E[was=="an"?"satz":"an"].delete(k);this.neuZeichnen();},
+  nn(lg,an){an?this.E.neu.add(lg):this.E.neu.delete(lg);this.neuZeichnen();},
+  rg(k,lg,v){const alt=(M.daten.regler[k]||{})[lg]??"";if(String(v)==String(alt))delete this.E[k][lg];else this.E[k][lg]=v;this.neuZeichnen();},
+  zf(){const E=this.E,t=[];if(E.satz.size)t.push(E.satz.size+" neu vertonen");if(E.an.size)t.push(E.an.size+" annehmen");if(E.neu.size)t.push("alles neu: "+[...E.neu].join(", "));
+    for(const k of ["stimme","stil","engine","tempo"])for(const [lg,v] of Object.entries(E[k]))t.push(`${k} ${lg}: ${v||"automatisch"}`);if(E.aussprache)t.push("Aussprache "+E.aussprache);
+    const el=$("zf640");if(el)el.textContent=t.join(" · ");},
+  los(trocken){const E=this.E,e={};
+    if(E.an.size){if(!E.grund.trim()&&!trocken){alert("Annehmen braucht einen Grund");return;}if(!trocken){e.annehmen=[...E.an];e.grund=E.grund.trim();}}
+    if(E.satz.size)e.satz=[...E.satz];for(const k of ["stimme","stil","engine","tempo"])if(Object.keys(E[k]).length)e[k]=E[k];
+    if(E.aussprache)e.aussprache=E.aussprache;if(E.neu.size){e.neu=true;e.sprache=[...E.neu];}if(trocken)e.trocken=true;
+    if(!trocken&&!Object.keys(e).length&&!confirm("Nichts geändert – 640 nur neu prüfen?"))return;
+    speichern(e).then(ok=>{if(ok&&!trocken)this.E=this.leer();});}
+};
+MON["700"]={
+  E:null,
+  IN:{text:"Text",hoerbuch:"Hörbuch",hoerspiel:"Hörspiel"},KN:{taella:"TÆLLA-App",epub:"ePub-Shop",extern:"Hörbuch-Plattform"},
+  leer(){return {halt:new Set(),liefern:new Set(),grund:""};},
+  geaendert(){return this.E.halt.size||this.E.liefern.size;},
+  pn(p){return `${esc(p.sprache)} · ${this.IN[p.inhalt]||esc(p.inhalt)}${p.stufe?" "+esc(p.stufe):""} → ${this.KN[p.kanal]||esc(p.kanal)}`;},
+  entscheidungText(d){const o=d.produkte.filter(p=>p.zustand=="mensch");
+    return `Endabnahme durch den Verlag: ${o.length} Produkt(e) sind vollständig geprüft und warten auf dein OK, bevor sie ausgeliefert werden (${o.map(p=>this.pn(p)).join("; ")}). Unten je Produkt ansehen; „Freigeben“ nimmt alle offenen ab, einzelne Produkte kannst du unten zurückhalten.`;},
+  naechster(d){
+    const P=d.produkte,st=M.stage.zustand;
+    if(this.geaendert())return schritt("Du hast Produkte zurückgehalten oder wieder freigegeben. Übernehmen prüft 700 neu (0 $).",`<button class="haupt" onclick="MON['700'].los()">Übernehmen und 700 neu prüfen</button>`);
+    if(!d.zeit)return schritt("Der Auslieferungs-Vertrag ist noch nicht geprüft. Die Prüfung vergleicht jede Auslieferungsdatei mit ihrem Gate (dauert etwas, 0 $).",`<button class="haupt" onclick="pruefen()">700 prüfen</button>`);
+    if(P.some(p=>p.zustand=="mensch"))return schritt("Produkte unten ansehen, dann oben im Kasten „Entscheidung nötig“ abnehmen.","");
+    const rot=P.filter(p=>p.zustand=="stopp"&&!p.zurueckgehalten);
+    if(rot.length){const r=rot[0],a=(r.artefakte.find(x=>x.befunde&&x.befunde.length)||{});const z=a.ruecksprung||r.ruecksprung;
+      return schritt(`${rot.length} Produkt(e) noch nicht lieferbar. Erstes Problem: <b>${this.pn(r)}</b> – ${esc((a.befunde||r.gruende||[])[0]||"")}. Dort beheben (oder das Produkt unten zurückhalten).`,
+        z?`<a class="knopf haupt" href="#${esc(M.book_id)}/${esc(z)}">→ ${esc(z)} öffnen</a>`:"");}
+    if(["frei","auto"].includes(st))return schrittFertig("700");
+    return schritt("700 neu prüfen.",`<button class="haupt" onclick="pruefen()">700 prüfen</button>`);
+  },
+  html(d){
+    if(!this.E)this.E=this.leer();
+    const E=this.E;
+    let h=this.naechster(d);
+    h+=`<div class="box"><h2>1 Anzeigen · Produkte <span class="klein">${d.zeit?"geprüft "+esc(d.zeit.slice(0,16).replace("T"," ")):"noch nicht geprüft"}</span></h2>
+     ${d.id_deckung.ok===false?`<div class="err klein">Satz-IDs fehlen: ${Object.entries(d.id_deckung.fehlt).map(([lg,n])=>esc(lg)+" "+n).join(", ")} → <a href="#${esc(M.book_id)}/310">310</a></div>`:""}
+     <table class="kapt"><tr><th>Produkt</th><th>Zustand</th><th>Bausteine (grün = ok, Klick öffnet die Stage)</th><th>liefern</th></tr>
+     ${d.produkte.map(p=>{const h_=E.halt.has(p.scope),l_=E.liefern.has(p.scope);return `<tr class="${h_||l_?"sel":""}"><td>${this.pn(p)}<br><span class="klein">${esc(p.scope)}</span></td>
+      <td>${zb(p.zustand)}${p.zustand=="mensch"&&M.rechte.entscheiden.ok?`<br><button onclick="MON['700'].abnehmen('${p.scope}')">abnehmen</button>`:""}</td>
+      <td>${p.artefakte.length?p.artefakte.map(a=>{const ok=!(a.befunde||[]).length;return `<a href="#${esc(M.book_id)}/${esc(a.stage)}" title="${esc((a.befunde||[]).join("; ")||a.datei||"")}" style="text-decoration:none"><span class="z ${ok?"frei":"stopp"}">${esc(a.stage)} ${esc(a.name.replace(/_[a-z]{2}$/,""))}</span></a>`;}).join(" "):'<span class="klein">–</span>'}
+       ${p.gruende.length&&p.zustand=="stopp"?`<div class="klein err">${p.gruende.slice(0,3).map(esc).join("<br>")}${p.gruende.length>3?"<br>…":""}</div>`:""}</td>
+      <td class="klein">${p.zurueckgehalten?`<span class="z mensch">zurückgehalten</span> ${esc(p.zurueckgehalten.wer||"")}: ${esc(p.zurueckgehalten.grund||"")}<br><label><input type="checkbox" ${l_?"checked":""} onchange="MON['700'].tg('liefern','${p.scope}',this.checked)"> wieder liefern</label>`
+        :`${p.liefern?"ja":"nein"}<br><label><input type="checkbox" ${h_?"checked":""} onchange="MON['700'].tg('halt','${p.scope}',this.checked)"> zurückhalten</label>`}</td></tr>`;}).join("")}</table>
+     <div class="klein">Hörbuch premium/Hörspiel (Gemini-Stimmen) nur in: ${d.gemini_kanaele.map(k=>this.KN[k]||k).join(", ")}. Zurückgehaltene Produkte werden nicht ausgeliefert, der Rest schon.</div></div>
+    <div class="box"><h2>3 Speichern</h2>
+     ${E.halt.size?`<div class="akt"><input type="text" size="50" placeholder="Grund fürs Zurückhalten (Pflicht)" value="${esc(E.grund)}" oninput="MON['700'].E.grund=this.value"></div>`:""}
+     <div class="akt"><button onclick="MON['700'].los()">Übernehmen und 700 neu prüfen</button> <span id="zf700" class="klein"></span></div>
+     <div class="klein">0 $. Befunde werden in der jeweiligen Stage behoben (Klick auf den roten Baustein).</div></div>`;
+    return h;
+  },
+  danach(){this.zf();},
+  neuZeichnen(){$("inhalt").innerHTML=this.html(M.daten);this.danach();},
+  tg(was,sc,an){an?this.E[was].add(sc):this.E[was].delete(sc);this.neuZeichnen();},
+  zf(){const E=this.E,t=[];if(E.halt.size)t.push("zurückhalten: "+[...E.halt].join(", "));if(E.liefern.size)t.push("wieder liefern: "+[...E.liefern].join(", "));const el=$("zf700");if(el)el.textContent=t.join(" · ");},
+  async abnehmen(sc){const grund=prompt("Endabnahme "+sc+" – Begründung:");if(!grund||!grund.trim())return;
+    const r=await api(`/api/werk/${B()}/aktion`,{art:"entscheiden",stage:"700",nach:"frei",grund:grund.trim(),scope:sc,wer:$("wer").value});if(!r.ok)alert(r.fehler);laden();},
+  los(){const E=this.E,e={};if(E.halt.size){if(!E.grund.trim()){alert("Zurückhalten braucht einen Grund");return;}e.zurueckhalten=[...E.halt];e.grund=E.grund.trim();}
+    if(E.liefern.size)e.liefern=[...E.liefern];if(!Object.keys(e).length&&!confirm("Nichts geändert – 700 nur neu prüfen?"))return;
+    speichern(e).then(ok=>{if(ok)this.E=this.leer();});}
+};
+MON["710"]={
+  E:null,
+  KN:{taella:"TÆLLA-App",epub:"ePub-Download",extern:"Hörbuch-Plattform"},
+  leer(){return {ziel:null,bitrate:null,nur_manifest:false,kanal:new Set(),zurueck:false,grund:""};},
+  geaendert(){const E=this.E;return E.ziel!=null||E.bitrate!=null||E.nur_manifest||E.kanal.size||E.zurueck;},
+  offen(d){const m=d.kanaele.filter(k=>k.zustand=="mensch");return {katalog:m.filter(k=>k.kanal=="taella"),extern:m.filter(k=>k.kanal=="extern"),rest:m.filter(k=>!["taella","extern"].includes(k.kanal))};},
+  entscheidungText(d){const o=this.offen(d),t=[];
+    if(o.katalog.length)t.push(d.verlag?`<b>Abnahme Verlag:</b> TÆLLA ${o.katalog.map(k=>esc(k.sprache)).join(", ")} ist hochgeladen, aber noch unsichtbar. Freigeben macht es im Katalog sichtbar.`
+      :`<b>Erstes Freischalten:</b> Das Werk liegt fertig in der Cloud, ist aber noch unsichtbar. Freigeben stellt es in den öffentlichen TÆLLA-Katalog (einmal je Werk, spätere Updates laufen automatisch).`);
+    if(o.extern.length)t.push(`<b>Hörbuch-Plattform:</b> Das Paket ${o.extern.map(k=>esc(k.sprache)).join(", ")} liegt bereit (unten). Lade es von Hand auf der Plattform hoch – Freigeben bestätigt danach „hochgeladen“.`);
+    if(o.rest.length)t.push(o.rest.map(k=>esc(k.scope)+": "+k.gruende.map(esc).join("; ")).join(" · "));
+    return t.join("<br>");},
+  freigeben(grund){const o=this.offen(M.daten),e={grund,wer:$("wer").value};
+    if(o.katalog.length)e.freigeben=true;if(o.extern.length)e.extern_hochgeladen=o.extern.map(k=>k.sprache);
+    if(!e.freigeben&&!e.extern_hochgeladen){entscheideStandard("frei",grund);return;}
+    api(`/api/werk/${B()}/monitor/710`,e).then(r=>{if(!r.ok)alert(r.fehler);else laufZeigen(r.lauf);});},
+  naechster(d){
+    const o=this.offen(d),st=M.stage.zustand;
+    if(this.geaendert())return schritt(this.E.zurueck?"Werk aus dem Katalog nehmen (Dateien bleiben liegen).":"Du hast Auslieferungs-Regler geändert. Übernehmen startet 710 (0 $ LLM, nur Upload).",`<button class="haupt" onclick="MON['710'].los(false)">Übernehmen und 710 starten</button>`);
+    if(!["frei","auto"].includes(d.zustand_700))return schritt(`Ausgeliefert wird nur, was der Auslieferungs-Vertrag (700) freigibt – 700 steht auf „${esc(d.zustand_700)}“.`,`<a class="knopf haupt" href="#${esc(M.book_id)}/700">→ 700 öffnen</a>`);
+    if(o.katalog.length||o.extern.length)return schritt(o.extern.length&&!o.katalog.length?"Extern-Paket hochladen, dann oben „Freigeben“ (= hochgeladen bestätigen).":"Oben im Kasten „Entscheidung nötig“ freigeben.","");
+    if(st=="stopp")return schritt("710 ist angehalten. Ursache oben unter „Befunde“ – Upload-Fehler: einfach neu starten; sonst Rücksprung.",`<button class="haupt" onclick="pruefen()">710 neu starten</button>`);
+    if(["frei","auto"].includes(st))return schritt(d.zurueckgezogen?"Das Werk ist zurückgezogen (unsichtbar).":"Ausgeliefert. Das Werk ist im Katalog.","");
+    return schritt("Noch nicht ausgeliefert. Tipp: erst „Probelauf“ unten – er zeigt im Lauf-Log, welche Dateien neu/geändert/verwaist wären.",`<button class="haupt" onclick="pruefen()">710 ausliefern</button>`);
+  },
+  html(d){
+    if(!this.E)this.E=this.leer();
+    const E=this.E,admin=M.rolle=="admin";
+    let h=this.naechster(d);
+    h+=`<div class="box"><h2>1 Anzeigen</h2>
+     <div class="feld"><span>Katalog</span><span>${d.privat?"privat (nur für den Nutzer)":d.zurueckgezogen?`<span class="z mensch">zurückgezogen</span> ${esc(d.zurueckgezogen.wer||"")}: ${esc(d.zurueckgezogen.grund||"")}`:d.freigabe?`freigeschaltet von ${esc(d.freigabe.wer)} ${esc((d.freigabe.wann||"").slice(0,16).replace("T"," "))}`:'<span class="klein">noch nicht freigeschaltet</span>'}</span>
+      <span>Standardziel</span><span>${esc(d.standardziel)} · Bitrate TÆLLA ${esc(d.bitrate)}</span></div>
+     <table class="kapt" style="margin-top:8px"><tr><th>Sprache · Kanal</th><th>Zustand</th><th>lieferbar laut 700</th><th>Hinweis</th></tr>
+      ${d.kanaele.map(k=>`<tr><td>${esc(k.sprache)} · ${this.KN[k.kanal]||esc(k.kanal)}</td><td>${zb(k.zustand)}</td><td class="klein">${k.lieferbar_700.map(esc).join(", ")||"–"}</td><td class="klein">${k.gruende.map(esc).join("<br>")}</td></tr>`).join("")}</table></div>`;
+    for(const z of d.ziele)h+=`<div class="box"><h2>Ziel ${esc(z.kennung)} ${z.standard?'<span class="klein">(Standard)</span>':'<span class="klein">(Test, ohne Status)</span>'}</h2>
+     <div class="klein">${esc(z.prefix||"")} · Katalog ${esc(z.katalog||"")} · ${z.sichtbar?"sichtbar":"nicht sichtbar"} · ${esc((z.zeit||"").slice(0,16).replace("T"," "))}</div>
+     <table class="kapt"><tr><th>Scope</th><th>Dateien</th><th>Inhalt</th><th>Ergebnis</th></tr>${Object.entries(z.scopes).map(([s,x])=>`<tr><td>${esc(s)}</td><td>${x.dateien} · ${x.mb} MB</td><td class="klein">${esc((x.inhalte||[]).join(", ")||Object.keys(x.downloads||{}).join(", "))}</td><td>${x.ergebnis?zb({auto:"frei"}[x.ergebnis]||x.ergebnis):""} <span class="klein">${x.gruende.map(esc).join("; ")}</span></td></tr>`).join("")}</table></div>`;
+    for(const [lg,x] of Object.entries(d.extern))h+=`<div class="box"><h2>Plattform-Paket ${esc(lg)}</h2>
+     <div class="feld"><span>Ordner</span><span>${esc(x.paket||"")}/ · ${x.dateien} Dateien</span>
+      <span>Metadaten</span><span>${esc(x.meta.titel||"–")} · ${esc(x.meta.autor||"–")} · gelesen von ${esc(x.meta.sprecher||"–")} · ${esc(x.meta.sprache||"")} · ISBN ${esc(x.meta.isbn||"leer")}${x.meta.dauer_s?" · "+Math.round(x.meta.dauer_s/60)+" min":""}</span>
+      <span>Plattformen</span><span>${x.plattformen.map(p=>`<span class="z ${p.zulaessig?"frei":p.zulaessig===false?"stopp":"mensch"}">${esc(p.name)}</span>`).join(" ")||"–"}</span>
+      <span>Hochgeladen</span><span>${x.hochgeladen?`${esc(x.hochgeladen.wer)} ${esc((x.hochgeladen.wann||"").slice(0,16).replace("T"," "))}`:'<span class="klein">noch nicht bestätigt</span>'}</span></div></div>`;
+    h+=`<div class="box"><h2>2 Bearbeiten</h2>
+     <div class="akt">Ziel <select onchange="MON['710'].E.ziel=this.value||null;MON['710'].neuZeichnen()"><option value="">Standard (${esc(d.standardziel)})</option>${["gcs","lokal"].map(z=>`<option ${E.ziel==z?"selected":""}>${z}</option>`).join("")}</select>
+      Bitrate TÆLLA <input type="text" size="5" value="${esc(E.bitrate??d.bitrate)}" onchange="MON['710'].E.bitrate=this.value.trim()==M.daten.bitrate?null:this.value.trim();MON['710'].neuZeichnen()">
+      <label><input type="checkbox" ${E.nur_manifest?"checked":""} onchange="MON['710'].E.nur_manifest=this.checked;MON['710'].neuZeichnen()"> nur Manifest (Audio nicht neu)</label>
+      · nur Kanal ${["taella","epub","extern"].map(k=>`<label><input type="checkbox" ${E.kanal.has(k)?"checked":""} onchange="MON['710'].tk('${k}',this.checked)"> ${this.KN[k]}</label>`).join(" ")}</div>
+     <div class="klein">Ein anderes Ziel als das Standardziel ist ein Test: es schreibt Dateien, aber keinen Status.</div>
+     ${admin&&!d.privat?`<details style="margin-top:6px"><summary class="klein">Werk zurückziehen (Admin)</summary><div class="akt"><label><input type="checkbox" ${E.zurueck?"checked":""} onchange="MON['710'].E.zurueck=this.checked;MON['710'].neuZeichnen()"> aus dem Katalog nehmen</label>
+      <input type="text" size="44" placeholder="Grund (Pflicht)" value="${esc(E.grund)}" oninput="MON['710'].E.grund=this.value"></div></details>`:""}</div>
+    <div class="box"><h2>3 Speichern</h2><div class="akt"><button onclick="MON['710'].los(false)">Übernehmen und 710 starten</button> <button onclick="MON['710'].los(true)">Probelauf (lädt nichts hoch)</button></div>
+     <div class="klein">Kosten: nur Cloud-Speicher/Upload. Probelauf listet im Lauf-Log die Dateien, die neu, geändert oder verwaist wären. Befunde zu Inhalten → <a href="#${esc(M.book_id)}/700">700</a>.</div></div>`;
+    return h;
+  },
+  danach(){},
+  neuZeichnen(){$("inhalt").innerHTML=this.html(M.daten);this.danach();},
+  tk(k,an){an?this.E.kanal.add(k):this.E.kanal.delete(k);this.neuZeichnen();},
+  los(trocken){const E=this.E,e={};if(E.ziel)e.ziel=E.ziel;if(E.bitrate)e.bitrate=E.bitrate;if(E.nur_manifest)e.nur_manifest=true;if(E.kanal.size)e.kanal=[...E.kanal];
+    if(E.zurueck&&!trocken){if(!E.grund.trim()){alert("Zurückziehen braucht einen Grund");return;}e.zurueckziehen=true;e.grund=E.grund.trim();}
+    if(trocken)e.trocken=true;
+    speichern(e).then(ok=>{if(ok&&!trocken)this.E=this.leer();});}
 };
 MON["190"]={
   html(d){

@@ -104,25 +104,36 @@ def _mock_response(task: str, prompt: str, **kwargs) -> str:
 # LIVE-MODUS — echte APIs (erst bei dir lokal mit Keys aktiv)
 # ============================================================
 
-def _post_robust(url, **kw):
+def _post_robust(url, anbieter=None, **kw):
     """requests.post mit Wiederholung bei Netz-/SSL-Abbruechen und 429/5xx (11.10.2026:
-    SSLEOFError bei vielen parallelen Cockpit-Jobs)."""
+    SSLEOFError bei vielen parallelen Cockpit-Jobs).
+    22.11.2026: anbieter mit Grenze in config.GRENZEN -> jeder Versuch belegt einen Platz (grenzen.platz;
+    waehrend der Pause frei); 429 gezaehlt (grenzen.melde_429), steigende Pause mit Streuung."""
     import time
+    import contextlib
     import requests
+    from pipeline import grenzen
     kw.setdefault("timeout", 600)
     letzte = None
     for versuch in range(6):
+        ist_429 = False
         try:
-            r = requests.post(url, **kw)
+            with (grenzen.platz(anbieter) if anbieter else contextlib.nullcontext()):
+                r = requests.post(url, **kw)
             if r.status_code in (429, 500, 502, 503, 504) and versuch < 5:
                 letzte = f"HTTP {r.status_code}"
+                ist_429 = r.status_code == 429
             else:
                 return r
         except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
             letzte = e
             if versuch == 5:
                 raise
-        pause = 10 * (versuch + 1)
+        if ist_429:
+            grenzen.melde_429(anbieter or "?")
+            pause = round(grenzen.pause_429(versuch), 1)
+        else:
+            pause = 10 * (versuch + 1)
         print(f"    [api] {str(letzte)[:120]} -> neuer Versuch in {pause}s ({versuch + 1}/6)")
         time.sleep(pause)
     return r
@@ -135,14 +146,15 @@ def _live_response(task: str, prompt: str, **kwargs) -> str:
     """
     import requests
 
-    model = config.MODELS[task]
+    # modell=... je Aufruf (22.11.2026): parallele Spuren schreiben config.MODELS nicht mehr um
+    model = kwargs.get("modell") or config.MODELS[task]
 
     # --- DeepSeek ---
     if model.startswith("deepseek"):
         if not config.DEEPSEEK_API_KEY:
             raise EnvironmentError("DEEPSEEK_API_KEY fehlt (live-Modus).")
         resp = _post_robust(
-            "https://api.deepseek.com/v1/chat/completions",
+            "https://api.deepseek.com/v1/chat/completions", anbieter="deepseek",
             headers={
                 "Authorization": f"Bearer {config.DEEPSEEK_API_KEY}",
                 "Content-Type": "application/json",

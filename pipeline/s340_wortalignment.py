@@ -31,7 +31,7 @@ Regler:       --modell, --batch, --kapitel N|alle, --satz ID (neu alignen), --an
               gelten je Werk (book.json align_*), Monitor 340 (13.11.2026). --lang wirkt nur auf Regler/Neulauf dieser
               Sprache; andere Sprachen laufen ueber den Checkpoint unveraendert mit. Pruefaligner nicht erreichbar ->
               1x automatisch nach PRUEFALIGNER_WARTE s erneut (Steckbrief 340, CK 03.11.), danach Mensch.
-              Tempo/Abbruch (13.11.2026): Kapitel parallel (ALIGN_PARALLEL, Standard 5), Checkpoint je Kapitel
+              Tempo/Abbruch (13.11.2026): Kapitel parallel (ALIGN_PARALLEL; seit 22.11.2026 Standard config.SPUREN_STANDARD 12), Checkpoint je Kapitel
               sofort nach dem Alignment -> Abbruch kostet keinen zweiten Lauf; Nachlaeufe ebenfalls parallel.
               340_pruefung.json: zusaetzlich Befund "ohne_anker" (Inhaltswort ohne Anker), Pruefanker "p", Ketten.
 Aufruf:       python -m pipeline.s340_wortalignment <werk> [Regler] [--wer CK]
@@ -474,6 +474,8 @@ def saetze(data, src, lg):
         kap.setdefault(cid, [])
         if not isinstance(e, dict) or e.get("type") in config.NO_AUDIO_TYPES:
             continue
+        if e.get("sprache_satz"):                      # 120 "Original behalten": Ziel = Original, nichts zu pruefen
+            continue
         q, z = (e.get(src) or "").strip(), (e.get(lg) or "").strip()
         if q and z:
             kap[cid].append((tid, q, z))
@@ -651,7 +653,8 @@ def _rolle(modell, fn):
 
 def parallel(fn, aufgaben, n=None):
     """fn(aufgabe) fuer alle Aufgaben mit n Threads; Ergebnisse in Aufgabenreihenfolge, Fehler werden weitergereicht."""
-    n = max(1, int(n or getattr(config, "ALIGN_PARALLEL", PARALLEL)))
+    from pipeline import spuren as SP            # 22.11.2026: Standard = Spuren (12), zentrale DeepSeek-Grenze gilt
+    n = max(1, int(n or getattr(config, "ALIGN_PARALLEL", None) or SP.anzahl(stage=STAGE)))
     if n == 1 or len(aufgaben) <= 1:
         return [fn(a) for a in aufgaben]
     with ThreadPoolExecutor(max_workers=min(n, len(aufgaben))) as ex:
@@ -698,7 +701,9 @@ def _pruefaligner_modal(werk, lg, paare):
     from gpu_align import pruefaligner_modal as pm
     with modal.enable_output():
         with pm.app.run():
-            out, sek = pm.lauf.remote(paare)
+            from pipeline import spuren as SP
+            with SP.modal_platz():                     # Modal-Grenze (10 Jobs, alle Stages)
+                out, sek = pm.lauf.remote(paare)
     usage_log.log_gpu(werk, STAGE, sek, gpu="T4", extra={"teil": "pruefaligner", "sprache": lg})
     return {x["id"]: x["w"] for x in out}
 

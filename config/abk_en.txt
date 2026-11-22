@@ -1,0 +1,16 @@
+# Stage 200: zusaetzliche Abkuerzungen EN (klein, ohne Schlusspunkt; Rest in tools/satzweise.ABK).
+# Abgleich mit config/abk_sprech_en.json (Stage 400) - Test tests/test_abk_sprech.py.
+chap
+chaps
+p
+pp
+f
+ff
+sqq
+vols
+op
+cit
+loc
+ibid
+ed
+tr

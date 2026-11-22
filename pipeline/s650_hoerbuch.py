@@ -24,7 +24,7 @@ Kosten:       0 $ (CPU/ffmpeg).
 Abnehmer:     s620 Audio-Variante (SMIL), s710 Export Extern, s700.
 
 Aufruf:  py -3.11 -m pipeline.s650_hoerbuch <werk> [--profil P:SCHLUESSEL=WERT] [--ausgabe mp3|m4b|beide]
-         [--ansagen an|aus] [--sprache LG] [--neu] [--freigeben] [--trocken]
+         [--ansagen an|aus] [--sprache LG] [--neu] [--freigeben [--grund TEXT]] [--trocken]
 """
 import argparse
 import collections
@@ -41,6 +41,7 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import config
 from pipeline import bestellung, gate, manifest, mock, status
+from pipeline import spuren as SP
 
 STAGE = "650"
 VERSION = 1
@@ -229,14 +230,14 @@ def m4b(werk, lg, dateien, ziel, tags, cover, kapitel_titel):
 
 
 # ------------------------------------------------------------------ Lauf
-def run(werk, wer=None, nur=None, neu=False, freigeben=False, trocken=False):
+def run(werk, wer=None, nur=None, neu=False, freigeben=False, trocken=False, grund=None):
     from pipeline import s410_casting as s410
     from pipeline import s500_vertonung_gemini as s500
     from pipeline import s510_hoerspiel_hybrid as s510
     from pipeline import s615_cover_final as s615
     wer = wer or "pipeline"
     if freigeben and not trocken:
-        return _freigeben(werk, wer)
+        return _freigeben(werk, wer, grund)
     b = bestellung.lesen(werk)
     ents = entscheidungen(werk)
     ansagen_an = ents.get("ansagen", "an") != "aus"
@@ -329,7 +330,10 @@ def run(werk, wer=None, nur=None, neu=False, freigeben=False, trocken=False):
         aus = {p: [] for p in prof}
         marken_alle, verletzt, dauer_fehl, kap_lang, neu_normiert = {}, collections.defaultdict(list), [], [], []
         mono_fehl, probe = [], {p: [] for p in prof}
-        for i, (kid, us) in enumerate(grp, 1):
+        def kapitel_job(a_):
+            """Ein Kapitel (eine Spur) fuer alle Profile bauen: zusammensetzen, normieren, kodieren (ffmpeg), messen."""
+            i, (kid, us) = a_
+            nn, je_p = [], {}
             h = next((u for u in us if u["typ"] == "h"), None)
             ktitel = (str((content.get(h["id"]) or {}).get(lg) or "").strip() if h else "") or \
                 {"anfang": "Intro", "ende": "Outro"}.get(kid, kid)
@@ -363,13 +367,25 @@ def run(werk, wer=None, nur=None, neu=False, freigeben=False, trocken=False):
                         z, gain = normieren(yk, pw, korrektur=pw["lufs"] - me["lufs"])
                         kodieren(z, ziel, pw, tags, cover if pw["cover"] else None)
                         me = messen(ziel)
-                        neu_normiert.append(f"{p}/{kid}")
+                        nn.append(f"{p}/{kid}")
                     vorn, hinten = stille(z)
                     soll_dauer = round(len(yk) / SR, 3)
                     e = {"kapitel": kid, "nr": i, "titel": ktitel, "datei": os.path.relpath(ziel, config.book_dir(werk)).replace("\\", "/"),
                          "datei_hash": manifest.hash_datei(ziel), "eingang_hash": ein, "dauer": me["dauer"],
                          "dauer_soll": soll_dauer, "saetze": mk, "gain_db": gain, "rauschen": rauschen_db(z),
                          "kopf": vorn, "schluss": hinten, **{k_: me[k_] for k_ in ("rate", "bitrate", "lufs", "peak")}}
+                je_p[p] = e
+            return je_p, nn
+
+        jobs_k = list(enumerate(grp, 1))
+        erg_k, sp_info = SP.parallel(werk, STAGE, jobs_k, kapitel_job, 1 if trocken else SP.anzahl(stage=STAGE),
+                                     einheit="Kapitel", fortschritt_an=not trocken, text=False)
+        SP.metriken(g, sp_info)
+        for (i, (kid, us)), (je_p, nn) in zip(jobs_k, erg_k):        # Pruefung in fester Reihenfolge
+            neu_normiert += nn
+            for p in prof:
+                e = je_p[p]
+                pw = profil_werte(ents, p)
                 aus[p].append(e)
                 # Pruefung je Kapitel
                 if abs(e["dauer"] - e["dauer_soll"]) > DAUER_TOL:
@@ -477,15 +493,15 @@ def _mp3_lesen(p):
     return np.frombuffer(r.stdout, "<i2").astype(np.float32) / 32768
 
 
-def _freigeben(werk, wer):
+def _freigeben(werk, wer, grund=None):
     """Hoerprobe Kanal extern: alle Sprachen im Zustand mensch -> frei, einmal je Werk x Sprache."""
     d = status.laden(werk)
     teile = ((d["stages"].get(STAGE) or {}).get("teile") or {})
     offen = [s for s, t in teile.items() if t.get("zustand") == "mensch"]
     fg = dict(entscheidungen(werk).get("freigabe") or {})
     for s in offen:
-        status.entscheiden(werk, STAGE, "frei", wer=wer, grund="Hoerprobe Hoerbuch 650", scope=s)
-        fg[s] = {"wer": wer, "wann": manifest.jetzt()}
+        status.entscheiden(werk, STAGE, "frei", wer=wer, grund=grund or "Hoerprobe Hoerbuch 650", scope=s)
+        fg[s] = {"wer": wer, "wann": manifest.jetzt(), **({"grund": grund} if grund else {})}
     entscheidung_setzen(werk, wer, freigabe=fg)
     print(f"[650] Freigabe: {', '.join(offen) or 'nichts offen'}")
     return []
@@ -502,6 +518,7 @@ def main(argv=None):
     ap.add_argument("--sprache", action="append", metavar="LG")
     ap.add_argument("--neu", action="store_true")
     ap.add_argument("--freigeben", action="store_true", help="Hoerprobe freigeben (Kanal extern)")
+    ap.add_argument("--grund", help="Begruendung zur Freigabe (Monitor)")
     ap.add_argument("--trocken", action="store_true")
     ap.add_argument("--force", action="store_true", help=argparse.SUPPRESS)
     ap.add_argument("--lang", help=argparse.SUPPRESS)
@@ -531,7 +548,7 @@ def main(argv=None):
             if kw:
                 entscheidung_setzen(a.werk, wer, **kw)
         nur = a.sprache or (a.lang.split(",") if a.lang else None)
-        gates = run(a.werk, wer, nur, a.neu or a.force, a.freigeben, a.trocken)
+        gates = run(a.werk, wer, nur, a.neu or a.force, a.freigeben, a.trocken, a.grund)
     except gate.GateHalt as e:
         print(e)
         return e.exit_code

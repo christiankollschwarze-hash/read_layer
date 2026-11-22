@@ -341,5 +341,32 @@ class T640(unittest.TestCase):
         self.assertEqual({c[3] for c in self.calls}, {"G-herr_a"})
 
 
+    # ---------------------------------------------------------------- Monitor 640 (22.11.2026)
+    def test_monitor_640(self):
+        from cockpit import werk_api as W
+        self.kippt[("en", "koeder_01")] = 9
+        self.lauf()
+        d = W._m640_daten("w")
+        en = next(x for x in d["sprachen"] if x["sprache"] == "en")
+        self.assertEqual(en["zustand"], "mensch")
+        self.assertEqual(en["auffaellig"], 1)
+        z = next(x for x in en["saetze"] if x["id"] == "koeder_01")
+        self.assertEqual((z["grund"], z["angenommen"]), ("gekippt", False))
+        self.assertGreater(en["kosten_alle"], 0)
+        a = W._m640_argv("w", {"satz": ["en:koeder_01"], "tempo": {"en": 0.9}, "stil": {"de": ""}}, "CK")
+        self.assertIn("--satz=en:koeder_01", a)
+        self.assertIn("--tempo=en=0.9", a)
+        self.assertIn("--stil=de=weg", a)
+        a = W._m640_argv("w", {"annehmen": ["en:koeder_01"], "grund": "klingt  gut"}, "CK")
+        self.assertEqual(a[-2:], ["--annehmen=en:koeder_01", "--grund=klingt gut"])
+        for e in ({"annehmen": ["en:koeder_01"]}, {"satz": ["fr:koeder_01"]}, {"satz": ["en:x_99"]},
+                  {"engine": {"en": "eleven"}}, {"tempo": {"en": 3}}):
+            with self.assertRaises(ValueError):
+                W._m640_argv("w", e, "CK")
+        with contextlib.redirect_stdout(io.StringIO()):
+            P.main(["w", "--wer", "CK", "--annehmen", "en:koeder_01", "--grund", "klingt gut"])
+        en = next(x for x in W._m640_daten("w")["sprachen"] if x["sprache"] == "en")
+        self.assertEqual((en["zustand"], en["auffaellig"]), ("frei", 0))
+
 if __name__ == "__main__":
     unittest.main()

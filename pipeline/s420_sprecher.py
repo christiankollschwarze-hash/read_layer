@@ -36,6 +36,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import config
 from pipeline import api_layer, bestellung, gate, manifest, mock, status, usage_log
 from pipeline import s410_casting as s410
+from pipeline import spuren as SP
 
 STAGE = "420"
 SCHEMA = 1
@@ -240,13 +241,8 @@ LINES (in reading order):
 
 
 def _llm(prompt, modell=None):
-    alt = config.MODELS.get("caster")
-    if modell:
-        config.MODELS["caster"] = modell
-    try:
-        p = api_layer.parse_json(api_layer.call_model("caster", prompt, temperature=0.1, max_tokens=16000))
-    finally:
-        config.MODELS["caster"] = alt
+    p = api_layer.parse_json(api_layer.call_model("caster", prompt, temperature=0.1, max_tokens=16000,
+                                                  modell=modell or None))
     if not isinstance(p, dict):
         raise ValueError("Antwort ist kein JSON-Objekt")
     return p
@@ -286,14 +282,20 @@ def zuordnen(items, cast, lg, src, ich, rg, kontext_fn):
     namen = _namen(cast)
     out, offen, n = {}, [], 0
     teil = max(1, int(rg["teil"]))
-    for i in range(0, len(items), teil):
-        t = items[i:i + teil]
-        n += 1
+
+    def eins(a):                                     # ein Teil (Spur innerhalb des Kapitels)
+        i, t = a
         try:
-            p = _llm(_prompt(t, cast, lg, src, ich), rg.get("modell"))
+            return i, t, _llm(_prompt(t, cast, lg, src, ich), rg.get("modell")), None
         except EnvironmentError:
             raise
         except Exception as ex:
+            return i, t, None, ex
+    teile = [(i, items[i:i + teil]) for i in range(0, len(items), teil)]
+    erg, _info = SP.parallel(None, STAGE, teile, eins, SP.anzahl(stage=STAGE), fortschritt_an=False, text=False)
+    for i, t, p, ex in erg:
+        n += 1
+        if ex is not None:
             print(f"    [{lg}] Teil {i // teil + 1}: Antwort unbrauchbar ({str(ex)[:80]}) -> einzeln neu")
             offen += t
             continue
@@ -371,7 +373,7 @@ def korrektur_setzen(werk, lg, tid, seg=None, idx=None, name=None, weg=False):
 
 
 # ============================================================ Lauf
-def run(werk, wer=None, kapitel=None, neu=False, saetze=None, regler=None, trocken=False):
+def run(werk, wer=None, kapitel=None, neu=False, saetze=None, regler=None, trocken=False, spuren=None):
     wer = wer or "pipeline"
     g = gate.Gate(werk, STAGE, ruecksprung="420", wer=wer)
     b = bestellung.lesen(werk)
@@ -439,6 +441,7 @@ def run(werk, wer=None, kapitel=None, neu=False, saetze=None, regler=None, trock
                                        "drama": drama, "vorfilter": rg["vorfilter"], "modell": rg["modell"]})
         usage_log.set_context(werk, STAGE, sprache=lg)
         recs_lg, texte, n_kand, offen_trocken, uebernommen, drama_fremd = {}, {}, 0, 0, 0, []
+        llm_jobs, kap_fertig = [], []
         for kap in kap_alle:
             ck_soll.append((kap, lg))
             alles = [(t, e) for t, e in content.items() if t.startswith(kap) and isinstance(e, dict)]
@@ -501,15 +504,35 @@ def run(werk, wer=None, kapitel=None, neu=False, saetze=None, regler=None, trock
                         i = ids.index(tid)
                         return [text(x, alles[x]) for x in ids[max(0, i - 2):i]]
                     print(f"[420] {kap} [{lg}]: {len(offen)}/{len(eintraege)} Saetze -> LLM")
-                    neu_r, n = zuordnen([(t, texte[t], e.get(ref_lg) if ref_lg else None) for t, e in offen],
-                                        cast, lg, src, ich_je.get(kap), rg, kontext)
-                    n_llm += n
-                    recs.update(neu_r)
+                    llm_jobs.append({"kap": kap, "items": [(t, texte[t], e.get(ref_lg) if ref_lg else None)
+                                                           for t, e in offen], "kontext": kontext, "recs": recs})
+            kap_fertig.append((kap, recs, h, len(kand)))
+
+        def kap_sichern(kap, recs, h, n_kand_k):
             for t in recs:
                 if recs[t] is not None:
                     recs[t]["h"] = h[t]
             if not trocken:
-                ck.schreiben(kap, lg, eingang_h, {"recs": recs, "h": {t: h[t] for t in recs}}, kandidaten=len(kand))
+                ck.schreiben(kap, lg, eingang_h, {"recs": recs, "h": {t: h[t] for t in recs}}, kandidaten=n_kand_k)
+
+        info_k = {k[0]: k for k in kap_fertig}
+
+        def llm_job(j):                                   # eine Spur = ein Kapitel; sichert sofort (Wiederaufnahme)
+            usage_log.set_context(werk, STAGE, sprache=lg)
+            neu_r, n = zuordnen(j["items"], cast, lg, src, ich_je.get(j["kap"]), rg, j["kontext"])
+            j["recs"].update(neu_r)
+            kap_sichern(*info_k[j["kap"]])
+            j["gesichert"] = True
+            return n
+        erg, sp_info = SP.parallel(werk, STAGE, llm_jobs, llm_job, SP.anzahl(b.roh, "sprecher_spuren", spuren, STAGE),
+                                   einheit="Kapitel", gewicht=[sum(len(x[1] or "") for x in j["items"]) for j in llm_jobs])
+        n_llm += sum(erg)
+        if llm_jobs:
+            SP.metriken(g, sp_info, praefix=f"{lg}_")
+        gesichert = {j["kap"] for j in llm_jobs if j.get("gesichert")}
+        for kap, recs, h, n_kand_k in kap_fertig:        # feste Reihenfolge
+            if kap not in gesichert:
+                kap_sichern(kap, recs, h, n_kand_k)
             recs_lg.update({t: r for t, r in recs.items()})
         # manuelle Korrekturen
         veraltet = []
@@ -682,6 +705,7 @@ def main(argv=None):
     ap.add_argument("--korrektur-weg", action="append", metavar="ID")
     ap.add_argument("--lang")
     ap.add_argument("--trocken", action="store_true")
+    ap.add_argument("--spuren", type=int, help="gleichzeitige Kapitel")
     a = ap.parse_args(argv)
     wer = a.wer or "pipeline"
     an = {"an": True, "aus": False}
@@ -710,7 +734,7 @@ def main(argv=None):
             for tid in a.korrektur_weg or []:
                 korrektur_setzen(a.werk, lg, tid, weg=True)
         g = run(a.werk, wer, kapitel=a.kapitel.split(",") if a.kapitel else None, neu=a.neu, saetze=a.satz,
-                regler=regler, trocken=a.trocken)
+                regler=regler, trocken=a.trocken, spuren=a.spuren)
     except gate.GateHalt as e:
         print(e)
         return e.exit_code

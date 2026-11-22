@@ -47,6 +47,8 @@ def wav(p, sek=1.0, amp=3000):
 
 class T510(unittest.TestCase):
     def setUp(self):
+        self._klein = getattr(config, "KOSTEN_KLEINBETRAG_USD", None)
+        config.KOSTEN_KLEINBETRAG_USD = 0.0          # Test-Kosten sind Kleinstbetraege
         self.tmp = tempfile.TemporaryDirectory()
         r = self.tmp.name
         self.d = os.path.join(r, "a", "books", "w")
@@ -67,6 +69,10 @@ class T510(unittest.TestCase):
         self.werk()
 
     def tearDown(self):
+        if self._klein is None:
+            config.__dict__.pop("KOSTEN_KLEINBETRAG_USD", None)
+        else:
+            config.KOSTEN_KLEINBETRAG_USD = self._klein
         (config.book_dir, config.work_dir, config.RUN_MODE, config.BASE_DIR, P5.synth, P5.PAUSE,
          P.zeiten, P.aligner_pruefen, P.korrigieren) = self.alt
         self.tmp.cleanup()

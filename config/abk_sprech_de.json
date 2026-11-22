@@ -1,0 +1,18 @@
+{
+  "_hinweis": "Stage 400: Abkuerzung -> Sprechtext (DE). Regeln wie abk_sprech_en.json. Jede Abkuerzung muss auch in Stage 200 bekannt sein. Stage 120 (Fassung modernisiert) schreibt dieselben Eintraege im Lesetext aus, Ziffern bleiben; lesetext/lesetext_plural, falls die Leseform vom Sprechwort abweicht (tools/satzweise.ABK oder config/abk_de.txt).",
+  "eintraege": [
+    {"abk": "Kap.", "wort": "Kapitel", "zahl_sprechen": true},
+    {"abk": "S.", "wort": "Seite", "plural": "Seiten", "bedingung": "zahl", "zahl_sprechen": true},
+    {"abk": "ff.", "wort": "folgende", "lesetext": "und folgende", "bedingung": "nach_zahl"},
+    {"abk": "f.", "wort": "folgende", "lesetext": "und folgende", "bedingung": "nach_zahl"},
+    {"abk": "vgl.", "wort": "vergleiche"},
+    {"abk": "z. B.", "wort": "zum Beispiel"},
+    {"abk": "d. h.", "wort": "das heißt"},
+    {"abk": "usw.", "wort": "und so weiter"},
+    {"abk": "Bd.", "wort": "Band", "plural": "Bände", "zahl_sprechen": true},
+    {"abk": "Anm.", "wort": "Anmerkung", "zahl_sprechen": true},
+    {"abk": "Bl.", "wort": "Blatt", "zahl_sprechen": true},
+    {"abk": "Hg.", "wort": "herausgegeben"},
+    {"abk": "hrsg.", "wort": "herausgegeben"}
+  ]
+}

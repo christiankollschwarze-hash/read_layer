@@ -431,7 +431,9 @@ def gpu_messen(paket, art):
     if art == "modal":
         sys.path.insert(0, os.path.join(ROOT, "gpu_messung"))
         import messung_modal as mm
-        daten = mm.messen([paket])[paket]
+        from pipeline import spuren as SP
+        with SP.modal_platz():                         # Modal-Grenze (10 Jobs, alle Stages)
+            daten = mm.messen([paket])[paket]
         zipfile.ZipFile(io.BytesIO(daten)).extractall(erg)
     else:
         r = subprocess.run([sys.executable, os.path.join(ROOT, "gpu_messung", "messung_gpu.py"), paket, erg],

@@ -1,0 +1,25 @@
+{
+  "_hinweis": "Stage 400: Abkuerzung -> Sprechtext (EN). Je Werk ergaenzbar ueber book.json abk_sprech.en. bedingung: immer | zahl (Zahl/roem. Zahl folgt) | nach_zahl (Zahl davor) | name (Name folgt). zahl_sprechen: folgende Zahl/Bereich/roem. Zahl als Wort. plural: Wort bei Bereich. Gleiche Abkuerzung mehrfach = Alternativen, erste passende gilt; keine passt -> Befund abkuerzung (Gate 400). Jede Abkuerzung muss auch in Stage 200 bekannt sein. Stage 120 (Fassung modernisiert) schreibt dieselben Eintraege im Lesetext aus, Ziffern bleiben; lesetext/lesetext_plural, falls die Leseform vom Sprechwort abweicht (tools/satzweise.ABK oder config/abk_en.txt).",
+  "eintraege": [
+    {"abk": "ch.", "wort": "chapter", "plural": "chapters", "zahl_sprechen": true},
+    {"abk": "chap.", "wort": "chapter", "plural": "chapters", "zahl_sprechen": true},
+    {"abk": "chaps.", "wort": "chapters", "zahl_sprechen": true},
+    {"abk": "p.", "wort": "page", "plural": "pages", "bedingung": "zahl", "zahl_sprechen": true},
+    {"abk": "pp.", "wort": "pages", "zahl_sprechen": true},
+    {"abk": "f.", "wort": "and the following", "bedingung": "nach_zahl"},
+    {"abk": "ff.", "wort": "and following", "bedingung": "nach_zahl"},
+    {"abk": "sqq.", "wort": "and following"},
+    {"abk": "vol.", "wort": "volume", "plural": "volumes", "zahl_sprechen": true},
+    {"abk": "vols.", "wort": "volumes", "zahl_sprechen": true},
+    {"abk": "i.e.", "wort": "that is"},
+    {"abk": "e.g.", "wort": "for example"},
+    {"abk": "etc.", "wort": "et cetera"},
+    {"abk": "cf.", "wort": "compare"},
+    {"abk": "op. cit.", "wort": "in the work cited"},
+    {"abk": "loc. cit.", "wort": "in the place cited"},
+    {"abk": "ibid.", "wort": "in the same place"},
+    {"abk": "ed.", "wort": "edited by", "bedingung": "name"},
+    {"abk": "ed.", "wort": "edition", "bedingung": "nach_zahl"},
+    {"abk": "tr.", "wort": "translated by", "bedingung": "name"}
+  ]
+}

@@ -142,6 +142,28 @@ class T700(Basis):
         self.lauf()
         self.assertEqual(S.zustand("w", "700"), "stopp")
 
+    def test_monitor_700(self):
+        from cockpit import werk_api as W
+        self.werk(produkte=TEXT_EPUB + [{"sprache": "en", "inhalt": "hoerbuch", "stufe": "premium",
+                                         "kanaele": ["extern"]}])
+        self.assertIsNone(W._m700_daten("w")["zeit"])
+        self.lauf()
+        d = W._m700_daten("w")
+        z = {p["scope"]: p for p in d["produkte"]}
+        self.assertEqual(z["en:text:epub"]["zustand"], "frei")
+        self.assertTrue(all(not a["befunde"] for a in z["en:text:epub"]["artefakte"]))
+        self.assertEqual(z["en:hoerbuch-premium:extern"]["zustand"], "stopp")
+        a = W._m700_argv("w", {"zurueckhalten": ["en:hoerbuch-premium:extern"], "grund": "kein Gemini extern"}, "CK")
+        self.assertEqual(a[-2:], ["--zurueckhalten=en:hoerbuch-premium:extern", "--grund=kein Gemini extern"])
+        for e in ({"zurueckhalten": ["en:hoerbuch-premium:extern"]}, {"zurueckhalten": ["fr:text:epub"], "grund": "x"},
+                  {"liefern": ["en:text:epub"]}):
+            with self.assertRaises(ValueError):
+                W._m700_argv("w", e, "CK")
+        P.zurueckhalten("w", "en:hoerbuch-premium:extern", "CK", "kein Gemini extern")
+        self.assertEqual(W._m700_argv("w", {"liefern": ["en:hoerbuch-premium:extern"]}, "CK")[-1],
+                         "--liefern=en:hoerbuch-premium:extern")
+        self.assertEqual(W._m700_argv("w", {}, "CK")[2:4], ["pipeline.s700_guard", "w"])
+
     def test_nicht_mehr_bestellt_entfaellt(self):
         self.werk(produkte=TEXT_EPUB + [{"sprache": "en", "inhalt": "text", "kanaele": ["taella"]}])
         self.lauf()

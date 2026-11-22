@@ -14,9 +14,18 @@ Gate:         Kapitel-Gate VOR LLM-Aufrufen: erkannte Kapitel + Titel vs. Refere
               -> sonst Stopp (Ruecksprung 100). Stichprobe 5 Absatzpaare als Metrik.
 Resume:       Kapitel mit gleichem quelle_hash + Parametern wird uebersprungen; offene Luecken werden
               nachgefordert; geaenderte Quelle/Parameter -> Kapitel neu.
+Fremdsprache: (22.11.2026, jede Fassung) pipeline/s120_fremd.py - fremdsprachige Zitate flaggen, je Zitat
+              uebertragen | behalten | kein (work/120_fremd.json); uebertragene ersetzen das Original in chapter-N.json
+              (Basis in paragraphs_vor_fremd) und raw_modernized.txt; offene/nicht angenommene -> Mensch.
 Kosten:       DeepSeek (config.MODELS modernizer, sonst translator), Log Stage 120.
 Regler:       --staerke sanft|mittel, --modell, --temperatur, --stueck ZEICHEN, --kapitel N (neu, mehrfach),
-              --absatz K:N (Absatz neu, mehrfach), --absatz-text K:N=TEXT (manuell), --kapitel-ok, --force
+              --absatz K:N (Absatz neu, mehrfach), --absatz-text K:N=TEXT (manuell), --kapitel-ok, --force,
+              --fremd ID=uebertragen|behalten|kein|offen, --fremd-text ID=SATZ1 || SATZ2, --fremd-annehmen ID|alle,
+              --fremd-neu ID, --fremd-schwelle P, --fremd-min N, --fremd-vorgabe einzeln|alle_uebertragen|alle_behalten
+Abkuerzungen: (22.11.2026, Teil A2, nur fassung modernisiert) pipeline/s120_abk.py - nach dem Fremdsprache-Schritt
+              Abkuerzungen im Lesetext ausschreiben (Tabelle wie 400, Ziffern bleiben), work/120_abk.json;
+              --abk ID=WORT (leer = bleibt stehen, offen = zuruecksetzen), --abk-werk LG:ABK=WORT (book.json abk_sprech),
+              --abk-lesetext an|aus (book.json abk_lesetext). Offene Befunde -> Mensch.
 Aufruf:       python -m pipeline.s120_modernisierung <werk> [Regler] [--wer CK]
 Exit: 0 auto, 2 Stopp, 3 Mensch.
 """
@@ -30,6 +39,9 @@ import sys
 
 from config import config
 from pipeline import bestellung, gate, mock, s080_mandant, usage_log
+from pipeline import s120_fremd as fremd_mod
+from pipeline import s120_abk as abk_mod
+from pipeline import spuren as SP
 from pipeline import kapiteltext as epub
 from pipeline.manifest import hash_obj, json_atomar
 
@@ -50,7 +62,8 @@ LIZENZ = re.compile(r"project gutenberg|gutenberg\.org|gutenberg-tm|full license
 
 _BASIS = ("You {art} a public-domain English literary text for contemporary readers and language learners. "
           "For each numbered segment: {was} PRESERVE the plot, meaning, narrative voice, tone, and ALL "
-          "proper names. Do not summarize, omit, or add content; keep roughly the same length. Return each "
+          "proper names. Leave passages in other languages (e.g. French or Latin quotations) exactly as they are; "
+          "do not translate them. Do not summarize, omit, or add content; keep roughly the same length. Return each "
           "result on its own line, prefixed with the SAME number in the form [n], in the same order. "
           "Output ONLY the numbered lines.")
 SYS = {
@@ -315,13 +328,7 @@ def _call_model(prompt, modell=None, temperatur=TEMPERATUR):
     from pipeline import api_layer
     if "modernizer" not in config.MODELS:
         config.MODELS["modernizer"] = config.MODELS.get("translator", "deepseek-v4-pro")
-    alt = config.MODELS["modernizer"]
-    if modell:
-        config.MODELS["modernizer"] = modell
-    try:
-        return api_layer.call_model("modernizer", prompt, temperature=temperatur)
-    finally:
-        config.MODELS["modernizer"] = alt
+    return api_layer.call_model("modernizer", prompt, temperature=temperatur, modell=modell or None)
 
 
 def _gruppen(items, stueck):
@@ -339,18 +346,22 @@ def _gruppen(items, stueck):
 
 def _anfragen(items, param):
     """items [(n, text)] -> {n: modernisiert} (fehlende fehlen)."""
-    done = {}
-    for grp in _gruppen(items, param["stueck"]):
+    def eins(grp):                                   # eine Gruppe (Spur innerhalb des Kapitels)
         if mock.aktiv():
-            for n, s in grp:
-                done[n] = f"[MOCK:MOD] {s}"
-            continue
+            return {n: f"[MOCK:MOD] {s}" for n, s in grp}
         raw = _call_model(SYS[param["staerke"]] + "\n\n" + "\n".join(f"[{n}] {s}" for n, s in grp),
                           param["modell"], param["temperatur"])
+        d = {}
         for m in re.finditer(r"\[(\d+)\]\s*(.*?)(?=\n\[\d+\]|\Z)", raw, re.S):
             n, t = int(m.group(1)), m.group(2).strip()
             if t and any(n == x for x, _s in grp):
-                done[n] = t
+                d[n] = t
+        return d
+    erg, _info = SP.parallel(None, STAGE, _gruppen(items, param["stueck"]), eins, SP.anzahl(stage=STAGE),
+                             fortschritt_an=False, text=False)
+    done = {}
+    for d in erg:
+        done.update(d)
     return done
 
 
@@ -519,11 +530,89 @@ def _absatz_ziele(werte, n_kap):
     return out
 
 
+def fremd_schritt(g, werk, b, kap_basis, wer, fremd, modell):
+    """Schritt Fremdsprache (jede Fassung). -> Kapitel mit eingesetzten Uebertragungen."""
+    fremd = fremd or {}
+    rg_neu = {k: v for k, v in (fremd.get("regler") or {}).items() if v is not None}
+    if rg_neu:
+        r = dict(b.roh.get("fremd_regler") or {})
+        r.update(rg_neu)
+        fremd_mod.regler({"fremd_regler": r})
+        b = bestellung.feld_setzen(werk, fremd_regler=r)
+    rg = fremd_mod.regler(b.roh)
+    src = b.quellsprache or config.SOURCE_LANGUAGE
+    d = fremd_mod.lesen(werk)
+    neu = fremd_mod.erkennen(kap_basis, src, rg)
+    d = {"version": fremd_mod.VERSION, "verfahren": fremd_mod.verfahren(), "regler": rg,
+         "zitate": fremd_mod.abgleichen(d, neu, rg, wer)}
+    fremd_mod.entscheiden(d, fremd.get("entscheidung"), wer, fremd.get("text"), fremd.get("annehmen"),
+                          fremd.get("neu"))
+    zu = fremd_mod.offen_uebertragen(d)
+    g.metrik("fremd_kosten_usd", fremd_mod.kosten_schaetzen(zu, modell))
+    n = fremd_mod.uebertragen(d, kap_basis, src, lambda p, m: _call_model(p, m), modell) if zu else 0
+    g.metrik("fremd_llm_aufrufe", n)
+    kap_aus, fehlt = fremd_mod.anwenden(kap_basis, d)
+    fremd_mod.schreiben(werk, d)
+    zs = d["zitate"]
+    g.metrik("fremd_zitate", {e: sum(1 for z in zs if z.get("entscheidung") == e) for e in fremd_mod.ENTSCHEIDUNGEN})
+    g.hinweis("fremd_verfahren", d["verfahren"] == "lingua", wert=d["verfahren"],
+              text=f"Spracherkennung {d['verfahren']}" + ("" if d["verfahren"] == "lingua" else
+                   " (Ersatz; besser: py -3.11 -m pip install lingua-language-detector)"))
+    o = fremd_mod.offen(d)
+    g.pruefe("fremd_offen", not o["offen"], wert=len(o["offen"]), schwelle="= 0", bei_fehler="mensch",
+             ruecksprung="120", text=f"Fremdsprachige Zitate ohne Entscheidung: {len(o['offen'])} von {len(zs)} "
+                                     "(Monitor 120: uebertragen | Original behalten | kein Fremdtext)")
+    nu = o["unuebertragen"] + o["nicht_angenommen"]
+    g.pruefe("fremd_uebertragung", not nu, wert=len(nu), schwelle="= 0", bei_fehler="mensch", ruecksprung="120",
+             text=f"Uebertragungen pruefen/annehmen: {len(o['nicht_angenommen'])}"
+                  + (f", ohne Uebertragung {len(o['unuebertragen'])}" if o["unuebertragen"] else ""))
+    g.pruefe("fremd_einsetzen", not fehlt, wert=fehlt[:10], bei_fehler="mensch", ruecksprung="120",
+             text=f"Uebertragung nicht einsetzbar (Satz im Text nicht gefunden): {len(fehlt)}")
+    return kap_aus
+
+
+def abk_schritt(g, werk, b, kap, wer, abk, fassung):
+    """Schritt Abkuerzungen (Teil A2, nur fassung modernisiert). -> Kapitel mit ausgeschriebenen Abkuerzungen."""
+    abk = abk or {}
+    felder = {}
+    if abk.get("werk"):
+        from pipeline import s400_regie
+        felder["abk_sprech"] = s400_regie.abk_werk_setzen(b.roh.get("abk_sprech"), abk["werk"])
+    if abk.get("lesetext") is not None:
+        felder["abk_lesetext"] = bool(abk["lesetext"])
+    if felder:
+        b = bestellung.feld_setzen(werk, **felder)
+    d = abk_mod.lesen(werk)
+    abk_mod.entscheiden(d, abk.get("entscheidung"), wer)
+    if not abk_mod.aktiv(b.roh, fassung):
+        grund = "fassung original (400 spricht aus)" if fassung != "modernisiert" else "abgeschaltet (abk_lesetext)"
+        d.update({"version": abk_mod.VERSION, "aktiv": False, "grund": grund, "stellen": [], "befunde": []})
+        abk_mod.schreiben(werk, d)
+        g.metrik("abk_ausgeschrieben", 0)
+        return kap
+    src = b.quellsprache or config.SOURCE_LANGUAGE
+    fremd_saetze = [s["text"] for z in fremd_mod.lesen(werk).get("zitate") or []
+                    if z.get("entscheidung") == "behalten" for s in z["stellen"]]
+    neu = abk_mod.anwenden(kap, src, b.roh.get("abk_sprech"), d, fremd_saetze)
+    abk_mod.schreiben(werk, d)
+    g.metrik("abk_ausgeschrieben", len(d["stellen"]))
+    g.metrik("abk_herkunft", abk_mod.zusammenfassung(d))
+    g.pruefe("abk_offen", not d["befunde"], wert=len(d["befunde"]), schwelle="= 0", bei_fehler="mensch",
+             ruecksprung="120", text=f"Abkuerzungen ohne passende Regel: {len(d['befunde'])} "
+                                     "(Monitor 120: ausschreiben | bleibt stehen | in die Werktabelle)")
+    if d.get("verwaist"):
+        g.hinweis("abk_verwaist", False, wert=d["verwaist"][:10],
+                  text=f"Abkuerzungs-Entscheidungen ohne Stelle im Text: {len(d['verwaist'])} (Text geaendert?)")
+    return neu
+
+
 def run(werk, wer=None, staerke=None, modell=None, temperatur=None, stueck=None, kapitel=None,
-        absatz=None, absatz_text=None, kapitel_ok=False, force=False):
-    """Gate 120. Rueckgabe auto | mensch | stopp."""
+        absatz=None, absatz_text=None, kapitel_ok=False, force=False, fremd=None, abk=None):
+    """Gate 120. Rueckgabe auto | mensch | stopp.
+    fremd = {entscheidung [ID=E], text [ID=T], annehmen [ID|alle], neu [ID], regler {schwelle, min_woerter, vorgabe}}"""
     wer = s080_mandant.nutzer(wer)
-    regler = any([staerke, modell, temperatur is not None, stueck, kapitel, absatz, absatz_text, kapitel_ok, force])
+    regler = any([staerke, modell, temperatur is not None, stueck, kapitel, absatz, absatz_text, kapitel_ok, force,
+                  any((fremd or {}).values()), any(v is not None and v != [] for v in (abk or {}).values())])
     if regler:
         s080_mandant.darf(werk, "bestellen", wer)
     b = bestellung.lesen(werk)
@@ -584,17 +673,22 @@ def run(werk, wer=None, staerke=None, modell=None, temperatur=None, stueck=None,
         texte.setdefault(k, {})[a - 1] = t
 
     param_regler = any([staerke, modell, temperatur is not None, stueck])
-    kap_neu, fehlend_gesamt, aufrufe, uebernommen = [], 0, 0, 0
-    for k, (titel, paras) in enumerate(kap, 1):
+    kap_neu, fehlend_gesamt, aufrufe, uebernommen, schreib = [], 0, 0, 0, []
+    def kapitel_job(a):
+        """Ein Kapitel (eine Spur): Original sichern, Modernisierung (nur offene Absaetze). Zaehler lokal."""
+        k, (titel, paras) = a
+        z = {"aufrufe": 0, "uebernommen": 0}
         json_atomar(os.path.join(d, f"chapter-{k}.original.json"), {"title": titel, "paragraphs": paras},
                     indent=2)
         pc = os.path.join(d, f"chapter-{k}.json")
         qh = hash_obj({"t": titel, "p": paras})
         alt = _lesen(pc) if os.path.exists(pc) else {}
+        if alt.get("paragraphs_vor_fremd"):              # Basis vor eingesetzten Uebertragungen
+            alt = dict(alt, paragraphs=alt["paragraphs_vor_fremd"])
         if altbestand(alt, titel, paras, fassung):
             alt = dict(alt, quelle_hash=qh, fassung=fassung, param=ALT_PARAM,
                        fehlend=_unveraendert(paras, alt["paragraphs"]))
-            uebernommen += 1
+            z["uebernommen"] += 1
         gleich = (alt.get("quelle_hash") == qh and alt.get("fassung") == fassung
                   and (fassung == "original" or alt.get("param") == param
                        or (alt.get("param") == ALT_PARAM and not param_regler))
@@ -607,13 +701,13 @@ def run(werk, wer=None, staerke=None, modell=None, temperatur=None, stueck=None,
             if nur:
                 out, fehlend = modernisieren(paras, param, nur=nur, alt=alt["paragraphs"])
                 fehlend = sorted((set(alt.get("fehlend") or []) - set(nur)) | set(fehlend))
-                aufrufe += 1
+                z["aufrufe"] += 1
                 manuell = [m for m in manuell if m not in nur]
             else:
                 out, fehlend = list(alt["paragraphs"]), list(alt.get("fehlend") or [])
         else:
             out, fehlend = modernisieren(paras, param)
-            aufrufe += 1
+            z["aufrufe"] += 1
             manuell = []
         for i, t in (texte.get(k) or {}).items():
             if not 0 <= i < len(out):
@@ -626,11 +720,30 @@ def run(werk, wer=None, staerke=None, modell=None, temperatur=None, stueck=None,
         if fassung == "modernisiert":
             daten["param"] = alt.get("param") if (gleich and not force and k not in neu_kap
                                                   and alt.get("param") == ALT_PARAM) else param
-        if daten != {kk: alt.get(kk) for kk in daten}:
-            json_atomar(pc, daten, indent=2)
-        fehlend_gesamt += len(fehlend)
-        kap_neu.append((titel, out))
         print(f"  [120] Kapitel {k}/{len(kap)}: {fassung}" + (f", {len(fehlend)} Luecken" if fehlend else ""))
+        return (pc, daten, alt), (titel, out), len(fehlend), z
+
+
+    jobs = list(enumerate(kap, 1))
+    n_sp = SP.anzahl(b.roh, "modernisierung_spuren", None, STAGE) if fassung == "modernisiert" else 1
+    erg, sp_info = SP.parallel(werk, STAGE, jobs, kapitel_job, n_sp, einheit="Kapitel",
+                               gewicht=[sum(len(x) for x in p) for _k, (_t, p) in jobs])
+    SP.metriken(g, sp_info)
+    for sch, kn, nf, z in erg:                      # feste Reihenfolge
+        schreib.append(sch)
+        kap_neu.append(kn)
+        fehlend_gesamt += nf
+        aufrufe += z["aufrufe"]
+        uebernommen += z["uebernommen"]
+    kap_aus = fremd_schritt(g, werk, b, kap_neu, wer, fremd, param["modell"])
+    kap_aus = abk_schritt(g, werk, b, kap_aus, wer, abk, fassung)
+    for (pc, daten, alt), (_t, ps) in zip(schreib, kap_aus):
+        if ps != daten["paragraphs"]:                   # Basis vor Nachschritten (Fremdsprache, Abkuerzungen)
+            daten["paragraphs_vor_fremd"] = daten["paragraphs"]
+            daten["paragraphs"] = ps
+        alt_roh = _lesen(pc) if os.path.exists(pc) else {}
+        if daten != alt_roh:
+            json_atomar(pc, daten, indent=2)
 
     for f in os.listdir(d):                       # verwaiste Kapitel einer alten Struktur
         m = re.fullmatch(r"chapter-(\d+)(\.original)?\.json", f)
@@ -645,9 +758,9 @@ def run(werk, wer=None, staerke=None, modell=None, temperatur=None, stueck=None,
 
     g.metrik("kapitel_bearbeitet", aufrufe)
     g.metrik("altbestand_uebernommen", uebernommen)
-    n_mock = sum(1 for _t, ps in kap_neu for p in ps if mock.ist_text(p))
+    n_mock = sum(1 for _t, ps in kap_aus for p in ps if mock.ist_text(p))
     g.mock(n_mock)
-    lizenz_pruefen(g, kap_neu)
+    lizenz_pruefen(g, kap_aus)
     if fassung == "modernisiert":
         inhalt_pruefen(g, kap, kap_neu, fehlend_gesamt)
     e = g.entscheide()
@@ -668,9 +781,30 @@ def main(argv=None):
     ap.add_argument("--absatz-text", action="append", help="K:N=TEXT Absatz manuell ersetzen")
     ap.add_argument("--kapitel-ok", action="store_true", help="erkannte Kapitelstruktur bestaetigen")
     ap.add_argument("--force", action="store_true", help="alle Kapitel neu")
+    ap.add_argument("--fremd", action="append", metavar="ID=E", help="uebertragen|behalten|kein|offen")
+    ap.add_argument("--fremd-text", action="append", metavar="ID=TEXT", help="Uebertragung von Hand (Saetze mit ||)")
+    ap.add_argument("--fremd-annehmen", action="append", metavar="ID|alle")
+    ap.add_argument("--fremd-neu", action="append", metavar="ID", help="Uebertragung neu anfordern")
+    ap.add_argument("--fremd-schwelle", type=float)
+    ap.add_argument("--fremd-min", type=int)
+    ap.add_argument("--fremd-vorgabe", choices=fremd_mod.VORGABEN)
+    ap.add_argument("--abk", action="append", metavar="ID=WORT", help="Abkuerzung: Wort (leer = bleibt, offen = zurueck)")
+    ap.add_argument("--abk-werk", action="append", metavar="LG:ABK=WORT", help="Werktabelle book.json abk_sprech")
+    ap.add_argument("--abk-lesetext", choices=("an", "aus"), help="Abkuerzungen im Lesetext ausschreiben")
     a = ap.parse_args(argv)
-    return gate.EXIT[run(a.werk, a.wer, a.staerke, a.modell, a.temperatur, a.stueck, a.kapitel, a.absatz,
-                         a.absatz_text, a.kapitel_ok, a.force)]
+    fremd = {"entscheidung": a.fremd, "text": a.fremd_text, "annehmen": a.fremd_annehmen, "neu": a.fremd_neu,
+             "regler": {"schwelle": a.fremd_schwelle, "min_woerter": a.fremd_min, "vorgabe": a.fremd_vorgabe}}
+    if not any(fremd["regler"].values()):
+        fremd["regler"] = None
+    try:
+        e = run(a.werk, a.wer, a.staerke, a.modell, a.temperatur, a.stueck, a.kapitel, a.absatz,
+                a.absatz_text, a.kapitel_ok, a.force, fremd,
+                {"entscheidung": a.abk, "werk": a.abk_werk,
+                 "lesetext": None if a.abk_lesetext is None else a.abk_lesetext == "an"})
+    except ValueError as x:
+        print(f"[120] Fehler: {x}")
+        return 1
+    return gate.EXIT[e]
 
 
 def _book_title(book_id: str) -> str:

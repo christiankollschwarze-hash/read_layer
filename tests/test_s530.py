@@ -161,14 +161,42 @@ class T530(unittest.TestCase):
         self.assertEqual(P.urteil({"fehler": "x"}, "Ja.", "de", rg)[0], "verdacht")
         self.assertEqual(P.namen(["Er sah Holmes.", "Dann kam Holmes.", "Holmes? Ja, Holmes."]), {"Holmes": 3})
 
+    def satz(self, auslaut=True, plosiv=False, atmer=True, anlaut=True):
+        """Stille | Anlaut-Rauschen 0,92-1,0 | Ton 1,0-2,0 | Auslaut 2,0-2,1 (bzw. Verschluss + Burst) | Atmer 2,5-2,7."""
+        sr = 24000
+        x = np.zeros(sr * 3, np.float32)
+        rng = np.random.default_rng(1)
+        t_ = np.arange(sr) / sr
+        x[sr:2 * sr] = 0.3 * np.sin(2 * np.pi * 220 * t_)
+        if anlaut:
+            x[int(0.92 * sr):sr] = 0.01 * rng.standard_normal(int(0.08 * sr))
+        if auslaut and not plosiv:
+            x[2 * sr:int(2.1 * sr)] = 0.01 * rng.standard_normal(int(0.1 * sr))           # -s, ~ -30 dB
+        if plosiv:
+            x[int(2.06 * sr):int(2.09 * sr)] = 0.02 * rng.standard_normal(int(0.03 * sr))  # -t: 60 ms Verschluss
+        if atmer:
+            x[int(2.5 * sr):int(2.7 * sr)] = 0.01 * rng.standard_normal(int(0.2 * sr))
+        return x
+
     def test_schneiden_raender(self):
-        x = np.ones(24000 * 3, np.float32)
+        x = self.satz(auslaut=False, atmer=False, anlaut=False)
         y, r = P.schneiden(x, (1.0, 2.0), 0.05, 0.12, 1.0)
         self.assertAlmostEqual(len(y) / 24000, 1.17, places=2)
         self.assertEqual(r, (0.05, 0.12))
         y, r = P.schneiden(x, (1.0, 2.0), 0.05, 0.12, 0.9)
         self.assertEqual(r, (0.05, 0.12))                                    # Raender nach Tempo
         self.assertEqual(P.schneiden(x, None, 0.05, 0.12, 1.0), (x, None))
+
+    def test_auslaut_bleibt_atmer_nicht(self):
+        """21.11.2026 Art of War: FA-Wortende vor dem Auslaut -> 530 schnitt ihn ab."""
+        a, b = P.klang(self.satz(), (1.0, 2.0))
+        self.assertAlmostEqual(b, 2.1, delta=0.011)                          # Frikativ ganz drin
+        self.assertAlmostEqual(a, 0.92, delta=0.011)                         # stimmloser Anlaut ganz drin
+        a, b = P.klang(self.satz(plosiv=True), (1.0, 2.0))
+        self.assertAlmostEqual(b, 2.09, delta=0.011)                         # Burst nach 60 ms Verschluss
+        y, r = P.schneiden(self.satz(), (1.0, 2.0), 0.05, 0.12, 1.0)
+        self.assertAlmostEqual(len(y) / 24000, (2.1 + 0.12) - (0.92 - 0.05), delta=0.02)   # Atmer 2,5 draussen
+        self.assertEqual(r, (0.05, 0.12))
 
     def test_begrenzen(self):
         y = np.random.default_rng(3).normal(0, 0.05, 24000).astype(np.float32)

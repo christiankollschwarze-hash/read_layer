@@ -14,6 +14,7 @@ Ausgabe work/400_regie.json = 330 + production:
   + ansagen[lg] = [{id, type "ansage", art titel|autor|sprecher|ende, position anfang|ende, text, sprechtext,
                     abbildung, pause_after_ms, direction?, vorlage?}]  (nur Hoerbuch-Sprachen; nicht in content,
                     damit Text-Abnehmer unberuehrt bleiben)
+  + production.sprache[tid][lg] (nur in 120 im Original behaltene Fremdsaetze; Sprache des Satzes)
   + meta.regie. Dazu work/400_pruefung.json (Listen Text / Sprechtext), work/400_korrekturen.json (manuell).
 
 Gate 400 je Audiosprache: Abdeckung (Text je Audio-Knoten) → Stopp (310); roemisch in Ueberschriften, Mehrfach-Roemisch,
@@ -23,12 +24,15 @@ Style ≤ 200 Zeichen → Mensch; Figuren/Unuebersetzt ohne Aussprache → Mensc
 Regler 1–10, Gate 330/340 frei, Audiosprache bestellt → sonst Stopp; Mock im Live-Lauf → Stopp.
 Mensch-Freigabe gilt, solange ausgabe_hash gleich bleibt.
 
+Abkuerzungen (22.11.2026, REGELN_V 4): Tabelle config/abk_sprech_<lg>.json + book.json abk_sprech; Pruefung abkuerzung
+(offene Abkuerzungen nach den Regeln, Schwelle 0 → Mensch); --abk-sprech LG:ABK=WORT schreibt die Werktabelle.
+
 Monitor 400 (13.11.2026): --laenge-max/--style-max je Werk (book.json audio_laenge_max/_style_max);
 --aussprache BEGRIFF=- loescht den 400-Hinweis, --pron-skip-weg BEGRIFF nimmt einen Begriff wieder auf.
 
 CLI: py -3.11 -m pipeline.s400_regie <werk> [--betonung N --emotion N --tempo N] [--pause TYP=MS]
      [--pron-skip BEGRIFF] [--aussprache BEGRIFF=HINWEIS] [--sprechtext ID=TEXT | --sprechtext ID=-] [--lang LG]
-     [--laenge-max 1.5] [--style-max 200] [--trocken] [--wer CK]
+     [--laenge-max 1.5] [--style-max 200] [--abk-sprech LG:ABK=WORT] [--trocken] [--wer CK]
 """
 import argparse
 import json
@@ -66,6 +70,8 @@ ANSAGE = {
            "vorlage": "Letto da {sprecher}, una voce IA.", "ende": "Fine."},
 }
 ANSAGE_PAUSE = {"titel": 700, "autor": 1200, "sprecher": 1500, "ende": 0}
+# 120 "Original behalten": Satz in Fremdsprache (production.sprache[tid][lg], Stil-Hinweis auch bei basic)
+FREMD_HINWEIS = "This sentence is a quotation in {sprache}: read it in {sprache} with natural {sprache} pronunciation."
 
 
 # ============================================================ Pausen
@@ -253,27 +259,29 @@ def zahl_zuschlag(abb, text):
                if b > a and (_ZAHL.search(text[c:d]) or st.ist_roemisch(text[c:d].strip(" .,;:"))))
 
 
-def fehlerarten(sp, text, typ, laenge_max=LAENGE_MAX, abb=None):
+def fehlerarten(sp, text, typ, laenge_max=LAENGE_MAX, abb=None, lg="en", abk=None):
     f = []
     ro = st.roemisch_offen(sp, typ == "h")
     if ro:
         f.append("roemisch_h" if typ == "h" else "roemisch")
     if st.reste(sp):
         f.append("reste")
+    if st.abk_offen(sp, lg, abk):
+        f.append("abkuerzung")
     n = len(sp) - zahl_zuschlag(abb, text)
     if n > laenge_max * len(text) and n - len(text) > LAENGE_PUFFER:
         f.append("laenge")
     return f
 
 
-def _sprech(text, lg, typ, laenge_max):
+def _sprech(text, lg, typ, laenge_max, abk=None):
     """Standard-Regeln; bei Fehler 1× erweitert. -> (sp, abb, fehler, versucht, repariert)."""
-    sp, abb = st.sprechtext_abb(text, lg, typ)
-    f = fehlerarten(sp, text, typ, laenge_max, abb)
+    sp, abb = st.sprechtext_abb(text, lg, typ, abk=abk)
+    f = fehlerarten(sp, text, typ, laenge_max, abb, lg, abk)
     if not f:
         return sp, abb, f, False, False
-    sp2, abb2 = st.sprechtext_abb(text, lg, typ, erweitert=True)
-    f2 = fehlerarten(sp2, text, typ, laenge_max, abb2)
+    sp2, abb2 = st.sprechtext_abb(text, lg, typ, erweitert=True, abk=abk)
+    f2 = fehlerarten(sp2, text, typ, laenge_max, abb2, lg, abk)
     if len(f2) < len(f) or (len(f2) == len(f) and "reste" in f and "reste" not in f2):
         return sp2, abb2, f2, True, not f2
     return sp, abb, f, True, False
@@ -319,9 +327,30 @@ def ansagen(b, data, lg, autor_name, laenge_max):
     return knoten, hinweise
 
 
+# ============================================================ Abkuerzungen je Werk (book.json abk_sprech)
+def abk_werk_setzen(alt, aenderungen):
+    """aenderungen ["LG:ABK=WORT", ...]; WORT "-" loescht den Werk-Eintrag, WORT "" = Abkuerzung bleibt stehen.
+    -> neues abk_sprech {lg: [{abk, wort, ...}]} (Bedingung/Plural bestehender Eintraege bleiben)."""
+    neu = {lg: list(st._abk_norm(v)) for lg, v in (alt or {}).items()}
+    for x in aenderungen:
+        if ":" not in x or "=" not in x:
+            raise ValueError(f"--abk-sprech {x!r}: Form LG:ABK=WORT")
+        lg, rest = x.split(":", 1)
+        abk, wort = rest.split("=", 1)
+        lg, abk, wort = lg.strip(), abk.strip(), wort.strip()
+        if lg not in st.SPRACHEN or not abk:
+            raise ValueError(f"--abk-sprech {x!r}: Sprache {st.SPRACHEN}, Abkuerzung noetig")
+        l = [e for e in neu.get(lg, []) if e["abk"].replace(" ", "") != abk.replace(" ", "")]
+        if wort != "-":
+            alt_e = next((e for e in neu.get(lg, []) if e["abk"].replace(" ", "") == abk.replace(" ", "")), {})
+            l.insert(0, {**{k: v for k, v in alt_e.items() if k not in ("abk", "wort")}, "abk": abk, "wort": wort})
+        neu[lg] = l
+    return {lg: l for lg, l in neu.items() if l}
+
+
 # ============================================================ Hauptlauf
 def run(werk, wer=None, regler=None, pausen=None, pron_skip=None, aussprache=None, sprechtext_man=None,
-        nur_lang=None, laenge_max=None, style_max=None, trocken=False, pron_skip_weg=None):
+        nur_lang=None, laenge_max=None, style_max=None, trocken=False, pron_skip_weg=None, abk_sprech=None):
     wer = wer or "pipeline"
     g = gate.Gate(werk, STAGE, ruecksprung="400", wer=wer)
     b = bestellung.lesen(werk)
@@ -342,6 +371,8 @@ def run(werk, wer=None, regler=None, pausen=None, pron_skip=None, aussprache=Non
         s = [x for x in roh.get("audio_pron_skip") or [] if str(x).strip().lower() not in weg]
         s += [x for x in pron_skip or [] if x not in s]
         neu["audio_pron_skip"] = s
+    if abk_sprech:
+        neu["abk_sprech"] = abk_werk_setzen(roh.get("abk_sprech"), abk_sprech)
     if laenge_max:
         neu["audio_laenge_max"] = float(laenge_max)
     if style_max:
@@ -423,7 +454,7 @@ def run(werk, wer=None, regler=None, pausen=None, pron_skip=None, aussprache=Non
     if autor_name.lower() in ("unbekannt", "unknown", "anonym", "anonymous"):
         autor_name = ""
 
-    prod = {"sprechtext": {}, "abbildung": {}, "pause_after_ms": {}, "direction": {}}
+    prod = {"sprechtext": {}, "abbildung": {}, "pause_after_ms": {}, "direction": {}, "sprache": {}}
     pruef, je_sprache, ansage_out = {}, {}, {}
     z = {"knoten": 0, "erweitert": 0, "repariert": 0, "manuell": 0, "manuell_veraltet": 0}
     n_mock = 0
@@ -433,7 +464,8 @@ def run(werk, wer=None, regler=None, pausen=None, pron_skip=None, aussprache=Non
         namen = {}
         for bg in alle_begriffe:
             namen.setdefault(_name(bg, lg), bg)
-        fehl = {"roemisch_h": [], "roemisch": [], "reste": [], "laenge": [], "style": []}
+        fehl = {"roemisch_h": [], "roemisch": [], "reste": [], "abkuerzung": [], "laenge": [], "style": []}
+        abk_tab = st.abk_tabelle(lg, roh.get("abk_sprech"))
         leer, ohne_aus, manuell_ids, veraltet = [], {}, [], 0
         for tid, e in content.items():
             if not isinstance(e, dict):
@@ -458,7 +490,9 @@ def run(werk, wer=None, regler=None, pausen=None, pron_skip=None, aussprache=Non
                 if m:
                     z["manuell_veraltet"] += 1
                     veraltet += 1
-                sp, abb, f, vers, rep = _sprech(text, lg, typ, laenge_max)
+                lg_s = e.get("sprache_satz") or lg           # 120 "Original behalten": Regeln der Satzsprache
+                sp, abb, f, vers, rep = _sprech(text, lg_s, typ, laenge_max,
+                                                abk_tab if lg_s == lg else st.abk_tabelle(lg_s))
                 z["erweitert"] += vers
                 z["repariert"] += rep
             for art in f:
@@ -470,9 +504,16 @@ def run(werk, wer=None, regler=None, pausen=None, pron_skip=None, aussprache=Non
             for n in hits:
                 if not _hat_aussprache(namen[n], lg):
                     ohne_aus.setdefault(namen[n]["key"], []).append(tid)
+            if e.get("sprache_satz") and e["sprache_satz"] != lg:
+                prod["sprache"].setdefault(tid, {})[lg] = e["sprache_satz"]
+                prod["direction"].setdefault(tid, {})[lg] = FREMD_HINWEIS.format(
+                    sprache=LANG_NAME.get(e["sprache_satz"], e["sprache_satz"]))
+                z["fremd"] = z.get("fremd", 0) + 1
             if prem:
                 man_hin = {n: namen[n]["manuell"] for n in hits if namen[n]["manuell"]}
                 d = regie.get(typ, regie["s"]) + _pron_hinweis(hits, lang_name, man_hin)
+                if tid in prod["sprache"] and lg in prod["sprache"][tid]:
+                    d += " " + prod["direction"][tid][lg]
                 prod["direction"].setdefault(tid, {})[lg] = d
                 if len(d) > style_max:
                     fehl["style"].append({"id": tid, "text": text, "sprechtext": d})
@@ -492,7 +533,7 @@ def run(werk, wer=None, regler=None, pausen=None, pron_skip=None, aussprache=Non
         g.pruefe(f"abdeckung_{lg}", not leer, wert=len(leer), schwelle="= 0", bei_fehler="stopp", ruecksprung="310",
                  text=f"{lg}: Audio-Knoten ohne Text {len(leer)}/{n_aud}" + (f" {leer[:6]}" if leer else ""))
         for art, txt in (("roemisch_h", "roemisch in Ueberschriften"), ("roemisch", "Mehrfach-Roemisch im Fliesstext"),
-                         ("reste", "Reste (Ziffern, §, &, %)"),
+                         ("reste", "Reste (Ziffern, §, &, %)"), ("abkuerzung", "Abkuerzungen offen"),
                          ("laenge", f"Sprechtext > {laenge_max}× Text"), ("style", f"Style > {style_max} Zeichen")):
             if art == "style" and not prem:
                 continue
@@ -557,6 +598,8 @@ def main(argv=None):
     ap.add_argument("--aussprache", action="append", metavar="BEGRIFF=HINWEIS")
     ap.add_argument("--sprechtext", action="append", metavar="ID=TEXT", help="ID=- loescht")
     ap.add_argument("--lang", help="Audiosprache fuer --sprechtext")
+    ap.add_argument("--abk-sprech", action="append", metavar="LG:ABK=WORT",
+                    help="Abkuerzung in die Werktabelle (book.json abk_sprech); WORT - loescht, leer = bleibt stehen")
     ap.add_argument("--laenge-max", type=float)
     ap.add_argument("--style-max", type=int)
     ap.add_argument("--trocken", action="store_true")
@@ -565,12 +608,12 @@ def main(argv=None):
     pausen = {x.split("=", 1)[0]: int(x.split("=", 1)[1]) for x in a.pause or []}
     try:
         aendert = any(v is not None for v in regler.values()) or pausen or a.pron_skip or a.aussprache or a.sprechtext \
-            or a.pron_skip_weg or a.laenge_max or a.style_max
+            or a.pron_skip_weg or a.laenge_max or a.style_max or a.abk_sprech
         if aendert and not a.trocken:
             from pipeline import s080_mandant
             s080_mandant.darf(a.werk, "entscheiden", a.wer or "pipeline")
         g = run(a.werk, a.wer, regler, pausen, a.pron_skip, a.aussprache, a.sprechtext, a.lang,
-                a.laenge_max, a.style_max, a.trocken, a.pron_skip_weg)
+                a.laenge_max, a.style_max, a.trocken, a.pron_skip_weg, a.abk_sprech)
     except gate.GateHalt as e:
         print(e)
         return e.exit_code

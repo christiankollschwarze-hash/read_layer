@@ -1,0 +1,8 @@
+# Stage 200: zusaetzliche Abkuerzungen DE (klein, ohne Schlusspunkt; Rest in tools/satzweise.ABK).
+# Abgleich mit config/abk_sprech_de.json (Stage 400) - Test tests/test_abk_sprech.py.
+f
+ff
+anm
+hg
+hrsg
+bl

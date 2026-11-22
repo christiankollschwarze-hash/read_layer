@@ -34,6 +34,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import config
 from pipeline import api_layer, bestellung, gate, manifest, mock, status, usage_log
+from pipeline import spuren as SP
 from tools import sprache
 
 STAGE = "300"
@@ -154,23 +155,18 @@ def abschnitte(knoten, groesse):
 
 def llm(werk, knoten, src, lg, aus, groesse, modell=None):
     """-> {"abschnitte": [text], "finish": [reason], "abschnitt": groesse}"""
-    out, fin = [], []
-    alt = config.MODELS.get("pretranslator")
-    if modell:
-        config.MODELS["pretranslator"] = modell
-    usage_log.set_context(werk, STAGE, sprache=lg)
-    try:
-        for teil in abschnitte(knoten, groesse):
-            info = {}
-            if config.RUN_MODE == "mock":
-                r = api_layer.call_model("pretranslator", "", target_lang=lg)
-            else:
-                r = api_layer.call_model("pretranslator", _build_prompt(teil, src, lg, aus),
-                                         max_tokens=MAX_TOKENS, info=info)
-            out.append((r or "").strip())
-            fin.append(info.get("finish_reason"))
-    finally:
-        config.MODELS["pretranslator"] = alt
+    def eins(teil):                                  # ein Abschnitt (Spur innerhalb des Kapitels)
+        usage_log.set_context(werk, STAGE, sprache=lg)    # je Thread (parallele Spuren)
+        info = {}
+        if config.RUN_MODE == "mock":
+            r = api_layer.call_model("pretranslator", "", target_lang=lg)
+        else:
+            r = api_layer.call_model("pretranslator", _build_prompt(teil, src, lg, aus),
+                                     max_tokens=MAX_TOKENS, info=info, modell=modell or None)
+        return (r or "").strip(), info.get("finish_reason")
+    erg, _info = SP.parallel(None, STAGE, abschnitte(knoten, groesse), eins, SP.anzahl(stage=STAGE),
+                             fortschritt_an=False, text=False)
+    out, fin = [x[0] for x in erg], [x[1] for x in erg]
     return {"abschnitte": out, "finish": fin, "abschnitt": groesse}
 
 
@@ -248,7 +244,7 @@ def _parse_laenge(s):
 
 
 def run(werk, wer=None, modell=None, abschnitt=None, kapitel=None, aus=None, laenge=None, ziel=None,
-        uebernehmen=False, trocken=False):
+        uebernehmen=False, trocken=False, spuren=None):
     wer = wer or "pipeline"
     if ziel and not trocken:
         from pipeline import s080_mandant
@@ -256,6 +252,8 @@ def run(werk, wer=None, modell=None, abschnitt=None, kapitel=None, aus=None, lae
         print(f"[300] {ziel_setzen(werk, ziel, wer)}")
     if aus is not None and not trocken:
         bestellung.feld_setzen(werk, voruebersetzung=bool(aus))
+    if spuren and not trocken:
+        bestellung.feld_setzen(werk, voruebersetzung_spuren=int(spuren))
     g = gate.Gate(werk, STAGE, ruecksprung="300", wer=wer)
     b = bestellung.lesen(werk)
     src = b.quellsprache or config.SOURCE_LANGUAGE
@@ -301,72 +299,95 @@ def run(werk, wer=None, modell=None, abschnitt=None, kapitel=None, aus=None, lae
     ck = manifest.Checkpoint(werk, STAGE)
     pt, pruef, fehlend, falsch, ohne = {}, {}, [], [], {lg: [] for lg in ziele}
     n_llm = n_neu = n_wdh = n_mock = 0
+
+    def job(a):
+        """Ein Kapitel x Sprache (eine Spur): Checkpoint oder LLM, Pruefung, 1x Wiederholung. Sichert selbst."""
+        cid, lg, knoten, quelle = a
+        z = {"llm": 0, "neu": 0, "wdh": 0}
+        aus_ = profil_ausschnitt(profil, quelle, lg)
+        h = manifest.hash_obj([PROMPT_V, src, lg, knoten, aus_, modell_eff, abschnitt])
+        if trocken:
+            t = (alt_pt.get(cid) or {}).get(lg)
+            daten = {"abschnitte": [t], "finish": [None], "versuch": 1} if t else None
+        else:
+            daten = None if cid in neu_k else ck.lesen(cid, lg, h)
+            if daten is None and uebernehmen and cid not in neu_k and (alt_pt.get(cid) or {}).get(lg):
+                daten = {"abschnitte": [alt_pt[cid][lg]], "finish": [None], "versuch": 2,
+                         "modell": "bestand", "abschnitt": abschnitt}
+                ck.schreiben(cid, lg, h, daten, herkunft="bestand")
+            if daten is None:
+                try:
+                    daten = dict(llm(werk, knoten, src, lg, aus_, abschnitt, modell), versuch=1, modell=modell_eff)
+                except EnvironmentError:
+                    raise
+                except Exception as ex:                    # Aufruf gescheitert -> Kapitel fehlt
+                    print(f"    [300] {cid}/{lg}: Aufruf gescheitert: {str(ex)[:160]}")
+                    return {"z": z, "fehlt": True}
+                z["llm"] += len(daten["abschnitte"])
+                z["neu"] += 1
+                ck.schreiben(cid, lg, h, daten, herkunft="neu")
+        if daten is None:
+            return {"z": z, "fehlt": True}
+        r = pruefen(quelle, daten, lg, aus_, laenge)
+        # 1x automatisch neu mit halbierten Abschnitten
+        if r["rot"] and r["sprache_ok"] and daten.get("versuch", 1) < 2 and not trocken and not r["mock"]:
+            halb = max(200, min(abschnitt, math.ceil(len(quelle) / (2 * max(1, len(daten["abschnitte"]))))))
+            try:
+                d2 = dict(llm(werk, knoten, src, lg, aus_, halb, modell), versuch=2, modell=modell_eff)
+                z["llm"] += len(d2["abschnitte"])
+                z["wdh"] += 1
+                r2 = pruefen(quelle, d2, lg, aus_, laenge)
+                if _schlechter(r, r2) or not r2["rot"]:
+                    daten, r = d2, r2
+                else:
+                    daten = dict(daten, versuch=2)
+                    r["versuch"] = 2
+                ck.schreiben(cid, lg, h, daten, herkunft="wiederholung")
+            except EnvironmentError:
+                raise
+            except Exception as ex:
+                print(f"    [300] {cid}/{lg}: Wiederholung gescheitert: {str(ex)[:160]}")
+        return {"z": z, "daten": daten, "r": r}
+
+    jobs = []
     for cid, knoten in kap.items():
         pt[cid] = {}
-        quelle = " ".join(knoten)
         for lg in ziele:
             if not an or not knoten:
                 pt[cid][lg] = ""
                 if knoten:
                     ohne[lg].append(cid)
                 continue
-            aus_ = profil_ausschnitt(profil, quelle, lg)
-            h = manifest.hash_obj([PROMPT_V, src, lg, knoten, aus_, modell_eff, abschnitt])
-            if trocken:
-                t = (alt_pt.get(cid) or {}).get(lg)
-                daten = {"abschnitte": [t], "finish": [None], "versuch": 1} if t else None
-            else:
-                daten = None if cid in neu_k else ck.lesen(cid, lg, h)
-                if daten is None and uebernehmen and cid not in neu_k and (alt_pt.get(cid) or {}).get(lg):
-                    daten = {"abschnitte": [alt_pt[cid][lg]], "finish": [None], "versuch": 2,
-                             "modell": "bestand", "abschnitt": abschnitt}
-                    ck.schreiben(cid, lg, h, daten, herkunft="bestand")
-                if daten is None:
-                    try:
-                        daten = dict(llm(werk, knoten, src, lg, aus_, abschnitt, modell), versuch=1, modell=modell_eff)
-                    except Exception as e:                     # Aufruf gescheitert -> Kapitel fehlt
-                        print(f"    [300] {cid}/{lg}: Aufruf gescheitert: {str(e)[:160]}")
-                        fehlend.append(f"{cid}/{lg}")
-                        continue
-                    n_llm += len(daten["abschnitte"])
-                    n_neu += 1
-                    ck.schreiben(cid, lg, h, daten, herkunft="neu")
-            if daten is None:
-                fehlend.append(f"{cid}/{lg}")
-                continue
-            r = pruefen(quelle, daten, lg, aus_, laenge)
-            if r["mock"]:
-                n_mock += 1
-            # 1x automatisch neu mit halbierten Abschnitten
-            if r["rot"] and r["sprache_ok"] and daten.get("versuch", 1) < 2 and not trocken and not r["mock"]:
-                halb = max(200, min(abschnitt, math.ceil(len(quelle) / (2 * max(1, len(daten["abschnitte"]))))))
-                try:
-                    d2 = dict(llm(werk, knoten, src, lg, aus_, halb, modell), versuch=2, modell=modell_eff)
-                    n_llm += len(d2["abschnitte"])
-                    n_wdh += 1
-                    r2 = pruefen(quelle, d2, lg, aus_, laenge)
-                    if _schlechter(r, r2) or not r2["rot"]:
-                        daten, r = d2, r2
-                    else:
-                        daten = dict(daten, versuch=2)
-                        r["versuch"] = 2
-                    ck.schreiben(cid, lg, h, daten, herkunft="wiederholung")
-                except Exception as e:
-                    print(f"    [300] {cid}/{lg}: Wiederholung gescheitert: {str(e)[:160]}")
-            pruef.setdefault(cid, {})[lg] = r
-            if r["mock"] and mock.aktiv():
-                pt[cid][lg] = "\n\n".join(daten["abschnitte"])
-                continue
-            if not r["sprache_ok"]:
-                falsch.append(f"{cid}/{lg} ({r['sprache']})")
-            if r["rot"]:
-                ohne[lg].append(cid)
-                r["ohne_anker"] = True
-                pt[cid][lg] = ""
-            else:
-                pt[cid][lg] = "\n\n".join(daten["abschnitte"])
-        if n_neu and not trocken:
-            print(f"    {cid}: {', '.join(lg + (' ohne Anker' if cid in ohne[lg] else '') for lg in ziele)}")
+            jobs.append((cid, lg, knoten, " ".join(knoten)))
+    n_sp = 1 if trocken else SP.anzahl(b.roh, "voruebersetzung_spuren", spuren, STAGE)
+    erg, sp_info = SP.parallel(werk, STAGE, jobs, job, n_sp, einheit="Kapitel",
+                                   gewicht=[len(a[3]) for a in jobs], fortschritt_an=not trocken)
+    SP.metriken(g, sp_info)
+    # Zusammenfuehren in fester Reihenfolge (wie bisher)
+    for (cid, lg, knoten, quelle), e in zip(jobs, erg):
+        n_llm += e["z"]["llm"]
+        n_neu += e["z"]["neu"]
+        n_wdh += e["z"]["wdh"]
+        if e.get("fehlt"):
+            fehlend.append(f"{cid}/{lg}")
+            continue
+        daten, r = e["daten"], e["r"]
+        if r["mock"]:
+            n_mock += 1
+        pruef.setdefault(cid, {})[lg] = r
+        if r["mock"] and mock.aktiv():
+            pt[cid][lg] = "\n\n".join(daten["abschnitte"])
+            continue
+        if not r["sprache_ok"]:
+            falsch.append(f"{cid}/{lg} ({r['sprache']})")
+        if r["rot"]:
+            ohne[lg].append(cid)
+            r["ohne_anker"] = True
+            pt[cid][lg] = ""
+        else:
+            pt[cid][lg] = "\n\n".join(daten["abschnitte"])
+    for lg in ziele:
+        ohne[lg] = [c for c in kap if c in set(ohne[lg])]
 
     # Gate
     g.pflicht("vollstaendig", not fehlend, wert=len(fehlend), ruecksprung="300",
@@ -417,12 +438,13 @@ def main(argv=None):
     ap.add_argument("--laenge", help="Laengenschwelle Ziel/Quelle, z. B. 0.8-1.6")
     ap.add_argument("--uebernehmen", action="store_true", help="vorhandene 300_voruebersetzung.json als Rohergebnis (ohne LLM)")
     ap.add_argument("--trocken", action="store_true", help="Probe am Bestand: nichts schreiben, kein LLM")
+    ap.add_argument("--spuren", type=int, help="gleichzeitige Kapitel (Standard config.SPUREN_STANDARD; je Werk gespeichert)")
     a = ap.parse_args(argv)
     aus = False if a.aus else (True if a.an else None)
     kap = ["alle"] if a.kapitel and "alle" in a.kapitel else a.kapitel
     try:
         g = run(a.werk, a.wer, a.modell, a.abschnitt, kap, aus, _parse_laenge(a.laenge) if a.laenge else None,
-                a.ziel.split(",") if a.ziel else None, a.uebernehmen, a.trocken)
+                a.ziel.split(",") if a.ziel else None, a.uebernehmen, a.trocken, a.spuren)
     except gate.GateHalt as e:
         print(e)
         return e.exit_code

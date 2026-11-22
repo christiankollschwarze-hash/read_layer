@@ -293,7 +293,8 @@ def sprache_pruefen(jobs, werk, lg, art):
             from gpu_sprache.sprache_modal import app, pruefen
             t0, out = time.time(), {}
             with app.run():
-                for res in pruefen.map([[{"key": k, "wav": P5._wav16(p), "lg": lg} for k, p in jobs]]):
+                from pipeline import spuren as SP      # Modal-Grenze (10 Jobs, alle Stages)
+                for res in SP.modal_map(pruefen, [[{"key": k, "wav": P5._wav16(p), "lg": lg} for k, p in jobs]]):
                     out.update(res)
             usage_log.log_gpu(werk, STAGE, time.time() - t0, extra={"sprache": lg, "teil": "whisper"})
             return out

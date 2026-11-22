@@ -54,7 +54,7 @@ ERZ = s420.ERZ
 VERSION = 2          # 2: Pegel an die Erzaehlerstuecke im Satz (aktiver Pegel), CK 16.11.2026
 REGLER_STD = {"schnitt": "modal", "ueberblend_ms": 12, "lautheit": True,
               "budget": float(getattr(config, "BUDGET_510_USD", 0.0)), "auffaellig_max": 0.01, "naht_db": 3.0,
-              "stueck_min": 0.15, "dauer_min": 0.7, "dauer_max": 1.5, "fa_min": 0.9, "versuche": 2, "parallel": 4}
+              "stueck_min": 0.15, "dauer_min": 0.7, "dauer_max": 1.5, "fa_min": 0.9, "versuche": 2, "parallel": 8}
 STIL_FIGUR = ("Character dialogue in an audio drama. Speak this line in character, naturally, as spoken "
               "dialogue – not as narration.")
 RETRIES = 3
@@ -212,7 +212,8 @@ def zeiten_modal(jobs, werk, lg):
                 b.put_file(p, ziel)
                 arbeit.append({"key": key, "wav": ziel, "woerter": w})
         out = {}
-        for res in zeiten.map([arbeit[i:i + 40] for i in range(0, len(arbeit), 40)]):
+        from pipeline import spuren as SP              # Modal-Grenze (10 Jobs, alle Stages)
+        for res in SP.modal_map(zeiten, [arbeit[i:i + 40] for i in range(0, len(arbeit), 40)]):
             out.update(res)
     return out
 
@@ -388,7 +389,7 @@ def _regler_gueltig(rg):
                 and 0 <= float(rg["auffaellig_max"]) <= 1 and 0 < float(rg["naht_db"]) <= 20
                 and 0 < float(rg["stueck_min"]) <= 2 and 0 < float(rg["dauer_min"]) < float(rg["dauer_max"])
                 and 0 < float(rg["fa_min"]) <= 1 and 0 <= int(rg["versuche"]) <= 3
-                and 1 <= int(rg.get("parallel") or 1) <= 8)
+                and 1 <= int(rg.get("parallel") or 1) <= 16)
     except Exception:
         return False
 
@@ -539,6 +540,8 @@ def run(werk, wer=None, regler=None, saetze=None, kapitel=None, nur_lang=None, n
                 {"*": kosten_freigeben} if kosten_freigeben is not None else {})
             im_budget = b.mandant_art == "somnio" and usd <= float(rg["budget"])
             frei_lg = set(plan) if im_budget else s500._freigabe_je_sprache(kf, plan)
+            # Kleinbetrag (CK 22.11.2026): Schaetzung unter config.KOSTEN_KLEINBETRAG_USD (0,01 $) braucht keine Freigabe
+            frei_lg |= {lg for lg, p in plan.items() if p["usd"] < float(getattr(config, "KOSTEN_KLEINBETRAG_USD", 0.01))}
             mit_kosten = {lg for lg, p in plan.items() if p["take_neu"]}
             gesperrt = mit_kosten - frei_lg
             txt = (f"Kostenschaetzung {usd:.2f} $ fuer {n_takes} Figuren-Takes ("

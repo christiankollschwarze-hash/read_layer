@@ -505,3 +505,30 @@ TTS_SPRACHFELD = True
 HYBRID_WERKE = []          # Werk-IDs, fuer die Stufe 510 laeuft (leer = aus)
 HYBRID_TESTDIR = ""        # gesetzt = Stufe 510 arbeitet nur in diesem Ordner (Produktion unberuehrt)
 HYBRID_SCHNITT = "modal"   # AP 62 Punkt 4: Schnitt-Zeitpunkte auf Modal (gpu_fa/schnitt_modal.py); sonst "cpu"
+
+# ============================================================
+# ANBIETERGRENZEN (AP Parallele Spuren 22.11.2026, pipeline/grenzen.py)
+# ============================================================
+# EIN Zaehler ueber alle gleichzeitig laufenden Stages und Werke (dateibasiert mit Sperre in GRENZEN_DIR).
+# "gleichzeitig" = Plaetze (Semaphor), "ttl_s" = Ablauf einer Belegung (abgestuerzter Prozess),
+# "rpm_ziel"/"rpd" = Taktgeber + Tageszaehler (Tageswechsel Mitternacht Pazifik = 09:00 MEZ).
+# Umgebung READLAYER_GRENZE_<ANBIETER>=N ueberschreibt "gleichzeitig".
+GRENZEN_DIR = os.path.join(BASE_DIR, "cache", "grenzen")
+GRENZEN = {
+    # Modal: Plan-Grenze 10 parallele Jobs (hart). Angeschlossen: 340 Pruefaligner, 500 Chatterbox + Satzpruefung,
+    # 510/520 Wortzeiten, 530 Whisper, 540 Messung, 640 (spuren.modal_map / modal_platz).
+    "modal":      {"gleichzeitig": 10, "ttl_s": 6 * 3600},
+    # DeepSeek: Konto-Grenze 500 (v4-pro) / 2.500 (v4-flash) gleichzeitig, kein Aufpreis.
+    # Standard 12 Spuren ueber alles, regelbar. Angeschlossen: api_layer (jeder DeepSeek-Aufruf).
+    "deepseek":   {"gleichzeitig": 12, "ttl_s": 900, "konto": {"deepseek-v4-pro": 500, "deepseek-v4-flash": 2500}},
+    # Gemini 3.8 Flash TTS, Tier 2 (AI Studio 22.11.2026): 1.000 RPM, 100K TPM, 10.000 RPD.
+    # Ziel 500 RPM (Puffer). Angeschlossen: tts_client._gemini_call.
+    "gemini_tts": {"rpm_ziel": 500, "rpm": 1000, "rpd": 10000},
+}
+SPUREN_310 = 12          # Standard gleichzeitige Aufrufe in Stage 310 (book.json uebersetzung_spuren, --spuren)
+SPUREN_STANDARD = 12     # alle Stages mit parallelen Spuren (pipeline/spuren.py), je Werk/Stage regelbar
+SPUREN = {               # Abweichungen je Stage (Jobs gleichzeitig; Anbietergrenzen gelten zusaetzlich)
+    "500": 8,            # Gemini-TTS Bloecke (Takt 500 RPM zentral)
+    "510": 8,            # Gemini-TTS Takes
+    "650": max(1, (os.cpu_count() or 4) - 1),   # ffmpeg je Kapitel, CPU-Kerne
+}

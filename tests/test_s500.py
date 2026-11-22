@@ -45,6 +45,8 @@ def wav(p, sek=1.0, amp=3000):
 
 class T500(unittest.TestCase):
     def setUp(self):
+        self._klein = getattr(config, "KOSTEN_KLEINBETRAG_USD", None)
+        config.KOSTEN_KLEINBETRAG_USD = 0.0          # Test-Kosten sind Kleinstbetraege
         self.tmp = tempfile.TemporaryDirectory()
         r = self.tmp.name
         self.d = os.path.join(r, "a", "books", "w")
@@ -69,6 +71,10 @@ class T500(unittest.TestCase):
         self.werk()
 
     def tearDown(self):
+        if self._klein is None:
+            config.__dict__.pop("KOSTEN_KLEINBETRAG_USD", None)
+        else:
+            config.KOSTEN_KLEINBETRAG_USD = self._klein
         (config.book_dir, config.work_dir, config.RUN_MODE, config.BASE_DIR, P.synth, P.pruefer_fabrik,
          audio_fa.fa_cut, audio_fa.slice_block, CB.modal_lauf, P.PAUSE, CB.paket_bauen) = self.alt
         self.tmp.cleanup()
@@ -200,6 +206,15 @@ class T500(unittest.TestCase):
         g = self.lauf(kosten_freigeben=usd + 0.01)
         self.assertEqual(g.ergebnis["ergebnis"], "auto", g.bericht())
         self.assertEqual(self.lesen("500_kosten.json")["freigaben"][0]["wer"], "test")
+
+    def test_kleinbetrag_ohne_freigabe(self):
+        """CK 22.11.2026: Art of War 9 Saetze ~0,00 $ blockierten 500 (Kostenbefund nicht freigebbar)."""
+        self.werk(extra={"mandant": "user:x"})
+        usd = self.lauf(trocken=True).metriken["kosten_usd"]
+        config.KOSTEN_KLEINBETRAG_USD = usd + 0.001
+        g = self.lauf()
+        self.assertEqual(g.ergebnis["ergebnis"], "auto", g.bericht())
+        self.assertTrue(self.calls)
 
     def test_kostenfreigabe_je_sprache(self):
         rl = rollen()

@@ -213,5 +213,38 @@ class T650(unittest.TestCase):
             self.assertEqual(P.main(["w", "--wer", "CK", "--profil", "epub:quatsch=1"]), 1)
 
 
+    # ---------------------------------------------------------------- Monitor 650 (22.11.2026)
+    def test_monitor_650_daten_argv_freigabe_grund(self):
+        from cockpit import werk_api as W
+        from pipeline import s080_mandant
+        self.werk(kanaele=("epub", "extern"))
+        self.lauf()
+        d = W._m650_daten("w")
+        self.assertEqual(d["offen"], ["en"])
+        s = d["sprachen"][0]
+        self.assertEqual(sorted(s["profile"]), ["epub", "extern"])
+        k = s["profile"]["extern"]["kapitel"]
+        self.assertEqual(len(k), 4)                                           # anfang, c001, c002, ende
+        self.assertTrue(all(all(x["ok"].values()) for x in k))
+        self.assertEqual([a["id"] for a in s["ansagen"]][0], "ansage_titel")
+        self.assertIn("--ausgabe=beide", W._m650_argv("w", {"ausgabe": "beide", "sprache": ["en"], "neu": True}, "CK"))
+        a = W._m650_argv("w", {"freigeben": True, "grund": "angehört  ok"}, "CK")
+        self.assertEqual(a[-2:], ["--freigeben", "--grund=angehört ok"])
+        alt = s080_mandant.rolle
+        try:
+            s080_mandant.rolle = lambda w, *x: "admin" if w == "CK" else "kurator"
+            self.assertIn("--profil=extern:bitrate=128k", W._m650_argv("w", {"profil": {"extern": {"bitrate": "128k"}}}, "CK"))
+            with self.assertRaises(PermissionError):
+                W._m650_argv("w", {"profil": {"extern": {"lufs": -19}}}, "kurt")
+        finally:
+            s080_mandant.rolle = alt
+        for e in ({"freigeben": True, "ausgabe": "mp3"}, {"ausgabe": "wav"}, {"sprache": ["fr"]}):
+            with self.assertRaises(ValueError):
+                W._m650_argv("w", e, "CK")
+        with contextlib.redirect_stdout(io.StringIO()):
+            P.main(["w", "--wer", "CK", "--freigeben", "--grund", "angehört"])
+        self.assertEqual(P.entscheidungen("w")["freigabe"]["en"]["grund"], "angehört")
+        self.assertEqual(S.zustand("w", "650", scope="en"), "frei")
+
 if __name__ == "__main__":
     unittest.main()

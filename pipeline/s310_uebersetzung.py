@@ -15,6 +15,13 @@ Gate:         Abdeckung 100 % (nach 2 Nachforderungen Luecke -> Stopp); je Satz:
               zusammen mit Laenge > 1,6), Glossar/Namen/Unuebersetzt >= 98 %, Ueberschrift behaelt Kapitelnummer (Schema)
               -> 1x automatisch einzeln neu, danach Mensch (Liste); ePub-Weg: Werktitel je Zielsprache vorhanden (sonst
               1 Aufruf, Pruefung am Cover-Gate 615); Mock im Live-Lauf -> Stopp. Mensch-Freigabe gilt bei gleichem ausgabe_hash.
+Spuren:       (22.11.2026, TODO Punkt 8) Kapitel x Zielsprache laufen parallel; alle Batches stehen in EINEM Pool mit
+              --spuren N gleichzeitigen Aufrufen (Standard config.SPUREN_310 = 12, je Werk book.json uebersetzung_spuren),
+              zusaetzlich zentrale DeepSeek-Grenze (pipeline/grenzen.py). Ein Kapitel wird fertig gestellt (Nachforderung,
+              Einzelsatz, Checkpoint) sobald sein letzter Batch zurueck ist -> Wiederaufnahme nach Abbruch je Kapitel.
+              Zusammenfuehren danach in fester Reihenfolge ueber die IDs; Gate und Ausgabeformat unveraendert.
+Fortschritt:  work/_fortschritt/310.json (Saetze offen, Rate, Restzeit, Fertig-Uhrzeit; Schaetzung vorab aus frueheren
+              Raten je 1.000 Zeichen, cache/fortschritt_raten.json) -> Cockpit-Balken. Metriken spuren, laufzeit_s, http_429.
 Kosten:       deepseek-v4-pro (config.MODELS translator); usage_log Stage 310 mit Sprache.
 Regler:       --ziel de,fr (wie 300), --modell, --batch N, --kapitel N|alle, --satz ID (neu uebersetzen, mehrfach),
               --satz-text ID=TEXT (manuell, Sprache mit --lang), --annehmen ID (Befund annehmen), --anker an|aus,
@@ -28,14 +35,18 @@ Exit: 0 auto, 2 Stopp, 3 Mensch, 1 Fehler.
 """
 
 import argparse
+import contextlib
 import json
 import os
 import re
 import sys
+import threading
+import time
+from concurrent.futures import ThreadPoolExecutor
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import config
-from pipeline import api_layer, bestellung, gate, manifest, mock, status, usage_log
+from pipeline import api_layer, bestellung, fortschritt, gate, grenzen, manifest, mock, status, usage_log
 from pipeline import s300_voruebersetzung as s300
 from tools import satzweise, sprache
 
@@ -51,6 +62,8 @@ SPRACHE_MIN_WOERTER = 8
 ANKER_RAND = 400
 KOSTEN_EIN = 2.2      # Eingabe-Token je Quell-Token (Satz + Anker-Ausschnitt + Profil/Prompt), Schaetzung
 KOSTEN_AUS = 1.3      # Ausgabe-Token je Quell-Token (JSON + laengere Zielsprache)
+SPUREN = 12           # Standard gleichzeitige Aufrufe (config.SPUREN_310 ueberschreibt)
+_spur = None          # Semaphor des laufenden run() (Spuren), None = ohne Begrenzung
 
 
 def kosten_schaetzen(zeichen, modell=None, n_ziele=1):
@@ -157,28 +170,24 @@ Sentences (as JSON, id -> source text):
 }}"""
 
 
-def llm(werk, items, src, lg, aus, anker="", nachbarn=None, hinweis=None, modell=None):
-    """-> {id: text} (nur nicht-leere Strings)."""
+def llm(werk, items, src, lg, aus, anker="", nachbarn=None, hinweis=None, modell=None, stage=None):
+    """-> {id: text} (nur nicht-leere Strings). stage: Kosten unter anderer Stage buchen (330-Reparatur)."""
     if not items:
         return {}
-    alt = config.MODELS.get("translator")
-    if modell:
-        config.MODELS["translator"] = modell
-    usage_log.set_context(werk, STAGE, sprache=lg)
+    usage_log.set_context(werk, stage or STAGE, sprache=lg)       # je Thread (parallele Spuren)
     try:
-        if config.RUN_MODE == "mock":
-            raw = api_layer.call_model("translator", "", target_lang=lg, sentences=[s for _, s in items])
-            lst = (api_layer.parse_json(raw) or {}).get("translations", [])
-            return {tid: lst[i] for i, (tid, _) in enumerate(items) if i < len(lst)}
-        raw = api_layer.call_model("translator", _build_prompt(items, src, lg, aus, anker, nachbarn, hinweis),
-                                   max_tokens=8000)
+        with (_spur or contextlib.nullcontext()):
+            if config.RUN_MODE == "mock":
+                raw = api_layer.call_model("translator", "", target_lang=lg, sentences=[s for _, s in items])
+                lst = (api_layer.parse_json(raw) or {}).get("translations", [])
+                return {tid: lst[i] for i, (tid, _) in enumerate(items) if i < len(lst)}
+            raw = api_layer.call_model("translator", _build_prompt(items, src, lg, aus, anker, nachbarn, hinweis),
+                                       max_tokens=8000, modell=modell or None)
     except EnvironmentError:
         raise
     except Exception as e:                       # Netz/API: Saetze bleiben offen -> Nachforderung bzw. Luecke
         print(f"      ! Aufruf gescheitert ({lg}): {str(e)[:120]}")
         return {}
-    finally:
-        config.MODELS["translator"] = alt
     try:
         p = api_layer.parse_json(raw)
     except Exception as e:
@@ -332,32 +341,68 @@ def _parse_bereich(s):
     return float(a), float(b)
 
 
-def uebersetze_kapitel(werk, liste, src, lg, aus, anker, ck_alt, batch, modell, neu_ids, zaehler):
-    """Fehlende/geaenderte Saetze in Batches uebersetzen. -> {id: {q, t, v}} (v = Versuche Einzelsatz)."""
-    gesamt = " ".join(q for _t, q, _y in liste)
+def kapitel_plan(liste, ck_alt, batch, neu_ids):
+    """-> (res aus Checkpoint, [Batch-ID-Listen der offenen Saetze], hq). Batches zusammenhaengend wie bisher."""
     hq = {tid: manifest.hash_text(q) for tid, q, _y in liste}
-    res = {}
-    offen = []
+    res, offen = {}, []
     for tid, q, _y in liste:
         alt = (ck_alt or {}).get(tid)
         if alt and alt.get("q") == hq[tid] and tid not in neu_ids and alt.get("t"):
             res[tid] = alt
         else:
             offen.append(tid)
+    return res, [offen[i:i + batch] for i in range(0, len(offen), batch)], hq
+
+
+def batch_uebersetzen(werk, liste, teil, src, lg, aus, anker, modell, hq):
+    """Ein Batch (eine Spur-Aufgabe). -> {id: {q, t, v}}"""
+    gesamt = " ".join(q for _t, q, _y in liste)
     pos, p = {}, 0
     for tid, q, _y in liste:
         pos[tid] = (p, p + len(q))
         p += len(q) + 1
     qtext = {tid: q for tid, q, _y in liste}
-    # zusammenhaengende Batches ueber die offenen Saetze
-    for i in range(0, len(offen), batch):
-        teil = offen[i:i + batch]
-        a = anker_ausschnitt(anker, gesamt, pos[teil[0]][0], pos[teil[-1]][1])
-        got = llm(werk, [(t, qtext[t]) for t in teil], src, lg, aus, a, modell=modell)
+    a = anker_ausschnitt(anker, gesamt, pos[teil[0]][0], pos[teil[-1]][1])
+    got = llm(werk, [(t, qtext[t]) for t in teil], src, lg, aus, a, modell=modell)
+    return {t: {"q": hq[t], "t": got[t], "v": 0} for t in teil if got.get(t)}
+
+
+def uebersetze_kapitel(werk, liste, src, lg, aus, anker, ck_alt, batch, modell, neu_ids, zaehler):
+    """Fehlende/geaenderte Saetze in Batches uebersetzen (seriell; Werkzeuge/Tests). -> {id: {q, t, v}}"""
+    res, batches, hq = kapitel_plan(liste, ck_alt, batch, neu_ids)
+    for teil in batches:
+        res.update(batch_uebersetzen(werk, liste, teil, src, lg, aus, anker, modell, hq))
         zaehler["llm"] += 1
-        for t in teil:
+    return res
+
+
+def kapitel_abschliessen(werk, liste, res, hq, src, lg, aus, laenge, modell, z, zlock):
+    """Nachforderung fehlender IDs (2x einzeln mit Nachbarn) + auffaellige Saetze 1x einzeln neu (wie bisher)."""
+    def zaehl(k):
+        with zlock:
+            z["llm"] += 1
+            z[k] += 1
+    for _runde in range(2):
+        fehlt = [i for i, (t, _q, _y) in enumerate(liste) if t not in res]
+        for i in fehlt:
+            t, q, _y = liste[i]
+            got = llm(werk, [(t, q)], src, lg, aus, nachbarn=_nachbarn(liste, i, res), modell=modell)
+            zaehl("nachgefordert")
             if got.get(t):
                 res[t] = {"q": hq[t], "t": got[t], "v": 0}
+    for i, (t, q, y) in enumerate(liste):
+        e = res.get(t)
+        if not e or e.get("v", 0) >= 1:
+            continue
+        bf = pruefe_satz(q, e["t"], y, src, lg, aus, laenge)
+        if bf and bf != ["fehlt"]:
+            got = llm(werk, [(t, q)], src, lg, aus, nachbarn=_nachbarn(liste, i, res),
+                      hinweis=f"{', '.join(bf)} (previous: {e['t'][:300]})", modell=modell)
+            zaehl("einzeln")
+            if got.get(t) and _rang(pruefe_satz(q, got[t], y, src, lg, aus, laenge)) < _rang(bf):
+                e = {"q": hq[t], "t": got[t]}
+        e["v"] = 1
+        res[t] = e
     return res
 
 
@@ -370,8 +415,49 @@ def _nachbarn(liste, idx, res):
     return out
 
 
+def erwartung(werk, spuren=None):
+    """Laufzeit vor dem Start (ohne LLM, schreibt nichts): offene Saetze laut Checkpoint + Schaetzung aus frueheren
+    Raten. -> {offen, zeichen, spuren, erwartet_s, fertig_um, alle: {saetze, zeichen, erwartet_s}}"""
+    import datetime as _dt
+    b = bestellung.lesen(werk)
+    src = b.quellsprache or config.SOURCE_LANGUAGE
+    ziele = [z for z in (b.zielsprachen or []) if z != src]
+    sp = max(1, int(spuren or b.roh.get("uebersetzung_spuren") or getattr(config, "SPUREN_310", SPUREN)))
+    modell_eff = b.roh.get("uebersetzung_modell") or config.MODELS.get("translator")
+    ip = config.work_path(werk, "300_voruebersetzung")
+    if not os.path.exists(ip):
+        return None
+    with open(ip, encoding="utf-8") as f:
+        data = json.load(f)
+    profil = (data.get("meta") or {}).get("profile") or {}
+    kap = saetze(data, src)
+    ck = manifest.Checkpoint(werk, STAGE)
+    n = zei = n_alle = z_alle = 0
+    for lg in ziele:
+        for cid, liste in kap.items():
+            liste = [x for x in liste if not (data["content"].get(x[0]) or {}).get("sprache_satz")]
+            if not liste:
+                continue
+            aus = profil_ausschnitt(profil, " ".join(q for _t, q, _y in liste), lg)
+            alt = ((ck.lesen(cid, lg, manifest.hash_obj([PROMPT_V, src, lg, aus, modell_eff])) or {}).get("saetze") or {})
+            for t, q, _y in liste:
+                n_alle += 1
+                z_alle += len(q)
+                a = alt.get(t)
+                if not (a and a.get("t") and a.get("q") == manifest.hash_text(q)):
+                    n += 1
+                    zei += len(q)
+    e = fortschritt.schaetzen(STAGE, zei or None, n, sp) if n else 0
+    ea = fortschritt.schaetzen(STAGE, z_alle or None, n_alle, sp)
+    jetzt = _dt.datetime.now()
+    uhr = lambda s_: None if s_ is None else (jetzt + _dt.timedelta(seconds=s_)).strftime("%H:%M")
+    return {"offen": n, "zeichen": zei, "spuren": sp, "erwartet_s": None if e is None else round(e),
+            "fertig_um": uhr(e), "alle": {"saetze": n_alle, "zeichen": z_alle,
+                                          "erwartet_s": None if ea is None else round(ea), "fertig_um": uhr(ea)}}
+
+
 def run(werk, wer=None, modell=None, batch=None, kapitel=None, saetze_neu=None, satz_text=None, annehmen=None,
-        anker=None, laenge=None, nur_lang=None, ziel=None, uebernehmen=False, trocken=False):
+        anker=None, laenge=None, nur_lang=None, ziel=None, uebernehmen=False, trocken=False, spuren=None):
     wer = wer or "pipeline"
     if ziel and not trocken:
         from pipeline import s080_mandant
@@ -387,6 +473,8 @@ def run(werk, wer=None, modell=None, batch=None, kapitel=None, saetze_neu=None, 
             fe["uebersetzung_batch"] = int(batch)
         if laenge:
             fe["uebersetzung_laenge"] = [float(laenge[0]), float(laenge[1])]
+        if spuren:
+            fe["uebersetzung_spuren"] = int(spuren)
         if fe:
             bestellung.feld_setzen(werk, **fe)
     g = gate.Gate(werk, STAGE, ruecksprung="310", wer=wer)
@@ -400,11 +488,13 @@ def run(werk, wer=None, modell=None, batch=None, kapitel=None, saetze_neu=None, 
     modell = modell or b.roh.get("uebersetzung_modell")
     modell_eff = modell or config.MODELS.get("translator")
     mit_anker = b.roh.get("uebersetzung_anker", True) is not False
+    spuren = max(1, min(64, int(spuren or b.roh.get("uebersetzung_spuren") or getattr(config, "SPUREN_310", SPUREN))))
     g.metrik("zielsprachen", ziele)
     g.metrik("modell", modell_eff)
     g.metrik("batch", batch)
     g.metrik("anker", mit_anker)
     g.metrik("laenge", list(laenge))
+    g.metrik("spuren", spuren)
 
     ip = config.work_path(werk, "300_voruebersetzung")
     if not g.pflicht("voruebersetzung", os.path.exists(ip), ruecksprung="300", text="300_voruebersetzung.json vorhanden"):
@@ -455,8 +545,12 @@ def run(werk, wer=None, modell=None, batch=None, kapitel=None, saetze_neu=None, 
 
     ck = manifest.Checkpoint(werk, STAGE)
     z = {"llm": 0, "nachgefordert": 0, "einzeln": 0}
+    zlock = threading.Lock()
     luecken, befunde, pruef = {}, {}, {}
     n_mock = 0
+
+    # 1) Planung je Kapitel x Sprache (ohne LLM): Checkpoint lesen, offene Saetze in Batches
+    jobs = []                                    # feste Reihenfolge = Zusammenfuehrung
     for lg in ziele:
         luecken[lg], befunde[lg] = [], []
         for cid, liste in kap.items():
@@ -467,9 +561,14 @@ def run(werk, wer=None, modell=None, batch=None, kapitel=None, saetze_neu=None, 
             kontext = manifest.hash_obj([PROMPT_V, src, lg, aus, modell_eff])
             hq = {t: manifest.hash_text(q) for t, q, _y in liste}
             anker_txt = (pt.get(cid) or {}).get(lg, "") if mit_anker else ""
+            # 120 "Original behalten" (sprache_satz): Satz bleibt im Original, kein LLM, keine Befunde
+            fest = {t for t, _q, _y in liste if (data["content"].get(t) or {}).get("sprache_satz")}
+            voll, liste = liste, [x for x in liste if x[0] not in fest]
+            j_ = {"lg": lg, "cid": cid, "liste": liste, "voll": voll, "fest": fest, "aus": aus, "kontext": kontext,
+                  "hq": hq, "anker": anker_txt, "batches": [], "res": None}
             if trocken or (nur_lang and lg != nur_lang):      # andere Sprachen unveraendert, kein LLM
-                res = {t: {"q": hq[t], "t": (alt310.get(t) or {}).get(lg, ""), "v": 1} for t, _q, _y in liste
-                       if (alt310.get(t) or {}).get(lg)}
+                j_["res"] = {t: {"q": hq[t], "t": (alt310.get(t) or {}).get(lg, ""), "v": 1} for t, _q, _y in liste
+                             if (alt310.get(t) or {}).get(lg)}
             else:
                 alt = None if cid in neu_k else ck.lesen(cid, lg, kontext)
                 alt = (alt or {}).get("saetze") or {}
@@ -478,51 +577,96 @@ def run(werk, wer=None, modell=None, batch=None, kapitel=None, saetze_neu=None, 
                         v = (alt310.get(t) or {}).get(lg)
                         if v and t not in alt and t not in neu_ids:
                             alt[t] = {"q": hq[t], "t": v, "v": 1}
-                res = uebersetze_kapitel(werk, liste, src, lg, aus, anker_txt, alt, batch, modell, neu_ids, z)
-                # fehlende IDs: bis 2x einzeln mit Nachbarn
-                for _runde in range(2):
-                    fehlt = [i for i, (t, _q, _y) in enumerate(liste) if t not in res]
-                    for i in fehlt:
-                        t, q, _y = liste[i]
-                        got = llm(werk, [(t, q)], src, lg, aus, nachbarn=_nachbarn(liste, i, res), modell=modell)
-                        z["llm"] += 1
-                        z["nachgefordert"] += 1
-                        if got.get(t):
-                            res[t] = {"q": hq[t], "t": got[t], "v": 0}
-                # auffaellige Saetze: 1x einzeln neu
-                for i, (t, q, y) in enumerate(liste):
-                    e = res.get(t)
-                    if not e or e.get("v", 0) >= 1:
-                        continue
-                    bf = pruefe_satz(q, e["t"], y, src, lg, aus, laenge)
-                    if bf and bf != ["fehlt"]:
-                        got = llm(werk, [(t, q)], src, lg, aus, nachbarn=_nachbarn(liste, i, res),
-                                  hinweis=f"{', '.join(bf)} (previous: {e['t'][:300]})", modell=modell)
-                        z["llm"] += 1
-                        z["einzeln"] += 1
-                        if got.get(t) and _rang(pruefe_satz(q, got[t], y, src, lg, aus, laenge)) < _rang(bf):
-                            e = {"q": hq[t], "t": got[t]}
-                    e["v"] = 1
-                    res[t] = e
-                ck.schreiben(cid, lg, kontext, {"saetze": res})
-            # Korrekturen + Befunde
-            kk = korr.get(lg) or {}
-            for t, q, y in liste:
-                k = kk.get(t)
-                if k and k.get("q") == hq[t] and k.get("text"):
-                    res[t] = {"q": hq[t], "t": k["text"], "v": 1, "manuell": True}
-                e = res.get(t)
-                if not e:
-                    luecken[lg].append(t)
-                    continue
-                if mock.ist_text(e["t"]):
-                    n_mock += 1
-                data["content"][t][lg] = e["t"]
-                if e.get("manuell") or (k and k.get("q") == hq[t] and k.get("angenommen")):
-                    continue
-                bf = pruefe_satz(q, e["t"], y, src, lg, aus, laenge)
-                if bf:
-                    befunde[lg].append({"id": t, "quelle": q, "ziel": e["t"], "befund": bf})
+                j_["res"], j_["batches"], _hq = kapitel_plan(liste, alt, batch, neu_ids)
+                j_["llm"] = True
+            jobs.append(j_)
+
+    # 2) Spuren: alle Batches in einem Pool; Kapitel-Abschluss + Checkpoint, sobald sein letzter Batch da ist
+    llm_jobs = [j_ for j_ in jobs if j_.get("llm")]
+    qlen = {t: len(q) for l in kap.values() for t, q, _y in l}
+    n_offen = sum(len(b_) for j_ in llm_jobs for b_ in j_["batches"])
+    z_offen = sum(qlen[t] for j_ in llm_jobs for b_ in j_["batches"] for t in b_)
+    fs = fortschritt.Fortschritt(werk, STAGE, "Saetze", n_offen, gewicht=z_offen, spuren=spuren,
+                                 schreiben=not trocken and n_offen > 0)
+    if n_offen:
+        print(f"[310] {fs.text_vorab()}")
+        g.metrik("erwartet_s", None if fs.erwartet is None else round(fs.erwartet))
+    global _spur
+    _spur = threading.BoundedSemaphore(spuren)
+    t0 = time.time()
+    n429_vor = sum(grenzen.zaehler().values())
+    abschluss_lock = threading.Lock()
+
+    def abschliessen(j_):
+        kapitel_abschliessen(werk, j_["liste"], j_["res"], j_["hq"], src, j_["lg"], j_["aus"], laenge, modell, z, zlock)
+        ck.schreiben(j_["cid"], j_["lg"], j_["kontext"], {"saetze": j_["res"]})
+
+    def batch_job(j_, teil):
+        got = batch_uebersetzen(werk, j_["liste"], teil, src, j_["lg"], j_["aus"], j_["anker"], modell, j_["hq"])
+        with zlock:
+            z["llm"] += 1
+        fs.plus(len(teil), gewicht=sum(qlen[t] for t in teil))
+        with abschluss_lock:
+            j_["res"].update(got)
+            j_["rest"] -= 1
+            letzter = j_["rest"] == 0
+        if letzter:
+            abschliessen(j_)
+
+    try:
+        with ThreadPoolExecutor(max_workers=spuren, thread_name_prefix="s310") as ex:
+            futs = []
+            for j_ in llm_jobs:
+                j_["rest"] = len(j_["batches"])
+                if not j_["batches"]:
+                    futs.append(ex.submit(abschliessen, j_))
+                for teil in j_["batches"]:
+                    futs.append(ex.submit(batch_job, j_, teil))
+            fehler = None
+            for f_ in futs:
+                try:
+                    f_.result()
+                except Exception as e:           # z. B. EnvironmentError (Key fehlt): Rest abbrechen
+                    fehler = fehler or e
+                    for f2 in futs:
+                        f2.cancel()
+            if fehler:
+                raise fehler
+    except BaseException:
+        fs.ende(ok=False)
+        raise
+    finally:
+        _spur = None
+    laufzeit = fs.ende(ok=True) if n_offen else time.time() - t0
+    g.metrik("laufzeit_s", round(laufzeit, 1))
+    g.metrik("saetze_offen", n_offen)
+    g.metrik("http_429", sum(grenzen.zaehler().values()) - n429_vor)
+
+    # 3) Zusammenfuehren in fester Reihenfolge (Korrekturen, Befunde) - wie bisher
+    for j_ in jobs:
+        lg, liste, voll, fest, aus, hq, res = j_["lg"], j_["liste"], j_["voll"], j_["fest"], j_["aus"], j_["hq"], j_["res"]
+        for t, q, _y in voll:
+            if t in fest:
+                data["content"][t][lg] = q
+        z["fremd_behalten"] = z.get("fremd_behalten", 0) + len(fest)
+        # Korrekturen + Befunde
+        kk = korr.get(lg) or {}
+        for t, q, y in liste:
+            k = kk.get(t)
+            if k and k.get("q") == hq[t] and k.get("text"):
+                res[t] = {"q": hq[t], "t": k["text"], "v": 1, "manuell": True}
+            e = res.get(t)
+            if not e:
+                luecken[lg].append(t)
+                continue
+            if mock.ist_text(e["t"]):
+                n_mock += 1
+            data["content"][t][lg] = e["t"]
+            if e.get("manuell") or (k and k.get("q") == hq[t] and k.get("angenommen")):
+                continue
+            bf = pruefe_satz(q, e["t"], y, src, lg, aus, laenge)
+            if bf:
+                befunde[lg].append({"id": t, "quelle": q, "ziel": e["t"], "befund": bf})
 
     # Anfuehrungszeichen DE (Smoke #8)
     if "de" in ziele:
@@ -645,12 +789,13 @@ def main(argv=None):
     ap.add_argument("--lang", help="nur diese Zielsprache")
     ap.add_argument("--uebernehmen", action="store_true")
     ap.add_argument("--trocken", action="store_true")
+    ap.add_argument("--spuren", type=int, help="gleichzeitige Aufrufe (Standard config.SPUREN_310; je Werk gespeichert)")
     a = ap.parse_args(argv)
     kap = ["alle"] if a.kapitel and "alle" in a.kapitel else a.kapitel
     try:
         g = run(a.werk, a.wer, a.modell, a.batch, kap, a.satz, a.satz_text, a.annehmen,
                 None if a.anker is None else a.anker == "an", _parse_bereich(a.laenge) if a.laenge else None,
-                a.lang, a.ziel.split(",") if a.ziel else None, a.uebernehmen, a.trocken)
+                a.lang, a.ziel.split(",") if a.ziel else None, a.uebernehmen, a.trocken, a.spuren)
     except gate.GateHalt as e:
         print(e)
         return e.exit_code

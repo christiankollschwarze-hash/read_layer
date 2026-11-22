@@ -95,20 +95,32 @@ def stage_norm(stage, task=None):
     return neu, extra
 
 
+_tl = threading.local()
+
+
 def set_context(book_id, stage, **extra):
-    """Werk + Stage fuer alle folgenden Zeilen. extra z. B. sprache="de", teil="345_verschiebung"."""
-    _ctx["book"], _ctx["stage"], _ctx["extra"] = book_id, stage, dict(extra)
+    """Werk + Stage fuer alle folgenden Zeilen. extra z. B. sprache="de", teil="345_verschiebung".
+    Im Haupt-Thread global; in einem Neben-Thread (parallele Spuren) nur fuer diesen Thread (22.11.2026)."""
+    if threading.current_thread() is threading.main_thread():
+        _ctx["book"], _ctx["stage"], _ctx["extra"] = book_id, stage, dict(extra)
+    else:
+        _tl.ctx = {"book": book_id, "stage": stage, "extra": dict(extra)}
+
+
+def _aktiv():
+    return getattr(_tl, "ctx", None) or _ctx
 
 
 @contextlib.contextmanager
 def kontext(book_id, stage, **extra):
     """Voruebergehend anderer Kontext (z. B. Voice Design in 410 mit Muster-TTS)."""
-    alt = (_ctx["book"], _ctx["stage"], _ctx["extra"])
+    c = _aktiv()
+    alt = (c["book"], c["stage"], c["extra"])
     set_context(book_id, stage, **extra)
     try:
         yield
     finally:
-        _ctx["book"], _ctx["stage"], _ctx["extra"] = alt
+        set_context(alt[0], alt[1], **(alt[2] or {}))
 
 
 def _config():
@@ -142,10 +154,10 @@ def _kontext(book=None, stage=None, task=None):
     """-> (werk, stage_neu, zusatz) aus Argument > gesetztem Kontext > CLI > Umgebung."""
     extra = {}
     if book is None:
-        book = _ctx["book"]
+        book = _aktiv()["book"]
     if stage is None:
-        stage = _ctx["stage"]
-        extra.update(_ctx["extra"])
+        stage = _aktiv()["stage"]
+        extra.update(_aktiv()["extra"])
     if not book or not stage:
         cli_book, cli_stage = _cli_kontext()
         book = book or os.environ.get("READLAYER_BOOK") or cli_book

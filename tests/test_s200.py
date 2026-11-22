@@ -25,6 +25,8 @@ class T200(unittest.TestCase):
         self.dir = os.path.join(self.tmp.name, "werk")
         os.makedirs(os.path.join(self.dir, "work"))
         self.alt = (config.book_dir, config.work_dir, config.RUN_MODE, T._tag_robust, dict(config.MODELS))
+        self.alt_sp = getattr(config, "SPUREN_STANDARD", 12)
+        config.SPUREN_STANDARD = 1          # Aufruf-Reihenfolge wird geprueft (Spuren: eigener Test)
         config.book_dir = lambda b: self.dir
         config.work_dir = lambda b: os.path.join(self.dir, "work")
         config.RUN_MODE = "live"
@@ -39,6 +41,7 @@ class T200(unittest.TestCase):
     def tearDown(self):
         config.book_dir, config.work_dir, config.RUN_MODE, T._tag_robust, m = self.alt
         config.MODELS.clear(); config.MODELS.update(m)
+        config.SPUREN_STANDARD = self.alt_sp
         self.tmp.cleanup()
 
     def werk(self, kap=(("Chapter 1", K1), ("Chapter 2", K2)), n190=None, **kw):
@@ -78,6 +81,18 @@ class T200(unittest.TestCase):
         self.assertEqual(g.metriken["aus_checkpoint"], 2)
         self.lauf(kapitel=["2"])
         self.assertEqual(self.aufrufe, [1, 2, 2])
+
+    def test_spuren_gleiches_ergebnis(self):
+        self.lauf()
+        c1 = self.aus()["content"]
+        import shutil
+        shutil.rmtree(os.path.join(self.dir, "work", "ckpt"))
+        config.SPUREN_STANDARD = 4
+        g = self.lauf()
+        self.assertEqual(self.aus()["content"], c1)
+        self.assertEqual(list(self.aus()["content"]), list(c1))
+        self.assertEqual(sorted(self.aufrufe), [1, 1, 2, 2])
+        self.assertEqual(g.metriken["spuren"], 4)
 
     def test_kapitel_geaendert_nur_dieses_neu(self):
         self.lauf()

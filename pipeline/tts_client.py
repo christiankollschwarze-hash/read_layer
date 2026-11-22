@@ -121,7 +121,12 @@ def _gemini_call(text: str, style: str, voice: str, mime: str, lang: str = None)
         raise EnvironmentError("GEMINI_API_KEY fehlt (live-Modus).")
     payload = _gemini_payload(text, style, voice, mime, lang)
     last = None
+    from pipeline import grenzen
     for attempt in range(RETRIES):
+        try:                                     # Taktgeber 500 RPM + Tageszaehler RPD (config.GRENZEN, 22.11.2026)
+            grenzen.takt("gemini_tts")
+        except grenzen.TagesgrenzeError as e:
+            raise QuotaError(f"TTS-Tageskontingent erschoepft: {e}")
         resp = requests.post(
             INTERACTIONS_URL,
             headers={"x-goog-api-key": config.GEMINI_API_KEY,
@@ -130,6 +135,7 @@ def _gemini_call(text: str, style: str, voice: str, mime: str, lang: str = None)
         )
         if resp.status_code == 429:
             last = f"429 Rate-Limit (Versuch {attempt+1}/{RETRIES}): {resp.text[:300]}"
+            grenzen.melde_429("gemini_tts")
             time.sleep(30 * (attempt + 1))
             continue
         if resp.status_code in (500, 502, 503, 504):

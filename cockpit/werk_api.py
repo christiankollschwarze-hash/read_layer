@@ -10,6 +10,7 @@ import datetime as dt
 import glob
 import os
 import re
+import shutil
 import subprocess
 import sys
 import threading
@@ -460,7 +461,16 @@ def _ampel_aus(d, work, job, naechster=None):
         z = st.get("zustand")
         teile_l = [sc for sc, t in (st.get("teile") or {}).items() if t.get("zustand") == "laeuft"]
         if z == "laeuft" or teile_l:
-            laufend.append({"stage": s, "seit": st.get("wann"), "teile": teile_l})
+            fs = None                            # Fortschritt der Stage (TODO 22.11. Punkt 7), work/_fortschritt/<s>.json
+            try:
+                import json as _j
+                with open(os.path.join(work, "_fortschritt", f"{s}.json"), encoding="utf-8") as f:
+                    fs = _j.load(f)
+                if fs.get("zustand") != "laeuft":
+                    fs = None
+            except (OSError, ValueError):
+                fs = None
+            laufend.append({"stage": s, "seit": st.get("wann"), "teile": teile_l, "fortschritt": fs})
         elif _fehler(st):
             fehler.append(s)
         elif z == "stopp":
@@ -726,7 +736,7 @@ def monitor_speichern(book_id, stage, eingabe, wer):
             raise ValueError(f"Stage {stage}: kein Monitor zum Speichern")
         _recht(book_id, "bestellen", wer)
         argv = f(book_id, eingabe or {}, s080_mandant.nutzer(wer))
-        folge = mitlauf_argv(book_id, stage, wer) + [argv]
+        folge = mitlauf_argv(book_id, stage, wer) + (argv if argv and isinstance(argv[0], list) else [argv])
         if eingabe.get("nur_vorschau"):
             return {"ok": True, "cmd": " && ".join(" ".join(a[1:]) for a in folge)}
         return {"ok": True, "lauf": LAEUFE.start(book_id, folge, f"Monitor {stage}: übernehmen und neu prüfen")}
@@ -1014,7 +1024,41 @@ def _m120_daten(book_id):
             "param": param if isinstance(param, dict) and "staerke" in param else None,
             "standard": standard, "staerken": list(S.SYS), "kosten_usd": round(S._kosten(z_ges), 2),
             "grenzen": {"laenge": S.LAENGE, "ausreisser": S.AUSREISSER, "min_zeichen": S.AUSREISSER_MIN_ZEICHEN},
-            "kurz_woerter": S.KURZ_WOERTER}
+            "kurz_woerter": S.KURZ_WOERTER, "fremd": _m120_fremd(book_id, b, standard["modell"]),
+            "abk": _m120_abk(book_id, b, fassung)}
+
+
+def _m120_abk(book_id, b, fassung):
+    """Schritt Abkuerzungen (Teil A2): ausgeschriebene Stellen, Befunde, Entscheidungen, Tabelle der Werksprache."""
+    from pipeline import s120_abk as A
+    from pipeline import sprechtext as st
+    d = A.lesen(book_id)
+    lg = b.quellsprache or "en"
+    werk = (b.roh.get("abk_sprech") or {})
+    werk = werk.get(lg) if isinstance(werk, dict) and lg in werk else ([] if isinstance(werk, dict) and set(werk) <= set(st.SPRACHEN) else werk)
+    return {"aktiv": A.aktiv(b.roh, fassung), "abgeschaltet": b.roh.get("abk_lesetext") is False,
+            "gelaufen": os.path.exists(A.pfad(book_id)), "grund": d.get("grund"), "sprache": lg,
+            "stellen": d.get("stellen") or [], "befunde": d.get("befunde") or [],
+            "entscheidungen": d.get("entscheidungen") or {}, "verwaist": d.get("verwaist") or [],
+            "herkunft": A.zusammenfassung(d), "werk": st._abk_norm(werk),
+            "standard": st._abk_norm(st.abk_eintraege_lesen(lg))}
+
+
+def _m120_fremd(book_id, b, modell):
+    """Schritt Fremdsprache: Zitate mit Entscheidung, Regler, Kosten je Uebertragung."""
+    from pipeline import s120_fremd as F
+    d = F.lesen(book_id)
+    try:
+        rg = F.regler(b.roh)
+    except ValueError:
+        rg = F.regler({})
+    zs = []
+    for z in d.get("zitate") or []:
+        zs.append({k: z.get(k) for k in ("id", "sprache", "p", "kapitel", "entscheidung", "uebertragung", "herkunft",
+                                          "angenommen", "wer", "wann", "fehler")}
+                  | {"saetze": [s["text"] for s in z["stellen"]], "kosten_usd": F.kosten_schaetzen([z], modell)})
+    return {"zitate": zs, "regler": rg, "verfahren": d.get("verfahren") or F.verfahren(), "vorgaben": list(F.VORGABEN),
+            "sprachnamen": F.NAME, "offen": F.offen(d) if d.get("zitate") else {}}
 
 
 def _m120_teil(book_id, q):
@@ -1068,6 +1112,51 @@ def _m120_argv(book_id, e, wer):
         argv.append(f"--absatz-text={s}={txt}")
     if e.get("force"):
         argv.append("--force")
+    from pipeline import s120_fremd as F
+    ids = {z["id"] for z in F.lesen(book_id).get("zitate") or []}
+
+    def zid(i):
+        if i not in ids:
+            raise ValueError(f"Zitat {i!r} unbekannt (120 neu pruefen)")
+        return i
+    for i, ent in (e.get("fremd") or {}).items():
+        if ent not in F.ENTSCHEIDUNGEN:
+            raise ValueError(f"Entscheidung {ent!r} unbekannt")
+        argv.append(f"--fremd={zid(i)}={ent}")
+    for i, txt in (e.get("fremd_text") or {}).items():
+        txt = " ".join((txt or "").split())
+        if not txt:
+            raise ValueError(f"Uebertragung {i}: leer")
+        argv.append(f"--fremd-text={zid(i)}={txt}")
+    for i in e.get("fremd_annehmen") or []:
+        argv.append(f"--fremd-annehmen={i if i == 'alle' else zid(i)}")
+    for i in e.get("fremd_neu") or []:
+        argv.append(f"--fremd-neu={zid(i)}")
+    r = e.get("fremd_regler") or {}
+    if r.get("schwelle") not in (None, ""):
+        x = float(r["schwelle"])
+        if not 0 < x < 1:
+            raise ValueError("Schwelle 0–1")
+        argv.append(f"--fremd-schwelle={x:g}")
+    if r.get("min_woerter") not in (None, ""):
+        argv.append(f"--fremd-min={max(1, int(r['min_woerter']))}")
+    if r.get("vorgabe"):
+        if r["vorgabe"] not in F.VORGABEN:
+            raise ValueError("Vorgabe unbekannt")
+        argv.append(f"--fremd-vorgabe={r['vorgabe']}")
+    from pipeline import s120_abk as A
+    da = A.lesen(book_id)
+    abk_ids = {x["id"] for x in (da.get("stellen") or []) + (da.get("befunde") or [])} | set(da.get("entscheidungen") or {})
+    for i, w in (e.get("abk") or {}).items():
+        if i not in abk_ids:
+            raise ValueError(f"Abkuerzungs-Stelle {i!r} unbekannt (120 neu pruefen)")
+        argv.append(f"--abk={i}={' '.join((w or '').split())}")
+    for x in e.get("abk_werk") or []:
+        if not _re.fullmatch(r"[a-z]{2}:[^=]+=.*", x or ""):
+            raise ValueError(f"Werktabelle {x!r}: Form LG:ABK=WORT")
+        argv.append(f"--abk-werk={x}")
+    if e.get("abk_lesetext") in ("an", "aus"):
+        argv.append(f"--abk-lesetext={e['abk_lesetext']}")
     return argv
 
 
@@ -1642,7 +1731,10 @@ def _m310_daten(book_id):
             "batch": batch, "standard_batch": P.BATCH, "laenge": laenge, "standard_laenge": list(P.LAENGE),
             "anker": roh.get("uebersetzung_anker", True) is not False,
             "kosten_neu": round(P.kosten_schaetzen(zeichen, modell, len(ziele)), 3),
-            "kosten_satz": round(P.kosten_schaetzen(zeichen / n, modell) + 0.0005, 4)}
+            "kosten_satz": round(P.kosten_schaetzen(zeichen / n, modell) + 0.0005, 4),
+            "spuren": int(roh.get("uebersetzung_spuren") or getattr(config, "SPUREN_310", P.SPUREN)),
+            "standard_spuren": int(getattr(config, "SPUREN_310", P.SPUREN)),
+            "erwartung": P.erwartung(book_id) if vu else None}
 
 
 def _m310_argv(book_id, e, wer):
@@ -1687,6 +1779,11 @@ def _m310_argv(book_id, e, wer):
         a.append(f"--laenge={lo}-{hi}")
     if e.get("anker") in ("an", "aus"):
         a.append(f"--anker={e['anker']}")
+    if e.get("spuren") not in (None, ""):
+        n = int(e["spuren"])
+        if not 1 <= n <= 64:
+            raise ValueError("Spuren 1–64")
+        a.append(f"--spuren={n}")
     if e.get("alle"):
         a.append("--kapitel=alle")
     if e.get("trocken"):
@@ -2110,7 +2207,9 @@ def _m400_daten(book_id):
             "namensprache": rg.get("namensprache"), "tts_backend": rg.get("tts_backend") or getattr(config, "TTS_BACKEND", ""),
             "regeln_v": rg.get("regeln_v"), "erzeugt": rg.get("erzeugt"), "begriffe": begr, "skip": skip,
             "sprachen": sprachen,
-            "regie": P.directions_from_reglers(P._load_reglers(book_id))}
+            "regie": P.directions_from_reglers(P._load_reglers(book_id)),
+            "abk": {lg: {"werk": P.st._abk_norm((roh.get("abk_sprech") or {}).get(lg)),
+                         "standard": P.st._abk_norm(P.st.abk_eintraege_lesen(lg))} for lg in audio}}
 
 
 def _m400_argv(book_id, e, wer):
@@ -2151,6 +2250,14 @@ def _m400_argv(book_id, e, wer):
         a.append(f"--aussprache={term}={hin or '-'}")
     a += [f"--pron-skip={x}" for x in e.get("skip") or []]
     a += [f"--pron-skip-weg={x}" for x in e.get("skip_weg") or []]
+    for lg, je in (e.get("abk_sprech") or {}).items():
+        if lg not in audio:
+            raise ValueError(f"Abkuerzungen: Audiosprache {lg!r} nicht bestellt {audio}")
+        for abk, wort in je.items():
+            abk, wort = str(abk).strip(), str(wort).strip()
+            if not abk or "=" in abk or ":" in abk:
+                raise ValueError(f"Abkuerzung {abk!r} ungueltig")
+            a.append(f"--abk-sprech={lg}:{abk}={wort}")
     if e.get("laenge_max") not in (None, ""):
         x = float(e["laenge_max"])
         if not 1 <= x <= 5:
@@ -2760,7 +2867,7 @@ def _m500_argv(book_id, e, wer):
             raise ValueError("Probe 1–20 Saetze")
         a.append(f"--probe={n}")
     for k, lo, hi, typ in (("budget", 0, 500, float), ("auffaellig_max", 0, 1, float), ("dauer_min", 0.1, 1, float),
-                           ("dauer_max", 1, 5, float), ("versuche", 0, 3, int), ("parallel", 1, 8, int)):
+                           ("dauer_max", 1, 5, float), ("versuche", 0, 3, int), ("parallel", 1, 16, int)):
         if e.get(k) not in (None, ""):
             x = typ(e[k])
             if not lo <= x <= hi:
@@ -2781,7 +2888,7 @@ MONITOR_SPEICHERN["500"] = _m500_argv
 M510_REGLER = (("budget", 0, 500, float), ("auffaellig_max", 0, 1, float), ("dauer_min", 0.1, 1, float),
                ("dauer_max", 1, 5, float), ("versuche", 0, 3, int), ("naht_db", 0.5, 20, float),
                ("ueberblend_ms", 0, 100, int), ("fa_min", 0.1, 1, float), ("stueck_min", 0.01, 2, float),
-               ("parallel", 1, 8, int))
+               ("parallel", 1, 16, int))
 
 
 def _m510_daten(book_id):
@@ -3788,6 +3895,613 @@ def _m615_argv(book_id, e, wer):
 MONITOR_DATEN["615"] = _m615_daten
 MONITOR_SPEICHERN["615"] = _m615_argv
 MONITOR_TEIL["615"] = _m615_teil
+
+
+# ---- 650 Hoerbuch (Steckbrief STECKBRIEFE_620-710 650: Kapiteltabelle je Sprache x Profil mit Ampel je Wert,
+#      Player je Kapitel, Hoerprobe + Ansagen, Cover _quadrat, M4B; Regler Ausgabe/Ansagen/Sprache neu bauen;
+#      Profilwerte nur Admin (CK 21.11.2026); Freigabe Hoerprobe (Kanal extern) ueber s650 --freigeben)
+M650_WERTE = ("lufs", "lufs_tol", "peak", "rauschen", "kopf", "schluss", "kapitel_max_min", "bitrate", "rate")
+
+
+def _m650_ampel(e, pw):
+    """Kapitelzeile -> {wert: ok} wie die Pruefung in s650.run."""
+    try:
+        br = int(str(pw["bitrate"]).rstrip("k")) * 1000
+    except ValueError:
+        br = 0
+    return {"lufs": abs(e.get("lufs", 0) - pw["lufs"]) <= pw["lufs_tol"], "peak": e.get("peak", 0) <= pw["peak"],
+            "rauschen": e.get("rauschen", 0) <= pw["rauschen"], "kopf": e.get("kopf", 0) >= pw["kopf"] - 0.05,
+            "schluss": e.get("schluss", 0) >= pw["schluss"] - 0.05, "rate": e.get("rate") == pw["rate"],
+            "bitrate": abs((e.get("bitrate") or 0) - br) <= 2000,
+            "dauer": abs((e.get("dauer") or 0) - (e.get("dauer_soll") or 0)) <= 0.5,
+            "laenge": (e.get("dauer") or 0) <= pw["kapitel_max_min"] * 60}
+
+
+def _m650_daten(book_id):
+    import contextlib as _cl
+    import io as _io
+    from pipeline import s615_cover_final as P615, s650_hoerbuch as P
+    b = bestellung.lesen(book_id)
+    ents = P.entscheidungen(book_id)
+    ordner = config.book_dir(book_id)
+    st = (status.laden(book_id)["stages"].get("650") or {}).get("teile") or {}
+    d400 = _m200_lesen(book_id, "400_regie.json") or {}
+    plan_fehler, gates = None, []
+    try:
+        with _cl.redirect_stdout(_io.StringIO()):
+            gates = P.run(book_id, wer="monitor", trocken=True)
+    except Exception as e:
+        plan_fehler = f"{type(e).__name__}: {e}"
+    gz = {g.scope: g for g in gates}
+    sprachen, ohne = [], []
+    for lg in b.audiosprachen():
+        prof = P.profile_fuer(b, lg)
+        if not prof:
+            ohne.append(lg)
+            continue
+        man = P._json(P.pfad(book_id, lg), {}) or {}
+        m530 = (_m200_lesen(book_id, f"530_pruefung_{lg}.json") or {}).get("eintraege") or {}
+        t = st.get(lg) or {}
+        profile = {}
+        for p in prof:
+            pw = P.profil_werte(ents, p)
+            mp = (man.get("profile") or {}).get(p) or {}
+            kap = []
+            for e in mp.get("kapitel") or []:
+                kap.append({k: e.get(k) for k in ("kapitel", "nr", "titel", "dauer", "dauer_soll", "lufs", "peak",
+                                                  "rauschen", "kopf", "schluss", "rate", "bitrate", "gain_db")}
+                           | {"saetze": len(e.get("saetze") or {}), "audio": _m5x_rel(ordner, e.get("datei")),
+                              "ok": _m650_ampel(e, pw)})
+            m4 = mp.get("m4b") or {}
+            profile[p] = {"werte": pw, "kapitel": kap, "m4b": _m5x_rel(ordner, m4.get("datei")),
+                          "m4b_dauer": m4.get("dauer"),
+                          "hoerprobe": _m5x_rel(config.work_dir(book_id), os.path.join("_650", lg, f"hoerprobe_{p}.mp3")),
+                          "dauer_min": round(sum(k["dauer"] or 0 for k in kap) / 60, 1),
+                          "auffaellig": sum(1 for k in kap if not all(k["ok"].values()))}
+        ansagen = [{"id": a.get("id"), "position": a.get("position"), "text": a.get("text"),
+                    "sprechtext": a.get("sprechtext"),
+                    "audio": _m5x_rel(ordner, (m530.get(f"hoerbuch/{a.get('id')}") or {}).get("datei"))}
+                   for a in (d400.get("ansagen") or {}).get(lg) or []]
+        cover = P615.ausgabe_pfad(book_id, lg, "quadrat") if "extern" in prof else None
+        g = gz.get(lg)
+        sprachen.append({
+            "sprache": lg, "profile": profile, "zustand": t.get("zustand") or "offen", "wer": t.get("wer"),
+            "wann": t.get("wann"), "gruende": t.get("gruende") or ((man.get("pruefung") or {}).get("gruende") or []),
+            "hinweise": (man.get("pruefung") or {}).get("hinweise") or [],
+            "probe": (g.ergebnis or {}).get("ergebnis") if g and g.ergebnis else None,
+            "probe_gruende": (g.ergebnis or {}).get("gruende", []) if g and g.ergebnis else [],
+            "freigabe": (ents.get("freigabe") or {}).get(lg), "extern": "extern" in prof,
+            "ansagen": ansagen, "cover": _rel(cover) if cover and os.path.exists(cover) else None,
+            "cover_stand": int(os.path.getmtime(cover)) if cover and os.path.exists(cover) else None,
+            "gebaut": bool(man)})
+    return {"plan_fehler": plan_fehler, "sprachen": sprachen, "ohne_hoerbuch": ohne,
+            "regler": {"ausgabe": ents.get("ausgabe", "mp3"), "ansagen": ents.get("ansagen", "an"),
+                       "profile": ents.get("profile") or {}},
+            "standard": P.PROFILE, "werte": list(M650_WERTE),
+            "offen": [s["sprache"] for s in sprachen if s["zustand"] == "mensch"],
+            "protokoll": [{"wer": p.get("wer"), "wann": p.get("wann"),
+                           "was": {k: str(v)[:120] for k, v in p.items() if k not in ("wer", "wann")}}
+                          for p in (ents.get("protokoll") or [])[-15:]]}
+
+
+def _m650_argv(book_id, e, wer):
+    from pipeline import s650_hoerbuch as P
+    b = bestellung.lesen(book_id)
+    a = [PY, "-m", "pipeline.s650_hoerbuch", book_id, "--wer", wer]
+    if e.get("freigeben"):
+        if any(e.get(k) not in (None, "", {}, [], False) for k in ("profil", "ausgabe", "ansagen", "neu", "sprache", "trocken")):
+            raise ValueError("Hörprobe allein freigeben (erst Änderungen übernehmen und anhören)")
+        grund = " ".join(str(e.get("grund") or "").split())
+        return a + ["--freigeben"] + ([f"--grund={grund}"] if grund else [])
+    if e.get("profil"):
+        if s080_mandant.rolle(wer) != "admin":
+            raise PermissionError("Profilwerte ändert nur Admin (CK 21.11.2026)")
+        for p, kv in e["profil"].items():
+            if p not in P.PROFILE:
+                raise ValueError(f"Profil {p!r} unbekannt")
+            for k, v in (kv or {}).items():
+                if k not in M650_WERTE:
+                    raise ValueError(f"Profilwert {k!r} nicht im Monitor")
+                alt = P.PROFILE[p][k]
+                if isinstance(alt, str):
+                    v = str(v).strip()
+                    if not re.fullmatch(r"\d{2,3}k", v):
+                        raise ValueError(f"{p}:{k} Format z. B. 128k")
+                else:
+                    v = type(alt)(v)
+                a.append(f"--profil={p}:{k}={v}")
+    if e.get("ausgabe") is not None:
+        if e["ausgabe"] not in ("mp3", "m4b", "beide"):
+            raise ValueError("Ausgabe mp3|m4b|beide")
+        a.append(f"--ausgabe={e['ausgabe']}")
+    if e.get("ansagen") is not None:
+        if e["ansagen"] not in ("an", "aus"):
+            raise ValueError("Ansagen an|aus")
+        a.append(f"--ansagen={e['ansagen']}")
+    for lg in e.get("sprache") or []:
+        if lg not in b.audiosprachen():
+            raise ValueError(f"Sprache {lg!r} ohne Hörbuch")
+        a.append(f"--sprache={lg}")
+    if e.get("neu"):
+        a.append("--neu")
+    if e.get("trocken"):
+        a.append("--trocken")
+    return a
+
+
+MONITOR_DATEN["650"] = _m650_daten
+MONITOR_SPEICHERN["650"] = _m650_argv
+
+
+# ---- 620/630 ePub (Steckbrief STECKBRIEFE_620-710: EIN Monitor fuer 620 und 630, Reiter je Sprache; Kacheln
+#      Sprache x Variante mit Pruefwerten vs. Schwelle, geklebte Kapitel (-> 200), Leseansicht aus dem gebauten
+#      XHTML (CK 21.11.2026, kein epub.js), Audio-Variante mit Satzmarkierung aus SMIL; Regler Mobil-Absaetze,
+#      Bilder, Fussnoten, Kolophon (nur Admin), Sprache neu bauen; Freigabe je Stage ueber --freigeben --grund)
+def _m620_kacheln(book_id):
+    from pipeline import s620_epub_original as P
+    b = bestellung.lesen(book_id)
+    d = status.laden(book_id)
+    man = (P._json(P.manifest_pfad(book_id)) or {}).get("varianten") or {}
+    out = []
+    for stg in (P.STAGE_Q, P.STAGE_Z):
+        teile = (d["stages"].get(stg) or {}).get("teile") or {}
+        for lg, var in P.varianten(b, stg):
+            sc = f"{lg}:{var}"
+            t, mi = teile.get(sc) or {}, man.get(sc) or {}
+            met, gm = mi.get("metriken") or {}, t.get("metriken") or {}
+            pfad = P.ausgabe_pfad(book_id, lg, var)
+            ec = met.get("epubcheck") or {}
+            werte = [("epubcheck", ec.get("fehler"), 0, ec.get("fehler") == 0 if ec else None, "Fehler"),
+                     ("textabgleich", met.get("textabgleich"), P.SCHWELLEN["textabgleich_min"],
+                      (met.get("textabgleich") or 0) >= P.SCHWELLEN["textabgleich_min"] if met else None, ""),
+                     ("kapitel", met.get("kapitel_epub"), gm.get("kapitel"),
+                      met.get("kapitel_epub") == gm.get("kapitel") if met and gm.get("kapitel") else None, ""),
+                     ("vermerke", met.get("vermerke_ist"), None, None, ""),
+                     ("bilder", met.get("bilder_epub"), met.get("bilder_soll"),
+                      met.get("bilder_epub") == met.get("bilder_soll") if met else None, ""),
+                     ("fussnoten", met.get("noten_epub"), met.get("noten_soll"),
+                      met.get("noten_epub") == met.get("noten_soll") if met else None, "")]
+            if stg == P.STAGE_Z:
+                werte.append(("fallback", gm.get("fallback"), P.SCHWELLEN["fallback_max"],
+                              gm.get("fallback") == 0 if gm.get("fallback") is not None else None, "Saetze"))
+            if var == "audio":
+                werte.append(("smil", gm.get("smil_abdeckung"), P.SCHWELLEN["smil_min"],
+                              (gm.get("smil_abdeckung") or 0) >= P.SCHWELLEN["smil_min"]
+                              if gm.get("smil_abdeckung") is not None else None, ""))
+            out.append({"scope": sc, "stage": stg, "sprache": lg, "variante": var,
+                        "zustand": t.get("zustand") or "offen", "wer": t.get("wer"), "wann": t.get("wann"),
+                        "gruende": t.get("gruende") or [], "hinweise": t.get("hinweise") or [],
+                        "werte": [{"name": n, "ist": i, "soll": s_, "ok": o, "einheit": e_} for n, i, s_, o, e_ in werte],
+                        "geklebt": gm.get("geklebt_kapitel") or [], "warnungen": ec.get("warnungen"),
+                        "meldungen": (ec.get("meldungen") or [])[:10], "fallback_ids": gm.get("fallback_ids") or [],
+                        "datei": _rel(pfad) if os.path.isfile(pfad) else None,
+                        "mb": round(os.path.getsize(pfad) / 1e6, 1) if os.path.isfile(pfad) else None,
+                        "gebaut": mi.get("gebaut"), "titel": mi.get("titel")})
+    return b, out
+
+
+def _m620_daten(book_id):
+    from pipeline import s620_epub_original as P
+    b, kacheln = _m620_kacheln(book_id)
+    ents = P.entscheidungen(book_id)
+    prot = (P._json(P.entscheidungen_pfad(book_id)) or {}).get("protokoll") or []
+    return {"kacheln": kacheln, "quellsprache": b.quellsprache, "verlag": b.mandant_art == "verlag",
+            "sprachen": list(dict.fromkeys(k["sprache"] for k in kacheln)),
+            "regler": {k: ents.get(k) for k in ("mobil", "mobil_laenge", "bilder", "fussnoten", "kolophon")},
+            "standard": {k: v for k, v in P.REGLER.items()},
+            "offen": {s: [k["scope"] for k in kacheln if k["stage"] == s and k["zustand"] == "mensch"]
+                      for s in (P.STAGE_Q, P.STAGE_Z)},
+            "protokoll": [{"wer": p.get("wer"), "wann": p.get("wann"), "was": ", ".join(p.get("was") or [])}
+                          for p in prot[-15:]]}
+
+
+def _m620_teil(book_id, q):
+    """Leseansicht: ?scope=<lg>:<variante>&seite=N -> Seitenliste (Spine), XHTML als srcdoc (CSS + Bilder inline),
+    Audio-Variante zusaetzlich Kapitel-MP3 (aus dem EPUB nach work/_620/ entpackt) und SMIL-Clips."""
+    import base64 as _b64
+    import posixpath as _pp
+    import zipfile as _zf
+    from pipeline import s620_epub_original as P
+    sc = q.get("scope") or ""
+    m = re.fullmatch(r"([a-z]{2,3}):(text|audio)", sc)
+    if not m:
+        raise ValueError("scope <lg>:text|audio")
+    pfad = P.ausgabe_pfad(book_id, m.group(1), m.group(2))
+    if not os.path.isfile(pfad):
+        raise ValueError(f"{sc}: ePub noch nicht gebaut")
+    with _zf.ZipFile(pfad) as z:
+        namen = set(z.namelist())
+        cont = z.read("META-INF/container.xml").decode("utf-8")
+        opf = re.search(r'full-path="([^"]+)"', cont).group(1)
+        basis = _pp.dirname(opf)
+        o = z.read(opf).decode("utf-8")
+        items = {mm.group("id"): mm.group("href") for mm in re.finditer(
+            r'<item\b(?=[^>]*\bid="(?P<id>[^"]+)")(?=[^>]*\bhref="(?P<href>[^"]+)")[^>]*>', o)}
+        overlay = {mm.group(1): mm.group(2) for mm in re.finditer(
+            r'<item\b[^>]*\bid="([^"]+)"[^>]*\bmedia-overlay="([^"]+)"', o)}
+        spine = re.findall(r'<itemref\b[^>]*\bidref="([^"]+)"', o)
+        seiten = []
+        for i in spine:
+            h = items.get(i)
+            if not h:
+                continue
+            x = z.read(_pp.join(basis, h)).decode("utf-8", "replace")
+            t = re.search(r"<h[12][^>]*>(.*?)</h[12]>", x, re.S) or re.search(r"<title>(.*?)</title>", x, re.S)
+            seiten.append({"id": i, "href": h, "titel": re.sub(r"<[^>]+>|\s+", " ", t.group(1)).strip() if t else i})
+        n = max(0, min(int(q.get("seite") or 0), len(seiten) - 1))
+        s = seiten[n]
+        voll = _pp.join(basis, s["href"])
+        ordner = _pp.dirname(voll)
+        x = z.read(voll).decode("utf-8", "replace")
+
+        def css(mm):
+            p = _pp.normpath(_pp.join(ordner, mm.group(1)))
+            return f"<style>{z.read(p).decode('utf-8', 'replace')}</style>" if p in namen else ""
+        x = re.sub(r'<link\b[^>]*\bhref="([^"]+\.css)"[^>]*/?>', css, x)
+
+        def bild(mm):
+            p = _pp.normpath(_pp.join(ordner, mm.group(2)))
+            if p not in namen or z.getinfo(p).file_size > 3_000_000:
+                return mm.group(0)
+            ext = os.path.splitext(p)[1].lower()
+            mt = P.BILD_MEDIA.get(ext, "application/octet-stream")
+            return f'{mm.group(1)}="data:{mt};base64,{_b64.b64encode(z.read(p)).decode()}"'
+        x = re.sub(r'\b(src|xlink:href)="([^"]+\.(?:jpe?g|png|gif|svg|webp))"', bild, x, flags=re.I)
+        x = re.sub(r"<script\b.*?</script>", "", x, flags=re.S | re.I)
+        x = re.sub(r"^<\?xml[^>]*>\s*", "", x)
+        aus = {"seiten": [t["titel"] for t in seiten], "seite": n, "html": x, "clips": [], "audio": None}
+        sm = overlay.get(s["id"])
+        if sm and items.get(sm):
+            sp = _pp.normpath(_pp.join(basis, items[sm]))
+            smil = z.read(sp).decode("utf-8", "replace")
+            clips, quelle = [], None
+            for mm in re.finditer(r'<text\s+src="[^"#]*#([^"]+)"\s*/>\s*<audio\s+src="([^"]+)"\s+clipBegin="([\d.]+)s"\s+'
+                                  r'clipEnd="([\d.]+)s"', smil):
+                clips.append([mm.group(1), float(mm.group(3)), float(mm.group(4))])
+                quelle = quelle or _pp.normpath(_pp.join(_pp.dirname(sp), mm.group(2)))
+            if quelle in namen:
+                ziel = os.path.join(config.work_dir(book_id), "_620", sc.replace(":", "_"), _pp.basename(quelle))
+                info = z.getinfo(quelle)
+                if not (os.path.isfile(ziel) and os.path.getsize(ziel) == info.file_size
+                        and os.path.getmtime(ziel) >= os.path.getmtime(pfad)):
+                    os.makedirs(os.path.dirname(ziel), exist_ok=True)
+                    with z.open(quelle) as f_, open(ziel + ".tmp", "wb") as g_:
+                        shutil.copyfileobj(f_, g_)
+                    os.replace(ziel + ".tmp", ziel)
+                aus["audio"] = _rel(ziel)
+            aus["clips"] = clips
+    return aus
+
+
+def _m620_argv_fuer(stage):
+    def f(book_id, e, wer):
+        from pipeline import s620_epub_original as P
+        b = bestellung.lesen(book_id)
+        mod = {P.STAGE_Q: "pipeline.s620_epub_original", P.STAGE_Z: "pipeline.s630_epub_zielsprache"}
+        kopf = lambda s: [PY, "-m", mod[s], book_id, "--wer", wer]
+        if e.get("freigeben"):
+            if any(e.get(k) not in (None, "", {}, [], False) for k in
+                   ("mobil", "mobil_laenge", "bilder", "fussnoten", "kolophon", "sprache", "neu")):
+                raise ValueError("Freigabe allein auslösen (erst Änderungen übernehmen und ansehen)")
+            grund = " ".join(str(e.get("grund") or "").split())
+            return kopf(stage) + ["--freigeben"] + ([f"--grund={grund}"] if grund else [])
+        regler = []
+        for k in ("mobil", "bilder", "fussnoten"):
+            if e.get(k) is not None:
+                if e[k] not in ("an", "aus"):
+                    raise ValueError(f"{k} an|aus")
+                regler.append(f"--{k}={e[k]}")
+        if e.get("mobil_laenge") not in (None, ""):
+            n = int(e["mobil_laenge"])
+            if not 80 <= n <= 2000:
+                raise ValueError("Mobil-Länge 80–2000 Zeichen")
+            regler.append(f"--mobil-laenge={n}")
+        for lg, t in (e.get("kolophon") or {}).items():
+            if s080_mandant.rolle(wer) != "admin":
+                raise PermissionError("Kolophon ändert nur Admin")
+            if lg not in b.sprachen:
+                raise ValueError(f"Kolophon: Sprache {lg!r} nicht bestellt")
+            regler.append(f"--kolophon={lg}={' '.join(str(t).split())}")
+        stg_lg = {s: [lg for lg, _ in P.varianten(b, s)] for s in (P.STAGE_Q, P.STAGE_Z)}
+        neu = list(e.get("sprache") or [])
+        for lg in neu:
+            if not any(lg in v for v in stg_lg.values()):
+                raise ValueError(f"Sprache {lg!r} ohne ePub")
+        folge = []
+        for s in (P.STAGE_Q, P.STAGE_Z):
+            if not stg_lg[s]:
+                continue
+            mine = [lg for lg in neu if lg in stg_lg[s]]
+            if not (regler or mine):
+                continue
+            a = kopf(s) + (regler if not folge else [])
+            if mine and not regler:
+                a += [f"--sprache={lg}" for lg in dict.fromkeys(mine)]
+            if mine:
+                a.append("--neu")
+            folge.append(a)
+        if not folge:
+            folge = [kopf(stage)]
+        return folge if len(folge) > 1 else folge[0]
+    return f
+
+
+MONITOR_DATEN["620"] = MONITOR_DATEN["630"] = _m620_daten
+MONITOR_TEIL["620"] = MONITOR_TEIL["630"] = _m620_teil
+MONITOR_SPEICHERN["620"] = _m620_argv_fuer("620")
+MONITOR_SPEICHERN["630"] = _m620_argv_fuer("630")
+
+
+# ---- 640 Teaser (Steckbrief STECKBRIEFE_620-710 640: je Sprache Teaser am Stueck + Satzliste mit Player und Befund,
+#      Stimme/Engine/Stil/Tempo, Kosten; Satz neu vertonen (kostet) / annehmen mit Grund; Regler je Sprache;
+#      Verlag: Anhoeren und Freigeben ueber den Rahmen (gilt bei gleichem ausgabe_hash))
+M640_GRUND = {"dauer": "Länge passt nicht zum Text", "leer": "kein hörbarer Ton", "rand": "Anfang/Ende abgeschnitten oder zu lang",
+              "ohne_fa": "Satzgrenzen nicht gefunden", "lufs": "Lautstärke", "spitze": "zu laut (Spitze)",
+              "gekippt": "falsche Sprache / unverständlich", "verdacht": "Text weicht ab"}
+
+
+def _m640_daten(book_id):
+    from pipeline import s640_teaser as P
+    from pipeline.s600_klappentext import autor_laden
+    b = bestellung.lesen(book_id)
+    ordner = config.book_dir(book_id)
+    rg = P.regler(book_id)
+    ents = P.entscheidungen(book_id)
+    an = ents.get("annahmen") or {}
+    man = P._json(config.work_path(book_id, "640_teaser"), {}) or {}
+    ein, mmeta = man.get("eintraege") or {}, man.get("meta") or {}
+    k600 = _m200_lesen(book_id, "600_klappentext.json") or {}
+    meta, blurb = k600.get("meta") or {}, k600.get("blurb") or {}
+    aj = autor_laden(book_id)
+    st = (status.laden(book_id)["stages"].get("640") or {}).get("teile") or {}
+    out = []
+    for lg in P.sprachen(b):
+        ss = P.saetze(blurb, lg)
+        try:
+            info, fe, rs = P.stimme_waehlen(book_id, b, lg, meta, aj, rg) if ss else (None, "kein Klappentext", "600")
+        except Exception as e:
+            info, fe, rs = None, f"{type(e).__name__}: {e}", "640"
+        zeilen = []
+        for s in ss:
+            e = ein.get(f"{lg}/{s['id']}") or {}
+            gr = e.get("grund")
+            ok_an = bool(gr) and an.get(f"{lg}/{s['id']}") == e.get("datei_hash")
+            zeilen.append({"id": s["id"], "block": s.get("block") or e.get("block"), "text": s["text"],
+                           "audio": _m5x_rel(ordner, e.get("datei")), "dauer": e.get("dauer"), "lufs": e.get("lufs"),
+                           "peak": e.get("peak"), "rand": e.get("rand"), "cer": e.get("cer"),
+                           "abschrift": e.get("abschrift"), "versuche": e.get("versuche"),
+                           "grund": gr, "grund_text": M640_GRUND.get(gr, gr) if gr else None, "angenommen": ok_an,
+                           "aktuell": e.get("text") == s["text"],
+                           "kosten": round(P.kosten(info, len(s["text"])), 4) if info else None})
+        t = st.get(lg) or {}
+        mm = mmeta.get(lg) or {}
+        out.append({"sprache": lg, "zustand": t.get("zustand") or "offen", "wer": t.get("wer"), "wann": t.get("wann"),
+                    "gruende": t.get("gruende") or [], "audio_bestellt": lg in b.audiosprachen(),
+                    "stimme": (info or {}).get("stimme") or mm.get("stimme"), "engine": (info or {}).get("engine") or mm.get("engine"),
+                    "quelle": (info or {}).get("quelle") or mm.get("quelle"), "stimm_grund": (info or {}).get("grund") or mm.get("grund"),
+                    "stimm_fehler": fe, "stimm_ruecksprung": rs, "stil": mm.get("stil"), "tempo": mm.get("tempo"),
+                    "saetze": zeilen, "kosten_alle": round(P.kosten(info, sum(len(z["text"]) for z in zeilen)), 4) if info else None,
+                    "auffaellig": sum(1 for z in zeilen if z["grund"] and not z["angenommen"])})
+    return {"sprachen": out, "verlag": b.mandant_art == "verlag",
+            "regler": {k: rg.get(k) for k in ("stimme", "stil", "engine", "tempo", "aussprache")},
+            "eigen": (ents.get("regler") or {}),
+            "protokoll": [{"wer": p.get("wer"), "wann": p.get("wann"),
+                           "was": {k: str(v)[:120] for k, v in p.items() if k not in ("wer", "wann")}}
+                          for p in (ents.get("protokoll") or [])[-15:]]}
+
+
+def _m640_argv(book_id, e, wer):
+    from pipeline import s640_teaser as P
+    b = bestellung.lesen(book_id)
+    lgs = P.sprachen(b)
+    a = [PY, "-m", "pipeline.s640_teaser", book_id, "--wer", wer]
+    man = (P._json(config.work_path(book_id, "640_teaser"), {}) or {}).get("eintraege") or {}
+
+    def ziel(x):
+        lg, _, sid = str(x).partition(":")
+        if lg not in lgs or f"{lg}/{sid}" not in man or not re.fullmatch(r"[\w-]+", sid):
+            raise ValueError(f"Satz {x!r} unbekannt")
+        return f"{lg}:{sid}"
+    an = [ziel(x) for x in e.get("annehmen") or []]
+    if an:
+        grund = " ".join(str(e.get("grund") or "").split())
+        if not grund:
+            raise ValueError("Annehmen braucht einen Grund")
+        if e.get("trocken"):
+            raise ValueError("Annehmen wird sofort geschrieben – Probe ohne Annehmen")
+        a += [f"--annehmen={x}" for x in an] + [f"--grund={grund}"]
+    a += [f"--satz={ziel(x)}" for x in e.get("satz") or []]
+    for k in ("stimme", "stil", "engine", "tempo"):
+        for lg, v in (e.get(k) or {}).items():
+            if lg not in lgs:
+                raise ValueError(f"{k}: Sprache {lg!r} ohne Teaser")
+            if v in (None, ""):
+                v = "weg"
+            elif k == "engine" and v not in ("gemini", "chatterbox"):
+                raise ValueError("Engine gemini|chatterbox")
+            elif k == "tempo":
+                v = float(v)
+                if not 0.5 <= v <= 2.0:
+                    raise ValueError("Tempo 0,5–2,0")
+                v = f"{v:g}"
+            elif k == "stimme" and not re.fullmatch(r"[\w-]+", str(v)):
+                raise ValueError("Stimme: Name aus dem Stimmarchiv")
+            a.append(f"--{k}={lg}={' '.join(str(v).split())}")
+    if e.get("aussprache") is not None:
+        if e["aussprache"] not in ("an", "aus"):
+            raise ValueError("Aussprache an|aus")
+        a.append(f"--aussprache={e['aussprache']}")
+    for lg in e.get("sprache") or []:
+        if lg not in lgs:
+            raise ValueError(f"Sprache {lg!r} ohne Teaser")
+        a.append(f"--sprache={lg}")
+    if e.get("neu"):
+        a.append("--neu")
+    if e.get("trocken"):
+        a.append("--trocken")
+    return a
+
+
+MONITOR_DATEN["640"] = _m640_daten
+MONITOR_SPEICHERN["640"] = _m640_argv
+
+
+# ---- 700 Auslieferungs-Vertrag (Steckbrief STECKBRIEFE_620-710 700: Produktmatrix Scope x Artefakt (Stage, Datei,
+#      Gate, Hash, Befund) gruen/rot mit Sprung in den Monitor der Stage; liefern ja/nein; zurueckhalten mit Grund /
+#      wieder liefern; Verlag-Endabnahme je Produkt). Daten aus dem letzten Lauf (work/700_guard.json) – ein
+#      Probelauf hasht alle Auslieferungsdateien (Art of War ~1 min) und gehoert nicht in die Anzeige.
+def _m700_daten(book_id):
+    from pipeline import s700_guard as P
+    b = bestellung.lesen(book_id)
+    g = P._json(P.pfad(book_id), {}) or {}
+    ents = P.entscheidungen(book_id)
+    teile = (status.laden(book_id)["stages"].get("700") or {}).get("teile") or {}
+    prod = g.get("produkte") or {}
+    zeilen = []
+    for sc, p, kanal in P.scopes(b):
+        x = prod.get(sc) or {}
+        t = teile.get(sc) or {}
+        zeilen.append({"scope": sc, "sprache": p["sprache"], "inhalt": p["inhalt"], "stufe": p["stufe"], "kanal": kanal,
+                       "zustand": t.get("zustand") or "offen", "wer": t.get("wer"), "wann": t.get("wann"),
+                       "geprueft": bool(x), "ergebnis": x.get("ergebnis"), "liefern": x.get("liefern"),
+                       "zurueckgehalten": (ents.get("zurueckhalten") or {}).get(sc),
+                       "gruende": x.get("gruende") or [], "ruecksprung": x.get("ruecksprung"),
+                       "artefakte": [{k: a.get(k) for k in ("stage", "scope", "name", "datei", "gate", "befunde", "ruecksprung")}
+                                     for a in x.get("artefakte") or []]})
+    idd = g.get("id_deckung") or {}
+    return {"zeit": g.get("zeit"), "produkte": zeilen, "verlag": b.mandant_art == "verlag",
+            "id_deckung": {"ok": idd.get("ok"), "ids": idd.get("ids"), "fehlt": {k: len(v) for k, v in (idd.get("fehlt") or {}).items()}},
+            "gemini_kanaele": list(P.gemini_kanaele()),
+            "protokoll": [p for p in (ents.get("protokoll") or [])[-15:]]}
+
+
+def _m700_argv(book_id, e, wer):
+    from pipeline import s700_guard as P
+    b = bestellung.lesen(book_id)
+    ok = {s for s, _, _ in P.scopes(b)}
+    halt = P.entscheidungen(book_id).get("zurueckhalten") or {}
+    kopf = [PY, "-m", "pipeline.s700_guard", book_id, "--wer", wer]
+    folge = []
+    grund = " ".join(str(e.get("grund") or "").split())
+    for sc in e.get("zurueckhalten") or []:
+        if sc not in ok:
+            raise ValueError(f"Produkt {sc!r} nicht bestellt")
+        if not grund:
+            raise ValueError("Zurückhalten braucht einen Grund")
+        folge.append(kopf + [f"--zurueckhalten={sc}", f"--grund={grund}"])
+    for sc in e.get("liefern") or []:
+        if sc not in halt:
+            raise ValueError(f"Produkt {sc!r} ist nicht zurückgehalten")
+        folge.append(kopf + [f"--liefern={sc}"])
+    if e.get("trocken"):
+        if folge:
+            raise ValueError("Zurückhalten/Liefern wird sofort geschrieben – Probe ohne Änderungen")
+        return kopf + ["--trocken"]
+    if not folge:
+        return kopf
+    return folge if len(folge) > 1 else folge[0]
+
+
+MONITOR_DATEN["700"] = _m700_daten
+MONITOR_SPEICHERN["700"] = _m700_argv
+
+
+# ---- 710 Auslieferung (Steckbrief STECKBRIEFE_620-710 710: je Sprache x Kanal Ziel, Dateien, Katalogstatus,
+#      Extern-Paket mit Metadaten/Plattformen; Regler Ziel/Bitrate/nur Manifest/Kanal/Probelauf; Freigaben
+#      "Im Katalog freischalten", "Extern hochgeladen" je Sprache; Werk zurueckziehen nur Admin (CK 21.11.2026)).
+#      Daten aus work/710_export.json; Dateien neu/geaendert/verwaist zeigt der Probelauf (--dry) im Lauf-Log.
+def _m710_daten(book_id):
+    from pipeline import s700_guard as P7, s710_cloud_export as P, s710_kanaele as K
+    b = bestellung.lesen(book_id)
+    exp = P._json(P.pfad(book_id), {}) or {}
+    ents = P.entscheidungen(book_id)
+    teile = (status.laden(book_id)["stages"].get("710") or {}).get("teile") or {}
+    std = P.standardziel()
+    ziele = []
+    for kenn, z in (exp.get("ziele") or {}).items():
+        sc = {}
+        for s, x in (z.get("scopes") or {}).items():
+            sc[s] = {"dateien": len(x.get("dateien") or {}),
+                     "mb": round(sum((v or {}).get("groesse") or 0 for v in (x.get("dateien") or {}).values()) / 1e6, 1),
+                     "zeit": x.get("zeit"), "ergebnis": x.get("ergebnis"), "gruende": x.get("gruende") or [],
+                     "inhalte": x.get("inhalte"), "downloads": x.get("downloads")}
+        ziele.append({"kennung": kenn, "art": z.get("art"), "standard": z.get("art") == std, "prefix": z.get("prefix"),
+                      "katalog": z.get("katalog"), "sichtbar": z.get("sichtbar"), "bitrate": z.get("bitrate"),
+                      "zeit": z.get("zeit"), "scopes": sc})
+    extern = {}
+    for lg, x in (exp.get("extern") or {}).items():
+        meta = K._json(os.path.join(K.paket_dir(book_id, lg), "metadaten.json"), {}) or {}
+        extern[lg] = {"paket": x.get("paket"), "dateien": len(x.get("dateien") or {}), "hochgeladen": x.get("hochgeladen"),
+                      "ergebnis": x.get("ergebnis"), "gruende": x.get("gruende") or [], "zeit": x.get("zeit"),
+                      "meta": {k: meta.get(k) for k in ("titel", "autor", "sprecher", "sprache", "isbn", "dauer_s")},
+                      "plattformen": [{"name": v.get("name"), "zulaessig": v.get("zulaessig")}
+                                      for v in (meta.get("plattformen") or {}).values()]}
+    kanaele = []
+    for lg in b.sprachen:
+        for k in P.KANAELE:
+            if b.hat(sprache=lg, kanal=k):
+                t = teile.get(f"{lg}:{k}") or {}
+                kanaele.append({"scope": f"{lg}:{k}", "sprache": lg, "kanal": k, "zustand": t.get("zustand") or "offen",
+                                "gruende": t.get("gruende") or [], "wer": t.get("wer"), "wann": t.get("wann"),
+                                "lieferbar_700": P7.lieferbar(book_id, lg, k)})
+    return {"standardziel": std, "ziele": ziele, "extern": extern, "kanaele": kanaele,
+            "freigabe": ents.get("freigabe"), "zurueckgezogen": ents.get("zurueckgezogen"),
+            "bitrate": (ents.get("bitrate") or {}).get("taella") or P.bitrate_std()["taella"],
+            "bitrate_std": P.bitrate_std()["taella"], "privat": b.mandant_art == "user", "verlag": b.mandant_art == "verlag",
+            "zustand_700": status.zustand(book_id, "700"),
+            "protokoll": [{"wer": p.get("wer"), "wann": p.get("wann"), "aktion": p.get("aktion")}
+                          for p in (ents.get("protokoll") or [])[-15:]]}
+
+
+def _m710_argv(book_id, e, wer):
+    from pipeline import s710_cloud_export as P
+    b = bestellung.lesen(book_id)
+    a = [PY, "-m", "pipeline.s710_cloud_export", book_id, "--wer", wer]
+    grund = " ".join(str(e.get("grund") or "").split())
+    if e.get("zurueckziehen"):
+        if s080_mandant.rolle(wer) != "admin":
+            raise PermissionError("Werk zurückziehen darf nur Admin (CK 21.11.2026)")
+        if not grund:
+            raise ValueError("Zurückziehen braucht einen Grund")
+        a += ["--zurueckziehen", f"--grund={grund}"]
+    if e.get("freigeben") or e.get("extern_hochgeladen"):
+        s080_mandant.darf(book_id, "entscheiden", wer)
+    if e.get("freigeben"):
+        if e.get("zurueckziehen"):
+            raise ValueError("Freischalten und Zurückziehen schließen sich aus")
+        a.append("--freigeben")
+    for lg in e.get("extern_hochgeladen") or []:
+        if not b.hat(sprache=lg, kanal="extern"):
+            raise ValueError(f"Kein Extern-Produkt {lg!r}")
+        a.append(f"--extern-hochgeladen={lg}")
+    if e.get("ziel") not in (None, ""):
+        z = str(e["ziel"])
+        if z not in ("gcs", "lokal"):
+            raise ValueError("Ziel gcs|lokal")
+        a.append(f"--ziel={z}")
+    if e.get("bitrate") not in (None, ""):
+        if not re.fullmatch(r"\d{2,3}k", str(e["bitrate"])):
+            raise ValueError("Bitrate z. B. 96k")
+        a.append(f"--bitrate={e['bitrate']}")
+    for k in e.get("kanal") or []:
+        if k not in P.KANAELE:
+            raise ValueError(f"Kanal {k!r} unbekannt")
+        a.append(f"--kanal={k}")
+    for lg in e.get("sprache") or []:
+        if lg not in b.sprachen:
+            raise ValueError(f"Sprache {lg!r} nicht bestellt")
+        a.append(f"--lang={lg}")
+    if e.get("nur_manifest"):
+        a.append("--nur-manifest")
+    if e.get("trocken"):
+        if any(e.get(k) for k in ("zurueckziehen", "freigeben", "extern_hochgeladen")):
+            raise ValueError("Probelauf ohne Freigaben")
+        a.append("--dry")
+    return a
+
+
+MONITOR_DATEN["710"] = _m710_daten
+MONITOR_SPEICHERN["710"] = _m710_argv
 
 
 # ---- Stage-Ergebnis (Monitor-Abschnitt "Ergebnis", CK 04.11.2026: Ergebnis je Stage ansehen)

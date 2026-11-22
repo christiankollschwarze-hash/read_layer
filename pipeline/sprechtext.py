@@ -14,11 +14,16 @@ Standard-Regeln (Reihenfolge):
     "Louis Quatorze"; Pronomen "I" bleibt ("Then I went")
   5 DE: Datumsspanne, Datum, Uhrzeit, "ca.", Ordinalzahl vor Zeit-/Zaehlwort ("19. Jahrhunderts")
   6 Jahresspanne "1860-1935" -> "1860 bis/to/a/à/a 1935"
+  7 Abkuerzungen (REGELN_V 4, 22.11.2026; vor Regel 3): Tabelle config/abk_sprech_<lg>.json + book.json abk_sprech
+    ("p. 12" -> "page twelve", "pp. 12–14" -> "pages twelve to fourteen", "S. 12 ff." -> "Seite zwölf folgende",
+    "ch. IV" -> "chapter four"); mehrdeutige (f., p., ed.) nur mit Bedingung, sonst Befund abk_offen (Gate 400)
 Erweiterte Regeln (Stage 400: 1x automatisch bei Sprechtext-Fehler):
   Symbole %, &, § -> Wort; Ordinalzahlen en (1st, 19th); Uhrzeit h:mm; Tausendertrenner; Dezimalzahlen;
   Jahreszahlen 1100-2099 (Jahresform); uebrige Ziffern -> Grundzahl. Zahlwoerter ueber num2words
   (py -3.11 -m pip install num2words); fehlt es, bleiben Ziffern stehen (Gate 400 -> Mensch).
 """
+import json
+import os
 import re
 
 try:
@@ -26,7 +31,7 @@ try:
 except Exception:                                   # pragma: no cover
     _n2w = None
 
-REGELN_V = 3
+REGELN_V = 4                                        # 4: Abkuerzungen sprechen (22.11.2026)
 SPRACHEN = ("en", "de", "es", "fr", "it")
 
 # ============================================================ Zahlwoerter
@@ -359,7 +364,237 @@ def _r_roem_zitat(sp, lg, typ):
     return sp.sub(_ROEM_ZITAT, f)
 
 
-STANDARD = (_r_kursiv, _r_ueberschrift, _r_roem_paragraf, _r_roem_zitat, _r_schluessel, _r_herrscher, _r_de, _r_spanne)
+# ============================================================ Abkuerzungen (22.11.2026, REGELN_V 4)
+# Tabelle je Sprache config/abk_sprech_<lg>.json, je Werk davor book.json abk_sprech.<lg>
+# (Liste [{abk, wort, bedingung?, plural?, zahl_sprechen?}] oder {abk: wort}; wort "" = Abkuerzung bleibt, kein Befund).
+_ABK_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "config")
+_ABK_CACHE = {}
+_ABK_BED = ("immer", "zahl", "nach_zahl", "name")
+_ZTOK = r"(\d+|[IVXLCDM]+|[ivxlcdm]+)(?![\w])"
+_ABK_ZAHL = re.compile(r"(\s*)" + _ZTOK + r"(?:(\s*[–—-]\s*)" + _ZTOK + r")?")
+_ABK_SATZENDE = re.compile(r"[\s\"'”’»›)\]]*")
+_ABK_NACH_ZAHL = re.compile(r"(?<![\w])(?:\d+(?:st|nd|rd|th)?|[IVXLCDM]{2,})\s*$")
+_ABK_NAME = re.compile(r"\s+[A-ZÄÖÜ][\w’'-]")
+
+
+def _abk_muster(abk):
+    teile = [t.strip() for t in abk.split(".") if t.strip()]
+    if not teile:
+        return None
+    out = []
+    for t in teile:
+        e = re.escape(t)
+        if t[0].islower():
+            e = f"[{t[0]}{t[0].upper()}]" + re.escape(t[1:])
+        out.append(e)
+    return r"(?<![\w.])" + r"\.\s*".join(out) + (r"\." if abk.rstrip().endswith(".") else r"(?![\w])")
+
+
+def abk_eintraege_lesen(lg):
+    """Standardtabelle config/abk_sprech_<lg>.json -> Liste (fehlt -> [])."""
+    p = os.path.join(_ABK_DIR, f"abk_sprech_{lg}.json")
+    if not os.path.exists(p):
+        return []
+    with open(p, encoding="utf-8") as f:
+        return list((json.load(f) or {}).get("eintraege") or [])
+
+
+def _abk_norm(roh):
+    if isinstance(roh, dict):
+        roh = [{"abk": k, "wort": v} for k, v in roh.items()]
+    out = []
+    for e in roh or []:
+        if isinstance(e, dict) and str(e.get("abk") or "").strip():
+            e = dict(e)
+            e["abk"] = str(e["abk"]).strip()
+            e["wort"] = str(e.get("wort") or "").strip()
+            if (e.get("bedingung") or "immer") not in _ABK_BED:
+                raise ValueError(f"abk_sprech {e['abk']}: Bedingung {e.get('bedingung')!r} unbekannt {_ABK_BED}")
+            out.append(e)
+    return out
+
+
+class AbkTabelle:
+    """Kompilierte Abkuerzungstabelle einer Sprache (Werk-Eintraege vor Standard)."""
+
+    def __init__(self, eintraege):
+        self.alts, teile = {}, []
+        for e in eintraege:
+            key = e["abk"].replace(" ", "")
+            if key not in self.alts:
+                rx = _abk_muster(e["abk"])
+                if not rx:
+                    continue
+                self.alts[key] = []
+                teile.append((len(key), key, rx))
+            self.alts[key].append(e)
+        self.namen = {f"a{i}": k for i, (_, k, _) in enumerate(sorted(teile, key=lambda x: -x[0]))}
+        rx = {k: r for _, k, r in teile}
+        self.rx = re.compile("|".join(f"(?P<{g}>{rx[k]})" for g, k in self.namen.items())) if teile else None
+
+
+def abk_tabelle(lg, werk=None):
+    """werk = book.json abk_sprech (ganz oder nur der Teil der Sprache)."""
+    if isinstance(werk, dict) and lg in werk:
+        werk = werk[lg]
+    elif isinstance(werk, dict) and set(werk) <= set(SPRACHEN):
+        werk = None
+    wn = _abk_norm(werk)
+    key = (lg, json.dumps(wn, sort_keys=True, ensure_ascii=False))
+    if key not in _ABK_CACHE:
+        _ABK_CACHE[key] = AbkTabelle([dict(e, _q="werk") for e in wn]
+                                     + [dict(e, _q="sprache") for e in _abk_norm(abk_eintraege_lesen(lg))])
+    return _ABK_CACHE[key]
+
+
+def _abk_zahl(tok, lg):
+    if tok.isdigit():
+        return zahlwort(int(tok), lg)
+    if not (tok.isupper() or tok.islower()) or len(tok) > 7 or not ist_roemisch(tok.upper()):
+        return None
+    return zahlwort(roemisch_zu_int(tok.upper()), lg)
+
+
+def _abk_aufloesen(s, a, e, alts, lg):
+    """-> (ende, wort) oder None (keine Alternative passt)."""
+    rest, vor = s[e:], s[:a]
+    zm = _ABK_ZAHL.match(rest)
+    z1 = _abk_zahl(zm.group(2), lg) if zm else None
+    z2 = _abk_zahl(zm.group(4), lg) if zm and zm.group(4) else None
+    zahl_folgt = bool(z1) and (not zm.group(4) or bool(z2))
+    roh_folgt = bool(zm) and (zm.group(2).isdigit() or ist_roemisch(zm.group(2).upper()))
+    for alt in alts:
+        bed = alt.get("bedingung") or "immer"
+        if bed == "zahl" and not roh_folgt:
+            continue
+        if bed == "nach_zahl" and not _ABK_NACH_ZAHL.search(vor):
+            continue
+        if bed == "name" and (roh_folgt or not _ABK_NAME.match(rest)):
+            continue
+        wort, ende = alt["wort"], e
+        if not wort:
+            return None
+        if alt.get("zahl_sprechen") and zahl_folgt:
+            if zm.group(4) and alt.get("plural"):
+                wort = alt["plural"]
+            wort = f"{wort}{zm.group(1) or ' '}{z1}" + (f" {_BIS.get(lg, 'to')} {z2}" if z2 else "")
+            ende = e + zm.end()
+            letzt = zm.group(4) or zm.group(2)
+            if not letzt.isdigit() and s[ende:ende + 1] == "." and not _ABK_SATZENDE.fullmatch(s[ende + 1:]):
+                ende += 1                               # "vol. I. p. 426" -> "volume one, page ..."
+                wort += ","
+        if s[a].isupper() and not alt["abk"][0].isupper():
+            wort = _gross(wort)
+        if ende == e and _ABK_SATZENDE.fullmatch(rest):
+            wort += "."                                 # Abkuerzungspunkt war zugleich Satzende
+        return ende, wort
+    return None
+
+
+def _r_abk(sp, lg, typ, tab=None):
+    tab = tab if tab is not None else abk_tabelle(lg)
+    if not tab.rx:
+        return sp
+
+    def f(m):
+        r = _abk_aufloesen(m.string, m.start(), m.end(), tab.alts[tab.namen[m.lastgroup]], lg)
+        return [(m.start(), r[0], r[1])] if r else None
+    return sp.sub(tab.rx, f)
+
+
+def abk_offen(s, lg="en", tab=None):
+    """Gate 400 (Pruefung abkuerzung): Abkuerzungen der Tabelle, die nach den Regeln offen blieben.
+    Ausnahmen: Eintrag mit wort "" (bleibt bewusst); einzelner Grossbuchstabe vor Namen = Initiale."""
+    tab = tab if tab is not None else abk_tabelle(lg)
+    out = []
+    for m in (tab.rx.finditer(s or "") if tab.rx else ()):
+        alts = tab.alts[tab.namen[m.lastgroup]]
+        if not alts[0]["wort"]:
+            continue
+        tok = m.group(0)
+        if re.fullmatch(r"[A-ZÄÖÜ]\.", tok) and _ABK_NAME.match(s[m.end():]):
+            continue
+        out.append(tok)
+    return out
+
+
+# ------------------------------------------------------------ Lesetext (Stage 120, Teil A2, 22.11.2026)
+# Gleiche Tabelle und Bedingungen wie 400; Ziffern/roem. Zahlen bleiben stehen ("ch. 65" -> "chapter 65",
+# "pp. 12–14" -> "pages 12–14"). Feld lesetext (und lesetext_plural) je Eintrag, falls abweichend von wort.
+def _abk_lesen_wahl(s, a, e, alts):
+    """-> ("ersetzt", wort, alt) | ("bleibt", "", alt) | None (keine Alternative passt)."""
+    rest, vor = s[e:], s[:a]
+    zm = _ABK_ZAHL.match(rest)
+    roh_folgt = bool(zm) and (zm.group(2).isdigit() or ist_roemisch(zm.group(2).upper()))
+    for alt in alts:
+        bed = alt.get("bedingung") or "immer"
+        if bed == "zahl" and not roh_folgt:
+            continue
+        if bed == "nach_zahl" and not _ABK_NACH_ZAHL.search(vor):
+            continue
+        if bed == "name" and (roh_folgt or not _ABK_NAME.match(rest)):
+            continue
+        if not alt["wort"]:
+            return ("bleibt", "", alt)
+        wort = alt.get("lesetext") or alt["wort"]
+        if alt.get("zahl_sprechen") and roh_folgt and zm.group(4) and alt.get("plural"):
+            wort = alt.get("lesetext_plural") or alt["plural"]
+        if s[a].isupper() and not alt["abk"][0].isupper():
+            wort = _gross(wort)
+        if _ABK_SATZENDE.fullmatch(rest):
+            wort += "."                                 # Abkuerzungspunkt war zugleich Satzende
+        return ("ersetzt", wort, alt)
+    return None
+
+
+def abk_lesetext(s, lg="en", tab=None, auslassen=(), hand=None):
+    """Lesetext: Abkuerzungen ausschreiben. auslassen = [(a, e)] Bereiche ohne Aenderung (z. B. behaltene
+    Fremdzitate); hand = {(a, abk_key, n): wort|""} Handentscheidung je Vorkommen (n = Zaehler dieser Abk. im Text).
+    -> (neuer_text, stellen [{a, e, abk, n, wort, herkunft}], offen [{a, e, abk, n, vorschlaege}])."""
+    tab = tab if tab is not None else abk_tabelle(lg)
+    stellen, offen_, out, pos, zaehler = [], [], [], 0, {}
+    hand = hand or {}
+    for m in (tab.rx.finditer(s or "") if tab.rx else ()):
+        a, e = m.start(), m.end()
+        key = tab.namen[m.lastgroup]
+        n = zaehler.get(key, 0)
+        zaehler[key] = n + 1
+        if any(x <= a < y for x, y in auslassen):
+            continue
+        alts = tab.alts[key]
+        tok = m.group(0)
+        if (key, n) in hand:
+            w = hand[(key, n)]
+            if w:
+                stellen.append({"a": a, "e": e, "abk": tok, "key": key, "n": n, "wort": w, "herkunft": "hand"})
+                out += [s[pos:a], w]
+                pos = e
+            continue
+        r = _abk_lesen_wahl(s, a, e, alts)
+        if r is None:
+            if not alts[0]["wort"] or (re.fullmatch(r"[A-ZÄÖÜ]\.", tok) and _ABK_NAME.match(s[e:])):
+                continue
+            vs = []
+            for x in alts:
+                w = x.get("lesetext") or x["wort"]
+                if w and w not in vs:
+                    vs.append(w)
+            offen_.append({"a": a, "e": e, "abk": tok, "key": key, "n": n, "vorschlaege": vs})
+            continue
+        if r[0] == "bleibt":
+            continue
+        stellen.append({"a": a, "e": e, "abk": tok, "key": key, "n": n, "wort": r[1],
+                        "herkunft": r[2].get("_q") or "sprache"})
+        out += [s[pos:a], r[1]]
+        pos = e
+    if not stellen:
+        return s, stellen, offen_
+    out.append(s[pos:])
+    return "".join(out), stellen, offen_
+
+
+STANDARD = (_r_kursiv, _r_ueberschrift, _r_roem_paragraf, _r_roem_zitat, _r_abk, _r_schluessel, _r_herrscher, _r_de,
+            _r_spanne)
 
 # ============================================================ Erweiterte Regeln
 _SYMBOL = {"%": {"en": "percent", "de": "Prozent", "es": "por ciento", "fr": "pour cent", "it": "per cento"},
@@ -451,19 +686,22 @@ ERWEITERT = (_r_symbole, _r_datum, _r_zahlen)
 
 
 # ============================================================ Oeffentlich
-def sprechtext_abb(text, lg="de", typ=None, erweitert=False):
-    """-> (sprechtext, abbildung [[s0, s1, l0, l1], ...])."""
+def sprechtext_abb(text, lg="de", typ=None, erweitert=False, abk=None):
+    """-> (sprechtext, abbildung [[s0, s1, l0, l1], ...]). abk: AbkTabelle (None = Standard der Sprache)."""
     if not text:
         return text, []
     sp = _Spur(text)
     for r in STANDARD + (ERWEITERT if erweitert else ()):
-        r(sp, lg, typ)
+        if r is _r_abk:
+            r(sp, lg, typ, abk)
+        else:
+            r(sp, lg, typ)
     return sp.t, sp.abbildung()
 
 
-def sprechtext(text, lg="de", typ=None, erweitert=False):
+def sprechtext(text, lg="de", typ=None, erweitert=False, abk=None):
     """Alle Sprechtext-Regeln in Reihenfolge (hier neue Regeln anhaengen)."""
-    return sprechtext_abb(text, lg, typ, erweitert)[0]
+    return sprechtext_abb(text, lg, typ, erweitert, abk)[0]
 
 
 def _einzeln(regel):

@@ -78,7 +78,9 @@ def modal_lauf(werk, lg, batch=BATCH_STD, fp16=False, tag=None, stage="500"):
     if fp16:
         cmd.append("--fp16")
     print(f"[502] Modal: {' '.join(cmd[3:])}", flush=True)
-    r = subprocess.run(cmd, cwd=config.BASE_DIR)
+    from pipeline import spuren as SP
+    with SP.modal_platz():                             # Modal-Grenze (10 Jobs, alle Stages)
+        r = subprocess.run(cmd, cwd=config.BASE_DIR)
     if r.returncode != 0:
         raise RuntimeError(f"Modal-Lauf {name} Exit {r.returncode}")
     m = sorted(glob.glob(os.path.join(paket_dir(werk, lg, stage), f"messung_*{tag or 'z'}.json")), key=os.path.getmtime)

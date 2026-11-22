@@ -404,6 +404,38 @@ class T710(unittest.TestCase):
         finally:
             s410_casting.stimme = alt
 
+    def test_monitor_710(self):
+        from cockpit import werk_api as W
+        from pipeline import s080_mandant, s410_casting
+        self.werk(produkte=PRODUKTE + [{"sprache": "de", "inhalt": "hoerbuch", "stufe": "basic", "kanaele": ["extern"]}])
+        self.extern_vorstufen()
+        alt = s410_casting.stimme
+        s410_casting.stimme = lambda w, lg, *a, **k: "margaret"
+        try:
+            self.lauf()
+        finally:
+            s410_casting.stimme = alt
+        d = W._m710_daten("w")
+        k = {x["scope"]: x for x in d["kanaele"]}
+        self.assertEqual(k["de:extern"]["zustand"], "mensch")
+        self.assertEqual(d["extern"]["de"]["meta"]["sprecher"], "margaret (KI-Stimme)")
+        self.assertTrue(d["ziele"])
+        a = W._m710_argv("w", {"freigeben": True, "extern_hochgeladen": ["de"]}, "CK")
+        self.assertEqual(a[-2:], ["--freigeben", "--extern-hochgeladen=de"])
+        self.assertEqual(W._m710_argv("w", {"trocken": True, "kanal": ["taella"]}, "CK")[-2:], ["--kanal=taella", "--dry"])
+        alt_r = s080_mandant.rolle
+        try:
+            s080_mandant.rolle = lambda w, *x: "admin" if w == "CK" else "kurator"
+            self.assertIn("--zurueckziehen", W._m710_argv("w", {"zurueckziehen": True, "grund": "Rechte"}, "CK"))
+            with self.assertRaises(PermissionError):
+                W._m710_argv("w", {"zurueckziehen": True, "grund": "Rechte"}, "kurt")
+        finally:
+            s080_mandant.rolle = alt_r
+        for e in ({"zurueckziehen": True}, {"extern_hochgeladen": ["fr"]}, {"ziel": "ftp"}, {"bitrate": "viel"},
+                  {"trocken": True, "freigeben": True}):
+            with self.assertRaises((ValueError, PermissionError)):
+                W._m710_argv("w", e, "CK")
+
     def test_extern_premium_gemini_regel(self):
         from pipeline import s410_casting
         self.werk(produkte=PRODUKTE + [{"sprache": "de", "inhalt": "hoerbuch", "stufe": "premium",

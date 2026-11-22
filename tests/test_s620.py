@@ -388,5 +388,56 @@ class T620(unittest.TestCase):
         self.assertEqual(g.ergebnis["ergebnis"], "auto", (g.bericht(), g.metriken.get("epubcheck_meldungen")))
 
 
+    # ---------------------------------------------------------------- Monitor 620/630 (22.11.2026)
+    def test_monitor_620_630(self):
+        from cockpit import werk_api as W
+        sz = {k: v for k, v in SAETZE.items() if not k.endswith("_p")}
+        sz["c001_00002_s"] = ("s", "The house stood at the end of the road.", "Das Haus stand am Ende der Straße.")
+        self.werk("w", saetze=sz)
+        self.lauf(), self.lauf(stage="630")
+        d = W._m620_daten("w")
+        self.assertEqual([(k["scope"], k["stage"]) for k in d["kacheln"]], [("en:text", "620"), ("de:text", "630")])
+        self.assertEqual(d["offen"], {"620": [], "630": ["de:text"]})
+        de = d["kacheln"][1]
+        self.assertEqual(de["geklebt"], [1])
+        self.assertTrue(all(w_["ok"] is not False for w_ in de["werte"]))
+        t = W._m620_teil("w", {"scope": "de:text", "seite": "99"})
+        self.assertEqual(t["seite"], len(t["seiten"]) - 1)
+        self.assertNotIn('rel="stylesheet"', t["html"])
+        self.assertIn("<style>", t["html"])
+        with self.assertRaises(ValueError):
+            W._m620_teil("w", {"scope": "de:audio"})
+        f620, f630 = W.MONITOR_SPEICHERN["620"], W.MONITOR_SPEICHERN["630"]
+        a = f620("w", {"mobil": "aus", "sprache": ["de"]}, "CK")
+        self.assertEqual([x[2] for x in a], ["pipeline.s620_epub_original", "pipeline.s630_epub_zielsprache"])
+        self.assertIn("--mobil=aus", a[0])
+        self.assertEqual(a[1][-1], "--neu")
+        self.assertEqual(f630("w", {"freigeben": True, "grund": "gelesen"}, "CK")[-2:], ["--freigeben", "--grund=gelesen"])
+        for e in ({"freigeben": True, "mobil": "aus"}, {"mobil_laenge": 5}, {"sprache": ["fr"]}):
+            with self.assertRaises(ValueError):
+                f620("w", e, "CK")
+        with contextlib.redirect_stdout(io.StringIO()):
+            Z.main(["w", "--wer", "CK", "--freigeben", "--grund", "gelesen"])
+        self.assertEqual(S.zustand("w", "630"), "frei")
+        self.assertIn("gelesen", json.dumps(S.laden("w").get("protokoll") or [], ensure_ascii=False))
+
+    def test_monitor_620_audio_clips(self):
+        self.audio_werk()
+        import pipeline.s615_cover_final as s615
+        from cockpit import werk_api as W
+        alt = s615.sprecher
+        s615.sprecher = lambda w, lg: "Read by Herr B · AI voice"
+        try:
+            self.lauf("a")
+        finally:
+            s615.sprecher = alt
+        r = W._m620_teil("a", {"scope": "en:audio", "seite": "0"})
+        for n in range(len(r["seiten"])):
+            r = W._m620_teil("a", {"scope": "en:audio", "seite": str(n)})
+            if r["clips"]:
+                break
+        self.assertTrue(r["clips"])
+        self.assertTrue(os.path.isfile(os.path.join(self.r, "a", "work", "_620", "en_audio", "chapter-1.mp3")))
+
 if __name__ == "__main__":
     unittest.main()

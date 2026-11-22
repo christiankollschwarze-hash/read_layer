@@ -29,6 +29,8 @@ class T300(unittest.TestCase):
         self.d = os.path.join(r, "w")
         os.makedirs(os.path.join(self.d, "work"))
         self.alt = (config.book_dir, config.work_dir, config.RUN_MODE, api_layer.call_model, config.BASE_DIR)
+        self.alt_sp = getattr(config, "SPUREN_STANDARD", 12)
+        config.SPUREN_STANDARD = 1          # Antwort-Warteschlange setzt feste Reihenfolge voraus (Spuren: eigener Test)
         config.book_dir = lambda b: self.d
         config.work_dir = lambda b: os.path.join(self.d, "work")
         config.BASE_DIR = r
@@ -52,6 +54,7 @@ class T300(unittest.TestCase):
 
     def tearDown(self):
         config.book_dir, config.work_dir, config.RUN_MODE, api_layer.call_model, config.BASE_DIR = self.alt
+        config.SPUREN_STANDARD = self.alt_sp
         self.tmp.cleanup()
 
     def werk(self, ziele=("de",), kapitel=2, text=EN * 2, **kw):
@@ -145,6 +148,20 @@ class T300(unittest.TestCase):
         g = self.lauf()
         self.assertEqual(g.ergebnis["ergebnis"], "stopp")
         self.assertEqual(g.ergebnis["ruecksprung"], "200")
+
+    def test_spuren_gleiches_ergebnis(self):
+        self.werk(ziele=("de", "fr"), kapitel=6)
+        g1 = self.lauf(spuren=1)
+        pt1 = self.aus()["meta"]["pretranslation"]
+        import shutil
+        shutil.rmtree(os.path.join(self.d, "work", "ckpt"))
+        n = len(self.aufrufe)
+        g4 = self.lauf(spuren=4)
+        self.assertEqual(self.aus()["meta"]["pretranslation"], pt1)
+        self.assertEqual(len(self.aufrufe) - n, n)
+        self.assertEqual(g4.ergebnis["ergebnis"], g1.ergebnis["ergebnis"])
+        self.assertEqual((g4.metriken["spuren"], g4.metriken["jobs_parallel"]), (4, 12))
+        self.assertEqual(g4.metriken["neu"], 12)
 
     def test_zwei_sprachen_und_aus(self):
         self.werk(ziele=("de", "fr"))

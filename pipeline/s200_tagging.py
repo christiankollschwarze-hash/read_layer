@@ -3,7 +3,8 @@ Funktion:     Zerlegt raw_modernized.txt je Kapitel in Knoten (s, dl, p, qt, vs,
 Wirkungsweise: Je Kapitel ein DeepSeek-Aufruf (bei kaputtem JSON rekursive Halbierung); Rohergebnis als Checkpoint
               work/ckpt/200/c<N>__<lg>.json (Eingang = Kapiteltitel + Text). Danach deterministisch und kostenlos:
               satzweise nachtrennen (tools/satzweise.py, Abkuerzungen je Sprache + je Werk), Header aus der Marke,
-              IDs neu, gespeicherte Korrekturen (work/200_korrekturen.json) anwenden.
+              IDs neu, gespeicherte Korrekturen (work/200_korrekturen.json) anwenden; Knoten mit in 120 behaltenem
+              Fremdsatz bekommen sprache_satz=<lg> (work/120_fremd.json).
 Eingang:      raw_modernized.txt (###TITLE/AUTHOR/CHAPTER###), Gate 190 (Kapitelzahl), book.json (quellsprache, abkuerzungen).
 Ausgabe:      work/200_tagging.json (Format unveraendert fuer 210 ff.), work/200_pruefung.json (Gegenueberstellung,
               Mehrsatz-Liste, ueberlange Knoten), Gate in status.json.
@@ -31,6 +32,7 @@ import re
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import config
 from pipeline import api_layer, bestellung, gate, manifest, mock, s190_vertrag, status
+from pipeline import spuren as SP
 from tools import satzweise
 
 
@@ -238,14 +240,15 @@ def _mock_tag_chapter(chapter_num: int, title: str, text: str) -> dict:
 # TAGGER (live ueber api_layer)
 # ============================================================
 
-def _tag_robust(chapter_num: int, title: str, text: str, tiefe: int = 0) -> dict:
+def _tag_robust(chapter_num: int, title: str, text: str, tiefe: int = 0, modell=None) -> dict:
     """11.10.2026: Lange Kapitel (z. B. Akt eines Dramas) liefern teils kaputtes JSON.
     Ein Wiederholungsversuch, danach Kapiteltext an Absatzgrenze halbieren und
     Teile einzeln taggen (Reihenfolge bleibt; IDs vergibt _renumber_chapter neu)."""
     fehler = None
     for _ in range(2):
         try:
-            raw = api_layer.call_model("tagger", _build_tagger_prompt(chapter_num, title, text), max_tokens=65000)
+            raw = api_layer.call_model("tagger", _build_tagger_prompt(chapter_num, title, text), max_tokens=65000,
+                                       modell=modell or None)
             res = api_layer.parse_json(raw)
             if isinstance(res, dict) and res.get("content"):
                 return res
@@ -259,7 +262,7 @@ def _tag_robust(chapter_num: int, title: str, text: str, tiefe: int = 0) -> dict
     print(f"    [200] Kapitel {chapter_num}: JSON fehlerhaft -> in 2 Teile geteilt (Ebene {tiefe + 1})")
     inhalt = {}
     for teil in ("\n\n".join(absaetze[:mitte]), "\n\n".join(absaetze[mitte:])):
-        r = _tag_robust(chapter_num, title, teil, tiefe + 1)
+        r = _tag_robust(chapter_num, title, teil, tiefe + 1, modell)
         for k, v in r.get("content", {}).items():
             inhalt[f"t{len(inhalt):06d}_{k}"] = v   # eindeutige Schluessel, Reihenfolge wahren
     return {"content": inhalt}
@@ -343,13 +346,19 @@ def _hash(o):
 
 
 def abk_liste(werk, b, lg):
-    """Zusaetzliche Abkuerzungen: config/abk_<lg>.txt (je Ausgangssprache) + book.json abkuerzungen (je Werk)."""
+    """Zusaetzliche Abkuerzungen: config/abk_<lg>.txt (je Ausgangssprache) + book.json abkuerzungen (je Werk)
+    + Teile der Sprech-Abkuerzungen (config/abk_sprech_<lg>.json, book.json abk_sprech)."""
     out = set()
     p = os.path.join(os.path.dirname(os.path.abspath(config.__file__)), f"abk_{lg}.txt")
     if os.path.exists(p):
         with open(p, encoding="utf-8") as f:
             out |= {z.strip().lower().rstrip(".") for z in f if z.strip() and not z.startswith("#")}
     out |= {str(a).strip().lower().rstrip(".") for a in (b.roh.get("abkuerzungen") or []) if str(a).strip()}
+    # Abgleich Stage 400 (22.11.2026): Sprech-Abkuerzungen je Sprache und Werk trennen keinen Satz
+    from pipeline import sprechtext as st
+    ws = (b.roh.get("abk_sprech") or {}).get(lg) if isinstance(b.roh.get("abk_sprech"), dict) else None
+    for e in st._abk_norm(ws) + st._abk_norm(st.abk_eintraege_lesen(lg)):
+        out |= {t.strip().lower() for t in e["abk"].split(".") if t.strip()}
     return sorted(out)
 
 
@@ -381,13 +390,10 @@ def nachbearbeiten(n, titel, roh, src, abk):
 
 
 def _tag_llm(n, titel, text, modell):
-    alt = config.MODELS.get("tagger")
-    if modell:
-        config.MODELS["tagger"] = modell
-    try:
-        res = _mock_tag_chapter(n, titel, text) if config.RUN_MODE == "mock" else _tag_robust(n, titel, text)
-    finally:
-        config.MODELS["tagger"] = alt
+    if config.RUN_MODE == "mock":
+        res = _mock_tag_chapter(n, titel, text)
+    else:
+        res = _tag_robust(n, titel, text, modell=modell) if modell else _tag_robust(n, titel, text)
     return res.get("content", {})
 
 
@@ -525,20 +531,22 @@ def run(werk, wer=None, modell=None, kapitel=None, abk=None, abk_weg=None, lang_
     n_llm = n_wdh = n_ck = n_bestand = 0
     fehlt = []
     treue_aus, korr_gueltig = [], []
-    for n, (ktitel, ktext) in enumerate(kap, 1):
+    def kapitel_job(a):
+        """Ein Kapitel (eine Spur): Checkpoint/Bestand oder LLM, Treue, 1x Wiederholung, Checkpoint. Zaehler lokal."""
+        n, (ktitel, ktext) = a
+        z = {"llm": 0, "wdh": 0, "ck": 0, "bestand": 0}
         key = f"c{n:0{config.CHAPTER_DIGITS}d}"
         h = _hash([ktitel, ktext])
         daten = None if n in neu else ck.lesen(key, src, h)
         herkunft = "checkpoint"
         if daten is None and n not in neu and n in bestand:
             daten, herkunft = {"content": bestand[n], "versuche": 1, "modell": "bestand"}, "bestand"
-            n_bestand += 1
+            z["bestand"] += 1
         if daten is None:
             if trocken:
-                fehlt.append(n)
-                continue
+                return None
             daten, herkunft = {"content": _tag_llm(n, ktitel, ktext, modell), "versuche": 1, "modell": modell_eff}, "neu"
-            n_llm += 1
+            z["llm"] += 1
         knoten = nachbearbeiten(n, ktitel, daten["content"], src, abkl)
         q, bsp = treue(ktext, knoten, src)
         # Treue verfehlt -> einmal automatisch neu taggen (je Kapitelfassung), danach Mensch
@@ -546,8 +554,8 @@ def run(werk, wer=None, modell=None, kapitel=None, abk=None, abk_weg=None, lang_
             roh2 = _tag_llm(n, ktitel, ktext, modell)
             kn2 = nachbearbeiten(n, ktitel, roh2, src, abkl)
             q2, bsp2 = treue(ktext, kn2, src)
-            n_llm += 1
-            n_wdh += 1
+            z["llm"] += 1
+            z["wdh"] += 1
             if q2 >= q:
                 daten, knoten, q, bsp = {"content": roh2, "modell": modell_eff}, kn2, q2, bsp2
             daten["versuche"] = 2
@@ -555,7 +563,22 @@ def run(werk, wer=None, modell=None, kapitel=None, abk=None, abk_weg=None, lang_
         if herkunft != "checkpoint" and not trocken:
             ck.schreiben(key, src, h, daten, herkunft=herkunft)
         elif herkunft == "checkpoint":
-            n_ck += 1
+            z["ck"] += 1
+        return key, h, daten, herkunft, knoten, q, bsp, z
+
+    jobs = list(enumerate(kap, 1))
+    erg, sp_info = SP.parallel(werk, STAGE, jobs, kapitel_job, 1 if trocken else SP.anzahl(b.roh, "tagging_spuren", None, STAGE),
+                               einheit="Kapitel", gewicht=[len(t) for _n, (_k, t) in jobs], fortschritt_an=not trocken)
+    SP.metriken(g, sp_info)
+    for (n, (ktitel, ktext)), r_ in zip(jobs, erg):   # feste Reihenfolge
+        if r_ is None:
+            fehlt.append(n)
+            continue
+        key, h, daten, herkunft, knoten, q, bsp, zj = r_
+        n_llm += zj["llm"]
+        n_wdh += zj["wdh"]
+        n_ck += zj["ck"]
+        n_bestand += zj["bestand"]
         # Korrekturen (gespeicherte + neue) dieses Kapitels in Reihenfolge
         # neue Korrekturen von hinten nach vorn: IDs davor bleiben gueltig (Monitor sammelt mehrere je Kapitel)
         neu_kap = sorted((dict(x, kapitel=key, eingang=h, neu=1) for x in neue_korr if x["id"].startswith(key + "_")),
@@ -591,6 +614,8 @@ def run(werk, wer=None, modell=None, kapitel=None, abk=None, abk_weg=None, lang_
         alle.update(knoten)
         chapters_meta[key] = ktitel
 
+    from pipeline import s120_fremd                     # 22.11.2026: behaltene Fremdsaetze -> sprache_satz
+    g.metrik("fremd_behalten", s120_fremd.knoten_markieren(werk, alle, src))
     unbekannt = [t for t, e in alle.items() if e.get("type") not in config.TAG_TYPES]
     leer = [t for t, e in alle.items() if e.get("type") not in OHNE_TEXT | {"h"} and not (e.get(src) or "").strip()]
     n_mock = sum(1 for e in alle.values() if mock.ist_text(e.get(src) or ""))

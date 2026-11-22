@@ -40,6 +40,7 @@ from config import config
 from pipeline import api_layer, bestellung, gate, manifest, mock, status, usage_log
 from pipeline import s300_voruebersetzung as s300
 from pipeline import s310_uebersetzung as s310
+from pipeline import spuren as SP
 
 STAGE = "330"
 PROMPT_V = 1
@@ -79,6 +80,8 @@ def saetze(data, src, lg):
         cid = tid.split("_")[0]
         kap.setdefault(cid, [])
         if not isinstance(e, dict) or e.get("type") in config.NO_AUDIO_TYPES:
+            continue
+        if e.get("sprache_satz"):                      # 120 "Original behalten": Ziel = Original, nichts zu pruefen
             continue
         q, z = (e.get(src) or "").strip(), (e.get(lg) or "").strip()
         if q and z:
@@ -148,7 +151,7 @@ Sentences (as JSON, id -> text):
 {lines}
 }}"""
     try:
-        raw = _rolle("translator", modell, lambda: api_layer.call_model("translator", prompt, max_tokens=16000))
+        raw = api_layer.call_model("translator", prompt, max_tokens=16000, modell=modell or None)
     except EnvironmentError:
         raise
     except Exception as e:
@@ -184,7 +187,7 @@ Pairs (as JSON, id -> {{original, back}}):
 {blocks}
 }}"""
     try:
-        raw = _rolle("validator", modell, lambda: api_layer.call_model("validator", prompt, max_tokens=8192))
+        raw = api_layer.call_model("validator", prompt, max_tokens=8192, modell=modell or None)
     except EnvironmentError:
         raise
     except Exception as e:
@@ -205,14 +208,16 @@ Pairs (as JSON, id -> {{original, back}}):
 
 def rueck_und_bewerten(werk, items, src, lg, batch, m_rueck, m_bew, z):
     """items [(id, quelle, ziel)] -> {id: (rueck|None, score|None)}."""
-    out = {}
-    for i in range(0, len(items), batch):
-        teil = items[i:i + batch]
+    def eins(teil):                                  # ein Batch (Spur innerhalb des Kapitels)
         r = rueck(werk, [(t, zt) for t, _q, zt in teil], src, lg, m_rueck)
-        z["llm"] += 1
         sc_items = [(t, q, r[t]) for t, q, _zt in teil if t in r]
         s = bewerte(werk, sc_items, src, lg, m_bew) if sc_items else {}
-        z["llm"] += 1 if sc_items else 0
+        return teil, r, s, 1 + (1 if sc_items else 0)
+    teile = [items[i:i + batch] for i in range(0, len(items), batch)]
+    erg, _info = SP.parallel(None, STAGE, teile, eins, SP.anzahl(stage=STAGE), fortschritt_an=False, text=False)
+    out = {}
+    for teil, r, s, n in erg:
+        z["llm"] += n
         for t, _q, _zt in teil:
             out[t] = (r.get(t), s.get(t))
     return out
@@ -278,7 +283,7 @@ def _vom_bestand(alt, tid, lg, q, z, schwelle):
 
 def run(werk, wer=None, schwelle=None, flag_max=None, m_rueck=None, m_bew=None, umfang=None, stichprobe=None,
         kapitel=None, saetze_neu=None, satz_text=None, annehmen=None, nur_lang=None, uebernehmen=False, trocken=False,
-        batch=None):
+        batch=None, spuren=None):
     wer = wer or "pipeline"
     if not trocken:                              # Regler je Werk (Monitor 330)
         fe = {}
@@ -290,6 +295,8 @@ def run(werk, wer=None, schwelle=None, flag_max=None, m_rueck=None, m_bew=None, 
             fe["rueck_umfang"] = umfang
         if stichprobe is not None:
             fe["rueck_stichprobe"] = float(stichprobe)
+        if spuren:
+            fe["rueck_spuren"] = int(spuren)
         if fe:
             bestellung.feld_setzen(werk, **fe)
     g = gate.Gate(werk, STAGE, ruecksprung="310", wer=wer)
@@ -368,6 +375,101 @@ def run(werk, wer=None, schwelle=None, flag_max=None, m_rueck=None, m_bew=None, 
     qr_flag, qr_ns, alle_scores, pruef, je_sprache, ck_soll = [], [], [], {}, {}, []
     n_mock, n_angenommen, n_manuell = 0, 0, 0
     haeufung = {}
+    def kapitel_rechnen(a):
+        """Ein Kapitel x Sprache (eine Spur): offene Saetze rueckuebersetzen + bewerten, Reparatur, Checkpoint.
+        -> (res, Zaehler). Zaehler lokal (parallele Spuren)."""
+        lg, cid, liste, mit_lg, neu_lg, kontext = a
+        z = {"llm": 0, "neu_bewertet": 0, "nachbewertet": 0, "repariert": 0, "reparatur_versuche": 0}
+        quelle = " ".join(q for _t, q, _z in liste)
+        aus = s310.profil_ausschnitt(profil, quelle, lg)
+        frisch = mit_lg and (neu_k is None or cid in neu_k)
+        if trocken:
+            altck = {}
+        else:
+            altck = ({} if frisch else (ck.lesen(cid, lg, kontext) or {}).get("saetze")) or {}
+        res = {}
+        offen = []
+        for t, q, zt in liste:
+            h = satz_hash(q, zt)
+            if umfang == "ausreisser" and t not in aus_310.get(lg, set()) and not _stichprobe(t, stichprobe) \
+                    and t not in neu_lg:
+                res[t] = {"h": h, "ungeprueft": True}
+                continue
+            e = altck.get(t)
+            if e and e.get("h") == h and t not in neu_lg:
+                res[t] = e
+                continue
+            e = _vom_bestand(alt, t, lg, q, zt, schwelle) if (uebernehmen or trocken) and t not in neu_lg else None
+            if e:
+                res[t] = e
+                continue
+            offen.append((t, q, zt))
+        if offen and not trocken:
+            got = rueck_und_bewerten(werk, offen, src, lg, batch, m_rueck_eff, m_bew_eff, z)
+            z["neu_bewertet"] += len(offen)
+            # nicht bewertbar -> 1x neu
+            nach = [(t, q, zt) for t, q, zt in offen if got[t][1] is None]
+            if nach:
+                got2 = rueck_und_bewerten(werk, nach, src, lg, batch, m_rueck_eff, m_bew_eff, z)
+                z["nachbewertet"] += len(nach)
+                for t, _q, _zt in nach:
+                    if got2[t][1] is not None:
+                        got[t] = got2[t]
+            for t, q, zt in offen:
+                r, s = got[t]
+                res[t] = {"h": satz_hash(q, zt), "r": r, "s": s, "v": 0}
+        # Reparatur: geflaggt (oder --satz) -> 1x neu uebersetzen wie 310
+        if not trocken:
+            def reparieren(a):                       # ein Satz (Spur): Nachbarn = bisherige Zielsaetze, unabhaengig
+                i, t, q, zt, e, erzwungen = a
+                zr = {"llm": 0, "reparatur_versuche": 0, "repariert": 0}
+                nb = s310._nachbarn(liste, i, {x: {"t": y} for x, _q, y in liste})
+                hinweis = (f"the back-translation of your previous version reads '{(e.get('r') or '')[:300]}' "
+                           f"(meaning score {e['s']}/100, previous: '{zt[:300]}'); preserve the original meaning")
+                neu = s310.llm(werk, [(t, q)], src, lg, aus, nachbarn=nb, hinweis=hinweis, stage=STAGE)
+                zr["llm"] += 1
+                zr["reparatur_versuche"] += 1
+                e["v"] = 1
+                t2 = neu.get(t)
+                if t2 and t2 != zt:
+                    g2 = rueck_und_bewerten(werk, [(t, q, t2)], src, lg, batch, m_rueck_eff, m_bew_eff, zr)
+                    r2, s2 = g2[t]
+                    if s2 is not None and (erzwungen or s2 > e["s"]):
+                        e.update({"t2": t2, "r2": r2, "s2": s2})
+                        zr["repariert"] += 1
+                return t, e, zr
+            kand = []
+            for i, (t, q, zt) in enumerate(liste):
+                e = res.get(t) or {}
+                if e.get("ungeprueft") or e.get("s") is None:
+                    continue
+                erzwungen = t in neu_lg
+                if not erzwungen and (e.get("v", 0) >= 1 or e["s"] >= schwelle):
+                    continue
+                kand.append((i, t, q, zt, e, erzwungen))
+            erg_r, _info = SP.parallel(None, STAGE, kand, reparieren, SP.anzahl(stage=STAGE),
+                                       fortschritt_an=False, text=False)
+            for t, e, zr in erg_r:
+                res[t] = e
+                SP.summe(z, zr)
+            ck.schreiben(cid, lg, kontext, {"saetze": res})
+        return res, z
+
+    # Spuren: alle Kapitel x Sprache parallel rechnen (jedes sichert seinen Checkpoint), danach Zusammenfuehren wie bisher
+    vorab, jobs = {}, []
+    for lg in ziele:
+        mit_lg = not nur_lang or lg == nur_lang
+        kontext = manifest.hash_obj([PROMPT_V, src, lg, m_rueck_eff, m_bew_eff])
+        for cid, liste in saetze(data, src, lg).items():
+            if liste:
+                jobs.append((lg, cid, liste, mit_lg, neu_ids if mit_lg else set(), kontext))
+    n_sp = 1 if trocken else SP.anzahl(b.roh, "rueck_spuren", spuren, STAGE)
+    erg, sp_info = SP.parallel(werk, STAGE, jobs, kapitel_rechnen, n_sp, einheit="Kapitel",
+                               gewicht=[sum(len(zt) for _t, _q, zt in j[2]) for j in jobs], fortschritt_an=not trocken)
+    SP.metriken(g, sp_info)
+    for j, (res_j, zj) in zip(jobs, erg):
+        vorab[(j[0], j[1])] = res_j
+        SP.summe(z, zj)
     for lg in ziele:
         kap = saetze(data, src, lg)
         mit_lg = not nur_lang or lg == nur_lang          # --lang: Neubewertung nur dieser Sprache
@@ -381,71 +483,10 @@ def run(werk, wer=None, schwelle=None, flag_max=None, m_rueck=None, m_bew=None, 
             ck_soll.append((cid, lg))
             quelle = " ".join(q for _t, q, _z in liste)
             aus = s310.profil_ausschnitt(profil, quelle, lg)
-            frisch = mit_lg and (neu_k is None or cid in neu_k)
-            if trocken:
-                altck = {}
-            else:
-                altck = ({} if frisch else (ck.lesen(cid, lg, kontext) or {}).get("saetze")) or {}
-            res = {}
-            offen = []
-            for t, q, zt in liste:
-                h = satz_hash(q, zt)
-                if umfang == "ausreisser" and t not in aus_310.get(lg, set()) and not _stichprobe(t, stichprobe) \
-                        and t not in neu_lg:
-                    res[t] = {"h": h, "ungeprueft": True}
-                    continue
-                e = altck.get(t)
-                if e and e.get("h") == h and t not in neu_lg:
-                    res[t] = e
-                    continue
-                e = _vom_bestand(alt, t, lg, q, zt, schwelle) if (uebernehmen or trocken) and t not in neu_lg else None
-                if e:
-                    res[t] = e
-                    continue
-                offen.append((t, q, zt))
-            if offen and not trocken:
-                got = rueck_und_bewerten(werk, offen, src, lg, batch, m_rueck_eff, m_bew_eff, z)
-                z["neu_bewertet"] += len(offen)
-                # nicht bewertbar -> 1x neu
-                nach = [(t, q, zt) for t, q, zt in offen if got[t][1] is None]
-                if nach:
-                    got2 = rueck_und_bewerten(werk, nach, src, lg, batch, m_rueck_eff, m_bew_eff, z)
-                    z["nachbewertet"] += len(nach)
-                    for t, _q, _zt in nach:
-                        if got2[t][1] is not None:
-                            got[t] = got2[t]
-                for t, q, zt in offen:
-                    r, s = got[t]
-                    res[t] = {"h": satz_hash(q, zt), "r": r, "s": s, "v": 0}
-            # Reparatur: geflaggt (oder --satz) -> 1x neu uebersetzen wie 310
-            if not trocken:
-                for i, (t, q, zt) in enumerate(liste):
-                    e = res.get(t) or {}
-                    if e.get("ungeprueft") or e.get("s") is None:
-                        continue
-                    erzwungen = t in neu_lg
-                    if not erzwungen and (e.get("v", 0) >= 1 or e["s"] >= schwelle):
-                        continue
-                    nb = s310._nachbarn(liste, i, {x: {"t": y} for x, _q, y in liste})
-                    hinweis = (f"the back-translation of your previous version reads '{(e.get('r') or '')[:300]}' "
-                               f"(meaning score {e['s']}/100, previous: '{zt[:300]}'); preserve the original meaning")
-                    alt_stage, s310.STAGE = s310.STAGE, STAGE      # Kosten der Reparatur unter 330
-                    try:
-                        neu = s310.llm(werk, [(t, q)], src, lg, aus, nachbarn=nb, hinweis=hinweis)
-                    finally:
-                        s310.STAGE = alt_stage
-                    z["llm"] += 1
-                    z["reparatur_versuche"] += 1
-                    e["v"] = 1
-                    t2 = neu.get(t)
-                    if t2 and t2 != zt:
-                        g2 = rueck_und_bewerten(werk, [(t, q, t2)], src, lg, batch, m_rueck_eff, m_bew_eff, z)
-                        r2, s2 = g2[t]
-                        if s2 is not None and (erzwungen or s2 > e["s"]):
-                            e.update({"t2": t2, "r2": r2, "s2": s2})
-                            z["repariert"] += 1
-                    res[t] = e
-                ck.schreiben(cid, lg, kontext, {"saetze": res})
+            res = vorab.pop((lg, cid), None)
+            if res is None:
+                res, zj = kapitel_rechnen((lg, cid, liste, mit_lg, neu_lg, kontext))
+                SP.summe(z, zj)
             # Ergebnis + Korrekturen
             kk = korr.get(lg) or {}
             for t, q, zt in liste:
@@ -573,6 +614,7 @@ def main(argv=None):
     ap.add_argument("--lang", help="nur diese Zielsprache")
     ap.add_argument("--uebernehmen", action="store_true")
     ap.add_argument("--trocken", action="store_true")
+    ap.add_argument("--spuren", type=int, help="gleichzeitige Kapitel (je Werk gespeichert)")
     a = ap.parse_args(argv)
     kap = ["alle"] if a.kapitel and "alle" in a.kapitel else a.kapitel
     try:
@@ -580,7 +622,7 @@ def main(argv=None):
             from pipeline import s080_mandant
             s080_mandant.darf(a.werk, "entscheiden", a.wer or "pipeline")
         g = run(a.werk, a.wer, a.schwelle, a.flag_max, a.modell_rueck, a.modell_bewertung, a.umfang, a.stichprobe,
-                kap, a.satz, a.satz_text, a.annehmen, a.lang, a.uebernehmen, a.trocken, a.batch)
+                kap, a.satz, a.satz_text, a.annehmen, a.lang, a.uebernehmen, a.trocken, a.batch, a.spuren)
     except gate.GateHalt as e:
         print(e)
         return e.exit_code

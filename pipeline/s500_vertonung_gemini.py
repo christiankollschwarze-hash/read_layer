@@ -57,7 +57,7 @@ LANG_CODE = {"en": "en-US", "de": "de-DE", "fr": "fr-FR", "es": "es-ES", "it": "
 REGLER_STD = {"engine": {}, "ex": 0.5, "cfg": 0.5, "block_min": None, "block_ideal": None,
               "block_max": None, "valley_ratio": 0.45, "batch": cb.BATCH_STD, "fp16": False,
               "budget": getattr(config, "BUDGET_500_USD", 0.0), "auffaellig_max": 0.01,
-              "dauer_min": 0.6, "dauer_max": 1.6, "versuche": 2, "parallel": 4, "fa": "modal"}
+              "dauer_min": 0.6, "dauer_max": 1.6, "versuche": 2, "parallel": 8, "fa": "modal"}
 PRUEF_MODAL_MIN = 20         # ab so vielen Saetzen lohnt der Modal-Start (Container + Upload); darunter CPU
 PRUEF_MODAL_CHUNK = 150      # Saetze je GPU-Aufruf (Modell wird je Aufruf einmal geladen)
 MS_GEMINI = 0.065            # s je Zeichen (Erwartung FA-Pruefer; Dauer-Gate misst den Median der Sprache)
@@ -138,6 +138,8 @@ def einheiten(data, lg):
             continue
         out.append({"id": tid, "typ": e.get("type", "s"), "text": t.strip(), "style": (di.get(tid) or {}).get(lg) or "",
                     "pause": (pa.get(tid) or {}).get(lg)})
+        if ((prod.get("sprache") or {}).get(tid) or {}).get(lg):      # 120 "Original behalten" (Fremdsatz)
+            out[-1]["sprache"] = prod["sprache"][tid][lg]
     out += [ansage(k) for k in an if k.get("position") != "anfang"]
     return [u for u in out if u["text"]], alt
 
@@ -426,7 +428,8 @@ def pruefen_modal(jobs, werk, lg, ms):
                     arbeit.append({"key": key, "wav": ziel, "text": text})
         print(f"[500] {lg}: Satzpruefung Modal – {len(arbeit)} Saetze hochgeladen", flush=True)
         stuecke = [arbeit[i:i + PRUEF_MODAL_CHUNK] for i in range(0, len(arbeit), PRUEF_MODAL_CHUNK)]
-        for res in pruefen.map(stuecke, kwargs={"ms": ms}):
+        from pipeline import spuren as SP              # Modal-Grenze (10 Jobs, alle Stages)
+        for res in SP.modal_map(pruefen, stuecke, kwargs={"ms": ms}):
             out.update(res)
         try:
             vol.remove_file(prefix, recursive=True)
@@ -705,7 +708,7 @@ def _regler_gueltig(rg):
                 and rg["fp16"] in (True, False) and float(rg["budget"]) >= 0
                 and 0 <= float(rg["auffaellig_max"]) <= 1
                 and 0 < float(rg["dauer_min"]) < float(rg["dauer_max"])
-                and 0 <= int(rg["versuche"]) <= 3 and 1 <= int(rg.get("parallel") or 1) <= 8
+                and 0 <= int(rg["versuche"]) <= 3 and 1 <= int(rg.get("parallel") or 1) <= 16
                 and (rg.get("fa") or "modal") in ("modal", "cpu"))
     except Exception:
         return False
@@ -770,6 +773,12 @@ def run(werk, wer=None, regler=None, saetze=None, kapitel=None, nur_lang=None, n
                                                                  f"verfuegbar + freigegeben")):
                 continue
         units, alt = einheiten(data, lg)
+        fremd = [u["id"] for u in units if u.get("sprache")]
+        if fremd:                                         # 120 "Original behalten"
+            g.hinweis(f"fremdsatz_{lg}", engine != "chatterbox", wert=len(fremd),
+                      text=f"{lg}: {len(fremd)} Saetze in Originalsprache ({', '.join(fremd[:3])})" +
+                           (" – Chatterbox spricht sie mit dem Modell der Spur; anhoeren (530) oder von Hand"
+                            if engine == "chatterbox" else " – Gemini mit Stil-Hinweis zur Sprache"))
         lex, n_lex = _lexikon(werk, lg)
         tts = {u["id"]: lex(u["text"]) for u in units}
         soll = {u["id"]: eingang_hash(u, tts[u["id"]], engine, info, rg) for u in units}
@@ -850,6 +859,8 @@ def run(werk, wer=None, regler=None, saetze=None, kapitel=None, nur_lang=None, n
             {"*": kosten_freigeben} if kosten_freigeben is not None else {})
         im_budget = b.mandant_art == "somnio" and usd <= float(rg["budget"])
         frei_lg = set(plan) if im_budget else _freigabe_je_sprache(kf, plan)
+        # Kleinbetrag (CK 22.11.2026): Schaetzung unter config.KOSTEN_KLEINBETRAG_USD (0,01 $) braucht keine Freigabe
+        frei_lg |= {lg for lg, p in plan.items() if p["usd"] < float(getattr(config, "KOSTEN_KLEINBETRAG_USD", 0.01))}
         mit_kosten = {lg for lg, p in plan.items() if p["offen"]}
         gesperrt = mit_kosten - frei_lg - {lg for lg, p in plan.items() if p["nach"]}
         txt = (f"Kostenschaetzung {usd:.2f} $ fuer {n_offen} Saetze ("

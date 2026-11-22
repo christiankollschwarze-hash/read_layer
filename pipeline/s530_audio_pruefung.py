@@ -58,10 +58,15 @@ from pipeline import s510_hoerspiel_hybrid as s510
 STAGE = "530"
 SR = 24000
 VERSION = 1
+SCHNITT = 2                      # 21.11.2026: Raender ab Klangende/-anfang statt FA-Wortgrenze (Auslaute)
+KLANG_DB = -40.0                 # Klang = Frame ueber Satzpegel (p95) -40 dB
+KLANG_LUECKE = 0.08              # Luecke im Klang (Plosiv-Verschluss) bis 80 ms gehoert noch zum Wort
+KLANG_NACH_MAX = 0.35            # Suche hinter dem FA-Wortende hoechstens 350 ms (kein Atmer)
+KLANG_VOR_MAX = 0.20             # Suche vor dem FA-Wortanfang hoechstens 200 ms
 SPUREN = ("hoerbuch", "hoerspiel")
 QUELLE = {"hoerbuch": "500", "hoerspiel": "510"}
 FINAL = {"hoerbuch": "audio_final", "hoerspiel": "hoerspiel_final"}
-EIN, AUS = 0.01, 0.03            # Ein-/Ausblendung an den Raendern (s)
+EIN, AUS = 0.01, 0.01            # Ein-/Ausblendung an den Raendern (s); Ende 10 ms (vorher 30, Auslaut)
 GAIN_MAX = 20.0                  # dB
 REGLER_STD = {"tempo": {}, "vor": 0.05, "nach": 0.12, "rand_max": 0.15, "lufs": -18.0, "lufs_tol": 1.0,
               "peak_max": -1.0, "fa": "modal", "sprache": "modal", "stichprobe": 100, "cer_verdacht": 0.35,
@@ -171,10 +176,45 @@ def raender(zeit):
     return (min(a for a, _ in z), max(b for _, b in z)) if z else None
 
 
+def klang(x, w):
+    """Klanganfang/-ende um die FA-Wortgrenzen (s). MMS_FA setzt das Wortende oft vor leise stimmlose Auslaute
+    (-s/-t/-sch) und den Anfang hinter stimmlose Anlaute: ab der FA-Grenze nach aussen gehen, solange Klang
+    (> p95 - 40 dB) folgt; Luecken bis 80 ms (Plosiv-Verschluss) zaehlen mit, Suche hoechstens 350 ms hinten /
+    200 ms vorn (Atmer bleiben draussen)."""
+    fr = int(0.005 * SR)
+    n = len(x) // fr
+    if n == 0:
+        return w
+    rms = np.sqrt((x[:n * fr].astype(np.float32).reshape(n, fr) ** 2).mean(1))
+    i0, i1 = max(0, min(n - 1, int(w[0] / 0.005))), max(0, min(n - 1, int(w[1] / 0.005)))
+    ref = float(np.percentile(rms[i0:i1 + 1], 95)) if i1 > i0 else float(rms.max())
+    laut = rms > max(ref * 10 ** (KLANG_DB / 20), 1e-4)
+    luecke = int(KLANG_LUECKE / 0.005)
+    ende, still = w[1], 0
+    for i in range(i1 + 1, min(n, i1 + 1 + int(KLANG_NACH_MAX / 0.005))):
+        if laut[i]:
+            ende, still = (i + 1) * 0.005, 0
+        else:
+            still += 1
+            if still > luecke:
+                break
+    anf, still = w[0], 0
+    for i in range(i0 - 1, max(-1, i0 - 1 - int(KLANG_VOR_MAX / 0.005)), -1):
+        if laut[i]:
+            anf, still = i * 0.005, 0
+        else:
+            still += 1
+            if still > luecke:
+                break
+    return (min(anf, w[0]), max(ende, w[1]))
+
+
 def schneiden(x, w, vor, nach, tempo):
-    """Satz auf Sprachanteil schneiden; Raender so, dass sie nach dem Tempo vor/nach s betragen."""
+    """Satz auf Klanganteil schneiden; Raender so, dass sie nach dem Tempo vor/nach s betragen (gemessen ab
+    Klanganfang/-ende, nicht ab FA-Wortgrenze – Auslaute bleiben ganz, 21.11.2026)."""
     if not w:
         return x, None
+    w = klang(x, w)
     a = max(0, int((w[0] - vor * tempo) * SR))
     b = min(len(x), int((w[1] + nach * tempo) * SR))
     if b - a < int(0.1 * SR):
@@ -262,7 +302,8 @@ def sprache_modal(jobs, werk, lg):
     arbeit = [{"key": k, "wav": _wav16(p), "lg": lg} for k, p in jobs]
     out = {}
     with app.run():
-        for res in pruefen.map([arbeit[i:i + 60] for i in range(0, len(arbeit), 60)]):
+        from pipeline import spuren as SP              # Modal-Grenze (10 Jobs, alle Stages)
+        for res in SP.modal_map(pruefen, [arbeit[i:i + 60] for i in range(0, len(arbeit), 60)]):
             out.update(res)
     usage_log.log_gpu(werk, STAGE, time.time() - t0, extra={"sprache": lg, "teil": "whisper"})
     return out
@@ -446,9 +487,10 @@ def run(werk, wer=None, regler=None, saetze=None, kapitel=None, nur_lang=None, n
                 if e.get("q") == "mock":
                     mocks += 1
                 soll[t] = {"quelle": mq._abs(e["datei"]), "q_hash": e["datei_hash"], "text": tts[t],
+                           "fremd": ((data.get("content") or {}).get(t) or {}).get("sprache_satz"),
                            "fa": manifest.hash_obj({"d": e["datei_hash"], "t": tts[t], "v": VERSION}),
                            "ein": manifest.hash_obj({"d": e["datei_hash"], "t": tts[t], "tempo": tempo,
-                                                     "r": [rg["vor"], rg["nach"]], "v": VERSION})}
+                                                     "r": [rg["vor"], rg["nach"]], "v": VERSION, "s": SCHNITT})}
             auswahl = {t for t in ids if kap_von(t) in kap or t in saetze} if (kap or saetze) else None
             plan[(lg, spur)] = {"m": m, "ids": ids, "fehlt": fehlt, "mock": mocks, "soll": soll, "tempo": tempo,
                                 "auswahl": auswahl}
@@ -547,7 +589,7 @@ def _soll_neu(p, mq, lg, rg):
         s.update(quelle=mq._abs(e["datei"]), q_hash=e["datei_hash"],
                  fa=manifest.hash_obj({"d": e["datei_hash"], "t": s["text"], "v": VERSION}),
                  ein=manifest.hash_obj({"d": e["datei_hash"], "t": s["text"], "tempo": p["tempo"],
-                                        "r": [rg["vor"], rg["nach"]], "v": VERSION}))
+                                        "r": [rg["vor"], rg["nach"]], "v": VERSION, "s": SCHNITT}))
 
 
 def _bauen(werk, lg, spur, p, rg, saetze, kap, neu):
@@ -572,7 +614,7 @@ def _bauen(werk, lg, spur, p, rg, saetze, kap, neu):
         if kap and k not in kap and not (set(tids) & saetze):
             continue
         kh = manifest.hash_obj({"s": [(t, soll[t]["ein"]) for t in tids],
-                                "l": [rg["lufs"], rg["peak_max"]], "v": VERSION})
+                                "l": [rg["lufs"], rg["peak_max"]], "v": VERSION, "schnitt": SCHNITT})
         alt = km.get(f"{spur}/{k}") or {}
         aktuell = all(m.get(f"{spur}/{t}") and m.datei_aktuell(f"{spur}/{t}") for t in tids)
         if alt.get("hash") == kh and aktuell and not neu and not (set(tids) & saetze) and not (set(tids) & set(fa)):
@@ -626,8 +668,8 @@ def _sprache_pruefen(werk, lg, spur, p, rg):
     jobs = []
     for t in p["soll"]:
         e = m.get(f"{spur}/{t}") or {}
-        if not e or not stichprobe(t, int(rg["stichprobe"])):
-            continue
+        if not e or not stichprobe(t, int(rg["stichprobe"])) or p["soll"][t].get("fremd"):
+            continue                                    # Fremdsatz (120 behalten): Whisper-Sprachpruefung entfaellt
         if (e.get("sprache") or {}).get("datei_hash") != e.get("datei_hash"):
             jobs.append((t, m._abs(e["datei"])))
     res = sprache(jobs, werk, lg, rg["sprache"]) if jobs else {}

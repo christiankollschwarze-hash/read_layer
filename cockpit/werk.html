@@ -20,6 +20,9 @@ div.akt input[type=text]{min-width:220px}
 #global .g.blink{animation:none}#global .g.blink::before{animation:puls 1s infinite}
 .st.mit>.kopf{color:var(--ink-3);font-size:12px;padding:3px 4px}
 .st.mit>.kopf>b{font-weight:400;padding-left:12px}
+.fsbar{display:inline-block;width:240px;height:10px;border:1px solid #8886;border-radius:5px;overflow:hidden;vertical-align:middle;background:#8881}
+.fsbar>span{display:block;height:100%;background:var(--s-frei,#3a3);transition:width .8s}
+.fsbar.k{width:80px;height:7px;margin-left:6px}
 </style></head><body>
 <header>
  <a class="marke" href="/"></a><span class="seitentitel">Einzeltitel</span>
@@ -83,7 +86,7 @@ function stageHtml(s){
   const flags=(s.fehlende_teile.length?`<span class="flag">Teile offen</span>`:"")+(s.veraltet.length?`<span class="flag">veraltet</span>`:"")+(s.bedarf_abweichung?`<span class="flag">Bedarf ≠ Status</span>`:"")+(s.befunde.length?`<span class="flag" style="color:var(--r)">${s.befunde.length} Befund(e)</span>`:"");
   const mit=s.nachbar?` <span class="klein">↳ läuft mit ${esc(s.nachbar)}</span>`:"";
   return `<div class="st ${s.bestellt?"":"weg"} ${s.nachbar?"mit":""} ${offen.has(s.stage)?"auf":""}" id="st${s.stage}">
-   <div class="kopf" onclick="umschalten('${s.stage}')"><b>${s.stage}</b><span>${esc(s.name)}${mit}${hilfeKnopf(s.stage)}${flags}</span><span>${zb(s.zustand)}</span><span class="klein">${nt?nt+" Teile":""}</span><span class="klein">${usd(s.kosten)}</span></div>
+   <div class="kopf" onclick="umschalten('${s.stage}')"><b>${s.stage}</b><span>${esc(s.name)}${mit}${hilfeKnopf(s.stage)}${flags}<span id="fsk${s.stage}"></span></span><span>${zb(s.zustand)}</span><span class="klein">${nt?nt+" Teile":""}</span><span class="klein">${usd(s.kosten)}</span></div>
    <div class="detail">${offen.has(s.stage)?detailHtml(s):""}</div></div>`;
 }
 function umschalten(st){offen.has(st)?offen.delete(st):offen.add(st);zeichnen();}
@@ -167,10 +170,21 @@ function laufZeigen(l){
   else if(sahLaufen){sahLaufen=false;laden();}
 }
 let letzteFarbe=null;
+// ---------- Fortschritt je Stage (TODO 22.11. Punkt 7): work/_fortschritt/<stage>.json ueber die Ampel
+function dauerTxt(s){return s==null?"–":s<90?Math.round(s)+" s":s<5400?Math.round(s/60)+" min":(s/3600).toFixed(1).replace(".",",")+" h";}
+function fsHtml(f,kompakt){
+  if(!f)return"";const p=f.gesamt?Math.min(100,100*f.erledigt/f.gesamt):0;
+  return `<span class="fsbar${kompakt?" k":""}" title="${f.erledigt}/${f.gesamt} ${esc(f.einheit)}"><span style="width:${p.toFixed(1)}%"></span></span> <span class="klein">${f.erledigt.toLocaleString("de-DE")}/${f.gesamt.toLocaleString("de-DE")} ${esc(f.einheit)} · Rest ${dauerTxt(f.rest_s)}${f.fertig_um?" · fertig ~"+esc(f.fertig_um):""}`+
+   (kompakt?"":` · ${f.spuren} Spuren · läuft ${dauerTxt(f.lauf_s)}${f.erwartet_s!=null?` · Erwartung beim Start ${dauerTxt(f.erwartet_s)} (fertig ~${esc(f.erwartet_fertig)})`:" · keine Erwartung (erster Lauf)"}`)+`</span>`;
+}
+function fsZeilen(a){
+  for(const el of document.querySelectorAll('[id^="fsk"]'))el.innerHTML="";
+  for(const x of a.laufend||[]){const el=$("fsk"+x.stage);if(el&&x.fortschritt)el.innerHTML=fsHtml(x.fortschritt,true);}
+}
 function ampelZeigen(a){
   if(!a)return;$("ampel").className="ampel a-"+a.farbe+(a.blink?" blink":"");
   let t=a.text;if(a.still_s!=null&&a.farbe!="ruhe")t+=` · letzte Aktivität vor ${a.still_s<120?a.still_s+" s":Math.round(a.still_s/60)+" min"}`;
-  $("ampeltext").textContent=t;
+  $("ampeltext").textContent=t;fsZeilen(a);
   document.title=({produktion:"▶ ",stockt:"⏸ ",angehalten:"■ ",fehler:"✖ ",handlung:"! "}[a.farbe]||"")+(W?W.book_id:"Einzeltitel");
   if(letzteFarbe&&letzteFarbe!=a.farbe&&W)laden();            // Zustandswechsel -> Ansicht neu laden
   letzteFarbe=a.farbe;
