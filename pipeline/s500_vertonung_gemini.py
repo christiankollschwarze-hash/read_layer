@@ -555,6 +555,18 @@ def gemini_vertonen(werk, lg, units, offen, voice, rg, adir, text_tts, out, fall
     n_block = sum(1 for k, _ in plan if k == "block")
     fa_sperre = threading.Lock()          # Blockschnitt (MMS_FA) seriell: RAM, Modell-Laden (Learning 22.10.)
     halt = threading.Event()
+    # Fortschritt (TODO 22.11. Punkt 7): Saetze, Gewicht = Zeichen; Gemini-Tageskontingent als Hinweis
+    from pipeline import fortschritt, grenzen
+    n_par = 1 if mock.aktiv() else max(1, int(rg.get("parallel") or 1))
+    gw = {t: len(text_tts.get(t) or "") for _k, ids in plan for t in ids}
+    fs = fortschritt.Fortschritt(werk, "500", "Saetze", len(gw), gewicht=sum(gw.values()) or None, spuren=n_par,
+                                 schreiben=bool(plan) and not mock.aktiv(), art="gemini")
+    if plan:
+        print(f"[500] {lg} Gemini: {fs.text_vorab()}", flush=True)
+        rest = grenzen.rest_heute("gemini_tts")
+        if rest is not None and rest < len(gw):
+            print(f"[500] Hinweis: Gemini-Tageskontingent reicht heute noch fuer ~{rest} Anfragen; Rest ab "
+                  f"{grenzen.naechster_reset().astimezone().strftime('%d.%m. %H:%M')}", flush=True)
 
     def solo(t, block=False, fb=None):
         p = os.path.join(adir, f"{t}.wav")
@@ -569,6 +581,7 @@ def gemini_vertonen(werk, lg, units, offen, voice, rg, adir, text_tts, out, fall
             return
         try:
             _aufgabe(kind, ids)
+            fs.plus(len(ids), sum(gw.get(t, 0) for t in ids))
         except BaseException:
             halt.set()                         # z. B. QuotaError: keine weiteren Auftraege starten
             raise
@@ -623,24 +636,30 @@ def gemini_vertonen(werk, lg, units, offen, voice, rg, adir, text_tts, out, fall
         else:
             print(f"  {label}: ok")
 
-    n_par = 1 if mock.aktiv() else max(1, int(rg.get("parallel") or 1))
-    if n_par == 1:
-        for kind, ids in plan:
-            aufgabe(kind, ids)
-        return n_block
-    print(f"  {len(plan)} Auftraege, {n_par} parallel")
-    from concurrent.futures import ThreadPoolExecutor
-    with ThreadPoolExecutor(max_workers=n_par) as ex:
-        fut = [ex.submit(aufgabe, kind, ids) for kind, ids in plan]
-        fehler = None
-        for f in fut:
-            try:
-                f.result()
-            except BaseException as e:            # QuotaError u. a.: Rest nicht mehr starten, Fertiges bleibt
-                halt.set()
-                fehler = fehler or e
-        if fehler:
-            raise fehler
+    try:
+        if n_par == 1:
+            for kind, ids in plan:
+                aufgabe(kind, ids)
+        else:
+            print(f"  {len(plan)} Auftraege, {n_par} parallel")
+            from concurrent.futures import ThreadPoolExecutor
+            with ThreadPoolExecutor(max_workers=n_par) as ex:
+                fut = [ex.submit(aufgabe, kind, ids) for kind, ids in plan]
+                fehler = None
+                for f in fut:
+                    try:
+                        f.result()
+                    except BaseException as e:    # QuotaError u. a.: Rest nicht mehr starten, Fertiges bleibt
+                        halt.set()
+                        fehler = fehler or e
+                if fehler:
+                    raise fehler
+    except BaseException:
+        if plan:
+            fs.ende(ok=False)
+        raise
+    if plan:
+        fs.ende(ok=True)
     return n_block
 
 

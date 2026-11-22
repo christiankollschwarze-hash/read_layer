@@ -78,9 +78,39 @@ def modal_lauf(werk, lg, batch=BATCH_STD, fp16=False, tag=None, stage="500"):
     if fp16:
         cmd.append("--fp16")
     print(f"[502] Modal: {' '.join(cmd[3:])}", flush=True)
+    from pipeline import fortschritt
     from pipeline import spuren as SP
-    with SP.modal_platz():                             # Modal-Grenze (10 Jobs, alle Stages)
-        r = subprocess.run(cmd, cwd=config.BASE_DIR)
+    # Fortschritt (TODO 22.11. Punkt 7): Kapitel aus der Modal-Ausgabe ("  c001: neu/saetze ..."), zuletzt Abholen
+    try:
+        with open(os.path.join(paket_dir(werk, lg, stage), "jobs.json"), encoding="utf-8") as f:
+            jobs = json.load(f).get("jobs") or []
+    except (OSError, ValueError):
+        jobs = []
+    zk = {}
+    for j in jobs:
+        zk[j.get("kap")] = zk.get(j.get("kap"), 0) + len(j.get("text") or "")
+    fs = fortschritt.Fortschritt(werk, stage, "Kapitel (+ Abholen)", len(zk) + 1, gewicht=sum(zk.values()) * 1.05 or None,
+                                 spuren=len(zk) or 1, schreiben=bool(zk), art="chatterbox")
+    if zk:
+        print(f"[502] {fs.text_vorab()}", flush=True)
+    import re as _re
+    ok = False
+    try:
+        with SP.modal_platz():                         # Modal-Grenze (10 Jobs, alle Stages)
+            p = subprocess.Popen(cmd, cwd=config.BASE_DIR, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                 text=True, encoding="utf-8", errors="replace", bufsize=1)
+            for zeile in p.stdout:
+                print(zeile, end="", flush=True)
+                m = _re.match(r"\s+(c\d+|anfang|ende|[a-z0-9_]+): \d+/\d+ \| Audio", zeile)
+                if m and m.group(1) in zk:
+                    fs.plus(1, zk[m.group(1)])
+                elif zeile.startswith("Heruntergeladen:"):
+                    fs.plus(1, sum(zk.values()) * 0.05)
+            r = subprocess.CompletedProcess(cmd, p.wait())
+        ok = r.returncode == 0
+    finally:
+        if zk:
+            fs.ende(ok=ok)
     if r.returncode != 0:
         raise RuntimeError(f"Modal-Lauf {name} Exit {r.returncode}")
     m = sorted(glob.glob(os.path.join(paket_dir(werk, lg, stage), f"messung_*{tag or 'z'}.json")), key=os.path.getmtime)

@@ -264,6 +264,25 @@ def kapitel(paket: str, kap: str, parallel: int = 1, fp16: bool = False, variant
             t.start()
         for t in th:
             t.join()
+    # 22.11.2026: Kapitel als EIN Paket (FLAC verlustfrei, ~halbe Groesse) -> Abholen 1 Datei je Kapitel statt je Satz
+    try:
+        import io, tarfile
+        import soundfile as sf
+        os.makedirs(f"{aus}/_pack", exist_ok=True)
+        with tarfile.open(f"{aus}/_pack/{kap}.tar.part", "w") as tf:
+            for j in jobs:
+                p = f"{aus}/{j['id']}.wav"
+                if os.path.exists(p):
+                    pcm, sr_ = sf.read(p, dtype="int16")
+                    buf = io.BytesIO()
+                    sf.write(buf, pcm, sr_, format="FLAC", subtype="PCM_16")
+                    flac = buf.getvalue()              # nicht tell(): libsndfile springt zum Schluss an den Kopf zurueck
+                    ti = tarfile.TarInfo(f"{j['id']}.flac")
+                    ti.size = len(flac)
+                    tf.addfile(ti, io.BytesIO(flac))
+        os.replace(f"{aus}/_pack/{kap}.tar.part", f"{aus}/_pack/{kap}.tar")
+    except Exception as ex:                       # Abholen faellt dann auf Einzeldateien zurueck
+        stat["pack_fehler"] = str(ex)[:200]
     vol.commit()
     t_ende = time.time()
     stat.update(kap=kap, saetze=len(jobs), laden_s=round(t_geladen - t_start, 1),
@@ -376,7 +395,43 @@ def _holen(paket, variante, kapitel_nur, daten):
         ziel = werk / daten["ziel"]          # Neuvertonung (tools/cb_neu.py): eigener Ordner, nichts ueberschreiben
     ziel.mkdir(parents=True, exist_ok=True)
     # 17.10.: parallel herunterladen (einzeln ~1 Datei/s -> 3.000 Saetze = 50 min)
+    # 22.11.: zuerst Kapitelpakete (_pack/<kap>.tar, FLAC) -> 1 Abruf je Kapitel; Rest einzeln wie bisher
     from concurrent.futures import ThreadPoolExecutor
+    import io, tarfile, time as _t
+    t0 = _t.time()
+    try:
+        packs = [e.path for e in vol.listdir(f"out/{paket}_{variante}/_pack") if e.path.endswith(".tar")]
+    except Exception:
+        packs = []
+    if kapitel_nur:
+        packs = [p for p in packs if p.split("/")[-1][:-4] in kapitel_nur.split(",")]
+
+    def paket_holen(pfad):
+        import soundfile as sf
+        roh = b"".join(vol.read_file(pfad))
+        n_ = 0
+        with tarfile.open(fileobj=io.BytesIO(roh)) as tf:
+            for m in tf.getmembers():
+                name = m.name.rsplit(".", 1)[0] + ".wav"
+                if (ziel / name).exists():
+                    continue
+                pcm, sr_ = sf.read(io.BytesIO(tf.extractfile(m).read()), dtype="int16")
+                tmp = ziel / (name + ".part")
+                sf.write(str(tmp), pcm, sr_, format="WAV", subtype="PCM_16")
+                os.replace(tmp, ziel / name)
+                n_ += 1
+        return n_, len(roh)
+
+    n_pack, mb = 0, 0.0
+    if packs:
+        try:
+            with ThreadPoolExecutor(max_workers=8) as pool:
+                for n_, b_ in pool.map(paket_holen, packs):
+                    n_pack += n_
+                    mb += b_ / 1e6
+            print(f"Pakete: {len(packs)} Kapitel, {n_pack} WAVs, {mb:.0f} MB in {_t.time() - t0:.0f} s", flush=True)
+        except Exception as ex:
+            print(f"Pakete nicht nutzbar ({str(ex)[:120]}) -> einzeln", flush=True)
     offen = [e.path for e in vol.listdir(f"out/{paket}_{variante}")
              if e.path.endswith(".wav") and not (ziel / e.path.split("/")[-1]).exists()]
 
@@ -395,7 +450,7 @@ def _holen(paket, variante, kapitel_nur, daten):
             n += 1
             if k % 250 == 0:
                 print(f"  heruntergeladen {k}/{len(offen)}", flush=True)
-    print(f"Heruntergeladen: {n} WAVs -> {ziel}")
+    print(f"Heruntergeladen: {n_pack + n} WAVs ({n_pack} aus Paketen, {n} einzeln) in {_t.time() - t0:.0f} s -> {ziel}")
     # Tempo (0.91) und Randschnitt laufen danach als eigene Schritte (start_epub_fertig.bat)
 
 

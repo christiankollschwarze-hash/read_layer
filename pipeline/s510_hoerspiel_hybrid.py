@@ -663,34 +663,49 @@ def _bauen(werk, lg, p, m, m500, rg, ent):
                 mock.wav(tp(t, f))
             return
         halt = threading.Event()
+        from pipeline import fortschritt                 # Fortschritt (TODO 22.11. Punkt 7): Takes
+        n_par = max(1, int(rg.get("parallel") or 1))
+        gw = [len(p["texte"][t][f] or "") for t, f in auftr]
+        fs = fortschritt.Fortschritt(werk, STAGE, "Takes", len(auftr), gewicht=sum(gw) or None, spuren=n_par,
+                                     schreiben=bool(auftr), art="takes")
+        if auftr:
+            print(f"[510] {lg}: {fs.text_vorab()}", flush=True)
 
         def eins(t, f):
             if halt.is_set() or befund.get(t) == "policy":
+                fs.plus(1, len(p["texte"][t][f] or ""))
                 return
             try:
                 take(p["texte"][t][f], tp(t, f), p["ens"][f]["gemini_id"], lg)
+                fs.plus(1, len(p["texte"][t][f] or ""))
             except PolicyError as e:
                 befund[t] = "policy"
                 print(f"  policy {t} ({f}): {e}")
             except BaseException:
                 halt.set()
                 raise
-        n_par = max(1, int(rg.get("parallel") or 1))
-        if n_par == 1:
-            for t, f in auftr:
-                eins(t, f)
-            return
-        from concurrent.futures import ThreadPoolExecutor
-        with ThreadPoolExecutor(max_workers=n_par) as ex:
-            fut = [ex.submit(eins, t, f) for t, f in auftr]
-            fehler = None
-            for x in fut:
-                try:
-                    x.result()
-                except BaseException as e:
-                    fehler = fehler or e
-            if fehler:
-                raise fehler
+        try:
+            if n_par == 1:
+                for t, f in auftr:
+                    eins(t, f)
+            else:
+                from concurrent.futures import ThreadPoolExecutor
+                with ThreadPoolExecutor(max_workers=n_par) as ex:
+                    fut = [ex.submit(eins, t, f) for t, f in auftr]
+                    fehler = None
+                    for x in fut:
+                        try:
+                            x.result()
+                        except BaseException as e:
+                            fehler = fehler or e
+                    if fehler:
+                        raise fehler
+        except BaseException:
+            if auftr:
+                fs.ende(ok=False)
+            raise
+        if auftr:
+            fs.ende(ok=True)
 
     def schneiden(ids, art):
         ids = [t for t in ids if befund.get(t) != "policy"]

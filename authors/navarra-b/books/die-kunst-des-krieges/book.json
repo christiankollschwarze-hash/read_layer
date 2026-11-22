@@ -1,13 +1,13 @@
 {
-  "book_slug": "the-art-of-war",
-  "author_slug": "sunzi-acb",
+  "book_slug": "die-kunst-des-krieges",
+  "author_slug": "navarra-b",
   "author_wikidata_id": "",
   "work_wikidata_id": "Q8251",
   "publisher": "<eigenes-label>",
-  "titel_original": "The Art of War",
-  "originalsprache": "en",
+  "titel_original": "Die Kunst des Krieges",
+  "originalsprache": "de",
   "erscheinungsjahr": null,
-  "gutenberg_id": "132",
+  "gutenberg_id": "",
   "quell_uebersetzer": "",
   "quell_uebersetzer_todesjahr": null,
   "thema_codes": [],
@@ -22,24 +22,57 @@
   "bedeutung_werk": "",
   "fassungen": [
     {
-      "sprache": "en",
-      "titel": "The Art of War",
+      "sprache": "de",
+      "titel": "Die Kunst des Krieges",
       "titel_quelle": "original",
       "titel_pruefen": false
     },
     {
-      "sprache": "de",
-      "titel": "Die Kunst des Krieges",
+      "sprache": "en",
+      "titel": "The Art of War",
       "titel_quelle": "wikidata",
       "titel_pruefen": false
     }
   ],
-  "librivox_geprueft": "keine",
-  "librivox_geprueft_am": "2026-10-10T19:25:25",
+  "quellsprache": "de",
+  "quelle": "user_txt",
+  "textquelle": {
+    "art": "datei",
+    "quelle": "C:\\Users\\sabin\\read_layer\\daten\\uploads\\20261122_201106_raw.txt",
+    "wer": "CK",
+    "wann": "2026-11-22T20:11:07"
+  },
   "mandant": "somnio",
   "besitzer": "somnio",
-  "quelle": "gutenberg",
+  "rechte": {
+    "art": "gemeinfrei",
+    "bearbeitung": true,
+    "drm_frei": true,
+    "versichert": null,
+    "hinweis": null
+  },
   "produkte": [
+    {
+      "sprache": "de",
+      "inhalt": "text",
+      "stufe": null,
+      "kanaele": [
+        "taella",
+        "epub"
+      ],
+      "zusatz": []
+    },
+    {
+      "sprache": "de",
+      "inhalt": "hoerbuch",
+      "stufe": "basic",
+      "kanaele": [
+        "taella",
+        "epub",
+        "extern"
+      ],
+      "zusatz": []
+    },
     {
       "sprache": "en",
       "inhalt": "text",
@@ -60,35 +93,8 @@
         "extern"
       ],
       "zusatz": []
-    },
-    {
-      "sprache": "de",
-      "inhalt": "text",
-      "stufe": null,
-      "kanaele": [
-        "taella",
-        "epub"
-      ],
-      "zusatz": []
-    },
-    {
-      "sprache": "de",
-      "inhalt": "hoerbuch",
-      "stufe": "premium",
-      "kanaele": [
-        "taella",
-        "extern"
-      ],
-      "zusatz": []
     }
   ],
   "fassung": "modernisiert",
-  "rechte": {
-    "art": "gemeinfrei",
-    "bearbeitung": true,
-    "drm_frei": true,
-    "versichert": null,
-    "hinweis": null
-  },
   "casting": "work/casting.json"
 }

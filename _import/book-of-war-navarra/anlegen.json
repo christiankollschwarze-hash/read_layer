@@ -1,0 +1,16 @@
+{
+ "books": [
+  {
+   "book_slug": "book-of-war-navarra",
+   "autor_slug": "sunzi",
+   "autor_name": "Sunzi",
+   "wikidata_id_autor": "Q37151",
+   "titel_original": "Das Buch vom Kriege",
+   "originalsprache": "de",
+   "erscheinungsjahr": 1910,
+   "quell_uebersetzer": "Bruno Navarra",
+   "quell_uebersetzer_todesjahr": 1911,
+   "raw_quelle": "C:\\Users\\sabin\\read_layer\\_import\\book-of-war-navarra\\raw.txt"
+  }
+ ]
+}

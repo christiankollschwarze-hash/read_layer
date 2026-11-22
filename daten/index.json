@@ -259,7 +259,9 @@
     "die-spiegelschwestern": "unbekannt",
     "u-smoketest-the-mirror-sisters": "user:smoketest",
     "winnie-the-pooh": "milne-aa",
-    "u-ck-peter-and-wendy": "user:ck"
+    "u-ck-peter-and-wendy": "user:ck",
+    "book-of-war-navarra": "sunzi",
+    "die-kunst-des-krieges": "navarra-b"
   },
   "authors": {
     "stevenson-rl": "",
@@ -421,6 +423,8 @@
     "chekhov-ap": "",
     "saavedra-mdc": "",
     "casanova-g": "",
-    "milne-aa": ""
+    "milne-aa": "",
+    "sunzi": "Q37151",
+    "navarra-b": "Q134929384"
   }
 }

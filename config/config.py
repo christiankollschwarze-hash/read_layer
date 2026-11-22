@@ -531,4 +531,5 @@ SPUREN = {               # Abweichungen je Stage (Jobs gleichzeitig; Anbietergre
     "500": 8,            # Gemini-TTS Bloecke (Takt 500 RPM zentral)
     "510": 8,            # Gemini-TTS Takes
     "650": max(1, (os.cpu_count() or 4) - 1),   # ffmpeg je Kapitel, CPU-Kerne
+    "530": max(1, (os.cpu_count() or 4) - 1),   # Schnitt/Tempo (ffmpeg je Satz)/Lautheit je Kapitel, CPU-Kerne
 }

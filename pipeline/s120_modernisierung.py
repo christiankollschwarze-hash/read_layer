@@ -75,6 +75,35 @@ SYS = {
         "vocabulary, idioms and forms of address with natural modern English; modernize punctuation.")),
 }
 
+# Deutsch (22.11.2026, AP Art of War Navarra): Quelltexte in alter Rechtschreibung (ca. 1880-1920)
+_BASIS_DE = ("Du {art} einen gemeinfreien deutschen literarischen Text für heutige Leser und Sprachlernende. "
+             "Für jedes nummerierte Segment: {was} BEWAHRE Inhalt, Bedeutung, Erzählstimme, Ton und ALLE "
+             "Eigennamen in ihrer Schreibung (auch Umschriften wie Suntzu, Wutzu, Lü-mêng, Wên-chou). Fremdsprachige "
+             "Passagen (z. B. lateinische oder französische Zitate) unverändert lassen, nicht übersetzen. "
+             "Nichts zusammenfassen, weglassen oder hinzufügen; ungefähr gleiche Länge. Verse (Gedichtzeilen) "
+             "bleiben Verse: Reim und Versmaß möglichst erhalten. Gib jedes Ergebnis in einer eigenen Zeile aus, "
+             "mit DERSELBEN Nummer in der Form [n] davor, in derselben Reihenfolge. Gib NUR die nummerierten Zeilen aus.")
+_RECHTSCHREIBUNG_DE = ("bringe die Rechtschreibung auf den heutigen Stand (z. B. dass statt daß, muss statt muß, "
+                       "Ue/Ae/Oe am Wortanfang als Ü/Ä/Ö, Tür statt Thür, Intrigen statt Intriguen, Getrennt- und "
+                       "Zusammenschreibung nach heutiger Regel); ")
+SYS_SPRACHE = {
+    "en": SYS,
+    "de": {
+        "sanft": _BASIS_DE.format(art="modernisierst behutsam", was=(
+            _RECHTSCHREIBUNG_DE + "ersetze veraltete oder heute unverständliche Wörter und Wendungen durch "
+            "natürliches heutiges Deutsch; den Satzbau nur bei sehr langen, verschachtelten Sätzen glätten.")),
+        "mittel": _BASIS_DE.format(art="modernisierst", was=(
+            _RECHTSCHREIBUNG_DE + "formuliere lange, verschachtelte Sätze in klare heutige Sätze um; ersetze "
+            "veraltete Wörter, Wendungen und Anreden durch natürliches heutiges Deutsch; modernisiere die "
+            "Zeichensetzung.")),
+    },
+}
+
+
+def _sys(param):
+    """System-Prompt je Quellsprache (param['sprache'] fehlt bei en -> Hash englischer Werke unveraendert)."""
+    return SYS_SPRACHE.get(param.get("sprache", "en"), SYS)[param["staerke"]]
+
 
 def mod_dir(werk):
     return os.path.join(config.work_dir(werk), "modernized")
@@ -349,7 +378,7 @@ def _anfragen(items, param):
     def eins(grp):                                   # eine Gruppe (Spur innerhalb des Kapitels)
         if mock.aktiv():
             return {n: f"[MOCK:MOD] {s}" for n, s in grp}
-        raw = _call_model(SYS[param["staerke"]] + "\n\n" + "\n".join(f"[{n}] {s}" for n, s in grp),
+        raw = _call_model(_sys(param) + "\n\n" + "\n".join(f"[{n}] {s}" for n, s in grp),
                           param["modell"], param["temperatur"])
         d = {}
         for m in re.finditer(r"\[(\d+)\]\s*(.*?)(?=\n\[\d+\]|\Z)", raw, re.S):
@@ -651,6 +680,8 @@ def run(werk, wer=None, staerke=None, modell=None, temperatur=None, stueck=None,
     d = mod_dir(werk)
     os.makedirs(d, exist_ok=True)
     param = _param(staerke, modell, temperatur, stueck)
+    if (b.quellsprache or "en") != "en":           # nur Nicht-en: Sprache in param (en-Hash bleibt gleich)
+        param["sprache"] = b.quellsprache
     abw = altbestand_abweichung(d, kap) if fassung == "modernisiert" else None
     if abw and not force:
         z = sum(_zeichen(p) for _t, p in kap)

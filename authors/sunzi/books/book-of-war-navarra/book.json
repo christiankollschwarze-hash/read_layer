@@ -1,0 +1,32 @@
+{
+  "book_slug": "book-of-war-navarra",
+  "author_slug": "sunzi",
+  "author_wikidata_id": "Q37151",
+  "work_wikidata_id": "",
+  "publisher": "<eigenes-label>",
+  "titel_original": "Das Buch vom Kriege",
+  "originalsprache": "de",
+  "erscheinungsjahr": 1910,
+  "gutenberg_id": "",
+  "quell_uebersetzer": "Bruno Navarra",
+  "quell_uebersetzer_todesjahr": 1911,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [],
+  "quellsprache": "de",
+  "textquelle": {
+    "art": "datei",
+    "quelle": "raw.txt",
+    "wer": "CK",
+    "wann": "2026-11-22T20:04:58"
+  },
+  "quelle": "user_txt"
+}

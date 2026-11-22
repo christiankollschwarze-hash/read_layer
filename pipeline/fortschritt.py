@@ -91,13 +91,14 @@ def lesen(werk, stage):
 
 
 class Fortschritt:
-    def __init__(self, werk, stage, einheit, gesamt, gewicht=None, spuren=1, schreiben=True):
+    def __init__(self, werk, stage, einheit, gesamt, gewicht=None, spuren=1, schreiben=True, art=None):
         self.werk, self.stage, self.einheit = werk, str(stage), einheit
+        self.raten_key = f"{stage}_{art}" if art else str(stage)    # getrennte Raten je Art (500: gemini/chatterbox)
         self.gesamt, self.gewicht_gesamt = int(gesamt), float(gewicht or 0)
         self.spuren, self.aktiv = int(spuren or 1), schreiben
         self.erledigt, self.gewicht = 0, 0.0
         self.t0 = time.time()
-        self.erwartet = schaetzen(stage, self.gewicht_gesamt or None, self.gesamt, self.spuren)
+        self.erwartet = schaetzen(self.raten_key, self.gewicht_gesamt or None, self.gesamt, self.spuren)
         self._lock = threading.Lock()
         self._zuletzt = 0.0
         self._schreiben("laeuft", True)
@@ -159,5 +160,5 @@ class Fortschritt:
                      "dauer_s": round(dauer, 1)}
                 if self.gewicht:
                     e.update(zeichen=int(self.gewicht), s_je_1000z=round(dauer * 1000 / self.gewicht, 4))
-                rate_merken(self.stage, e)
+                rate_merken(self.raten_key, e)
             return dauer

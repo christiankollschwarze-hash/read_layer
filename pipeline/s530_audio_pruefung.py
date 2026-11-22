@@ -40,6 +40,7 @@ import re
 import shutil
 import subprocess
 import sys
+import threading
 import tempfile
 import time
 import unicodedata
@@ -610,6 +611,8 @@ def _bauen(werk, lg, spur, p, rg, saetze, kap, neu):
         if t in soll:
             kapitel.setdefault(kap_von(t), []).append(t)
     km = m.meta.setdefault("kapitel", {})
+    m_sperre = threading.Lock()                     # Manifest: Eintraege + Speichern je Kapitel unter Sperre
+    offen_k = []
     for k, tids in kapitel.items():
         if kap and k not in kap and not (set(tids) & saetze):
             continue
@@ -619,6 +622,11 @@ def _bauen(werk, lg, spur, p, rg, saetze, kap, neu):
         aktuell = all(m.get(f"{spur}/{t}") and m.datei_aktuell(f"{spur}/{t}") for t in tids)
         if alt.get("hash") == kh and aktuell and not neu and not (set(tids) & saetze) and not (set(tids) & set(fa)):
             continue
+        offen_k.append((k, tids, kh))
+
+    def kapitel_job(a):
+        """Ein Kapitel (eine Spur): schneiden, Tempo (ffmpeg je Satz), Lautheit -> Endfassungen; sichert sofort."""
+        k, tids, kh = a
         stuecke, info = {}, {}
         for t in tids:
             e = m.get(f"{spur}/{t}") or {}
@@ -636,19 +644,26 @@ def _bauen(werk, lg, spur, p, rg, saetze, kap, neu):
         if begrenzt:
             ges = begrenzen(ges, float(rg["peak_max"]) - 1.0)
         lu2, pk2 = lautheit(ges)
-        pos = 0
+        pos, neu_e = 0, []
         for t in tids:
             y = ges[pos:pos + len(stuecke[t])]
             pos += len(stuecke[t])
             z = os.path.join(zd, f"{t}.wav")
             s510.schreiben(z, y)
-            alt_e = m.get(f"{spur}/{t}") or {}
-            m.setzen(f"{spur}/{t}", soll[t]["ein"], datei=z, fa_hash=soll[t]["fa"], w=info[t]["w"],
-                     rand=info[t]["rand"], tempo=tempo, quelle_hash=soll[t]["q_hash"], kapitel=k,
-                     dauer=round(len(y) / SR, 3), sprache=alt_e.get("sprache"))
-        km[f"{spur}/{k}"] = {"hash": kh, "lufs_vor": round(lu, 2), "gain_db": round(gain, 2), "begrenzt": begrenzt,
-                             "lufs": round(lu2, 2), "peak": round(pk2, 2), "saetze": len(tids)}
-        m.speichern()
+            neu_e.append((t, z, round(len(y) / SR, 3)))
+        with m_sperre:
+            for t, z, dauer in neu_e:
+                alt_e = m.get(f"{spur}/{t}") or {}
+                m.setzen(f"{spur}/{t}", soll[t]["ein"], datei=z, fa_hash=soll[t]["fa"], w=info[t]["w"],
+                         rand=info[t]["rand"], tempo=tempo, quelle_hash=soll[t]["q_hash"], kapitel=k,
+                         dauer=dauer, sprache=alt_e.get("sprache"))
+            km[f"{spur}/{k}"] = {"hash": kh, "lufs_vor": round(lu, 2), "gain_db": round(gain, 2), "begrenzt": begrenzt,
+                                 "lufs": round(lu2, 2), "peak": round(pk2, 2), "saetze": len(tids)}
+            m.speichern()
+
+    from pipeline import spuren as SP
+    SP.parallel(werk, STAGE, offen_k, kapitel_job, SP.anzahl(stage=STAGE), einheit=f"Kapitel {lg}/{spur}",
+                gewicht=[len(tids) for _k, tids, _h in offen_k])
     # Verwaiste Endfassungen (Satz nicht mehr in der Spur)
     for key in [k for k in m.eintraege if k.startswith(f"{spur}/")]:
         t = key.split("/", 1)[1]
