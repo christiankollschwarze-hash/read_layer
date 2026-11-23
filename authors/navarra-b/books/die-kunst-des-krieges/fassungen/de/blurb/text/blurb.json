@@ -1,0 +1,35 @@
+{
+  "lang": "de",
+  "snippets": [
+    {
+      "id": "koeder_01",
+      "block": "koeder",
+      "index": 1,
+      "text": "Betrage dich anfangs mit der Bescheidenheit und Sittsamkeit eines jungen Mädchens; zeigt dir der Gegner aber eine kleine Öffnung, dann springe auf ihn mit der Lebendigkeit eines Kaninchens, – er wird sich nicht verteidigen können."
+    },
+    {
+      "id": "einordnung_01",
+      "block": "einordnung",
+      "index": 1,
+      "text": "Dieser Sachtext analysiert die Kriegskunst der chinesischen Generäle Suntzu und Wutzu in einem sachlichen, historischen Ton."
+    },
+    {
+      "id": "einordnung_02",
+      "block": "einordnung",
+      "index": 2,
+      "text": "Die Grundsätze dieser Strategen hatten über 2500 Jahre hinweg Bestand und prägten sowohl China als auch Japan nachhaltig."
+    },
+    {
+      "id": "einordnung_03",
+      "block": "einordnung",
+      "index": 3,
+      "text": "Eine konzentrierte Betrachtung militärischer Weisheit, die von der Antike bis in die Neuzeit reicht."
+    },
+    {
+      "id": "autor_01",
+      "block": "autor",
+      "index": 1,
+      "text": "Bruno Navarra wurde 1850 geboren und verstarb 1911."
+    }
+  ]
+}

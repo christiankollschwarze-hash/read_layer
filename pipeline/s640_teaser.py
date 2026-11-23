@@ -43,6 +43,8 @@ from pipeline import bestellung, gate, manifest, mock, status, usage_log
 STAGE = "640"
 VERSION = 1
 BLOECKE = ("koeder", "einordnung", "autor")
+WHISPER_LOKAL_UNTER = 20     # weniger Saetze -> Sprachpruefung lokal (faster_whisper), sonst Modal
+DAUER_KNAPP = 1.15           # Dauer bis 15 % ausserhalb der Grenze: keine automatische Neuvertonung (Befund bleibt)
 LANG_NAME = {"de": "German", "en": "English", "fr": "French", "es": "Spanish", "it": "Italian", "ru": "Russian"}
 REGLER_STD = {"stimme": {}, "stil": {}, "engine": {}, "tempo": {}, "aussprache": "an", "fa": "modal",
               "sprache": "modal", "vor": 0.05, "nach": 0.12, "rand_max": 0.15, "lufs": -18.0, "lufs_tol": 1.0,
@@ -288,7 +290,15 @@ def sprache_pruefen(jobs, werk, lg, art):
     from pipeline import s530_audio_pruefung as P5
     if not jobs or art == "aus":
         return {}
+    if art == "modal" and len(jobs) < WHISPER_LOKAL_UNTER:   # 22.11.2026: Kaltstart Modal ~4 min fuer 5 Saetze
+        try:
+            import faster_whisper  # noqa: F401
+            print(f"[640] {lg}: Sprachpruefung lokal ({len(jobs)} Saetze, unter {WHISPER_LOKAL_UNTER})", flush=True)
+            return P5.sprache_cpu(jobs, lg)
+        except ImportError:
+            pass
     if art == "modal":
+        print(f"[640] {lg}: Sprachpruefung Modal ({len(jobs)} Saetze, Start dauert ggf. einige Minuten)", flush=True)
         try:
             from gpu_sprache.sprache_modal import app, pruefen
             t0, out = time.time(), {}
@@ -495,6 +505,7 @@ def run(werk, wer=None, nur=None, neu=False, satz=None, nur_kosten=False, trocke
             if nach and not mock.aktiv():
                 from pipeline import s510_hoerspiel_hybrid as s510
                 jobs = [(x["id"], x["roh"], s510.woerter(x["text"])) for x in nach if os.path.exists(x["roh"])]
+                print(f"[640] {lg}: Wortgrenzen (FA {rg['fa']}) fuer {len(jobs)} Saetze", flush=True)
                 fa = {k_: P5.raender(z) for k_, z in fa_zeiten(jobs, werk, lg, rg["fa"]).items()}
             os.makedirs(audio_dir, exist_ok=True)
             for x in nach:
@@ -546,7 +557,10 @@ def run(werk, wer=None, nur=None, neu=False, satz=None, nur_kosten=False, trocke
                     gr = None
                     e["angenommen"] = True
                 e["grund"] = gr
-                if gr and e.get("versuche", 0) <= int(rg["versuche"]):
+                # 22.11.2026: knapp verfehlte Dauer ist Sprechtempo der Stimme -> Neuvertonung aendert nichts, gleich Mensch
+                knapp = gr == "dauer" and e.get("dauer_q") is not None and \
+                    float(rg["dauer_min"]) / DAUER_KNAPP <= e["dauer_q"] <= float(rg["dauer_max"]) * DAUER_KNAPP
+                if gr and not knapp and e.get("versuche", 0) <= int(rg["versuche"]):
                     auff.append(x)
             m.speichern()
             if not auff or runde >= int(rg["versuche"]):
