@@ -1,10 +1,29 @@
 {
-  "_hinweis": "Stage 080 Rollenregister. rolle: admin | kurator | verlag. Kurator: uid (Standard = Schluessel), grenzen (Aktionen lauf/bestellen/entscheiden/zuruecksetzen), mandanten (weitere eigene Mandanten). Verlag: verlag (id). Nutzer je Lauf: --wer, READLAYER_NUTZER, sonst standard.",
+  "_hinweis": "Stage 080 Rollenregister. rolle: admin | kurator | verlag | autor (verlag/autor = Kundenrollen, nur Kunden-Cockpit /kunde). Kurator/Autor: uid (Standard = Schluessel), mandanten (weitere eigene Mandanten). Verlag: verlag (id), mandanten. grenzen: Aktionen lauf/bestellen/entscheiden/zuruecksetzen. tarif (Nutzer oder Mandant): pay-per-job|basic|pro|enterprise. zugang: Kennwort-Hash, setzen mit py -3.11 -m cockpit.anmeldung setzen <nutzer>. Nutzer je Lauf: --wer, READLAYER_NUTZER, sonst standard.",
   "standard": "CK",
   "nutzer": {
-    "CK": {"rolle": "admin", "name": "Christian Koll-Schwarze"}
+    "CK": {
+      "rolle": "admin",
+      "name": "Christian Koll-Schwarze"
+    },
+    "verlag-demo": {
+      "rolle": "verlag",
+      "name": "Demo-Verlag",
+      "verlag": "verlag-demo",
+      "mandanten": [
+        "user:smoketest"
+      ],
+      "tarif": "basic",
+      "zugang": "pbkdf2$200000$8341a7da8598ca7da6ee0639903539f7$496499e5bc9217bfacd0285b4a37db97df263522da416b69390997dc24c34336"
+    }
   },
   "mandanten": {
-    "somnio": {"imprint": "SOMNIO"}
+    "somnio": {
+      "imprint": "SOMNIO"
+    },
+    "verlag:verlag-demo": {
+      "imprint": "Demo-Verlag",
+      "tarif": "basic"
+    }
   }
 }

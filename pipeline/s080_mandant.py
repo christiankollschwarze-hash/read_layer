@@ -5,7 +5,10 @@ Register:     config/rollen.json (nutzer -> rolle admin/kurator/verlag, grenzen;
 Nutzer:       --wer, sonst Umgebung READLAYER_NUTZER, sonst config/rollen.json "standard" (CK)
 Rollen:       admin   alles inkl. Override
               kurator eigene Werke (besitzer = Nutzer-ID oder mandant user:<id>), Aktionen laut grenzen
-              verlag  eigener Mandant verlag:<id>, Aktionen laut grenzen (spaeter)
+              verlag  eigener Mandant verlag:<id> (+ mandanten), Aktionen laut grenzen; Kundenrolle
+              autor   eigene Werke wie kurator (uid/user:<uid>, + mandanten); Kundenrolle (Selbstverleger)
+Kunden:       verlag/autor sehen nur das Kunden-Cockpit (/kunde, /api/kunde/...), interne Routen -> 403.
+              Tarif je Nutzer ("tarif") oder Mandant ("tarif"), sonst pay-per-job (PRICING_2026-11-21.md).
 Aktionen:     lauf, bestellen, entscheiden, zuruecksetzen, override, mandant
 Abnehmer:     run.py (Kette, Nutzer je Lauf), status-CLI (entscheiden/override/zuruecksetzen),
               615/620 (Imprint aus Mandant), 090/095 (Mandant-Defaults)
@@ -24,10 +27,14 @@ import sys
 from pipeline import bestellung, gate, status
 
 STAGE = "080"
-ROLLEN = ("admin", "kurator", "verlag")
+ROLLEN = ("admin", "kurator", "verlag", "autor")
+KUNDEN_ROLLEN = ("verlag", "autor")
+TARIFE = ("pay-per-job", "basic", "pro", "enterprise")
+TARIF_STANDARD = "pay-per-job"
 AKTIONEN = ("lauf", "bestellen", "entscheiden", "zuruecksetzen", "override", "mandant")
 GRENZEN_STANDARD = {"kurator": ["lauf", "bestellen", "entscheiden", "zuruecksetzen"],
-                    "verlag": ["lauf", "bestellen", "entscheiden"]}
+                    "verlag": ["lauf", "bestellen", "entscheiden"],
+                    "autor": ["lauf", "bestellen", "entscheiden"]}
 IMPRINT_STANDARD = "SOMNIO"
 
 
@@ -60,8 +67,41 @@ def _eigenes_werk(wer, e, r, b):
         return b.besitzer == uid or b.mandant == f"user:{uid}" or b.mandant in e.get("mandanten", [])
     if r == "verlag":
         vid = e.get("verlag") or wer
-        return b.mandant == f"verlag:{vid}"
+        return b.mandant == f"verlag:{vid}" or b.mandant in e.get("mandanten", [])
+    if r == "autor":
+        uid = e.get("uid") or wer
+        return b.besitzer == uid or b.mandant == f"user:{uid}" or b.mandant in e.get("mandanten", [])
     return False
+
+
+def ist_kunde(wer, reg=None):
+    return rolle(wer, reg) in KUNDEN_ROLLEN
+
+
+def eigenes_werk(werk, wer, b=None, reg=None):
+    """Gehoert <werk> zum Mandanten von <wer>? admin: immer. Fehler beim Lesen -> False."""
+    reg = reg or register()
+    r = rolle(wer, reg)
+    if r == "admin":
+        return True
+    if not r:
+        return False
+    try:
+        b = b or bestellung.lesen(werk)
+    except Exception:
+        return False
+    return _eigenes_werk(wer, reg["nutzer"][wer], r, b)
+
+
+def tarif(wer, reg=None):
+    """Tarif des Kunden: Nutzer "tarif" > Mandant "tarif" > pay-per-job."""
+    reg = reg or register()
+    e = (reg.get("nutzer") or {}).get(wer) or {}
+    t = e.get("tarif")
+    if not t:
+        m = (f"verlag:{e.get('verlag') or wer}" if e.get("rolle") == "verlag" else f"user:{e.get('uid') or wer}")
+        t = ((reg.get("mandanten") or {}).get(m) or {}).get("tarif")
+    return t if t in TARIFE else TARIF_STANDARD
 
 
 def pruefen(werk, aktion, wer=None, b=None, reg=None):

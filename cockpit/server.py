@@ -9,6 +9,10 @@ Eine Wahrheit: work/status.json je Werk ueber pipeline.status; Laeufe nur ueber 
 Kein eigener Zustand, keine Auftraege, nichts startet beim Serverstart von selbst.
 Altes Cockpit (Bulk, FLOW-Schritte, daten/auftraege.json, daten/freigaben.json) eingemottet:
 archive/2026-11-03_cockpit_alt/.
+
+Zwei Gleise (23.11.2026): intern (admin/kurator) und Kunde (verlag/autor -> nur /kunde, /api/kunde/...).
+Wer fragt, bestimmt der Server (cockpit/anmeldung.py): Sitzungs-Cookie, sonst eigener Rechner = interner
+Standardnutzer, sonst 401. Kundensitzungen bekommen auf allen internen Routen 403.
 """
 import json
 import os
@@ -20,6 +24,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 BASE = os.path.dirname(HERE)
 sys.path.insert(0, BASE)
 from cockpit import werk_api as WERK  # noqa: E402
+from cockpit import anmeldung as ANM  # noqa: E402
+from cockpit import kunde_api as KUNDE  # noqa: E402
+from pipeline import s080_mandant  # noqa: E402
 
 PORT = 8765
 MIME = {".html": "text/html; charset=utf-8", ".png": "image/png", ".jpg": "image/jpeg",
@@ -31,13 +38,15 @@ MIME = {".html": "text/html; charset=utf-8", ".png": "image/png", ".jpg": "image
 
 
 ABBRUCH = (ConnectionAbortedError, ConnectionResetError, BrokenPipeError)
+LOKAL = ("127.0.0.1", "::1", "::ffff:127.0.0.1")
+OFFEN = ("/kunde", "/api/anmelden", "/api/abmelden")        # ohne Anmeldung erreichbar (+ /vendor/)
 
 
 class H(BaseHTTPRequestHandler):
     def log_message(self, *a):
         pass
 
-    def _send(self, code, body, ctype="application/json"):
+    def _send(self, code, body, ctype="application/json", kopf=None):
         if isinstance(body, (dict, list)) or body is None:
             body = json.dumps(body, ensure_ascii=False).encode("utf-8")
         elif isinstance(body, str):
@@ -47,18 +56,76 @@ class H(BaseHTTPRequestHandler):
             self.send_header("Content-Type", ctype)
             self.send_header("Content-Length", str(len(body)))
             self.send_header("Cache-Control", "no-store")
+            for k, v in (kopf or {}).items():
+                self.send_header(k, v)
             self.end_headers()
             self.wfile.write(body)
         except ABBRUCH:                      # Browser hat die Anfrage abgebrochen (Seitenwechsel, Neuladen)
             self.close_connection = True
 
-    def _teil(self, pfad):
-        return [urllib.parse.unquote(x) for x in pfad[len("/api/werk/"):].split("/")]
+    def _teil(self, pfad, vor="/api/werk/"):
+        return [urllib.parse.unquote(x) for x in pfad[len(vor):].split("/")]
+
+    # ------------------------------------------------------------ Wer fragt? (Server entscheidet)
+    def _wer(self):
+        """-> (wer, art): art 'sitzung' (angemeldet), 'lokal' (eigener Rechner, ohne Sitzung), 'fremd'."""
+        w = ANM.sitzung(ANM.token_aus_cookie(self.headers.get("Cookie")))
+        if w:
+            return w, "sitzung"
+        if self.client_address[0] in LOKAL:
+            return None, "lokal"
+        return None, "fremd"
+
+    def _schranke(self, pfad):
+        """Sperre vor jeder Route. -> (wer, kunde, antwort_gesendet)."""
+        wer, art = self._wer()
+        kunde = art == "sitzung" and s080_mandant.ist_kunde(wer)
+        if pfad in OFFEN or pfad.startswith("/vendor/"):
+            return wer, kunde, False
+        if pfad.startswith("/api/kunde/"):
+            if kunde:
+                return wer, True, False
+            als = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query).get("als", [None])[0]
+            intern = wer if art == "sitzung" else (s080_mandant.nutzer() if art == "lokal" else None)
+            if intern and s080_mandant.rolle(intern) == "admin" and als and s080_mandant.ist_kunde(als):
+                return als, True, False                           # admin: Kundensicht als <kunde> pruefen
+            self._send(401 if art == "fremd" else 403, {"fehler": "Bitte melden Sie sich an."})
+            return wer, kunde, True
+        if kunde:
+            self._send(403, {"fehler": "kein Zugriff"})
+            return wer, kunde, True
+        if art == "fremd":
+            self._send(401, {"fehler": "nicht angemeldet"})
+            return wer, kunde, True
+        return wer, kunde, False
+
+    def _kunde_get(self, pfad, wer):
+        if pfad == "/api/kunde/ich":
+            return self._send(200, KUNDE.ich(wer))
+        if pfad == "/api/kunde/werke":
+            return self._send(200, KUNDE.werke(wer))
+        t = self._teil(pfad, "/api/kunde/werk/")
+        if pfad.startswith("/api/kunde/werk/") and len(t) == 1 and t[0]:
+            try:
+                return self._send(200, KUNDE.werk(t[0], wer))
+            except (KUNDE.KeinZugriff, KeyError):
+                return self._send(404, {"fehler": "nicht gefunden"})
+        return self._send(404, {"fehler": "nicht gefunden"})
 
     def do_GET(self):
         u = urllib.parse.urlparse(self.path)
         q = urllib.parse.parse_qs(u.query)
         try:
+            wer, kunde, fertig = self._schranke(u.path)
+            if fertig:
+                return
+            if u.path == "/kunde":
+                with open(os.path.join(HERE, "kunde.html"), "rb") as f:
+                    return self._send(200, f.read(), MIME[".html"])
+            if u.path.startswith("/api/kunde/"):
+                return self._kunde_get(u.path, wer)
+            if wer:                                     # angemeldet: Nutzer aus der Sitzung, nicht aus ?wer=
+                q["wer"] = [wer]
             if u.path in ("/", "/index.html", "/start"):
                 with open(os.path.join(HERE, "start.html"), "rb") as f:
                     return self._send(200, f.read(), MIME[".html"])
@@ -124,15 +191,43 @@ class H(BaseHTTPRequestHandler):
         except ABBRUCH:
             self.close_connection = True
         except Exception as ex:
-            return self._send(500, {"fehler": str(ex)})
+            return self._send(500, {"fehler": "Interner Fehler"} if self._ist_kunde() else {"fehler": str(ex)})
+
+    def _ist_kunde(self):
+        try:
+            w, art = self._wer()
+            return art == "sitzung" and s080_mandant.ist_kunde(w)
+        except Exception:
+            return True
 
     def do_POST(self):
         n = int(self.headers.get("Content-Length", 0) or 0)
         u = urllib.parse.urlparse(self.path)
+        if n > 300 * 1024 * 1024:
+            return self._send(413, {"ok": False, "fehler": "Datei > 300 MB"})
+        wer, kunde, fertig = self._schranke(u.path)
+        if fertig:
+            return
+        if u.path == "/api/anmelden":
+            try:
+                d = json.loads(self.rfile.read(n) or b"{}")
+            except Exception:
+                d = {}
+            t = ANM.anmelden(str(d.get("nutzer") or ""), str(d.get("kennwort") or ""))
+            if not t:
+                return self._send(401, {"ok": False, "fehler": "Anmeldung fehlgeschlagen."})
+            w = ANM.sitzung(t)
+            return self._send(200, {"ok": True, "kunde": s080_mandant.ist_kunde(w)},
+                              kopf={"Set-Cookie": ANM.cookie_setzen(t)})
+        if u.path == "/api/abmelden":
+            ANM.abmelden(ANM.token_aus_cookie(self.headers.get("Cookie")))
+            return self._send(200, {"ok": True}, kopf={"Set-Cookie": ANM.cookie_loeschen()})
+        if u.path.startswith("/api/kunde/"):
+            return self._send(404, {"fehler": "nicht gefunden"})     # Freigaben folgen (Punkt 5)
         if u.path == "/api/upload":                       # Rohdaten (Datei), Parameter in der URL
             q = urllib.parse.parse_qs(u.query)
-            if n > 300 * 1024 * 1024:
-                return self._send(413, {"ok": False, "fehler": "Datei > 300 MB"})
+            if wer:
+                q["wer"] = [wer]
             inhalt = self.rfile.read(n)
             meta = {k: q.get(k, [""])[0] for k in ("titel", "autor", "sprache", "todesjahr")}
             return self._send(200, WERK.upload(q.get("art", [""])[0], q.get("name", [""])[0], inhalt,
@@ -141,6 +236,8 @@ class H(BaseHTTPRequestHandler):
             data = json.loads(self.rfile.read(n) or b"{}")
         except Exception:
             data = {}
+        if wer and isinstance(data, dict):              # angemeldet: Nutzer aus der Sitzung, nicht aus dem Formular
+            data["wer"] = wer
         try:
             if self.path.startswith("/api/werk/"):
                 t = self._teil(self.path)

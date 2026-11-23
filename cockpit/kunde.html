@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ihre Werke</title>
+<style>
+ body{font-family:system-ui,Segoe UI,sans-serif;margin:0;background:#f6f5f2;color:#222}
+ header{background:#1d2a3a;color:#fff;padding:14px 24px;display:flex;justify-content:space-between;align-items:center}
+ main{max-width:860px;margin:24px auto;padding:0 16px}
+ .karte{background:#fff;border-radius:8px;padding:16px 20px;margin-bottom:12px;box-shadow:0 1px 3px #0002}
+ .karte h3{margin:0 0 4px} .grau{color:#666} a{color:#1d4f8a;cursor:pointer}
+ input{padding:8px;margin:4px 0 10px;width:100%;box-sizing:border-box} button{padding:8px 16px;cursor:pointer}
+ .fehler{color:#a33} table{border-collapse:collapse} td{padding:4px 16px 4px 0}
+</style></head>
+<body>
+<header><b>Ihre Werke</b><span id="kopf"></span></header>
+<main id="inhalt"></main>
+<script>
+const $ = s => document.querySelector(s);
+const esc = t => String(t ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+async function api(p, opt) { const r = await fetch(p, Object.assign({credentials: "same-origin"}, opt || {}));
+  let d = {}; try { d = await r.json(); } catch (e) {} return {status: r.status, d}; }
+
+function anmeldung(msg) {
+  $("#kopf").innerHTML = "";
+  $("#inhalt").innerHTML = `<div class="karte"><h3>Anmeldung</h3>
+    <label>Benutzername<input id="n" autocomplete="username"></label>
+    <label>Kennwort<input id="k" type="password" autocomplete="current-password"></label>
+    <button id="los">Anmelden</button> <span class="fehler">${esc(msg || "")}</span></div>`;
+  $("#los").onclick = async () => {
+    const r = await api("/api/anmelden", {method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({nutzer: $("#n").value.trim(), kennwort: $("#k").value})});
+    if (r.status !== 200) return anmeldung("Benutzername oder Kennwort ist nicht korrekt.");
+    if (!r.d.kunde) { location.href = "/"; return; }
+    start();
+  };
+  $("#k").onkeydown = e => { if (e.key === "Enter") $("#los").click(); };
+}
+
+async function abmelden() { await api("/api/abmelden", {method: "POST"}); anmeldung(); }
+
+async function start() {
+  const ich = await api("/api/kunde/ich");
+  if (ich.status !== 200) return anmeldung();
+  $("#kopf").innerHTML = `${esc(ich.d.name)} · <a id="ab" style="color:#fff">Abmelden</a>`;
+  $("#ab").onclick = abmelden;
+  const id = decodeURIComponent(location.hash.slice(1));
+  return id ? werk(id) : liste();
+}
+
+async function liste() {
+  const r = await api("/api/kunde/werke");
+  const w = r.d.werke || [];
+  $("#inhalt").innerHTML = w.length ? w.map(x => `<div class="karte"><h3><a href="#${encodeURIComponent(x.id)}">${esc(x.titel)}</a></h3>
+      <div class="grau">${esc(x.autor)}</div></div>`).join("")
+    : `<div class="karte">Für Ihr Konto sind noch keine Werke angelegt.</div>`;
+}
+
+async function werk(id) {
+  const r = await api("/api/kunde/werk/" + encodeURIComponent(id));
+  if (r.status !== 200) { $("#inhalt").innerHTML = `<div class="karte">Dieses Werk wurde nicht gefunden. <a href="#">Zur Übersicht</a></div>`; return; }
+  const w = r.d;
+  $("#inhalt").innerHTML = `<p><a href="#">← Alle Werke</a></p><div class="karte"><h3>${esc(w.titel)}</h3>
+    <div class="grau">${esc(w.autor)} · Originalsprache ${esc(w.originalsprache)}</div>
+    <h4>Bestellte Produkte</h4><table>${(w.produkte || []).map(p => `<tr><td>${esc(p.produkt)}</td><td>${esc(p.sprache)}</td></tr>`).join("")}</table></div>`;
+}
+
+window.onhashchange = start;
+start();
+</script>
+</body></html>

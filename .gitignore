@@ -46,3 +46,6 @@ tools/epubcheck-*/
 
 # Ergänzt 24.10.: TTS-Werkordner (Pakete/Messungen je Lauf), Code unter gpu_tts/*.py bleibt versioniert
 gpu_tts/*/
+
+# Kunden-Cockpit Testzugang (23.11.)
+config/demo_zugang.txt
