@@ -795,6 +795,38 @@ def datum_uhrzeit(text, lg="de"):
     return _r_de(_Spur(text), lg, None).t if text else text
 
 
+# ---- Protokoll: Art einer Ersetzung (Monitor 400, 23.11.2026)
+ARTEN = {"roemisch": "Römische Zahl", "zahl": "Zahl/Datum/Uhrzeit", "abk": "Abkürzung", "symbol": "Symbol (§ & %)",
+         "format": "Formatierung entfernt", "sonst": "Sonstiges", "manuell": "von Hand"}
+
+
+def aenderungsart(lese, sprech=""):
+    """Lesetext-Stelle einer Ersetzung -> Art-Schluessel (ARTEN)."""
+    t = (lese or "").strip()
+    if not t or (not sprech.strip() and re.fullmatch(r"[_*\s]+", t)):
+        return "format"
+    if any(ist_roemisch(x) for x in _ROEM_TOKEN.findall(t)) and not re.search(r"[a-zäöüß]{2,}", t):
+        return "roemisch"
+    if re.search(r"[§&%]", t):
+        return "symbol"
+    if re.search(r"\d", t):
+        return "zahl"
+    if "." in t:
+        return "abk"
+    return "sonst"
+
+
+def protokoll(lese, sprech, abb):
+    """Ersetzungen eines Knotens: [{art, lese, sprech}] aus der Abbildung [[s0, s1, l0, l1], ...]."""
+    out = []
+    for s0, s1, l0, l1 in abb or []:
+        la, sa = lese[l0:l1], sprech[s0:s1]
+        if la.strip() == sa.strip():
+            continue
+        out.append({"art": aenderungsart(la, sa), "lese": la, "sprech": sa})
+    return out
+
+
 # ---- Pruefungen (Gate 400)
 def roemisch_offen(s, ueberschrift_=False):
     """Unaufgeloeste roemische Zahlen: Ueberschrift jede (ausser Pronomen I), Fliesstext ab zwei Zeichen."""

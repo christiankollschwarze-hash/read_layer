@@ -675,7 +675,8 @@ def monitor(book_id, stage, wer=None):
             daten = f(book_id)
         except Exception as e:
             dfehler = f"{type(e).__name__}: {e}"
-    kette_kurz = [{"stage": s["stage"], "name": s["name"], "zustand": s["zustand"], "nachbar": s["nachbar"]}
+    kette_kurz = [{"stage": s["stage"], "name": s["name"], "zustand": s["zustand"], "nachbar": s["nachbar"],
+                   "veraltet": bool(s.get("veraltet") or s.get("fehlende_teile"))}
                   for s in w["stages"] if s["bestellt"]]
     mit = [s for s in w["stages"] if s["stage"] in kette.mitlaeufer(stage) and s["bestellt"]]
     return {"book_id": book_id, "wer": w["wer"], "rolle": w["rolle"], "rechte": w["rechte"], "ampel": w["ampel"],
@@ -2184,9 +2185,25 @@ def _m400_daten(book_id):
             if lg in premium and "direction" not in x:
                 x["direction"] = ((prod.get("direction") or {}).get(x["id"]) or {}).get(lg)
         js = {art: len(l) for art, l in (p.get("fehler") or {}).items()}
+        # Protokoll der Sprechtext-Anpassungen (23.11.2026): wo und wie der Audio-Text vom Lesetext abweicht
+        man = set(p.get("manuell") or [])
+        prot, zp = [], {}
+        for tid, sv in (prod.get("sprechtext") or {}).items():
+            sp_t, le_t = (sv or {}).get(lg), str((inh.get(tid) or {}).get(lg) or "")
+            if not isinstance(sp_t, str) or sp_t == le_t:
+                continue
+            st_ = [{"art": "manuell", "lese": le_t, "sprech": sp_t}] if tid in man else \
+                P.st.protokoll(le_t, sp_t, ((prod.get("abbildung") or {}).get(tid) or {}).get(lg))
+            for x in st_:
+                zp[x["art"]] = zp.get(x["art"], 0) + 1
+            if st_:
+                prot.append({"id": tid, "kapitel": tid.split("_")[0] if tid.startswith("c") else "ansage",
+                             "text": le_t, "sprechtext": sp_t, "stellen": st_})
+        prot.sort(key=lambda x: x["id"])
         sprachen[lg] = {"befunde": bf, "zaehler": js, "premium": lg in premium, "hoerbuch": lg in hoerbuch,
                         "leer": len(p.get("leer") or []), "ohne_aussprache": p.get("ohne_aussprache") or {},
-                        "ansagen": (aus.get("ansagen") or {}).get(lg) or []}
+                        "ansagen": (aus.get("ansagen") or {}).get(lg) or [],
+                        "protokoll": prot, "protokoll_zaehler": zp}
     begr = []
     for bg in P.begriffe(profil, korr.get("aussprache")):
         e = bg["e"]
@@ -2205,7 +2222,7 @@ def _m400_daten(book_id):
             "style_max": int(roh.get("audio_style_max") or P.STYLE_MAX),
             "standard": {"laenge_max": P.LAENGE_MAX, "style_max": P.STYLE_MAX},
             "namensprache": rg.get("namensprache"), "tts_backend": rg.get("tts_backend") or getattr(config, "TTS_BACKEND", ""),
-            "regeln_v": rg.get("regeln_v"), "erzeugt": rg.get("erzeugt"), "begriffe": begr, "skip": skip,
+            "regeln_v": rg.get("regeln_v"), "arten": P.st.ARTEN, "erzeugt": rg.get("erzeugt"), "begriffe": begr, "skip": skip,
             "sprachen": sprachen,
             "regie": P.directions_from_reglers(P._load_reglers(book_id)),
             "abk": {lg: {"werk": P.st._abk_norm((roh.get("abk_sprech") or {}).get(lg)),

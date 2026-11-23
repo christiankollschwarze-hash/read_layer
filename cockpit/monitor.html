@@ -11,6 +11,7 @@ main{max-width:1200px;margin:0 auto}
 .geaendert{color:var(--s-mensch);font-weight:600}
 details.ausnahme{margin-top:10px}
 .freigabe{margin-top:12px;padding:12px 14px;border:2px solid var(--s-mensch);border-radius:var(--r-s);background:color-mix(in srgb,var(--s-mensch) 6%,transparent)}
+#kette a.veraltet{border-style:dashed;border-color:var(--s-mensch)}
 .schritt{border:2px solid var(--ink)}.schritt h2{margin-bottom:4px}a.knopf{display:inline-block;padding:9px 18px;border:1px solid var(--ink);border-radius:999px;text-decoration:none;font:600 13px/1 var(--ui)}a.knopf.haupt{background:var(--ink);color:var(--paper)}
 .freigabe h3{margin:0 0 4px}details.ausnahme summary{cursor:pointer;color:var(--ink-3);font-size:12px}
 .dateien{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
@@ -118,7 +119,7 @@ async function laden(){
   $("kopfwerk").innerHTML=`<b>${esc(d.titel)}</b> <span class="klein">${esc(d.book_id)}</span>`;
   $("kette").innerHTML=d.kette.map(k=>k.nachbar
    ?`<a class="mit ${esc(k.zustand)} ${k.stage==d.stage.stage?"akt":""}" title="${esc(k.name)}: ${esc(k.zustand)} – läuft mit ${esc(k.nachbar)}" href="#${esc(d.book_id)}/${k.nachbar}">${k.stage}</a>`
-   :`<a class="${esc(k.zustand)} ${k.stage==d.stage.stage?"akt":""}" title="${esc(k.name)}: ${esc(k.zustand)}" href="#${esc(d.book_id)}/${k.stage}">${k.stage}</a>`).join("");
+   :`<a class="${esc(k.zustand)} ${k.stage==d.stage.stage?"akt":""} ${k.veraltet?"veraltet":""}" title="${esc(k.name)}: ${esc(k.zustand)}${k.veraltet?" – veraltet, neu laufen lassen":""}" href="#${esc(d.book_id)}/${k.stage}">${k.stage}${k.veraltet?" ↻":""}</a>`).join("");
   document.title=`${d.stage.stage} ${d.stage.name} – ${d.book_id}`;
   LAUF=d.lauf||null;ampelZeigen(d.ampel);gateZeigen();
   const mon=MON[d.stage.stage];
@@ -1375,10 +1376,28 @@ MON["095"]={
   }
 };
 MON["400"]={
-  E:null,lg:null,fa:"",fk:"",seite:0,N:40,
+  E:null,lg:null,fa:"",fk:"",seite:0,N:40,pa:"",
   AN:{roemisch_h:"römisch (Überschrift)",roemisch:"römisch",reste:"Reste (Ziffern § & %)",abkuerzung:"Abkürzung offen",laenge:"Länge",style:"Style",manuell:"manuell"},
   leer(){return {spr:{},regler:{},pausen:{},aussprache:{},skip:new Set(),skip_weg:new Set(),laenge_max:null,style_max:null,abk:{}};},
   S(lg){return this.E.spr[lg]=this.E.spr[lg]||{text:{}};},
+  // Protokoll der Sprechtext-Anpassungen (23.11.2026): was 400 für die Aussprache geändert hat
+  protHtml(d,sp,lg){
+    const P=sp.protokoll||[],Z=sp.protokoll_zaehler||{},A=d.arten||{},n=Object.values(Z).reduce((a,b)=>a+b,0);
+    const L=this.pa?P.filter(x=>x.stellen.some(y=>y.art==this.pa)):P,max=300;
+    const chip=(k,t,v)=>`<button class="${this.pa==k?"haupt":""}" onclick="MON['400'].pa='${k}';MON['400'].neuZeichnen()">${esc(t)} · ${v}</button>`;
+    return `<div class="box"><h2>Protokoll: was 400 für die Aussprache geändert hat · ${esc(lg)}</h2>
+     <div class="klein">Der Lesetext (Buch, ePub, App) bleibt unverändert. Für das Audio schreibt 400 Zahlen, römische Zahlen, Abkürzungen und Symbole aus, damit die Stimme sie richtig spricht. ${n?`${n} Stelle(n) in ${P.length} Satz/Sätzen.`:"Keine Stelle geändert."}</div>
+     ${n?`<div class="akt">${chip("","alle",n)} ${Object.entries(Z).map(([k,v])=>chip(k,A[k]||k,v)).join(" ")}
+       <button onclick="MON['400'].protCsv()">Protokoll als CSV</button></div>
+      <table class="kapt"><tr><th>Satz</th><th>Art</th><th>Im Buch</th><th>Gesprochen</th></tr>
+      ${L.slice(0,max).map(x=>x.stellen.filter(y=>!this.pa||y.art==this.pa).map((y,i)=>`<tr>${i?"<td></td>":`<td class="klein" title="${esc(x.text)}">${esc(x.id)}</td>`}<td class="klein">${esc(A[y.art]||y.art)}</td>
+        <td>${y.art=="manuell"?this.diff(x.text,x.sprechtext)[0]:`<span class="d400a">${esc(y.lese)}</span>`}</td><td>${y.art=="manuell"?this.diff(x.text,x.sprechtext)[1]:`<span class="d400b">${esc(y.sprech)}</span>`}</td></tr>`).join("")).join("")}</table>
+      ${L.length>max?`<div class="klein">… ${L.length-max} weitere – vollständig im CSV.</div>`:""}`:""}</div>`;},
+  protCsv(){const lg=this.lg,sp=M.daten.sprachen[lg],A=M.daten.arten||{},q=v=>'"'+String(v??"").replace(/"/g,'""')+'"';
+    const z=[["satz","art","im_buch","gesprochen","satz_buch","satz_gesprochen"].join(";")];
+    for(const x of sp.protokoll||[])for(const y of x.stellen)z.push([x.id,A[y.art]||y.art,y.lese,y.sprech,x.text,x.sprechtext].map(q).join(";"));
+    const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\ufeff"+z.join("\n")],{type:"text/csv"}));
+    a.download=`${M.book_id}_400_sprechtext_${lg}.csv`;a.click();},
   diff(a,b){/* Wortdiff: -> [htmlA, htmlB] mit markierten Abweichungen */
     const x=a.split(/(\s+)/),y=b.split(/(\s+)/),n=x.length,m=y.length;
     if(n*m>90000)return [esc(a),esc(b)];
@@ -1414,6 +1433,7 @@ MON["400"]={
         ${sp.leer?`<tr><td><span class="dot" style="background:var(--s-stopp)"></span></td><td>Knoten ohne Text</td><td>${sp.leer}</td><td class="klein">→ 310</td></tr>`:""}</table></span>
       <span>Ansagen</span><span class="klein">${sp.ansagen.length?sp.ansagen.map(a=>`<b>${esc(a.art)}</b> (${esc(a.position)}, ${a.pause_after_ms} ms): ${esc(a.sprechtext)}`).join("<br>"):"keine (kein Hörbuch in dieser Sprache)"}</span>
       ${sp.premium?`<span>Regie (Stil)</span><span class="klein">${Object.entries(d.regie).map(([t,r])=>`<b>${esc(t)}</b>: ${esc(r)}`).join("<br>")}</span>`:""}</div></div>
+    ${this.protHtml(d,sp,lg)}
     <div class="box"><h2>2 Bearbeiten · Befundliste ${esc(lg)} <span class="klein" id="n400"></span></h2>
      <div class="akt">Befund <select onchange="MON['400'].fa=this.value;MON['400'].seite=0;MON['400'].liste()"><option value="">alle</option>${Object.entries(this.AN).map(([k,v])=>`<option value="${k}" ${this.fa==k?"selected":""}>${v}</option>`).join("")}</select>
       Kapitel <select onchange="MON['400'].fk=this.value;MON['400'].seite=0;MON['400'].liste()"><option value="">alle</option>${[...new Set(sp.befunde.map(x=>x.kapitel))].sort().map(k=>`<option ${this.fk==k?"selected":""}>${k}</option>`).join("")}</select>
