@@ -2884,7 +2884,7 @@ MON["700"]={
      ${d.id_deckung.ok===false?`<div class="err klein">Satz-IDs fehlen: ${Object.entries(d.id_deckung.fehlt).map(([lg,n])=>esc(lg)+" "+n).join(", ")} → <a href="#${esc(M.book_id)}/310">310</a></div>`:""}
      <table class="kapt"><tr><th>Produkt</th><th>Zustand</th><th>Bausteine (grün = ok, Klick öffnet die Stage)</th><th>liefern</th></tr>
      ${d.produkte.map(p=>{const h_=E.halt.has(p.scope),l_=E.liefern.has(p.scope);return `<tr class="${h_||l_?"sel":""}"><td>${this.pn(p)}<br><span class="klein">${esc(p.scope)}</span></td>
-      <td>${zb(p.zustand)}${p.zustand=="mensch"&&M.rechte.entscheiden.ok?`<br><button onclick="MON['700'].abnehmen('${p.scope}')">abnehmen</button>`:""}</td>
+      <td>${zb(p.zustand)}${p.zustand=="mensch"&&M.rechte.entscheiden.ok?`<br><input type="text" id="ab700_${String(p.scope).replace(/\W/g,"_")}" placeholder="Begründung (Pflicht)" size="20"> <button onclick="MON['700'].abnehmen('${p.scope}')">abnehmen</button>`:""}</td>
       <td>${p.artefakte.length?p.artefakte.map(a=>{const ok=!(a.befunde||[]).length;return `<a href="#${esc(M.book_id)}/${esc(a.stage)}" title="${esc((a.befunde||[]).join("; ")||a.datei||"")}" style="text-decoration:none"><span class="z ${ok?"frei":"stopp"}">${esc(a.stage)} ${esc(a.name.replace(/_[a-z]{2}$/,""))}</span></a>`;}).join(" "):'<span class="klein">–</span>'}
        ${p.gruende.length&&p.zustand=="stopp"?`<div class="klein err">${p.gruende.slice(0,3).map(esc).join("<br>")}${p.gruende.length>3?"<br>…":""}</div>`:""}</td>
       <td class="klein">${p.zurueckgehalten?`<span class="z mensch">zurückgehalten</span> ${esc(p.zurueckgehalten.wer||"")}: ${esc(p.zurueckgehalten.grund||"")}<br><label><input type="checkbox" ${l_?"checked":""} onchange="MON['700'].tg('liefern','${p.scope}',this.checked)"> wieder liefern</label>`
@@ -2900,7 +2900,7 @@ MON["700"]={
   neuZeichnen(){$("inhalt").innerHTML=this.html(M.daten);this.danach();},
   tg(was,sc,an){an?this.E[was].add(sc):this.E[was].delete(sc);this.neuZeichnen();},
   zf(){const E=this.E,t=[];if(E.halt.size)t.push("zurückhalten: "+[...E.halt].join(", "));if(E.liefern.size)t.push("wieder liefern: "+[...E.liefern].join(", "));const el=$("zf700");if(el)el.textContent=t.join(" · ");},
-  async abnehmen(sc){const grund=prompt("Endabnahme "+sc+" – Begründung:");if(!grund||!grund.trim())return;
+  async abnehmen(sc){const el=$("ab700_"+String(sc).replace(/\W/g,"_")),grund=el?el.value:"";if(!grund.trim()){alert("Endabnahme "+sc+": Begründung ist Pflicht");el&&el.focus();return;}
     const r=await api(`/api/werk/${B()}/aktion`,{art:"entscheiden",stage:"700",nach:"frei",grund:grund.trim(),scope:sc,wer:$("wer").value});if(!r.ok)alert(r.fehler);laden();},
   los(){const E=this.E,e={};if(E.halt.size){if(!E.grund.trim()){alert("Zurückhalten braucht einen Grund");return;}e.zurueckhalten=[...E.halt];e.grund=E.grund.trim();}
     if(E.liefern.size)e.liefern=[...E.liefern];if(!Object.keys(e).length&&!confirm("Nichts geändert – 700 nur neu prüfen?"))return;
