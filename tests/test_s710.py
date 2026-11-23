@@ -106,7 +106,7 @@ class T710(unittest.TestCase):
         self.assertEqual(set(gs), {"en:taella", "de:taella"})
         for g in gs.values():
             self.assertEqual(g.ergebnis["ergebnis"], "mensch", g.bericht())
-            self.assertIn("erstes Freischalten", " ".join(g.ergebnis["gruende"]))
+            self.assertIn("Erstes Freischalten", " ".join(g.ergebnis["gruende"]))
         self.assertFalse(os.path.exists(os.path.join(self.pub, "demo", "katalog.json")))
         en = self.pub_json("demo/w/manifest_en.json")
         de = self.pub_json("demo/w/manifest_de.json")

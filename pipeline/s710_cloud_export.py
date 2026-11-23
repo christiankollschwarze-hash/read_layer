@@ -957,10 +957,11 @@ def run(werk, wer=None, ziel=None, nur=None, bitrate=None, nur_manifest=False, f
         if uid:
             return None
         if verlag and (fg.get("hash") or {}).get(f"{lg}:taella") != ausgabe_hash.get(lg):
-            return "Mandant verlag: Abnahme vor Katalog (python -m pipeline.s710_cloud_export " \
-                   f"{werk} --freigeben)"
+            return ("Abnahme durch den Verlag: im Cockpit (Monitor 710) „Im Katalog freischalten“ "
+                    f"(Kommandozeile: --freigeben)")
         if not fg and not zurueck:
-            return f"erstes Freischalten im oeffentlichen Katalog: python -m pipeline.s710_cloud_export {werk} --freigeben"
+            return ("Erstes Freischalten im öffentlichen TÆLLA-Katalog: im Cockpit (Monitor 710) „Im Katalog freischalten“ "
+                    "(Kommandozeile: --freigeben)")
         return None
     offen = {lg: mensch_offen(lg) for lg in gruen}
     sichtbar = [lg for lg in gruen if not offen[lg]]
@@ -1053,9 +1054,10 @@ def run(werk, wer=None, ziel=None, nur=None, bitrate=None, nur_manifest=False, f
                     g.hinweis("hochgeladen", True, text=f"auf Plattform hochgeladen von {hoch.get('wer')} ({hoch.get('wann')})")
                 elif ok:
                     pl = [v["name"] for v in (ex_meta[lg].get("plattformen") or {}).values() if v.get("zulaessig")]
-                    mensch = (f"Paket bereit: {pak_rel}/ ({len(e_p)} Dateien, {ex_meta[lg].get('dauer_s', 0) / 60:.0f} min)"
-                              f" – Upload manuell auf {', '.join(pl) or '–'}, danach python -m pipeline.s710_cloud_export "
-                              f"{werk} --extern-hochgeladen {lg}")
+                    mensch = (f"Paket bereit ({len(e_p)} Dateien, {ex_meta[lg].get('dauer_s', 0) / 60:.0f} min): "
+                              f"herunterladen und von Hand hochladen auf {', '.join(pl) or '–'}; danach im Cockpit "
+                              f"(Monitor 710) „Upload bestätigen“ – oder den Kanal in 700 zurückhalten "
+                              f"(Kommandozeile: --extern-hochgeladen {lg})")
                 if not ex_meta[lg].get("isbn"):
                     g.hinweis("isbn", False, text="ISBN leer (Plattform vergibt bzw. manuell in metadaten.json)")
                 ex_neu[lg] = {"paket": pak_rel, "dateien": e_p, "ausgabe_hash": h, "zeit": manifest.jetzt(),

@@ -102,6 +102,18 @@ class H(BaseHTTPRequestHandler):
                     return self._send(200, WERK.monitor_teil(t[0], t[2], {k: v[0] for k, v in q.items()}))
                 if len(t) == 1 and t[0]:
                     return self._send(200, WERK.werk(t[0], q.get("wer", [None])[0] or None))
+            if u.path == "/paket.zip":                    # Ordner als ZIP (Monitor 710: Plattform-Paket)
+                import io, zipfile
+                p = os.path.normpath(os.path.join(BASE, q.get("p", [""])[0]))
+                if not p.startswith(BASE) or not os.path.isdir(p):
+                    return self._send(404, {"fehler": "nicht gefunden"})
+                buf = io.BytesIO()
+                with zipfile.ZipFile(buf, "w", zipfile.ZIP_STORED) as z:
+                    for wurzel, _, dateien in os.walk(p):
+                        for d in sorted(dateien):
+                            f = os.path.join(wurzel, d)
+                            z.write(f, os.path.relpath(f, p))
+                return self._send(200, buf.getvalue(), "application/zip")
             if u.path == "/datei":
                 p = os.path.normpath(os.path.join(BASE, q.get("p", [""])[0]))
                 if not p.startswith(BASE) or not os.path.isfile(p):

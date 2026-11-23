@@ -2935,18 +2935,26 @@ MON["710"]={
   entscheidungText(d){const o=this.offen(d),t=[];
     if(o.katalog.length)t.push(d.verlag?`<b>Abnahme Verlag:</b> TÆLLA ${o.katalog.map(k=>esc(k.sprache)).join(", ")} ist hochgeladen, aber noch unsichtbar. Freigeben macht es im Katalog sichtbar.`
       :`<b>Erstes Freischalten:</b> Das Werk liegt fertig in der Cloud, ist aber noch unsichtbar. Freigeben stellt es in den öffentlichen TÆLLA-Katalog (einmal je Werk, spätere Updates laufen automatisch).`);
-    if(o.extern.length)t.push(`<b>Hörbuch-Plattform:</b> Das Paket ${o.extern.map(k=>esc(k.sprache)).join(", ")} liegt bereit (unten). Lade es von Hand auf der Plattform hoch – Freigeben bestätigt danach „hochgeladen“.`);
+    if(o.katalog.length)t.push(`„Freigeben“ hier oben schaltet <b>nur den TÆLLA-Katalog</b> frei.`);
+    if(o.extern.length)t.push(`<b>Hörbuch-Plattformen:</b> Das Paket ${o.extern.map(k=>esc(k.sprache)).join(", ")} liegt bereit (unten im Kasten „Plattform-Paket“). Herunterladen, von Hand auf den Plattformen hochladen und erst danach dort „Upload bestätigen“. Willst du (noch) nicht auf Plattformen ausliefern: den Kanal in <a href="#${esc(M.book_id)}/700">700</a> zurückhalten.`);
     if(o.rest.length)t.push(o.rest.map(k=>esc(k.scope)+": "+k.gruende.map(esc).join("; ")).join(" · "));
     return t.join("<br>");},
   freigeben(grund){const o=this.offen(M.daten),e={grund,wer:$("wer").value};
-    if(o.katalog.length)e.freigeben=true;if(o.extern.length)e.extern_hochgeladen=o.extern.map(k=>k.sprache);
-    if(!e.freigeben&&!e.extern_hochgeladen){entscheideStandard("frei",grund);return;}
+    if(o.katalog.length)e.freigeben=true;   // nur Katalog – Plattform-Upload wird je Sprache unten bestätigt
+    else if(o.extern.length){alert("Offen ist nur der Plattform-Upload. Bitte unten im Kasten „Plattform-Paket“ je Sprache bestätigen, wenn du hochgeladen hast – oder den Kanal in 700 zurückhalten.");return;}
+    else{entscheideStandard("frei",grund);return;}
     api(`/api/werk/${B()}/monitor/710`,e).then(r=>{if(!r.ok)alert(r.fehler);else laufZeigen(r.lauf);});},
+  hochgeladen(lg){const el=$("hg710_"+lg),g=el?el.value.trim():"";
+    if(!$("hgok710_"+lg).checked){alert("Bitte bestätigen, dass das Paket "+lg+" wirklich hochgeladen ist.");return;}
+    if(!g){alert("Bitte angeben, wo hochgeladen (z. B. Google Play, Spotify)");el&&el.focus();return;}
+    api(`/api/werk/${B()}/monitor/710`,{extern_hochgeladen:[lg],grund:g,wer:$("wer").value}).then(r=>{if(!r.ok)alert(r.fehler);else laufZeigen(r.lauf);});},
   naechster(d){
     const o=this.offen(d),st=M.stage.zustand;
     if(this.geaendert())return schritt(this.E.zurueck?"Werk aus dem Katalog nehmen (Dateien bleiben liegen).":"Du hast Auslieferungs-Regler geändert. Übernehmen startet 710 (0 $ LLM, nur Upload).",`<button class="haupt" onclick="MON['710'].los(false)">Übernehmen und 710 starten</button>`);
     if(!["frei","auto"].includes(d.zustand_700))return schritt(`Ausgeliefert wird nur, was der Auslieferungs-Vertrag (700) freigibt – 700 steht auf „${esc(d.zustand_700)}“.`,`<a class="knopf haupt" href="#${esc(M.book_id)}/700">→ 700 öffnen</a>`);
-    if(o.katalog.length||o.extern.length)return schritt(o.extern.length&&!o.katalog.length?"Extern-Paket hochladen, dann oben „Freigeben“ (= hochgeladen bestätigen).":"Oben im Kasten „Entscheidung nötig“ freigeben.","");
+    if(o.katalog.length)return schritt(`Oben im Kasten „Entscheidung nötig“ freigeben – das stellt das Werk in den TÆLLA-Katalog.${o.extern.length?" Die Hörbuch-Plattformen sind ein eigener Schritt (unten, „Plattform-Paket“).":""}`,"");
+    if(o.extern.length)return schritt(`Plattform-Paket ${o.extern.map(k=>esc(k.sprache)).join(", ")} herunterladen, auf den Plattformen hochladen und danach unten im Kasten „Plattform-Paket“ den Upload bestätigen. Nicht auf Plattformen ausliefern? Kanal in 700 zurückhalten.`,
+      o.extern.map(k=>{const x=M.daten.extern[k.sprache]||{};return x.paket?`<a class="knopf haupt" download="${esc(M.book_id)}_${esc(k.sprache)}_plattform.zip" href="/paket.zip?p=${encodeURIComponent(x.paket)}">Paket ${esc(k.sprache)} herunterladen</a>`:"";}).join(" ")+` <a class="knopf" href="#${esc(M.book_id)}/700">→ 700 (zurückhalten)</a>`);
     if(st=="stopp")return schritt("710 ist angehalten. Ursache oben unter „Befunde“ – Upload-Fehler: einfach neu starten; sonst Rücksprung.",`<button class="haupt" onclick="pruefen()">710 neu starten</button>`);
     if(["frei","auto"].includes(st))return schritt(d.zurueckgezogen?"Das Werk ist zurückgezogen (unsichtbar).":"Ausgeliefert. Das Werk ist im Katalog.","");
     return schritt("Noch nicht ausgeliefert. Tipp: erst „Probelauf“ unten – er zeigt im Lauf-Log, welche Dateien neu/geändert/verwaist wären.",`<button class="haupt" onclick="pruefen()">710 ausliefern</button>`);
@@ -2967,7 +2975,12 @@ MON["710"]={
      <div class="feld"><span>Ordner</span><span>${esc(x.paket||"")}/ · ${x.dateien} Dateien</span>
       <span>Metadaten</span><span>${esc(x.meta.titel||"–")} · ${esc(x.meta.autor||"–")} · gelesen von ${esc(x.meta.sprecher||"–")} · ${esc(x.meta.sprache||"")} · ISBN ${esc(x.meta.isbn||"leer")}${x.meta.dauer_s?" · "+Math.round(x.meta.dauer_s/60)+" min":""}</span>
       <span>Plattformen</span><span>${x.plattformen.map(p=>`<span class="z ${p.zulaessig?"frei":p.zulaessig===false?"stopp":"mensch"}">${esc(p.name)}</span>`).join(" ")||"–"}</span>
-      <span>Hochgeladen</span><span>${x.hochgeladen?`${esc(x.hochgeladen.wer)} ${esc((x.hochgeladen.wann||"").slice(0,16).replace("T"," "))}`:'<span class="klein">noch nicht bestätigt</span>'}</span></div></div>`;
+      <span>Paket</span><span>${x.paket?`<a class="knopf" download="${esc(M.book_id)}_${esc(lg)}_plattform.zip" href="/paket.zip?p=${encodeURIComponent(x.paket)}">Als ZIP herunterladen</a>`:"–"}</span>
+      <span>Hochgeladen</span><span>${x.hochgeladen?`${esc(x.hochgeladen.wer)} ${esc((x.hochgeladen.wann||"").slice(0,16).replace("T"," "))}`
+        :(d.kanaele.some(k=>k.sprache==lg&&k.kanal=="extern"&&k.zustand=="mensch")&&M.rechte.entscheiden.ok
+          ?`<span class="klein">noch nicht bestätigt</span><div class="akt"><label><input type="checkbox" id="hgok710_${esc(lg)}"> Paket ${esc(lg)} ist hochgeladen</label>
+             <input type="text" id="hg710_${esc(lg)}" size="34" placeholder="wo? z. B. Google Play, Spotify (Pflicht)"> <button class="haupt" onclick="MON['710'].hochgeladen('${esc(lg)}')">Upload bestätigen</button></div>`
+          :'<span class="klein">noch nicht bestätigt</span>')}</span></div></div>`;
     h+=`<div class="box"><h2>2 Bearbeiten</h2>
      <div class="akt">Ziel <select onchange="MON['710'].E.ziel=this.value||null;MON['710'].neuZeichnen()"><option value="">Standard (${esc(d.standardziel)})</option>${["gcs","lokal"].map(z=>`<option ${E.ziel==z?"selected":""}>${z}</option>`).join("")}</select>
       Bitrate TÆLLA <input type="text" size="5" value="${esc(E.bitrate??d.bitrate)}" onchange="MON['710'].E.bitrate=this.value.trim()==M.daten.bitrate?null:this.value.trim();MON['710'].neuZeichnen()">
