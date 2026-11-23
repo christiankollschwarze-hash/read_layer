@@ -23,7 +23,8 @@ Gate:          je Scope: Gate 700 frei + Scope lieferbar, Text/Audio/Wortzeit-Ab
                --extern-hochgeladen LG; gilt bei gleichem ausgabe_hash -> auto).
 Ziel-Adapter:  GCS (Bucket config.GCS_BUCKET, ifGenerationMatch) | Lokal (Ordner config.APP_PUBLIC, Standard
                ../taella-app/public; demo/<slug>/ bzw. privat/<uid>/<slug>/). status.json nur beim Standardziel
-               (config.AUSLIEFERUNG_ZIEL, Standard gcs); andere Ziele nur Manifest + Bericht.
+               (config.AUSLIEFERUNG_ZIEL, Standard lokal seit 23.11.2026); andere Ziele nur Manifest + Bericht;
+               config.AUSLIEFERUNG_ZUSATZ = weitere Ziele, die jeder Standardlauf mit beliefert (ohne Status).
 Eingang:       Gate 700 + work/700_guard.json, book.json (Bestellung, Mandant 080), work/330_rueckuebersetzung.json
                (ohne Uebersetzung work/200_tagging.json), 340_wortalignment.json, 400_regie.json, 520_pruefung_<lg>.json +
                audio_final/ bzw. hoerspiel_final/, 530_wortzeiten_<lg>[_hoerspiel].json, 535_wortbruecke.json,
@@ -1136,6 +1137,19 @@ def main(argv=None):
         return 1
     for g in gates:
         print(g.bericht())
+    # Zusatzziele (config.AUSLIEFERUNG_ZUSATZ, z. B. Mockup lokal neben gcs): gleiche Auslieferung, ohne Status;
+    # Entscheidungen (Freigabe, Zurueckziehen, Upload) sind oben schon gespeichert und gelten dort mit.
+    if not a.ziel and not a.dry:
+        for z in getattr(config, "AUSLIEFERUNG_ZUSATZ", []) or []:
+            if z.split(":", 1)[0] == standardziel():
+                continue
+            try:
+                print(f"[710] Zusatzziel {z}")
+                for g in run(a.werk, a.wer, ziel=z, nur=a.lang, bitrate=a.bitrate, nur_manifest=a.nur_manifest,
+                             kanaele=a.kanal):
+                    print(g.bericht())
+            except (ValueError, RuntimeError) as e:
+                print(f"[710] Zusatzziel {z}: {e}")
     return gate.EXIT[gate.gesamt([g.ergebnis["ergebnis"] for g in gates] or ["auto"])]
 
 
