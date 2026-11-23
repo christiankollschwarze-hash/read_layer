@@ -1,5 +1,13 @@
 # PROJEKTSTAND — Read Layer
 
+## AP Kunden-Cockpit – Punkt 1+2 ERLEDIGT 23.11.2026 (Commit dcd42cb; Sicherung archive/2026-11-23_kunde/)
+- Rollen (pipeline/s080_mandant.py): neu autor; KUNDEN_ROLLEN verlag/autor; ist_kunde(), eigenes_werk() (verlag auch ueber "mandanten"), tarif() (Nutzer > Mandant > pay-per-job). config/rollen.json: Testkunde verlag-demo (Tarif basic, mandanten user:smoketest -> Smoke-Werk u-smoketest-the-mirror-sisters).
+- Anmeldung cockpit/anmeldung.py: Kennwort-Hash (pbkdf2) als "zugang" in rollen.json, setzen: py -3.11 -m cockpit.anmeldung setzen <nutzer>. Sitzung per Cookie (HttpOnly, SameSite=Strict, 12 h, nur im Speicher). Testzugang verlag-demo: config/demo_zugang.txt (gitignored).
+- Server (cockpit/server.py): Schranke vor jeder Route. Kundensitzung -> 403 auf allen internen Routen (/, /werk, /monitor, /api/werk..., /datei, /paket.zip, Upload, POSTs). Ohne Sitzung: eigener Rechner = intern wie bisher, von aussen 401. Angemeldete Sitzung schlaegt ?wer=/Formular-wer. Fehlertexte fuer Kunden ohne Details.
+- Kunden-API cockpit/kunde_api.py (Whitelist): GET /api/kunde/ich | werke | werk/<id> (fremd/unbekannt -> 404). Admin lokal: ?als=<kunde> zeigt die Kundensicht. Seite /kunde (cockpit/kunde.html): Anmeldung, Werkliste, Werk mit Produkten (Sie-Form).
+- Tests: tests/test_kunde.py (9, gruen; u. a. 403-Liste, 401 von aussen, Suche nach verbotenen Begriffen); test_s080, test_cockpit_werk gruen.
+- OFFEN (naechste Punkte): 3 Preismodul pipeline/preis.py (mit AP Kostendeckel), 4 Fortschritt/ETC, 5 Schrittleiste + Freigaben (Bestellung, Endabnahme zuerst), Downloads ueber /api/kunde (nicht /datei), 6 Abnahmetest gegen echte Antworten. Serverbindung bleibt 127.0.0.1 – fuer echten Kundenzugang Freigabe nach aussen (HTTPS) noch zu klaeren.
+
 ## AP Tausch 520/530 – ERLEDIGT 23.11.2026
 ACHTUNG Nummern: Seit 23.11.2026 gilt 520 = Audio-Pruefung (vorher 530), 530 = Wortzeiten (vorher 520), 535 = Wortbruecke (vorher 525, Teil von 530). Aeltere Prompts, Notizen, BOARD-/AP-Dateien, Logs und dieser PROJEKTSTAND unterhalb dieses Abschnitts nutzen die ALTEN Nummern.
 - Code: pipeline/s520_audio_pruefung.py, s530_wortzeiten.py, s535_wortbruecke.py; tests/test_s520.py (Audio) / test_s530.py (Wortzeiten); status.STAGES, kette.VORGAENGER (650 haengt jetzt an 520), run.py, Cockpit (werk_api, monitor.html), stage_hilfe.json, config, usage_log (TEIL 535->530), gpu_fa/gpu_tts/gpu_sprache, Altweg-Tools. Ausgaben work/520_pruefung_<lg>.json, 520_hoerliste, 520_entscheidungen; work/530_wortzeiten_<lg>[_hoerspiel].json, 530_pruefung, 530_korrekturen, 535_wortbruecke.json; einheit sekunden_clip_relativ_endfassung_520.
