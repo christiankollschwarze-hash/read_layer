@@ -4,6 +4,7 @@
     {"abk": "ch.", "wort": "chapter", "plural": "chapters", "zahl_sprechen": true},
     {"abk": "chap.", "wort": "chapter", "plural": "chapters", "zahl_sprechen": true},
     {"abk": "chaps.", "wort": "chapters", "zahl_sprechen": true},
+    {"abk": "p.m.", "wort": "", "hinweis": "Uhrzeit, bleibt (nicht p. = page)"},
     {"abk": "p.", "wort": "page", "plural": "pages", "bedingung": "zahl", "zahl_sprechen": true},
     {"abk": "pp.", "wort": "pages", "zahl_sprechen": true},
     {"abk": "f.", "wort": "and the following", "bedingung": "nach_zahl"},

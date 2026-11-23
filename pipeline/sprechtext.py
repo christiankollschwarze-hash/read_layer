@@ -14,6 +14,10 @@ Standard-Regeln (Reihenfolge):
     "Louis Quatorze"; Pronomen "I" bleibt ("Then I went")
   5 DE: Datumsspanne, Datum, Uhrzeit, "ca.", Ordinalzahl vor Zeit-/Zaehlwort ("19. Jahrhunderts")
   6 Jahresspanne "1860-1935" -> "1860 bis/to/a/à/a 1935"
+  8 Roemisch (REGELN_V 5, 23.11.2026): Ueberschrift auch nach Trenner ("Sun Tzu: IV. Titel", "Teil 2 – IV");
+    Ordnungszahl vor Zeit-/Zaehlwort ("XIX. Jahrhundert" -> "neunzehnten Jahrhundert", fr "XIXe siècle");
+    DE-Herrscher gebeugt nach Praeposition/Artikel ("unter Ludwig XIV." -> "unter Ludwig dem Vierzehnten",
+    "Zeit Ludwigs XIV." -> "Ludwigs des Vierzehnten")
   7 Abkuerzungen (REGELN_V 4, 22.11.2026; vor Regel 3): Tabelle config/abk_sprech_<lg>.json + book.json abk_sprech
     ("p. 12" -> "page twelve", "pp. 12–14" -> "pages twelve to fourteen", "S. 12 ff." -> "Seite zwölf folgende",
     "ch. IV" -> "chapter four"); mehrdeutige (f., p., ed.) nur mit Bedingung, sonst Befund abk_offen (Gate 400)
@@ -31,7 +35,7 @@ try:
 except Exception:                                   # pragma: no cover
     _n2w = None
 
-REGELN_V = 4                                        # 4: Abkuerzungen sprechen (22.11.2026)
+REGELN_V = 5                                        # 4: Abkuerzungen sprechen (22.11.2026); 5: Roemisch (23.11.2026)
 SPRACHEN = ("en", "de", "es", "fr", "it")
 
 # ============================================================ Zahlwoerter
@@ -195,7 +199,7 @@ def _r_kursiv(sp, lg, typ):
     return sp.sub(_KURSIV, lambda m: "")
 
 
-_KOPF = re.compile(r"^\s*([IVXLCDM]+)(?![\w])")
+_KOPF = re.compile(r"(?:^\s*|[:–—]\s*)([IVXLCDM]+)(?![\w])")      # Anfang oder nach ":"/"–"/"—"
 
 
 def _r_ueberschrift(sp, lg, typ):
@@ -251,6 +255,41 @@ _KEIN_NAME = {x.lower() for x in (
     "In Im Aus Von Vom See Siehe Vgl Cf Compare From To Of On At By With Nach Bei Zu Zur Zum").split()}
 
 
+_ZAEHL = {"klasse", "stufe", "grad", "typ", "tafel", "abbildung", "abb", "nr", "nummer", "seite", "zimmer", "raum",
+          "class", "grade", "type", "plate", "figure", "fig", "no", "number", "page", "room", "level", "form", "year"}
+_DAT = {"unter", "mit", "von", "vom", "bei", "beim", "nach", "zu", "zum", "aus", "seit", "gegenüber", "dem", "einem",
+        "vor", "hinter", "neben", "zwischen", "in", "im", "an", "am", "auf", "über", "ab", "samt", "nebst"}
+_AKK = {"für", "gegen", "ohne", "um", "durch", "den", "einen", "wider"}
+_GEN = {"des", "eines", "während", "wegen", "trotz", "statt", "anstatt", "infolge", "seitens", "anlässlich"}
+_TITEL_DE = {"könig", "königs", "kaiser", "kaisers", "papst", "papstes", "zar", "zaren", "herzog", "herzogs", "graf",
+             "grafen", "fürst", "fürsten", "prinz", "prinzen", "sankt", "kurfürst", "kurfürsten", "landgraf", "markgraf"}
+
+
+def _kasus_de(vor, name):
+    """Artikel fuer 'Name + roemische Zahl' aus dem Wort davor (Titel werden uebersprungen)."""
+    if name[-1:] in "'’":                               # "Franz’ I. Niederlage" (Genitiv-Apostroph)
+        return "des"
+    k = re.search(r"([A-ZÄÖÜ][\w'’-]+)\s+([IVXLCDM]+)\.?\s*,?\s+(?:und|oder|sowie)\s+$", vor)
+    if k and ist_roemisch(k.group(2)):                  # "unter Ludwig XIV. und Heinrich VIII." -> gleicher Fall
+        return _kasus_de(vor[:k.start()], k.group(1))
+    w = re.findall(r"[\wÄÖÜäöüß]+", vor)[-4:]
+    titel = False
+    while w and w[-1].lower() in _TITEL_DE:
+        w.pop()
+        titel = True
+    letztes = w[-1] if w else ""
+    if letztes.lower() in _DAT:
+        return "dem"
+    if letztes.lower() in _AKK:
+        return "den"
+    if letztes.lower() in _GEN:
+        return "des"
+    # "die Zeit Ludwigs XIV." (Substantiv davor, Name mit Genitiv-s)
+    if not titel and name.endswith("s") and letztes[:1].isupper() and letztes.lower() not in _KEIN_NAME:
+        return "des"
+    return "der"
+
+
 def _r_herrscher(sp, lg, typ):
     def f(m):
         name, tok = m.group(1), m.group(3)
@@ -260,20 +299,28 @@ def _r_herrscher(sp, lg, typ):
             nach = sp.t[m.end():m.end() + 1]
             if nach and nach not in ".,;:!?)»”\"'’":
                 return None
+        if len(tok) == 1 and re.match(r"\.,", sp.t[m.end():]):
+            return None                                 # Initiale: "Arnim, Hans V., ..."
         n = roemisch_zu_int(tok)
         if not 0 < n <= 50:
             return None
+        if name.lower().rstrip(".") in _ZAEHL:          # "Klasse IV" -> "Klasse vier" (kein Herrscher)
+            w = zahlwort(n, lg)
+            return [(m.start(3), m.end(3), w)] if w else None
         if lg == "fr":
             w = "Premier" if n == 1 else _gross(zahlwort(n, "fr") or "")
         else:
             o = ordinalwort(n, lg)
             if not o:
                 return None
-            w = {"en": "the " + _gross(o), "de": "der " + _gross(o)}.get(lg, _gross(o))
+            w = {"en": "the " + _gross(o)}.get(lg, _gross(o))
+            if lg == "de":
+                art = _kasus_de(sp.t[:m.start(1)], name)
+                w = art + " " + _gross(o if art == "der" else ordinal_de(n, art))
         if not w:
             return None
         ende = m.end(3)
-        if lg == "de" and re.match(r"\.\s+[a-zäöüß]", sp.t[ende:]):
+        if lg == "de" and (re.match(r"\.\s+[a-zäöüß]", sp.t[ende:]) or (w.startswith("des ") and sp.t[ende:ende + 1] == ".")):
             ende += 1                                   # "Heinrich VIII. war" -> "Heinrich der Achte war"
         return [(m.start(3), ende, w)]
     return sp.sub(_HERR, f)
@@ -327,6 +374,29 @@ def _r_de(sp, lg, typ):
 
     sp.sub(_DAT_SPANNE, spanne).sub(_DATUM, datum).sub(_UHR, uhr).sub(_CA, lambda m: "circa")
     return sp.sub(_ORD, ordz)
+
+
+_ORD_ROEM = re.compile(r"(?:(\w+)\s+)?(?<![\w])([IVXLCDM]{1,7})\.\s+(?=(?:" + _ORD_NOMEN + r")\w*\b)")
+_ORD_ROEM_FR = re.compile(r"(?<![\w])([IVXLCDM]{1,7})(?:e|ème|ᵉ)\s+(?=siècle|millénaire)")
+
+
+def _r_roem_ordinal(sp, lg, typ):
+    """'im XIX. Jahrhundert' -> 'im neunzehnten Jahrhundert'; fr 'XIXe siècle' -> 'dix-neuvième siècle'."""
+    if lg == "de":
+        def f(m):
+            tok = m.group(2)
+            if not ist_roemisch(tok) or (len(tok) == 1 and tok not in "IVX"):
+                return None
+            n = roemisch_zu_int(tok)
+            return [(m.start(2), m.end(2) + 1, ordinal_de(n, m.group(1) or ""))] if 0 < n < 100 else None
+        return sp.sub(_ORD_ROEM, f)
+    if lg == "fr":
+        def g(m):
+            tok = m.group(1)
+            o = ordinalwort(roemisch_zu_int(tok), "fr") if ist_roemisch(tok) else None
+            return [(m.start(1), m.end() - 1, o)] if o else None
+        return sp.sub(_ORD_ROEM_FR, g)
+    return sp
 
 
 _SPANNE = re.compile(r"\b(\d{3,4})\s*[-–]\s*(\d{3,4})\b")
@@ -593,7 +663,8 @@ def abk_lesetext(s, lg="en", tab=None, auslassen=(), hand=None):
     return "".join(out), stellen, offen_
 
 
-STANDARD = (_r_kursiv, _r_ueberschrift, _r_roem_paragraf, _r_roem_zitat, _r_abk, _r_schluessel, _r_herrscher, _r_de,
+STANDARD = (_r_kursiv, _r_ueberschrift, _r_roem_paragraf, _r_roem_zitat, _r_abk, _r_schluessel, _r_roem_ordinal,
+            _r_herrscher, _r_de,
             _r_spanne)
 
 # ============================================================ Erweiterte Regeln

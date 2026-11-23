@@ -117,7 +117,7 @@ class T400(unittest.TestCase):
         p = d["production"]
         self.assertEqual(p["sprechtext"]["c001_00001_h"]["de"], "Kapitel vier")
         self.assertEqual(p["sprechtext"]["c002_00001_h"]["de"], "Fünf.")
-        self.assertIn("der Achte", p["sprechtext"]["c001_00002_s"]["de"])
+        self.assertIn("Heinrich dem Achten", p["sprechtext"]["c001_00002_s"]["de"])
         self.assertIn("c001_00002_s", p["abbildung"])
         self.assertNotIn("en", p["sprechtext"]["c001_00001_h"])          # nur bestellte Audiosprache
         self.assertIn("c001_00004_p", p["pause_after_ms"])

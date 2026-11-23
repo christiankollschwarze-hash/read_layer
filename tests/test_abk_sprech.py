@@ -164,7 +164,7 @@ class T400Abk(unittest.TestCase):
         self.assertEqual(p["c001_00002_s"]["en"], "See chapter sixty-five and page twelve.")
         self.assertEqual(p["c001_00002_s"]["de"], "Siehe Kapitel fünfundsechzig und Seite zwölf folgende.")
         self.assertEqual(p["c001_00003_s"]["de"], "Die Notiz ist alt, vergleiche Anmerkung zwei.")
-        self.assertEqual(d["meta"]["regie"]["regeln_v"], 4)
+        self.assertEqual(d["meta"]["regie"]["regeln_v"], 5)
         # in die Werktabelle uebernehmen -> auto
         g = self.lauf(abk_sprech=["en:f.=folio"])
         with open(os.path.join(self.d, "book.json"), encoding="utf-8") as fh:
