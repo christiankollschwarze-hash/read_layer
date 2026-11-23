@@ -2,7 +2,7 @@
 
 Zwei Figuren mit EINER Grundstimme (Zwillinge) unterscheiden sich nur ueber die Sprechweise. Umsetzung nach dem Vertonen
 mit Praat "Change gender" (pipeline/s510_hoerspiel_hybrid.korrigieren): tonhoehe_ht (F0-Median) + formant_faktor; Dauer bleibt,
-Wortzeiten (520) bleiben gueltig. Grenzen wie Abstandsregel: Formant 0,94-1,10, Tonhoehe +-2 HT.
+Wortzeiten (530) bleiben gueltig. Grenzen wie Abstandsregel: Formant 0,94-1,10, Tonhoehe +-2 HT.
 
 casting.json plan.sprechweise:
   {"<Figur>": {"standard": {"tonhoehe_ht": -1.0, "formant_faktor": 0.98},

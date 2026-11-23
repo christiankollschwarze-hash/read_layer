@@ -3,7 +3,7 @@ Funktion:     Vertont den Klappentext aus 600 satzweise (Koeder -> Einordnung ->
               Schaufenster. Stimme = Erzaehler des Werks aus casting.json (Engine aus der Stufe: Basic ->
               Chatterbox/Modal, Premium/Drama -> Gemini), ohne Audio-Bestellung der Sprache Zuordnung Genre-
               Gruppe/hauptfigur_geschlecht/Autor-Geschlecht (claude/PROZESS_klappentext_erzaehler.md) -> Gemini.
-Komponenten:  pipeline/s640_teaser.py; Pruefbausteine aus s530 (Raender, Tempo, Lautheit, Whisper-CER),
+Komponenten:  pipeline/s640_teaser.py; Pruefbausteine aus s520 (Raender, Tempo, Lautheit, Whisper-CER),
               s500 (Gemini synth, Stimme/Engine, Kosten), s502 (Chatterbox-Paket, Stage 640), s510 (FA)
 Eingang:      work/600_klappentext.json (blurb je Sprache, meta: ton, genre_gruppe, hauptfigur_geschlecht, autor,
               wirkungssprache) + Gate 600 frei; casting.json freigegeben + Gate 410 frei (Sprache mit Audio);
@@ -286,8 +286,8 @@ def fa_zeiten(jobs, werk, lg, art):
 
 
 def sprache_pruefen(jobs, werk, lg, art):
-    """jobs [(key, wav)] -> {key: {top, p, text, dauer}}; Modal mit CPU-Rueckfall (Bausteine 530)."""
-    from pipeline import s530_audio_pruefung as P5
+    """jobs [(key, wav)] -> {key: {top, p, text, dauer}}; Modal mit CPU-Rueckfall (Bausteine 520)."""
+    from pipeline import s520_audio_pruefung as P5
     if not jobs or art == "aus":
         return {}
     if art == "modal" and len(jobs) < WHISPER_LOKAL_UNTER:   # 22.11.2026: Kaltstart Modal ~4 min fuer 5 Saetze
@@ -314,7 +314,7 @@ def sprache_pruefen(jobs, werk, lg, art):
 
 
 def werkzeuge(rg):
-    from pipeline import s530_audio_pruefung as P5
+    from pipeline import s520_audio_pruefung as P5
     return P5.werkzeuge_pruefen(rg["fa"], rg["sprache"], True, rg["sprache"] != "aus")
 
 
@@ -330,7 +330,7 @@ def mp3(wav, ziel):
 def nachbearbeiten(roh, ziel, w, rg, tempo):
     """Raender (FA) schneiden, Tempo, Lautheit je Satz, Spitze begrenzen -> MP3. -> Pruefwerte."""
     from pipeline import s510_hoerspiel_hybrid as s510
-    from pipeline import s530_audio_pruefung as P5
+    from pipeline import s520_audio_pruefung as P5
     x = s510.lesen(roh)
     y, rand = P5.schneiden(x, w, float(rg["vor"]), float(rg["nach"]), tempo)
     y = P5.tempo_anwenden(y, tempo)
@@ -376,7 +376,7 @@ def sprachen(b):
 
 def run(werk, wer=None, nur=None, neu=False, satz=None, nur_kosten=False, trocken=False):
     """satz: {"<lg>/<id>"} neu vertonen. -> Liste der Gates (je Sprache)."""
-    from pipeline import s530_audio_pruefung as P5
+    from pipeline import s520_audio_pruefung as P5
     from pipeline.s600_klappentext import autor_laden
     wer = wer or "pipeline"
     b = bestellung.lesen(werk)

@@ -1,5 +1,5 @@
 """STAGE 340 — Wort-Alignment (Umbau Phase 2, GATE_KATALOG.md Zeile 340, 02.11.2026; 345 integriert)
-Funktion:     Ordnet jedem Quellwort sein Fragment im fertigen Zielsatz zu (Wort-Tippen TAELLA, Anker fuer 520/525/710),
+Funktion:     Ordnet jedem Quellwort sein Fragment im fertigen Zielsatz zu (Wort-Tippen TAELLA, Anker fuer 530/535/710),
               prueft auf verschobene Anker (Pruefaligner awesome-align, Modal T4) und repariert, Gate je Zielsprache.
 Wirkungsweise: Je Kapitel x Zielsprache (TAELLA-Produkt in Zielsprache): DeepSeek (Rolle aligner, Regler --modell)
               bekommt nummerierte Quellwoerter + fertigen Zielsatz und kopiert je Wort das Fragment (Index -> Fragment,
@@ -15,7 +15,7 @@ Eingang:      work/330_rueckuebersetzung.json (Stand nach Reparatur, Gate 330 fr
               work/340_korrekturen.json (manuelle Anker).
 Ausgabe:      work/340_wortalignment.json = 330 + je Satz `align_<lg>` (i, Quellwort/-span, Zielfragment/-span, source),
               `align_h` {lg: Hash Quelle+Ziel}, `verschiebung` {lg: Ketten}; `align` = erste Zielsprache (Altschnittstelle
-              fuer 520/525/710 bis zu deren Umbau); meta.wortalignment. work/340_pruefung.json (je Sprache auffaellige
+              fuer 530/535/710 bis zu deren Umbau); meta.wortalignment. work/340_pruefung.json (je Sprache auffaellige
               Saetze: fehlt/unresolved/verschoben/doppelt/Inhaltswoerter ohne Anker).
 Gate:         je Zielsprache: Abdeckung (jeder Satz aligned, Wortzahl = Quell-Tokens), Spans gueltig, Aktualitaet -> Stopp;
               Inhaltswoerter mit Anker >= 95 %, unresolved <= 3 %, verschoben <= 1 %, doppelt belegt <= 1 % -> sonst Mensch;
@@ -38,7 +38,7 @@ Aufruf:       python -m pipeline.s340_wortalignment <werk> [Regler] [--wer CK]
 Exit: 0 auto, 2 Stopp, 3 Mensch, 1 Fehler.
 
 Konvention (seit 17.07.2026, nicht ohne Ruecksprache aendern): Quellwort-Index "i" = \\S+-Token des Quellsatzes,
-"<quelle>_span" = Zeichenposition im Quellsatz; 520/525 docken ueber genau diesen Index/Span an.
+"<quelle>_span" = Zeichenposition im Quellsatz; 530/535 docken ueber genau diesen Index/Span an.
 """
 
 import argparse
@@ -277,7 +277,7 @@ def resolve_alignment(en_text, de_text, model_result, src=None, lg=None):
     return words
 
 
-# ---- Ziel-Spans je Anker (aus s525 hierher verlagert, Befund 345 (3)) ----
+# ---- Ziel-Spans je Anker (aus s535 hierher verlagert, Befund 345 (3)) ----
 def _grenze(text, a, b):
     vor = a == 0 or not text[a - 1].isalpha()
     nach = b == len(text) or not text[b].isalpha()

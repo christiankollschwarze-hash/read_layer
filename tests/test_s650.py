@@ -52,7 +52,7 @@ class T650(unittest.TestCase):
         config.book_dir, config.work_dir, config.RUN_MODE, config.author_of, s410.stimme = self.alt
         self.tmp.cleanup()
 
-    def werk(self, w="w", kanaele=("epub",), ansagen=ANS, g530="auto", kap190=2, cover=True):
+    def werk(self, w="w", kanaele=("epub",), ansagen=ANS, g520="auto", kap190=2, cover=True):
         d = os.path.join(self.r, w)
         dump({"book_slug": w, "quelle": "gutenberg", "gutenberg_id": 1, "quellsprache": "en", "fassung": "original",
               "mandant": "somnio", "titel_original": "The Mill", "autor_name": "Jane Doe",
@@ -63,15 +63,15 @@ class T650(unittest.TestCase):
         dump({"content": {t: {"type": ty, "en": tx} for t, (ty, tx) in C.items()},
               "production": {"pause_after_ms": {t: {"en": 400} for t in C}}, "ansagen": {"en": list(ansagen)}},
              os.path.join(d, "work", "400_regie.json"))
-        m = manifest.Manifest(w, "530_pruefung_en", stage="530")
+        m = manifest.Manifest(w, "520_pruefung_en", stage="520")
         for i, t in enumerate(list(C) + [a["id"] for a in ansagen]):
             p = os.path.join(d, "fassungen", "en", "audio_final", f"{t}.wav")
             wav(p, 0.8 + 0.1 * (i % 3), seed=i + 1)
             m.setzen(f"hoerbuch/{t}", "x", datei=p, dauer=1.0)
         m.speichern()
         self.m5 = m
-        if g530:
-            S.ergebnis(w, "530", g530, wer="test")
+        if g520:
+            S.ergebnis(w, "520", g520, wer="test")
         if kap190:
             S.ergebnis(w, "190", "auto", metriken={"kapitel": kap190}, wer="test")
         if cover and "extern" in kanaele:
@@ -131,7 +131,7 @@ class T650(unittest.TestCase):
                               for k in self.man()["kapitel"]})
         p = os.path.join(self.r, "w", "fassungen", "en", "audio_final", "c002_00002_s.wav")
         wav(p, 1.5, seed=99)
-        m5 = manifest.Manifest("w", "530_pruefung_en")
+        m5 = manifest.Manifest("w", "520_pruefung_en")
         m5.setzen("hoerbuch/c002_00002_s", "y", datei=p)
         m5.speichern()
         self.lauf()
@@ -170,20 +170,20 @@ class T650(unittest.TestCase):
         self.assertEqual((g.ergebnis["ergebnis"], g.ergebnis["ruecksprung"]), ("stopp", "615"))
 
     # ---------------------------------------------------------------- Stopps / Mensch
-    def test_luecke_mock_530_kapitel(self):
+    def test_luecke_mock_520_kapitel(self):
         self.werk()
         os.remove(os.path.join(self.r, "w", "fassungen", "en", "audio_final", "c001_00003_s.wav"))
         g = self.lauf()["en"]
-        self.assertEqual((g.ergebnis["ergebnis"], g.ergebnis["ruecksprung"]), ("stopp", "530"))
+        self.assertEqual((g.ergebnis["ergebnis"], g.ergebnis["ruecksprung"]), ("stopp", "520"))
         self.werk("m")
         p = os.path.join(self.r, "m", "fassungen", "en", "audio_final", "c001_00002_s.wav")
         mock.wav(p)
-        m5 = manifest.Manifest("m", "530_pruefung_en")
+        m5 = manifest.Manifest("m", "520_pruefung_en")
         m5.setzen("hoerbuch/c001_00002_s", "x", datei=p)
         m5.speichern()
         self.assertEqual(self.lauf("m")["en"].ergebnis["ergebnis"], "stopp")
-        self.werk("g", g530="mensch")
-        self.assertEqual(self.lauf("g")["en"].ergebnis["ruecksprung"], "530")
+        self.werk("g", g520="mensch")
+        self.assertEqual(self.lauf("g")["en"].ergebnis["ruecksprung"], "520")
         self.werk("k", kap190=3)
         g = self.lauf("k")["en"]
         self.assertEqual((g.ergebnis["ergebnis"], g.ergebnis["ruecksprung"]), ("stopp", "400"))

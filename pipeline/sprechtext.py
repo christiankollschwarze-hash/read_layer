@@ -1,7 +1,7 @@
 """READ LAYER - Sprechtext-Regeln (Stage 400; Text/EPUB/App bleiben unveraendert).
 
 Funktion:  Lesetext -> Sprechtext je Sprache (en, de, es, fr, it) plus Abbildung Sprechtext-Span -> Lesetext-Span
-           (fuer 520: FA auf dem Sprechtext, Rueckabbildung auf den Lesetext).
+           (fuer 530: FA auf dem Sprechtext, Rueckabbildung auf den Lesetext).
 Genutzt:   pipeline/s400_regie.py (schreibt production.sprechtext/abbildung), bis zum Umbau 500 auch
            tools/tts_paket.py, tools/teaser_paket.py, tools/overlay_gemini.py, s500_vertonung_gemini.py.
 

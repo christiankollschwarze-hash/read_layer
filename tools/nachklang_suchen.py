@@ -32,7 +32,7 @@ def ton_s(db, von, bis):
 
 def main(werk, langs):
     for lang in langs:
-        wt = json.loads((werk / "work" / f"520_wortzeiten_{lang}.json").read_text(encoding="utf-8"))["tags"]
+        wt = json.loads((werk / "work" / f"530_wortzeiten_{lang}.json").read_text(encoding="utf-8"))["tags"]
         treffer = []
         for tag, e in wt.items():
             p = werk / "fassungen" / lang / "audio" / f"{tag}.wav"

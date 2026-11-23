@@ -1,7 +1,7 @@
 """READ LAYER — AP 62 Punkt 4: Schnitt-Zeitpunkte (MMS_FA) fuer die Hoerspiel-Stufe 510 auf Modal-GPU.
 Gleicher Aligner wie lokal (pipeline/fa_mms.py), nur READLAYER_FA_DEVICE=cuda.
 Wird aus pipeline/s510_hoerspiel_hybrid.py (zeiten_modal) ueber `with app.run():` aufgerufen (je WAV eine Wortliste) –
-genutzt von 510 (Schnitt), 530 (Raender) und 520 (Wortzeiten). Rueckfall: CPU (lokal). GPU-Liste ["L4", "A10G", "T4"].
+genutzt von 510 (Schnitt), 520 (Raender) und 530 (Wortzeiten). Rueckfall: CPU (lokal). GPU-Liste ["L4", "A10G", "T4"].
 """
 from pathlib import Path
 import modal

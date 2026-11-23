@@ -3,7 +3,7 @@ READ LAYER — Orchestrator (Phase 2, Fundament 6, 01.11.2026)
 ============================================================
 Eine Kette fuer jedes Werk, Reihenfolge laut Gate-Katalog (pipeline.status.STAGES):
   080 090 095 100 110 150 115 120 190 195 200 210 300 310 320 330 340 400 410 420
-  500 510 530 520 540 600 610 615 650 620 630 640 700 710
+  500 510 520 530 540 600 610 615 650 620 630 640 700 710
 - Welche Stages laufen bzw. entfallen, kommt aus der Bestellung in book.json (095, pipeline.kette.bedarf
   -> status.bedarf_setzen). Linien (--line epub/audio) gibt es nicht mehr.
 - Jede Stage startet nur bei freiem Vorgaenger-Gate (gate.vorgaenger_frei, Katalog-Eingaenge aus
@@ -27,7 +27,7 @@ Aufruf:
   python run.py <werk> --only 630         nur eine Stage
                                           (--only/--from nehmen Nachbar-Stages mit: 310 -> 300, 330 -> 320,
                                           095 -> 090; ohne --force fuer die Mitlaeufer, s. kette.NACHBAR)
-  python run.py <werk> --lang de          sprachweise Stages (500 510 520 630 710) nur fuer de
+  python run.py <werk> --lang de          sprachweise Stages (500 510 530 630 710) nur fuer de
   python run.py <werk> --force            frei/Ausgabe vorhanden ignorieren, neu ausfuehren
   python run.py <werk> --live             RUN_MODE=live fuer diesen Lauf
   python run.py <werk> --plan             nur zeigen: Stage, laeuft/entfaellt, Zustand, Vorgaenger
@@ -46,7 +46,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from config import config
 
 # Stages, die ihr Gate selbst ueber gate.py/status.py schreiben (waechst mit jedem Stage-Umbau).
-UMGEBAUT = {"080", "090", "095", "100", "110", "115", "120", "150", "190", "195", "200", "210", "300", "310", "320", "330", "340", "400", "410", "420", "500", "510", "530", "520", "540", "600", "610", "615", "620", "630", "640", "650", "700", "710"}
+UMGEBAUT = {"080", "090", "095", "100", "110", "115", "120", "150", "190", "195", "200", "210", "300", "310", "320", "330", "340", "400", "410", "420", "500", "510", "520", "530", "540", "600", "610", "615", "620", "630", "640", "650", "700", "710"}
 
 
 
@@ -128,8 +128,8 @@ NEU = {"090": _neu("pipeline.s090_eingang"),
        "420": _neu("pipeline.s420_sprecher"),
        "500": _neu("pipeline.s500_vertonung_gemini"),
        "510": _neu("pipeline.s510_hoerspiel_hybrid"),
-       "530": _neu("pipeline.s530_audio_pruefung"),
-       "520": _neu("pipeline.s520_wortzeiten"),
+       "520": _neu("pipeline.s520_audio_pruefung"),
+       "530": _neu("pipeline.s530_wortzeiten"),
        "540": _neu("pipeline.s540_trennung"),
        "600": _neu("pipeline.s600_klappentext"),
        "610": _neu("pipeline.s610_cover"),

@@ -3,21 +3,21 @@ Funktion:     Prueft je Hoerspiel-Sprache und besetzter Figur, ob die Figurenstu
               vom Erzaehler DES WERKS getrennt sind (ECAPA-Kosinusabstand der Sprecher-Embeddings) und naeher an der
               Zielstimme (Figuren-Takes 510, sonst Archivmuster) liegen als am Erzaehler. Kontrolle: die Hoerbuchspur
               muss fuer pyannote EIN Sprecher sein. D (F0 x VTL, Praat) und pyannote-Anteil je Figur nur Anzeige.
-Wirkungsweise: Figurenstuecke aus hoerspiel_final/ (530): Satz-Segmente 420 -> Lesetext-Token (400-Abbildung) ->
-              Wortzeiten 520_wortzeiten_<lg>_hoerspiel; ohne Wortzeiten anteilig aus dem Schnittprotokoll 510. Erzaehler
+Wirkungsweise: Figurenstuecke aus hoerspiel_final/ (520): Satz-Segmente 420 -> Lesetext-Token (400-Abbildung) ->
+              Wortzeiten 530_wortzeiten_<lg>_hoerspiel; ohne Wortzeiten anteilig aus dem Schnittprotokoll 510. Erzaehler
               = Saetze ohne Figurenrede aus audio_final/. Messpaket work/_540/<lg>/paket -> ECAPA + pyannote auf Modal
               (T4, gpu_messung/messung_modal.py) oder CPU (gpu_messung/messung_gpu.py), Praat lokal. Eingangs-Hash je
               Sprache: unveraenderte Eingaenge -> keine neue Messung (0 $). Nicht getrennt und Formantgrenze nicht
-              erreicht -> 1x automatisch Nachrunde: Korrektur eine Stufe weiter (casting.json mit Protokoll), 510 -> 530
-              -> 520 bauen nur die betroffenen Saetze neu (Hash), dann neue Messung.
-Eingang:      work/510_overlay.json (Schnittprotokoll, Figuren je Satz), work/530_pruefung_<lg>.json + hoerspiel_final/ und
-              audio_final/, work/520_wortzeiten_<lg>_hoerspiel.json, work/420_sprecher.json, work/400_regie.json,
+              erreicht -> 1x automatisch Nachrunde: Korrektur eine Stufe weiter (casting.json mit Protokoll), 510 -> 520
+              -> 530 bauen nur die betroffenen Saetze neu (Hash), dann neue Messung.
+Eingang:      work/510_overlay.json (Schnittprotokoll, Figuren je Satz), work/520_pruefung_<lg>.json + hoerspiel_final/ und
+              audio_final/, work/530_wortzeiten_<lg>_hoerspiel.json, work/420_sprecher.json, work/400_regie.json,
               work/casting.json (Schema 2 freigegeben: Erzaehler, Ensemble, Korrekturstufe), Takes work/_510/<lg>/takes/,
               stimmen_archiv/_trennungsregel.json (Regel mit Version).
 Ausgabe:      work/540_trennung_<lg>.json (je Figur ECAPA, D, pyannote, Runde, Urteil, Hoerproben), work/_540/<lg>/
               (Paket, Messergebnis, Hoerproben), work/540_entscheidungen.json (Annahmen, Nachrunden-Zaehler).
               casting.json nur Korrekturstufe mit Protokoll (keine Pruefergebnisse).
-Gate:         je Figur x Sprache: Hoerspiel bestellt, Gates 410/420/510/530/520 frei, Casting freigegeben, Endfassung
+Gate:         je Figur x Sprache: Hoerspiel bestellt, Gates 410/420/510/520/530 frei, Casting freigegeben, Endfassung
               aktuell, Korrektur 510 = casting, Werkzeuge (Praat, Modal bzw. speechbrain/pyannote, HF_TOKEN) -> sonst
               Stopp; Messfehler -> 1x automatisch neu, dann Stopp; ECAPA >= Schwelle (Regel, 0,599) und naeher an der
               Zielstimme -> auto; sonst Nachrunde (1x), danach bzw. an der Grenze -> Mensch (umbesetzen -> 410 /
@@ -26,7 +26,7 @@ Gate:         je Figur x Sprache: Hoerspiel bestellt, Gates 410/420/510/530/520 
 Kosten:       usage_log Stage 540 (Modal-T4-Sekunden je Sprache, ~0,03 $); Praat/CPU 0 $.
 Regler:       book.json trennung_regler: --messung modal|cpu, --ecapa-min, --redezeit-min, --nachrunde an|aus,
               --erzaehler-s, --spur-max-s; dazu --korrektur FIGUR:LG=F[,HT]|weg --grund (Korrekturstufe manuell, auch
-              mehrfach; danach EIN Neubau 510 -> 530 -> 520), --annehmen FIGUR:LG --grund (mehrfach;
+              mehrfach; danach EIN Neubau 510 -> 520 -> 530), --annehmen FIGUR:LG --grund (mehrfach;
               trotz Befund, Protokoll), --neu (Messung neu),
               --lang, --trocken, --eichen LG (Regel neu eichen, nur Admin, neue Regelversion).
 Aufruf:       py -3.11 -m pipeline.s540_trennung <werk> [Regler] [--wer CK]
@@ -54,8 +54,8 @@ from pipeline import bestellung, gate, manifest, mock, status, trennung, usage_l
 from pipeline import s410_casting as s410
 from pipeline import s420_sprecher as s420
 from pipeline import s510_hoerspiel_hybrid as s510
-from pipeline import s520_wortzeiten as s520
-from pipeline import s525_wortbruecke as s525
+from pipeline import s530_wortzeiten as s530
+from pipeline import s535_wortbruecke as s535
 
 STAGE = "540"
 VERSION = 1
@@ -216,14 +216,14 @@ def _seg_spans(segs, text):
 
 def regionen(segs, besetzt, lese, sprech, abb, tags, dauer, prot=None, pad=0.05):
     """-> ([{q, t0, t1}], quelle) Sprecherregionen (q = Figur oder Erzaehler) in Sekunden der Endfassung.
-    Segmente 420 -> Lesetext-Spannen (direkt oder ueber die 400-Abbildung) -> \\S+-Token -> Wortzeiten 520;
+    Segmente 420 -> Lesetext-Spannen (direkt oder ueber die 400-Abbildung) -> \\S+-Token -> Wortzeiten 530;
     ohne Wortzeiten anteilig aus dem Schnittprotokoll 510 (Stuecklaengen auf die Enddauer skaliert)."""
     qs = [g["s"] if g["s"] in besetzt else ERZ for g in segs]
     lspan = _seg_spans(segs, lese)
     if lspan is None:
         sp = _seg_spans(segs, sprech)
         if sp is not None:
-            karte = s520.lese_karte(sprech, abb)
+            karte = s530.lese_karte(sprech, abb)
             lspan = []
             for x in sp:
                 ks = karte[x[0]:x[1]] if x else []
@@ -231,7 +231,7 @@ def regionen(segs, besetzt, lese, sprech, abb, tags, dauer, prot=None, pad=0.05)
     if lspan is not None and tags:
         zeit = {int(e["i"]): (float(e["t0"]), float(e["t1"])) for e in tags}
         runs = []
-        for i, (c0, c1) in enumerate(s525.token_spans(lese)):
+        for i, (c0, c1) in enumerate(s535.token_spans(lese)):
             if i not in zeit:
                 continue
             best, bw = None, 0
@@ -277,15 +277,15 @@ def plan_sprache(werk, lg, stufe, c, data, spr, m510, rg):
     erz_stimme = (bs.get("erzaehler") or {}).get("stimme")
     ens = _ensemble(c, lg, stufe)
     p.update(erz_stimme=erz_stimme, ens=ens)
-    m530 = manifest.Manifest(werk, f"530_pruefung_{lg}", stage="530")
-    w520 = (_json(s520.pfad(werk, lg, "hoerspiel"), {}) or {}).get("tags") or {}
-    texte = s520.saetze_text(data, lg)
+    m520 = manifest.Manifest(werk, f"520_pruefung_{lg}", stage="520")
+    w530 = (_json(s530.pfad(werk, lg, "hoerspiel"), {}) or {}).get("tags") or {}
+    texte = s530.saetze_text(data, lg)
     # Korrektur 510 = casting (sonst ist die Hoerspielspur veraltet)
     fig510 = ((m510.meta.get("je_sprache") or {}).get(lg) or {}).get("figuren") or {}
     abw = [f for f, x in fig510.items() if f in ens and _korr({"korrektur": x.get("korrektur")}) != _korr(ens[f])]
     if abw:
         p["fehler"].append((f"korrektur_{lg}", f"{lg}: Korrekturstufe in casting.json neuer als die Hoerspielspur 510 "
-                                               f"({', '.join(sorted(abw))}) – 510 -> 530 -> 520 neu", "510"))
+                                               f"({', '.join(sorted(abw))}) – 510 -> 520 -> 530 neu", "510"))
     hs, stuecke, fehlt, mocks, quellen = [], [], [], 0, collections.Counter()
     fig_saetze = collections.defaultdict(list)
     for k in sorted(m510.eintraege):
@@ -295,16 +295,16 @@ def plan_sprache(werk, lg, stufe, c, data, spr, m510, rg):
         if e.get("q") not in ("neu", "mock"):            # Erzaehlerfassung/behalten: keine Figurenstimme im Satz
             continue
         k5 = f"hoerspiel/{tid}"
-        e5 = m530.get(k5) or {}
-        if not e5 or not m530.datei_aktuell(k5):
+        e5 = m520.get(k5) or {}
+        if not e5 or not m520.datei_aktuell(k5):
             fehlt.append(tid)
             continue
-        w = m530._abs(e5["datei"])
+        w = m520._abs(e5["datei"])
         if mock.ist_datei(w):
             mocks += 1
         segs = ((spr.get(tid) or {}).get(lg) or {}).get("seg") or []
         lese, sprech, abb = texte.get(tid, ("", "", []))
-        regs, quelle = regionen(segs, ens, lese, sprech, abb, w520.get(tid), e5.get("dauer"), e.get("schnitt"))
+        regs, quelle = regionen(segs, ens, lese, sprech, abb, w530.get(tid), e5.get("dauer"), e.get("schnitt"))
         quellen[quelle or "keine"] += 1
         hs.append({"tid": tid, "wav": w, "h": e5.get("datei_hash"), "reg": regs})
         for r in regs:
@@ -314,14 +314,14 @@ def plan_sprache(werk, lg, stufe, c, data, spr, m510, rg):
                     stuecke.append({"id": f"fs__{len(stuecke):05d}", "figur": r["q"], "tid": tid, "wav": w,
                                     "t0": r["t0"], "t1": r["t1"]})
     if fehlt:
-        p["fehler"].append((f"endfassung_{lg}", f"{lg}: Hoerspiel-Endfassung 530 fehlt/veraltet fuer {len(fehlt)} "
-                                                f"Saetze ({', '.join(fehlt[:5])})", "530"))
+        p["fehler"].append((f"endfassung_{lg}", f"{lg}: Hoerspiel-Endfassung 520 fehlt/veraltet fuer {len(fehlt)} "
+                                                f"Saetze ({', '.join(fehlt[:5])})", "520"))
     if quellen.get("schnitt"):
-        p["hinweise"].append((f"wortzeiten_{lg}", f"{lg}: {quellen['schnitt']} Saetze ohne Hoerspiel-Wortzeiten 520 – "
+        p["hinweise"].append((f"wortzeiten_{lg}", f"{lg}: {quellen['schnitt']} Saetze ohne Hoerspiel-Wortzeiten 530 – "
                                                   f"Stuecke anteilig aus dem Schnittprotokoll 510"))
     # Erzaehler des Werks: Saetze ohne Figurenrede aus der Hoerbuchspur (audio_final/)
     kand = []
-    for k in sorted(m530.eintraege):
+    for k in sorted(m520.eintraege):
         if not k.startswith("hoerbuch/"):
             continue
         tid = k.split("/", 1)[1]
@@ -332,18 +332,18 @@ def plan_sprache(werk, lg, stufe, c, data, spr, m510, rg):
     random.Random(57).shuffle(kand)
     erz, dauer = [], 0.0
     for tid in kand:
-        e5 = m530.get(f"hoerbuch/{tid}")
-        if not m530.datei_aktuell(f"hoerbuch/{tid}"):
+        e5 = m520.get(f"hoerbuch/{tid}")
+        if not m520.datei_aktuell(f"hoerbuch/{tid}"):
             continue
-        d = float(e5.get("dauer") or 0) or s510.s500.wav_dauer(m530._abs(e5["datei"]))
+        d = float(e5.get("dauer") or 0) or s510.s500.wav_dauer(m520._abs(e5["datei"]))
         if d < 1.0:
             continue
-        erz.append({"tid": tid, "wav": m530._abs(e5["datei"]), "h": e5.get("datei_hash")})
+        erz.append({"tid": tid, "wav": m520._abs(e5["datei"]), "h": e5.get("datei_hash")})
         dauer += d
         if dauer >= float(rg["erzaehler_s"]):
             break
     if len(erz) < 3:
-        p["fehler"].append((f"erzaehler_{lg}", f"{lg}: zu wenig Erzaehler-Saetze in audio_final/ ({len(erz)})", "530"))
+        p["fehler"].append((f"erzaehler_{lg}", f"{lg}: zu wenig Erzaehler-Saetze in audio_final/ ({len(erz)})", "520"))
     # Zielstimme je Figur: Takes 510 (genau die besetzte Stimme), sonst Archivmuster
     ziel = {}
     tdir = s510.take_dir(werk, lg)
@@ -641,13 +641,13 @@ def hoerproben(werk, lg, p, roh, aus):
                               "erzaehler": aus["erzaehler"].get("hoerprobe")}
 
 
-# ============================================================ Nachrunde (510 -> 530 -> 520)
+# ============================================================ Nachrunde (510 -> 520 -> 530)
 def nachrunde_kette(werk, wer):
-    """Korrektur ist gesetzt: 510/530/520 bauen per Hash nur die betroffenen Saetze neu. -> [(stage, ergebnis)]"""
-    from pipeline import s530_audio_pruefung as s530
+    """Korrektur ist gesetzt: 510/520/530 bauen per Hash nur die betroffenen Saetze neu. -> [(stage, ergebnis)]"""
+    from pipeline import s520_audio_pruefung as s520
     out = []
     for st, f in (("510", lambda: s510.run(werk, wer=wer, nachrunde=True)),
-                  ("530", lambda: s530.run(werk, wer=wer)), ("520", lambda: s520.run(werk, wer=wer))):
+                  ("520", lambda: s520.run(werk, wer=wer)), ("530", lambda: s530.run(werk, wer=wer))):
         try:
             g = f()
             e = (g.ergebnis or {}).get("ergebnis")
@@ -682,7 +682,7 @@ def run(werk, wer=None, regler=None, nur_lang=None, neu=False, trocken=False):
     ok = g.pflicht("eingang", all(os.path.exists(x) for x in (ip, sp, op)), ruecksprung="510",
                    text="400_regie.json, 420_sprecher.json, 510_overlay.json vorhanden") and ok
     ok = g.pflicht("regler", _regler_gueltig(rg), wert=rg, text="Regler im Bereich") and ok
-    for v in ("410", "420", "510", "530", "520"):
+    for v in ("410", "420", "510", "520", "530"):
         z = status.zustand(werk, v)
         if trocken:
             g.hinweis(f"gate_{v}", z in status.FREI, text=f"Gate {v}: {z}")
@@ -875,11 +875,11 @@ def eichen(werk, lg, wer, art="modal"):
                 man.append({"id": sid, "typ": "ar", "stimme": name, "clip": clip})
                 praat[sid] = trennung.praat_merkmale(y)
                 n += 1
-    m530 = manifest.Manifest(werk, f"530_pruefung_{lg}", stage="530")
-    for k in sorted(m530.eintraege)[:40]:
-        if k.startswith("hoerbuch/") and m530.datei_aktuell(k):
+    m520 = manifest.Manifest(werk, f"520_pruefung_{lg}", stage="520")
+    for k in sorted(m520.eintraege)[:40]:
+        if k.startswith("hoerbuch/") and m520.datei_aktuell(k):
             sid = f"en__{len(man):05d}"
-            shutil.copy2(m530._abs(m530.eintraege[k]["datei"]), os.path.join(d, "segmente", sid + ".wav"))
+            shutil.copy2(m520._abs(m520.eintraege[k]["datei"]), os.path.join(d, "segmente", sid + ".wav"))
             man.append({"id": sid, "typ": "en"})
     if sum(1 for s in man if s["typ"] == "arf") < 4:
         raise RuntimeError("zu wenige Archivstimmen fuer eine Eichung")
@@ -985,7 +985,7 @@ def main(argv=None):
             else:
                 ff, ht = (wert.split(",") + ["0"])[:2]
                 korrektur(a.werk, fig, lg, float(ff), float(ht), wer, a.grund)
-        if a.korrektur:                                   # alle Korrekturen gesetzt -> EIN Neubau 510 -> 530 -> 520
+        if a.korrektur:                                   # alle Korrekturen gesetzt -> EIN Neubau 510 -> 520 -> 530
             erg = nachrunde_kette(a.werk, wer)
             print("[540] Korrektur gesetzt; " + ", ".join(f"{s} {e}" for s, e in erg))
             if any(e != "auto" for _, e in erg):

@@ -280,7 +280,7 @@ ANGEBOT_USD_100K = {
     "hoerbuch_basic": 0.50,     # je Audiosprache: Chatterbox Modal L4 Batch 8 (~0,24 $ / 50.000 Zeichen)
     "hoerbuch_premium": 1.50,   # je Audiosprache: Gemini-TTS (Stand 2026)
     "hoerspiel_zuschlag": 0.80, # je Hoerspiel-Sprache: Figuren-Takes 510 + 420
-    "wortzeiten": 0.05,         # je TAELLA-Audiosprache: 520/530
+    "wortzeiten": 0.05,         # je TAELLA-Audiosprache: 530/520
 }
 ANGEBOT_GEMINI_FAKTOR_AB = ("2027-01-01", 2.0)
 STUECKPREISE = {
@@ -516,7 +516,7 @@ HYBRID_SCHNITT = "modal"   # AP 62 Punkt 4: Schnitt-Zeitpunkte auf Modal (gpu_fa
 GRENZEN_DIR = os.path.join(BASE_DIR, "cache", "grenzen")
 GRENZEN = {
     # Modal: Plan-Grenze 10 parallele Jobs (hart). Angeschlossen: 340 Pruefaligner, 500 Chatterbox + Satzpruefung,
-    # 510/520 Wortzeiten, 530 Whisper, 540 Messung, 640 (spuren.modal_map / modal_platz).
+    # 510/530 Wortzeiten, 520 Whisper, 540 Messung, 640 (spuren.modal_map / modal_platz).
     "modal":      {"gleichzeitig": 10, "ttl_s": 6 * 3600},
     # DeepSeek: Konto-Grenze 500 (v4-pro) / 2.500 (v4-flash) gleichzeitig, kein Aufpreis.
     # Standard 12 Spuren ueber alles, regelbar. Angeschlossen: api_layer (jeder DeepSeek-Aufruf).
@@ -531,5 +531,5 @@ SPUREN = {               # Abweichungen je Stage (Jobs gleichzeitig; Anbietergre
     "500": 8,            # Gemini-TTS Bloecke (Takt 500 RPM zentral)
     "510": 8,            # Gemini-TTS Takes
     "650": max(1, (os.cpu_count() or 4) - 1),   # ffmpeg je Kapitel, CPU-Kerne
-    "530": max(1, (os.cpu_count() or 4) - 1),   # Schnitt/Tempo (ffmpeg je Satz)/Lautheit je Kapitel, CPU-Kerne
+    "520": max(1, (os.cpu_count() or 4) - 1),   # Schnitt/Tempo (ffmpeg je Satz)/Lautheit je Kapitel, CPU-Kerne
 }

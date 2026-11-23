@@ -31,10 +31,10 @@ from datetime import datetime, timezone
 SCHEMA = 1
 
 # Katalog-Reihenfolge (GATE_KATALOG.md, 01.11.2026). 345 ist Teil von 340, 502 Teil von 500,
-# 525 Teil von 520; 900/910 ausserhalb der Pipeline.
+# 535 Teil von 530; 900/910 ausserhalb der Pipeline.
 STAGES = ["080", "090", "095", "100", "110", "150", "115", "120", "190", "195", "200",
           "210", "300", "310", "320", "330", "340", "400", "410", "420", "500", "510",
-          "530", "520", "540", "600", "610", "615", "650", "620", "630", "640", "700", "710"]
+          "520", "530", "540", "600", "610", "615", "650", "620", "630", "640", "700", "710"]
 
 ZUSTAENDE = ("offen", "laeuft", "entfaellt", "frei", "mensch", "stopp")
 GATE_ERGEBNISSE = ("auto", "mensch", "stopp")

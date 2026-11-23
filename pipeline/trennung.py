@@ -6,7 +6,7 @@ stimmen_archiv/_trennungsregel.json (versioniert; Neueichung nur Admin ueber pip
 Die Pruefung am fertigen Hoerspiel macht Stage 540 (ECAPA einzige Gate-Metrik, D nur Anzeige).
 
 Befunde, die diese Regel begruenden
-  * Gemessen wird gegen den Erzaehler DES WERKS (Endfassung audio_final/ aus 530), nicht gegen
+  * Gemessen wird gegen den Erzaehler DES WERKS (Endfassung audio_final/ aus 520), nicht gegen
     seine Archiv-Hoerprobe: herr_a im Archiv und herr_a im Werk sind fuer ECAPA verschiedene Sprecher.
   * D = sqrt((dF0/skala_f0)^2 + (dVTL/skala_vtl)^2) zwischen Zielstimme und Erzaehler
     sagte das Ergebnis am fertigen Overlay 5/5 richtig voraus (ECAPA + pyannote).
@@ -154,7 +154,7 @@ def stimm_profil(name: str, lg: str = "de") -> dict:
 
 
 def erzaehler_profil(werk_dir: str, lg: str, stimme: str = None, sekunden: float = 90, kapitel=None) -> dict:
-    """Erzaehler gemessen an der Endfassung des Werks (fassungen/<lg>/audio_final aus 530), nur Saetze ohne
+    """Erzaehler gemessen an der Endfassung des Werks (fassungen/<lg>/audio_final aus 520), nur Saetze ohne
     Figurenrede laut work/420_sprecher.json. Ohne Endfassung (< 10 Saetze): Archiv-Muster der Erzaehlerstimme
     (unsicher). Cache work/erzaehler_profil_<lg>.json gilt nur bei gleichem Hash (Satzauswahl, Dateien, Stimme).
     kapitel (22.10.2026): nur diese Kapitel (Ich-Erzaehler je Kapitel)."""

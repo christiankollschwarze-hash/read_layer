@@ -18,7 +18,7 @@ def schneide(p, ende_s):
 werk = Path(sys.argv[1]); app = Path(sys.argv[2]) if len(sys.argv) > 2 and not sys.argv[2] in ("de", "en") else None
 for lang in [x for x in sys.argv[2:] if x in ("de", "en")] or ["de", "en"]:
     tags = json.loads((werk / "work" / f"nachklang_klassen_{lang}.json").read_text())["schneiden"]
-    wt = json.loads((werk / "work" / f"520_wortzeiten_{lang}.json").read_text(encoding="utf-8"))["tags"]
+    wt = json.loads((werk / "work" / f"530_wortzeiten_{lang}.json").read_text(encoding="utf-8"))["tags"]
     bak = werk / "fassungen" / lang / "audio_vor_nachklang"; bak.mkdir(exist_ok=True)
     for t in tags:
         p = werk / "fassungen" / lang / "audio" / f"{t}.wav"

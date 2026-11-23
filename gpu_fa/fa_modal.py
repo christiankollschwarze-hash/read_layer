@@ -1,6 +1,6 @@
 """READ LAYER — Stage 58c (Wortzeiten, MMS_FA) auf Modal-GPU (L4).
-ALTWEG (03.11.2026) nur fuer Altwerke (start_cb_neu.bat): tools/wortzeiten_alt.py (alte Stage 520), READLAYER_FA_DEVICE=cuda.
-Neue Werke: Stage 520 (pipeline/s520_wortzeiten.py, FA ueber gpu_fa/schnitt_modal.py).
+ALTWEG (03.11.2026) nur fuer Altwerke (start_cb_neu.bat): tools/wortzeiten_alt.py (alte Stage 530), READLAYER_FA_DEVICE=cuda.
+Neue Werke: Stage 530 (pipeline/s530_wortzeiten.py, FA ueber gpu_fa/schnitt_modal.py).
 Aufruf:  py -3.11 -m modal run gpu_fa/fa_modal.py --werk jekyll-and-hyde [--sprachen de,en] [--force]
 Ablauf:  Audio + 340_wortalignment.json ins Volume laden -> je Sprache ein GPU-Container -> Ergebnis-JSON zurueck nach work/.
 """
@@ -20,7 +20,7 @@ image = (
     .add_local_dir(str(LESER / "config"), remote_path="/rl/config", ignore=["*.bak*", "__pycache__"])
     .add_local_file(str(LESER / "pipeline" / "__init__.py"), remote_path="/rl/pipeline/__init__.py")
     .add_local_file(str(LESER / "tools" / "wortzeiten_alt.py"), remote_path="/rl/tools/wortzeiten_alt.py")
-    .add_local_file(str(LESER / "pipeline" / "s525_wortbruecke.py"), remote_path="/rl/pipeline/s525_wortbruecke.py")
+    .add_local_file(str(LESER / "pipeline" / "s535_wortbruecke.py"), remote_path="/rl/pipeline/s535_wortbruecke.py")
     .add_local_file(str(LESER / "daten" / "index.json"), remote_path="/rl/daten/index.json")
 )
 
@@ -55,10 +55,10 @@ def main(werk: str, sprachen: str = "de,en", force: bool = False):
     with vol.batch_upload(force=True) as b:
         b.put_file(str(pfad / "work" / "340_wortalignment.json"), f"/fa/{rel}/work/340_wortalignment.json")
         for s in langs:
-            ziel_json = pfad / "work" / f"520_wortzeiten_{s}.json"
+            ziel_json = pfad / "work" / f"530_wortzeiten_{s}.json"
             fertig = set()
             if ziel_json.exists() and not force:
-                b.put_file(str(ziel_json), f"/fa/{rel}/work/520_wortzeiten_{s}.json")
+                b.put_file(str(ziel_json), f"/fa/{rel}/work/530_wortzeiten_{s}.json")
                 fertig = set(json.loads(ziel_json.read_text(encoding="utf-8")).get("tags", {}))
             # 16.10.2026: nur Saetze ohne Wortzeiten hochladen (nach Neuvertonung wenige hundert statt ganzer Ordner).
             # Bereits vermessene Tags ueberspringt 58c ohnehin; ihre WAVs muessen nicht im Volume liegen.
@@ -70,7 +70,7 @@ def main(werk: str, sprachen: str = "de,en", force: bool = False):
     for zeile in ausrichten.starmap([(rel, werk, s, force) for s in langs]):
         print(zeile, flush=True)
     for s in langs:
-        name = f"520_wortzeiten_{s}.json"
+        name = f"530_wortzeiten_{s}.json"
         daten = b"".join(vol.read_file(f"/fa/{rel}/work/{name}"))
         (pfad / "work" / name).write_bytes(daten)
         print(f"Zurueck: work/{name} ({len(json.loads(daten).get('tags', {}))} Saetze)", flush=True)

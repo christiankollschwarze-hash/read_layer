@@ -1,19 +1,19 @@
 """STAGE 650 — Hoerbuch-Assembler (Neuaufbau Phase 2, 03.11.2026)
-Funktion:     Baut aus der Endfassung (530, audio_final/) je Hoerbuch-Sprache Kapiteldateien je Kanalprofil:
+Funktion:     Baut aus der Endfassung (520, audio_final/) je Hoerbuch-Sprache Kapiteldateien je Kanalprofil:
               epub   (EPUB3-Audio, Media Overlay 620): MP3 je Kapitel, ohne Cover
               extern (Plattform, ACX-nah): MP3 je Kapitel (CBR, 44,1 kHz) mit Tags + Cover _quadrat, optional M4B
               mit Kapitelmarken. Ansagen aus 400 (Typ ansage) als eigene Dateien Anfang/Ende. Pausen aus 400
               (pause_after_ms), Kopf-/Schluss-Stille und Lautheit je Profil. Hoerspiel entfaellt vorerst.
-Komponenten:  pipeline/s650_hoerbuch.py; Bausteine s500 (einheiten), s530 (lautheit, begrenzen), s510 (WAV),
+Komponenten:  pipeline/s650_hoerbuch.py; Bausteine s500 (einheiten), s520 (lautheit, begrenzen), s510 (WAV),
               s615 (Titel, Autor, Cover-Pfad), s410 (Sprecher)
-Eingang:      fassungen/<lg>/audio_final/<tid>.wav + work/530_pruefung_<lg>.json (Gate 530 frei, Datei aktuell);
+Eingang:      fassungen/<lg>/audio_final/<tid>.wav + work/520_pruefung_<lg>.json (Gate 520 frei, Datei aktuell);
               work/400_regie.json (Reihenfolge, pause_after_ms, ansagen); casting.json (Sprecher); Cover
               cover_final_<lg>_quadrat.jpg (Gate 615 <lg>:quadrat frei, nur extern); book.json/author.json
 Ausgabe:      fassungen/<lg>/hoerbuch/<profil>/<NN>_<kapitel>.mp3 (+ <werk>_<lg>.m4b);
               work/650_hoerbuch_<lg>.json {"kapitel": [{kapitel, datei, dauer, saetze {tid: [start, ende]}}] (Profil
               epub, sonst erstes; Format fuer SMIL 620), "profile": {profil: {kapitel: [...], m4b}}, pruefung};
               Hoerprobe work/_650/<lg>/hoerprobe_<profil>.mp3; Regler work/650_entscheidungen.json
-Gate:         je Sprache (status teile "<lg>"): Stopp: Gate 530 nicht frei, 400_regie fehlt, Satz ohne aktuelle
+Gate:         je Sprache (status teile "<lg>"): Stopp: Gate 520 nicht frei, 400_regie fehlt, Satz ohne aktuelle
               Endfassung (Luecke), Mock im Live-Lauf, ffmpeg fehlt, Titel/Autor fehlt, extern: Cover/Gate 615, Sprecher,
               Zeitmarken nicht monoton. Kapitelzahl = 190 (sonst Stopp -> 400). Ansagen 100 % (-> Mensch 400).
               Kapiteldauer = Summe Saetze + Pausen +- 0,5 s; Profil (LUFS, Spitze, Grundrauschen, Kopf/Schluss,
@@ -157,7 +157,7 @@ def stille(y, schwelle_db=-60.0):
 
 
 def normieren(y, pw, korrektur=0.0):
-    from pipeline import s530_audio_pruefung as P5
+    from pipeline import s520_audio_pruefung as P5
     lu, pk = P5.lautheit(y)
     gain = max(-P5.GAIN_MAX, min(P5.GAIN_MAX, float(pw["lufs"]) - lu + korrektur)) if lu > -70 else 0.0
     z = (y * 10 ** (gain / 20)).astype(np.float32)
@@ -244,7 +244,7 @@ def run(werk, wer=None, nur=None, neu=False, freigeben=False, trocken=False, gru
     ausgabe = ents.get("ausgabe", "mp3")
     d400 = _json(config.work_path(werk, "400_regie"))
     stt = status.laden(werk)
-    z530 = status.zustand(werk, "530", d=stt)
+    z520 = status.zustand(werk, "520", d=stt)
     st = stt["stages"].get(STAGE) or {}
     kap190 = ((stt["stages"].get("190") or {}).get("metriken") or {}).get("kapitel")
     gates = []
@@ -256,7 +256,7 @@ def run(werk, wer=None, nur=None, neu=False, freigeben=False, trocken=False, gru
         g.metrik("profile", prof)
         pf = g.hinweis if trocken else g.pflicht
         kw = (lambda r: {}) if trocken else (lambda r: {"ruecksprung": r})
-        pf("gate_530", z530 in status.FREI, z530, **kw("530"), text=f"Gate 530 frei ({z530})")
+        pf("gate_520", z520 in status.FREI, z520, **kw("520"), text=f"Gate 520 frei ({z520})")
         g.pflicht("regie", bool(d400), ruecksprung="400", text="400_regie.json vorhanden")
         cover = None
         if "extern" in prof:
@@ -275,8 +275,8 @@ def run(werk, wer=None, nur=None, neu=False, freigeben=False, trocken=False, gru
         if not ansagen_an:
             units = [u for u in units if u["typ"] != "ansage"]
             g.hinweis("ansagen_aus", False, text="Ansagen aus (Regler)")
-        m5p = config.work_path(werk, f"530_pruefung_{lg}")
-        m5 = manifest.Manifest(werk, f"530_pruefung_{lg}", stage="530") if os.path.exists(m5p) else None
+        m5p = config.work_path(werk, f"520_pruefung_{lg}")
+        m5 = manifest.Manifest(werk, f"520_pruefung_{lg}", stage="520") if os.path.exists(m5p) else None
         quelle, fehlt, mocks = {}, [], []
         for u in units:
             k = f"hoerbuch/{u['id']}"
@@ -289,8 +289,8 @@ def run(werk, wer=None, nur=None, neu=False, freigeben=False, trocken=False, gru
             if mock.ist_datei(p):
                 mocks.append(u["id"])
         n = len(units)
-        g.pflicht("abdeckung", n and not fehlt, round(1 - len(fehlt) / n, 4) if n else 0.0, ruecksprung="530",
-                  text=f"Abdeckung {n - len(fehlt)}/{n} Saetze mit aktueller Endfassung 530"
+        g.pflicht("abdeckung", n and not fehlt, round(1 - len(fehlt) / n, 4) if n else 0.0, ruecksprung="520",
+                  text=f"Abdeckung {n - len(fehlt)}/{n} Saetze mit aktueller Endfassung 520"
                        + (f" – fehlt: {', '.join(fehlt[:5])}" if fehlt else ""))
         g.mock(len(mocks), mocks[:3], ruecksprung="500")
         grp = gruppen(units)
@@ -454,7 +454,7 @@ def run(werk, wer=None, nur=None, neu=False, freigeben=False, trocken=False, gru
                  text="Kapitellaenge im Profil" + (f" – {', '.join(kap_lang[:4])}" if kap_lang else ""))
         for k_ in ("lufs", "peak", "rauschen", "kopf", "schluss", "rate", "bitrate"):
             v = verletzt.get(k_) or []
-            g.pruefe(f"profil_{k_}", not v, len(v), 0, "mensch", "530" if k_ in ("lufs", "peak", "rauschen") else "650",
+            g.pruefe(f"profil_{k_}", not v, len(v), 0, "mensch", "520" if k_ in ("lufs", "peak", "rauschen") else "650",
                      text=f"Profil {k_}" + (f" verfehlt nach Neunormierung: {', '.join(v[:4])}" if v else " ok"))
         if neu_normiert:
             g.hinweis("neu_normiert", False, len(neu_normiert), text=f"1x automatisch neu normiert: {', '.join(neu_normiert[:4])}")

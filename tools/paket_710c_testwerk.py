@@ -19,14 +19,14 @@ def main(ordner):
         t.werk(produkte=T.PRODUKTE + [{"sprache": "de", "inhalt": "hoerspiel", "stufe": "premium", "kanaele": ["taella"]},
                                       {"sprache": "en", "inhalt": "text", "kanaele": ["epub"]}])
         d = os.path.join(t.r, w)
-        m = manifest.Manifest(w, "530_pruefung_de", stage="530")
+        m = manifest.Manifest(w, "520_pruefung_de", stage="520")
         p = os.path.join(d, "fassungen", "de", "hoerspiel_final", "c001_00002_s.wav")
         os.makedirs(os.path.dirname(p), exist_ok=True)
         open(p, "wb").write(b"RIFFhs")
         m.setzen("hoerspiel/c001_00002_s", "e", datei=p)
         m.speichern()
         T.dump({"tags": {"c001_00002_s": [{"i": 0, "t0": 0.0, "t1": 0.2}]}},
-               config.work_path(w, "520_wortzeiten_de_hoerspiel"))
+               config.work_path(w, "530_wortzeiten_de_hoerspiel"))
         T.dump({"saetze": {"c001_00002_s": {"de": {"seg": [{"t": "Ein Dollar.", "s": "Buck"}]}}}},
                config.work_path(w, "420_sprecher"))
         t.epub_620()

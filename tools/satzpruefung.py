@@ -50,7 +50,7 @@ def kappen(p, ende_s):
 def main(book, lg, schneiden=False, nur=None):
     wd = config.work_dir(book)
     werk = config.book_dir(book)
-    wt = json.load(open(os.path.join(wd, f"520_wortzeiten_{lg}.json"), encoding="utf-8"))["tags"]
+    wt = json.load(open(os.path.join(wd, f"530_wortzeiten_{lg}.json"), encoding="utf-8"))["tags"]
     content = json.load(open(config.work_path(book, "400_regie"), encoding="utf-8"))["content"]
     audio = os.path.join(werk, "fassungen", lg, "audio")
     erg = {"schneiden": [], "neu": [], "details": {}}

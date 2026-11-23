@@ -14,7 +14,7 @@ Wirkungsweise: Manifest work/500_vertonung.json je Sprache/Satz mit Eingangs-Has
 Eingang:      work/400_regie.json (production.sprechtext/direction/pause_after_ms, ansagen; Gate 400 frei),
               work/casting.json Schema 2 freigegeben (rollen[lg][stufe].erzaehler: gemini_id bzw. referenz; adapter;
               Gate 410 frei), book.json (Bestellung, vertonung_regler), work/aussprache_<lg>.json (Lexikon, frei).
-Ausgabe:      fassungen/<lg>/audio/<tag>.wav (Rohfassung, Tempo/Raender/Lautheit erst in 530), work/500_vertonung.json
+Ausgabe:      fassungen/<lg>/audio/<tag>.wav (Rohfassung, Tempo/Raender/Lautheit erst in 520), work/500_vertonung.json
               (Manifest Schema 1, Schluessel <lg>/<tag>), work/500_pruefung.json (Hoerliste), work/500_kosten.json
               (Freigaben). Altdatei 500_vertonung.json (production-Format) -> 500_vertonung_v1.json.
 Gate:         Kosten (Somnio im Budget -> auto, sonst Mensch); Gate 400/410 frei, Casting freigegeben, eine Engine je
@@ -796,7 +796,7 @@ def run(werk, wer=None, regler=None, saetze=None, kapitel=None, nur_lang=None, n
         if fremd:                                         # 120 "Original behalten"
             g.hinweis(f"fremdsatz_{lg}", engine != "chatterbox", wert=len(fremd),
                       text=f"{lg}: {len(fremd)} Saetze in Originalsprache ({', '.join(fremd[:3])})" +
-                           (" – Chatterbox spricht sie mit dem Modell der Spur; anhoeren (530) oder von Hand"
+                           (" – Chatterbox spricht sie mit dem Modell der Spur; anhoeren (520) oder von Hand"
                             if engine == "chatterbox" else " – Gemini mit Stil-Hinweis zur Sprache"))
         lex, n_lex = _lexikon(werk, lg)
         tts = {u["id"]: lex(u["text"]) for u in units}

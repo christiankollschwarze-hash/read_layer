@@ -1,5 +1,5 @@
-"""ALTWEG (nur alter Smoke-Ablauf start_smoke_test.bat, bis zum Smoke-Umbau): Endfassung macht jetzt Stage 530
-(pipeline/s530_audio_pruefung.py). READ LAYER — Werk auf Modal FERTIGSTELLEN, ohne Hin- und Herladen einzelner Saetze (17.10.2026).
+"""ALTWEG (nur alter Smoke-Ablauf start_smoke_test.bat, bis zum Smoke-Umbau): Endfassung macht jetzt Stage 520
+(pipeline/s520_audio_pruefung.py). READ LAYER — Werk auf Modal FERTIGSTELLEN, ohne Hin- und Herladen einzelner Saetze (17.10.2026).
 
 Die Satz-WAVs liegen nach tts_modal_opt.py (--no-herunterladen) schon im Volume (out/<paket>_<variante>).
 Je Sprache ein GPU-Container:
@@ -8,7 +8,7 @@ Je Sprache ein GPU-Container:
   3. Tempo atempo 0,91 (CK 17.10.: 0,73 x 1,25) (tools/tempo_anpassen.py, ffmpeg)
   4. Wortzeiten Endfassung (Stage 58c)
   4b. Satzpruefung (tools/satzpruefung.py --schneiden): Nachklang kappen, verschmierte Saetze -> work/satzpruefung_<lg>.json
-  5. Ergebnis als EIN Archiv ins Volume (audio/*.wav + 520_wortzeiten_<lg>.json)
+  5. Ergebnis als EIN Archiv ins Volume (audio/*.wav + 530_wortzeiten_<lg>.json)
 Lokal: ein Download je Sprache, entpacken nach <werk>/fassungen/<lg>/audio + work/.
 
 Aufruf:
@@ -31,7 +31,7 @@ image = (
     .add_local_dir(str(LESER / "config"), remote_path="/rl/config", ignore=["*.bak*", "__pycache__"])
     .add_local_file(str(LESER / "pipeline" / "__init__.py"), remote_path="/rl/pipeline/__init__.py")
     .add_local_file(str(LESER / "tools" / "wortzeiten_alt.py"), remote_path="/rl/tools/wortzeiten_alt.py")
-    .add_local_file(str(LESER / "pipeline" / "s525_wortbruecke.py"), remote_path="/rl/pipeline/s525_wortbruecke.py")
+    .add_local_file(str(LESER / "pipeline" / "s535_wortbruecke.py"), remote_path="/rl/pipeline/s535_wortbruecke.py")
     .add_local_file(str(LESER / "tools" / "raender_schneiden.py"), remote_path="/rl/tools/raender_schneiden.py")
     .add_local_file(str(LESER / "tools" / "tempo_anpassen.py"), remote_path="/rl/tools/tempo_anpassen.py")
     .add_local_file(str(LESER / "tools" / "satzpruefung.py"), remote_path="/rl/tools/satzpruefung.py")
@@ -73,7 +73,7 @@ def fertig(rel_werk: str, werk: str, lang: str, quelle: str, tempo: str) -> dict
     os.makedirs(os.path.dirname(ziel), exist_ok=True)
     with tarfile.open(ziel, "w") as tar:
         tar.add(audio, arcname=f"fassungen/{lang}/audio")
-        wt = w / "work" / f"520_wortzeiten_{lang}.json"
+        wt = w / "work" / f"530_wortzeiten_{lang}.json"
         tar.add(wt, arcname=f"work/{wt.name}")
         sp = w / "work" / f"satzpruefung_{lang}.json"
         if sp.exists():
@@ -111,8 +111,8 @@ def main(werk: str, sprachen: str = "en,de", variante: str = "b8", tempo: str = 
     print("Tempo: " + ", ".join(f"{a[2]} {a[4]}" for a in auftraege), flush=True)
     for erg in fertig.starmap(auftraege):
         print(f"[{erg['lang']}] {erg['saetze']} Saetze fertiggestellt in {erg['minuten']} min\n{erg['log']}", flush=True)
-        from pipeline import usage_log   # 24.10.2026 (Smoke #7): Modal-Kosten 520/530 ins Werk
-        usage_log.log_gpu(werk, "520", erg.get("gpu_s") or erg["minuten"] * 60, extra={"sprache": erg["lang"]})
+        from pipeline import usage_log   # 24.10.2026 (Smoke #7): Modal-Kosten 530/520 ins Werk
+        usage_log.log_gpu(werk, "530", erg.get("gpu_s") or erg["minuten"] * 60, extra={"sprache": erg["lang"]})
     for l in langs:
         print(f"[{l}] lade Paket ...", flush=True)
         daten = b"".join(vol.read_file(f"/fertig/{rel}/paket_{l}.tar"))

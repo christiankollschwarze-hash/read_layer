@@ -251,7 +251,7 @@ def bericht(werk):
         fehler.append(f"Satzanzahl EN {len(ids['en'])} != DE {len(ids['de'])} (oder leer)")
     for lg in ("en", "de"):
         wav = {os.path.splitext(os.path.basename(w))[0] for w in _wavs(werk, lg)}
-        wz = (_laden(os.path.join(wd, f"520_wortzeiten_{lg}.json"), {}) or {}).get("tags", {})
+        wz = (_laden(os.path.join(wd, f"530_wortzeiten_{lg}.json"), {}) or {}).get("tags", {})
         sprechbar = {t for t in ids[lg] if inhalt[t].get("type") not in ("hr", "img")}
         ohne_wav = sorted(sprechbar - wav)
         ohne_wz = sorted(sprechbar - set(wz))

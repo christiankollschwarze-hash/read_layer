@@ -112,14 +112,14 @@ class T540(unittest.TestCase):
         return erg, 12.0
 
     def fake_kette(self, werk, wer):
-        """510 -> 530 -> 520 nach Korrektur: 510-Meta nachfuehren (wie ein echter 510-Lauf)."""
+        """510 -> 520 -> 530 nach Korrektur: 510-Meta nachfuehren (wie ein echter 510-Lauf)."""
         self.kette.append(True)
         m = manifest.Manifest("w", "510_overlay", stage="510")
         ens = P._ensemble(C.laden("w"), "de")
         m.meta["je_sprache"]["de"]["figuren"] = {f: {"stimme": e["stimme"], "korrektur": e.get("korrektur")}
                                                  for f, e in ens.items()}
         m.speichern()
-        return [("510", "auto"), ("530", "auto"), ("520", "auto")]
+        return [("510", "auto"), ("520", "auto"), ("530", "auto")]
 
     def schreib(self, p, o):
         with open(p, "w", encoding="utf-8") as fh:
@@ -128,7 +128,7 @@ class T540(unittest.TestCase):
     def f(self, t, art="audio_final"):
         return os.path.join(self.d, "fassungen", "de", art, f"{t}.wav")
 
-    def werk(self, rl=None, gates=("410", "420", "510", "530", "520"), korr510=None, ohne520=()):
+    def werk(self, rl=None, gates=("410", "420", "510", "520", "530"), korr510=None, ohne530=()):
         b = {"book_slug": "w", "quelle": "gutenberg", "quellsprache": "de", "fassung": "original",
              "mandant": "somnio", "produkte": PROD, "trennung_regler": {"redezeit_min": 1.0},
              "rechte": {"art": "gemeinfrei", "bearbeitung": True, "versichert": {"wer": "t", "wann": "x"}}}
@@ -144,7 +144,7 @@ class T540(unittest.TestCase):
         self.schreib(os.path.join(self.wd, "420_sprecher.json"),
                      {"saetze": {t: {"de": {"seg": [{"t": a, "s": s} for a, s in v], "q": "llm"}}
                                  for t, v in SEG.items()}})
-        m5 = manifest.Manifest("w", "530_pruefung_de", stage="530")
+        m5 = manifest.Manifest("w", "520_pruefung_de", stage="520")
         m51 = manifest.Manifest("w", "510_overlay", stage="510")
         tags = {}
         for i, (k, (t, z)) in enumerate(Q.items()):
@@ -160,7 +160,7 @@ class T540(unittest.TestCase):
                 for fg in figs:
                     wav(os.path.join(self.wd, "_510", "de", "takes", f"{k}__{fg}.wav"), 1.5, seed=40 + i)
                 n = len(z.split())
-                if k not in ohne520:
+                if k not in ohne530:
                     tags[k] = [{"i": j, "t0": round(0.1 + j * 2.8 / n, 3), "t1": round(0.1 + (j + 1) * 2.8 / n, 3)}
                                for j in range(n)]
         m5.speichern()
@@ -169,7 +169,7 @@ class T540(unittest.TestCase):
                                                          "korrektur": (korr510 or {}).get(f, e.get("korrektur"))}
                                                      for f, e in ens.items()}}}
         m51.speichern()
-        self.schreib(os.path.join(self.wd, "520_wortzeiten_de_hoerspiel.json"), {"tags": tags})
+        self.schreib(os.path.join(self.wd, "530_wortzeiten_de_hoerspiel.json"), {"tags": tags})
         for g in gates:
             S.ergebnis("w", g, "auto", wer="test")
 
@@ -301,14 +301,14 @@ class T540(unittest.TestCase):
         self.assertEqual(self.aus()["figuren"]["Alice"]["urteil"], "zu_kurz")
 
     def test_ohne_wortzeiten_schnitt_hinweis(self):
-        self.werk(ohne520=("c001_00004_dl",))
+        self.werk(ohne530=("c001_00004_dl",))
         g = self.lauf()
         self.assertEqual(g.ergebnis["ergebnis"], "auto")
         self.assertIn("wortzeiten_de", {x["name"] for x in g.pruefungen if not x["ok"]})
         self.assertEqual(self.aus()["quellen_regionen"], {"wortzeiten": 3, "schnitt": 1})
 
-    def test_gate_520_nicht_frei_stopp(self):
-        S.ergebnis("w", "520", "mensch", wer="test")
+    def test_gate_530_nicht_frei_stopp(self):
+        S.ergebnis("w", "530", "mensch", wer="test")
         g = self.lauf()
         self.assertEqual(g.ergebnis["ergebnis"], "stopp")
         self.assertEqual(self.messungen, 0)
@@ -327,7 +327,7 @@ class T540(unittest.TestCase):
 
     def test_mock_endfassung_im_live_lauf_stopp(self):
         mock.wav(self.f("c001_00004_dl", "hoerspiel_final"))
-        m5 = manifest.Manifest("w", "530_pruefung_de", stage="530")
+        m5 = manifest.Manifest("w", "520_pruefung_de", stage="520")
         m5.setzen("hoerspiel/c001_00004_dl", "e", datei=self.f("c001_00004_dl", "hoerspiel_final"), dauer=0.1)
         m5.speichern()
         g = self.lauf()

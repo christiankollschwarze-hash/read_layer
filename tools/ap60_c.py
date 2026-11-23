@@ -1,7 +1,7 @@
 """READ LAYER - AP 60 Variante C (27.10.2026): Hybrid-Hoerprobe, 0 $ (lokal, CPU, keine API).
 Erzaehlerspur = tests/ap60/<lg>/B_basis/<tid>.wav (ganzer Satz, Erzaehlerstimme),
 Figurenrede   = Rede-Segmente aus der Referenz tests/ap60/<lg>/ref/<tid>.wav (Erstlauf, Segment einzeln vertont).
-Schnitt je Satz-ID + Segmentindex per MMS_FA (pipeline.s520_wortzeiten._Aligner, CPU), Grenze = Mitte der Luecke.
+Schnitt je Satz-ID + Segmentindex per MMS_FA (pipeline.s530_wortzeiten._Aligner, CPU), Grenze = Mitte der Luecke.
 Ausgabe: tests/ap60/ergebnis/<lg>_C_hybrid.wav (Pause 0,6 s, Lautheit -18 LUFS wie A/B/Referenz).
 Aufruf: py -3.11 tools/ap60_c.py
 """
@@ -12,7 +12,7 @@ import numpy as np
 LESER = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(LESER))
 from pipeline.fa_mms import Aligner as _Aligner  # noqa: E402
-from pipeline.s525_wortbruecke import lautwoerter  # noqa: E402
+from pipeline.s535_wortbruecke import lautwoerter  # noqa: E402
 
 T = LESER / "tests/ap60"
 SR, PAUSE_S, LUFS = 24000, 0.6, -18.0

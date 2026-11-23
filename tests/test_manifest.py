@@ -49,9 +49,9 @@ class T(unittest.TestCase):
         self.assertEqual((r["gleich"], r["geaendert"], r["neu"], r["verwaist"]), (["a"], ["b"], ["d"], ["c"]))
 
     def test_altdatei(self):
-        json.dump({"foo": 1}, open(os.path.join(self.work, "520_wortzeiten_de.json"), "w"))
+        json.dump({"foo": 1}, open(os.path.join(self.work, "530_wortzeiten_de.json"), "w"))
         with self.assertRaises(RuntimeError):
-            M.Manifest(self.w, "520_wortzeiten_de")
+            M.Manifest(self.w, "530_wortzeiten_de")
 
     def test_checkpoint(self):
         ck = M.Checkpoint(self.w, "310")

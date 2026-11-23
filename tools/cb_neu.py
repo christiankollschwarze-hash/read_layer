@@ -187,7 +187,7 @@ def einspielen(werk, lg):
         atempo(os.path.join(quelle, x), os.path.join(audio, x + ".tmp.wav"), f)
         os.replace(os.path.join(audio, x + ".tmp.wav"), os.path.join(audio, x))
     # Wortzeiten der neuen Saetze verwerfen -> fa_modal misst nur diese neu
-    wp = os.path.join(config.work_dir(werk), f"520_wortzeiten_{lg}.json")
+    wp = os.path.join(config.work_dir(werk), f"530_wortzeiten_{lg}.json")
     wt = json.load(open(wp, encoding="utf-8"))
     shutil.copy2(wp, wp + f".bak_{HEUTE}_cbneu")
     for x in neu:

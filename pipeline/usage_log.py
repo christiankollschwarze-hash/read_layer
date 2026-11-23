@@ -9,7 +9,7 @@ Jeder kostenpflichtige Aufruf schreibt eine Zeile nach  <werk>/work/kosten.jsonl
 Stage-Nr. (Phase 2): jede Zeile traegt die NEUE dreistellige Stage-Nr. aus dem Gate-Katalog
 (status.STAGES). Zusaetze wandern in eigene Felder:
   "500_de"            -> stage 500, sprache de
-  "345_verschiebung"  -> stage 340, teil 345_verschiebung   (345 Teil von 340, 502 von 500, 525 von 520)
+  "345_verschiebung"  -> stage 340, teil 345_verschiebung   (345 Teil von 340, 502 von 500, 535 von 530)
   alte Nummern 11/20/50/55 ... -> 120/600/200/330 ... , stage_alt = alte Nummer
 Kontext: run.py bzw. die Stage setzt set_context(werk, stage[, sprache=..]) oder `with kontext(werk, stage):`.
 Ohne Kontext: Stage-CLI (Modulname sNNN_) -> Werk aus erstem Argument, sonst READLAYER_BOOK.
@@ -36,10 +36,10 @@ _gewarnt = set()
 # Alte Stage-Nummern (bis 18.10.2026) -> Katalog-Nummern
 ALT = {"01": "110", "05": "150", "11": "120", "20": "600", "21": "610", "30": "620", "31": "630",
        "40": "640", "50": "200", "51": "210", "52": "300", "53": "310", "54": "320", "54a": "340",
-       "55": "330", "56": "400", "57": "410", "57b": "420", "58": "500", "58c": "520", "59": "650",
+       "55": "330", "56": "400", "57": "410", "57b": "420", "58": "500", "58c": "530", "59": "650",
        "60": "710"}
 # Teil-Stages ohne eigenen Status-Schluessel
-TEIL = {"345": "340", "501": "500", "502": "500", "525": "520"}
+TEIL = {"345": "340", "501": "500", "502": "500", "535": "530"}
 # Werkzeug-Kontexte ohne Nummer
 NAMEN = {"aussprache_lexikon": "400", "nachlauf_geschlecht": "600", "pruefaligner": "340",
          "verschiebung": "340", "casting": "410", "voice_design": "410"}

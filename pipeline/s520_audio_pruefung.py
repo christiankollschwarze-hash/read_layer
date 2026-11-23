@@ -1,4 +1,4 @@
-"""STAGE 530 — Audio-Pruefungen (neu als Stage, GATE_KATALOG.md Zeile 530, Phase 2, 02.11.2026)
+"""STAGE 520 — Audio-Pruefungen (neu als Stage, GATE_KATALOG.md Zeile 520, Phase 2, 02.11.2026)
 Funktion:     Macht aus der Rohfassung die Endfassung je Audiosprache und Spur: Hoerbuch fassungen/<lg>/audio/
               (Manifest 500) -> audio_final/, Hoerspiel fassungen/<lg>/hoerspiel/ (Manifest 510, nur Saetze mit
               Figurenanteil, Rest = audio_final/) -> hoerspiel_final/. Je Satz: Raender aus FA-Wortzeiten (MMS_FA,
@@ -6,7 +6,7 @@ Funktion:     Macht aus der Rohfassung die Endfassung je Audiosprache und Spur: 
               Lautheit auf LUFS-Ziel normiert, Spitzenpegel begrenzt (ffmpeg ebur128). Danach Sprachpruefung je
               Satz (Whisper: erkannte Sprache + CER gegen Sprechtext); gekippte Saetze -> bis 2x automatisch neu in
               500 bzw. 510, danach Hoerliste. Rohfassungen bleiben unberuehrt.
-Wirkungsweise: Manifest work/530_pruefung_<lg>.json (Schluessel <spur>/<tid>): Eingangs-Hash (WAV 500/510 + Sprechtext
+Wirkungsweise: Manifest work/520_pruefung_<lg>.json (Schluessel <spur>/<tid>): Eingangs-Hash (WAV 500/510 + Sprechtext
               + Tempo + Raender), FA-Raender (w0/w1, eigener Hash), Tempo, Rand, Dauer, Sprachergebnis (je Datei-Hash
               der Endfassung); meta.kapitel je <spur>/<kap> (Hash, LUFS vor/nach, Verstaerkung, Spitze). Nur geaenderte
               Saetze/Kapitel werden neu gebaut bzw. geprueft (geaenderte WAV -> automatisch neu).
@@ -14,20 +14,20 @@ Eingang:      fassungen/<lg>/audio + work/500_vertonung.json (Gate 500 frei), fa
               work/510_overlay.json (Gate 510 frei), work/400_regie.json (Sprechtext, Lexikon wie 500), book.json
               (Bestellung, pruefung_regler).
 Ausgabe:      fassungen/<lg>/audio_final/<tid>.wav, fassungen/<lg>/hoerspiel_final/<tid>.wav,
-              work/530_pruefung_<lg>.json, work/530_hoerliste.json (gekippt / Verdacht / ohne FA / Kapitel ausserhalb).
+              work/520_pruefung_<lg>.json, work/520_hoerliste.json (gekippt / Verdacht / ohne FA / Kapitel ausserhalb).
 Gate:         je Sprache x Spur: Spur bestellt, Gate 500/510 frei, WAV + Manifest aktuell fuer jeden Satz, ffmpeg/FA/
               Whisper verfuegbar, Mock im Live-Lauf = 0 -> sonst Stopp; gekippt = 0 nach Wiederholung, Verdacht <= 2 %,
               ohne FA-Raender <= 1 %, Rand <= 0,15 s, LUFS Ziel +- Toleranz, Spitze <= -1 dBTP -> sonst Mensch
               (Hoerliste); gleicher Name in >= 3 Verdachtssaetzen -> Hinweis (Ruecksprung 400). Mensch-Freigabe gilt bei
               gleichem ausgabe_hash.
-Kosten:       usage_log Stage 530 (Modal-Sekunden FA + Whisper, je Sprache); CPU 0 $.
+Kosten:       usage_log Stage 520 (Modal-Sekunden FA + Whisper, je Sprache); CPU 0 $.
 Regler:       book.json pruefung_regler: --tempo [LG=]F (Standard: Chatterbox Adapter-Tempo, Gemini 1,0), --vor/--nach S,
               --rand-max, --lufs, --lufs-tol, --peak-max, --fa modal|cpu, --sprache modal|cpu|aus, --stichprobe P (%),
               --cer-verdacht, --p-min, --kurz-s, --verdacht-max, --ohne-fa-max, --versuche, --nachvertonen an|aus;
               dazu --satz ID (neu), --kapitel c001,c002, --lang, --spur hoerbuch|hoerspiel, --neu, --trocken;
-              --annehmen ID --grund TEXT (mit --lang/--spur; Vermerk work/530_entscheidungen.json, gilt bei gleicher
+              --annehmen ID --grund TEXT (mit --lang/--spur; Vermerk work/520_entscheidungen.json, gilt bei gleicher
               Endfassung).
-Aufruf:       py -3.11 -m pipeline.s530_audio_pruefung <werk> [Regler] [--wer CK]
+Aufruf:       py -3.11 -m pipeline.s520_audio_pruefung <werk> [Regler] [--wer CK]
 Exit: 0 auto, 2 Stopp, 3 Mensch, 1 Fehler.
 """
 import argparse
@@ -56,7 +56,7 @@ from pipeline import s500_vertonung_gemini as s500
 from pipeline import s502_vertonung_chatterbox as cb
 from pipeline import s510_hoerspiel_hybrid as s510
 
-STAGE = "530"
+STAGE = "520"
 SR = 24000
 VERSION = 1
 SCHNITT = 2                      # 21.11.2026: Raender ab Klangende/-anfang statt FA-Wortgrenze (Auslaute)
@@ -78,7 +78,7 @@ WHISPER_CPU = getattr(config, "WHISPER_CPU_MODELL", "small")
 
 # ============================================================ Ablage
 def pfad(werk, lg):
-    return config.work_path(werk, f"530_pruefung_{lg}")
+    return config.work_path(werk, f"520_pruefung_{lg}")
 
 
 def final_dir(werk, lg, spur):
@@ -86,7 +86,7 @@ def final_dir(werk, lg, spur):
 
 
 def hoerliste_pfad(werk):
-    return os.path.join(config.work_dir(werk), "530_hoerliste.json")
+    return os.path.join(config.work_dir(werk), "520_hoerliste.json")
 
 
 def _json(p, leer=None):
@@ -97,7 +97,7 @@ def _json(p, leer=None):
 
 
 def entsch_pfad(werk):
-    return os.path.join(config.work_dir(werk), "530_entscheidungen.json")
+    return os.path.join(config.work_dir(werk), "520_entscheidungen.json")
 
 
 def annehmen(werk, lg, spur, ids, wer, grund):
@@ -108,7 +108,7 @@ def annehmen(werk, lg, spur, ids, wer, grund):
         raise ValueError("--annehmen braucht --grund")
     if spur not in SPUREN:
         raise ValueError(f"Spur {spur!r}")
-    m = manifest.Manifest(werk, f"530_pruefung_{lg}", stage=STAGE)
+    m = manifest.Manifest(werk, f"520_pruefung_{lg}", stage=STAGE)
     d = _json(entsch_pfad(werk), {}) or {}
     for t in ids:
         k = f"{spur}/{t}"
@@ -318,7 +318,7 @@ def sprache(jobs, werk, lg, art):
         try:
             return sprache_modal(jobs, werk, lg)
         except Exception as e:
-            print(f"[530] Modal-Whisper nicht nutzbar -> CPU: {type(e).__name__}: {str(e)[:120]}")
+            print(f"[520] Modal-Whisper nicht nutzbar -> CPU: {type(e).__name__}: {str(e)[:120]}")
     return sprache_cpu(jobs, lg)
 
 
@@ -431,7 +431,7 @@ def nachvertonen(werk, spur, lg, ids, wer):
 
 def run(werk, wer=None, regler=None, saetze=None, kapitel=None, nur_lang=None, nur_spur=None, neu=False, trocken=False):
     wer = wer or "pipeline"
-    g = gate.Gate(werk, STAGE, ruecksprung="530", wer=wer)
+    g = gate.Gate(werk, STAGE, ruecksprung="520", wer=wer)
     b = bestellung.lesen(werk)
     rg = _regler(dict(b.roh))
     if regler and any(v is not None for v in regler.values()):
@@ -471,7 +471,7 @@ def run(werk, wer=None, regler=None, saetze=None, kapitel=None, nur_lang=None, n
         lex, _ = s500._lexikon(werk, lg)
         tts = {u["id"]: lex(u["text"]) for u in units}
         tempo = tempo_fuer(rg, lg, q["hoerbuch"])
-        m = manifest.Manifest(werk, f"530_pruefung_{lg}", stage=STAGE)
+        m = manifest.Manifest(werk, f"520_pruefung_{lg}", stage=STAGE)
         for spur in sp[lg]:
             mq = q[spur]
             if spur == "hoerspiel":
@@ -507,7 +507,7 @@ def run(werk, wer=None, regler=None, saetze=None, kapitel=None, nur_lang=None, n
         for x in fe:
             g.hinweis("werkzeug", False, text=f"Werkzeug fehlt: {x} (live Stopp)")
     elif fe:
-        g.pflicht("werkzeug", False, wert=fe, ruecksprung="530", text="Werkzeuge verfuegbar – " + "; ".join(fe))
+        g.pflicht("werkzeug", False, wert=fe, ruecksprung="520", text="Werkzeuge verfuegbar – " + "; ".join(fe))
         g.entscheide(schreiben=True)
         return g
 
@@ -718,7 +718,7 @@ def _gate_spur(g, werk, lg, spur, p, rg, trocken, teil):
         g.hinweis(f"abdeckung_{lg}_{spur}", len(fertig) == len(ids), wert=len(ids) - len(fertig),
                   text=f"{pre}: {len(fertig)}/{len(ids)} Saetze mit aktueller Endfassung (Teillauf)")
     else:
-        g.pflicht(f"abdeckung_{lg}_{spur}", len(fertig) == len(ids), wert=round(len(fertig) / n, 4), ruecksprung="530",
+        g.pflicht(f"abdeckung_{lg}_{spur}", len(fertig) == len(ids), wert=round(len(fertig) / n, 4), ruecksprung="520",
                   text=f"{pre}: Endfassung je Satz {len(fertig)}/{len(ids)}")
     ein = [m.get(f"{spur}/{t}") for t in fertig]
     ent = _json(entsch_pfad(werk), {}) or {}
@@ -727,20 +727,20 @@ def _gate_spur(g, werk, lg, spur, p, rg, trocken, teil):
     ohne_fa = [t for t, e in zip(fertig, ein) if not e.get("rand") and t not in angen]
     g.max(f"ohne_fa_{lg}_{spur}", round(len(ohne_fa) / n, 4), float(rg["ohne_fa_max"]), ruecksprung=q)
     rmax = max([max(e["rand"]) for e in ein if e.get("rand")] or [0.0])
-    g.max(f"rand_{lg}_{spur}", round(rmax, 3), float(rg["rand_max"]), ruecksprung="530")
+    g.max(f"rand_{lg}_{spur}", round(rmax, 3), float(rg["rand_max"]), ruecksprung="520")
     km = m.meta.get("kapitel") or {}
     kaps = {k: v for k, v in km.items() if k.startswith(f"{spur}/")}
     aus_l = [k.split("/", 1)[1] for k, v in kaps.items() if abs(v["lufs"] - float(rg["lufs"])) > float(rg["lufs_tol"])]
     aus_p = [k.split("/", 1)[1] for k, v in kaps.items() if v["peak"] > float(rg["peak_max"]) + 0.05]
-    g.max(f"lufs_{lg}_{spur}", len(aus_l), 0, ruecksprung="530")
-    g.max(f"spitze_{lg}_{spur}", len(aus_p), 0, ruecksprung="530")
+    g.max(f"lufs_{lg}_{spur}", len(aus_l), 0, ruecksprung="520")
+    g.max(f"spitze_{lg}_{spur}", len(aus_p), 0, ruecksprung="520")
     sp = {t: (e.get("sprache") or {}) for t, e in zip(fertig, ein)}
     gepr = [t for t, s in sp.items() if s.get("datei_hash") == (m.get(f"{spur}/{t}") or {}).get("datei_hash")]
     gek = [t for t in gepr if sp[t].get("stufe") == "gekippt" and t not in angen]
     ver = [t for t in gepr if sp[t].get("stufe") == "verdacht" and t not in angen]
     if angen:
         g.hinweis(f"angenommen_{lg}_{spur}", False, wert=len(angen),
-                  text=f"{pre}: {len(angen)} Saetze der Hoerliste angenommen (Vermerk 530_entscheidungen.json)")
+                  text=f"{pre}: {len(angen)} Saetze der Hoerliste angenommen (Vermerk 520_entscheidungen.json)")
     if rg["sprache"] == "aus":
         g.hinweis(f"sprache_{lg}_{spur}", False, text=f"{pre}: Sprachpruefung aus")
     else:
@@ -763,7 +763,7 @@ def _gate_spur(g, werk, lg, spur, p, rg, trocken, teil):
 
 # ============================================================ CLI
 def main(argv=None):
-    ap = argparse.ArgumentParser(description="Stage 530 Audio-Pruefungen")
+    ap = argparse.ArgumentParser(description="Stage 520 Audio-Pruefungen")
     ap.add_argument("werk")
     ap.add_argument("--wer")
     ap.add_argument("--tempo", action="append", metavar="[LG=]F")
@@ -813,7 +813,7 @@ def main(argv=None):
         print(e)
         return e.exit_code
     except (ValueError, PermissionError, RuntimeError) as e:
-        print(f"[530] Fehler: {e}")
+        print(f"[520] Fehler: {e}")
         return 1
     print(g.bericht())
     return gate.EXIT[g.ergebnis["ergebnis"]]

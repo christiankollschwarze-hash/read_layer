@@ -1,6 +1,6 @@
-"""MMS_FA-Aligner (torchaudio) – gemeinsam fuer 510 (Schnitt), 530 (Raender) und 520 (Wortzeiten), lokal und auf Modal
+"""MMS_FA-Aligner (torchaudio) – gemeinsam fuer 510 (Schnitt), 520 (Raender) und 530 (Wortzeiten), lokal und auf Modal
 (gpu_fa/schnitt_modal.py, READLAYER_FA_DEVICE=cuda). Bewusst ohne Pipeline-Importe, damit das Modal-Image schlank bleibt.
-(Phase 2, 03.11.2026: aus pipeline/s520_wortzeiten.py herausgeloest.)
+(Phase 2, 03.11.2026: aus pipeline/s530_wortzeiten.py herausgeloest.)
 """
 import os
 
@@ -35,7 +35,7 @@ class Aligner:
         """Liest den Schnipsel direkt mit dem wave-Modul.
         NICHT torchaudio.load verwenden: neuere torchaudio-Versionen leiten das
         auf TorchCodec um und scheitern ohne dieses Zusatzpaket. Die Schnipsel
-        aus 500/510/530 sind schlichte 16-Bit-PCM-WAVs -- dafuer genuegt die
+        aus 500/510/520 sind schlichte 16-Bit-PCM-WAVs -- dafuer genuegt die
         Standardbibliothek. Das Resampling unten ist reine Tensor-Rechnung und
         von der Umleitung nicht betroffen."""
         import wave

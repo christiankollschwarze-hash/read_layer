@@ -3,7 +3,7 @@ Funktion:     Fremdsprachige Saetze (Zitate) im Lesetext erkennen, flaggen und j
                 uebertragen    -> Uebertragung in die Werksprache ersetzt das Original im Lesetext
                                   (chapter-N.json paragraphs + raw_modernized.txt); Original bleibt hier gespeichert
                 behalten       -> Satz bleibt in allen Fassungen im Original; 200 setzt am Knoten sprache_satz=<lg>
-                                  (310 uebersetzt nicht, 400/500 sprechen in der Originalsprache, 530 prueft nicht)
+                                  (310 uebersetzt nicht, 400/500 sprechen in der Originalsprache, 520 prueft nicht)
                 kein           -> Fehlalarm, Flag weg
               Laeuft fuer JEDE Fassung (original und modernisiert), nach der Modernisierung.
 Erkennung:    satzweise (tools/satzweise), lokal 0 $: lingua (py -3.11 -m pip install lingua-language-detector),

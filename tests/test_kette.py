@@ -23,7 +23,7 @@ class Bedarf(unittest.TestCase):
         s = kette.bedarf(B(TEXT_EPUB_EN, gutenberg_id=1))
         for st in ("100", "110", "120", "190", "600", "610", "615", "620", "700", "710"):
             self.assertIn(st, s)
-        for st in ("150", "200", "210", "300", "330", "340", "400", "500", "520", "630", "640", "650"):
+        for st in ("150", "200", "210", "300", "330", "340", "400", "500", "530", "630", "640", "650"):
             self.assertNotIn(st, s)
 
     def test_user_txt_wie_gutenberg(self):
@@ -34,15 +34,15 @@ class Bedarf(unittest.TestCase):
     def test_taella_uebersetzung(self):
         s = kette.bedarf(B(TAELLA_DE, herkunft="privat_upload"))
         self.assertTrue({"150", "200", "210", "300", "310", "320", "330", "340", "640"} <= s)
-        self.assertFalse({"100", "110", "400", "500", "520", "620", "630"} & s)
+        self.assertFalse({"100", "110", "400", "500", "530", "620", "630"} & s)
 
     def test_hoerspiel(self):
         b = B(HOERSPIEL)
         s = kette.bedarf(b)
-        self.assertTrue({"400", "410", "420", "500", "510", "530", "520", "540"} <= s)
+        self.assertTrue({"400", "410", "420", "500", "510", "520", "530", "540"} <= s)
         self.assertNotIn("650", s)
         self.assertEqual(kette.sprachen("500", b), ["de"])
-        self.assertEqual(kette.sprachen("520", b), ["de"])
+        self.assertEqual(kette.sprachen("530", b), ["de"])
         self.assertEqual(kette.sprachen("710", b), ["en", "de"])
         self.assertIsNone(kette.sprachen("310", b))
 
@@ -50,7 +50,7 @@ class Bedarf(unittest.TestCase):
         b = B([{"sprache": "de", "inhalt": "hoerbuch", "stufe": "basic", "kanaele": ["epub"]}])
         s = kette.bedarf(b)
         self.assertTrue({"650", "630", "300"} <= s)
-        self.assertNotIn("520", s)
+        self.assertNotIn("530", s)
         self.assertEqual(kette.sprachen("630", b), ["de"])
 
 
@@ -65,7 +65,7 @@ class Vorgaenger(unittest.TestCase):
         in_kette = laeuft - {"190", "195", "115", "100", "110", "150", "095", "090", "080"}
         self.assertEqual(kette.wirksame_vorgaenger("200", laeuft, in_kette), ["120"])
         self.assertEqual(kette.wirksame_vorgaenger("120", laeuft, in_kette), [])
-        in_kette -= {"530", "650"}
+        in_kette -= {"520", "650"}
         self.assertEqual(kette.wirksame_vorgaenger("620", laeuft, in_kette), ["500", "510", "615"])
 
     def test_700_alle_davor(self):
@@ -154,10 +154,10 @@ class Kette(unittest.TestCase):
                                                S.ergebnis(w, "500", "auto", wer="test"))
         run.NEU["510"] = lambda w, b, f, wer: (self.gelaufen.append("510"),
                                                S.ergebnis(w, "510", "auto", wer="test"))
-        run.NEU["530"] = lambda w, b, f, wer: (self.gelaufen.append("530"),
-                                               S.ergebnis(w, "530", "auto", wer="test"))
         run.NEU["520"] = lambda w, b, f, wer: (self.gelaufen.append("520"),
                                                S.ergebnis(w, "520", "auto", wer="test"))
+        run.NEU["530"] = lambda w, b, f, wer: (self.gelaufen.append("530"),
+                                               S.ergebnis(w, "530", "auto", wer="test"))
         run.NEU["540"] = lambda w, b, f, wer: (self.gelaufen.append("540"),
                                                S.ergebnis(w, "540", "auto", wer="test"))
         run.NEU["600"] = lambda w, b, f, wer: (self.gelaufen.append("600"),

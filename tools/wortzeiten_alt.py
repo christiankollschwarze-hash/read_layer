@@ -1,13 +1,13 @@
-"""ALTWEG (Phase 2, 03.11.2026): bisherige Stage 520 ohne Gate/Manifest, nur noch fuer Altwerke
-(gpu_fa/fa_modal.py via start_cb_neu.bat, gpu_tts/fertig_modal.py via start_smoke_test.bat). Neue Werke: pipeline/s520_wortzeiten.py.
+"""ALTWEG (Phase 2, 03.11.2026): bisherige Stage 530 ohne Gate/Manifest, nur noch fuer Altwerke
+(gpu_fa/fa_modal.py via start_cb_neu.bat, gpu_tts/fertig_modal.py via start_smoke_test.bat). Neue Werke: pipeline/s530_wortzeiten.py.
 Aufruf: py -3.11 tools/wortzeiten_alt.py <werk> --lang de [--force]
 
-STAGE 520 — Wortzeiten (Stand vor Phase 2)
+STAGE 530 — Wortzeiten (Stand vor Phase 2)
 Funktion:     Wort-Zeitstempel fuer Karaoke-Highlighting.
 Wirkungsweise: Forced Alignment (torchaudio MMS_FA) je Satz-WAV, Bindung an die Wortanker aus s340.
-Komponenten:  pipeline/s520_wortzeiten.py, pipeline/s525_wortbruecke.py (Lautwoerter + Bindung); auf Modal: gpu_fa/fa_modal.py
+Komponenten:  pipeline/s530_wortzeiten.py, pipeline/s535_wortbruecke.py (Lautwoerter + Bindung); auf Modal: gpu_fa/fa_modal.py
 Zulieferer:   s500 Vertonung (WAVs), s340 Wort-Alignment (work/340_wortalignment.json)
-Abnehmer:     s525 Wortbruecke, s710 Cloud-Export, TAELLA-App (work/520_wortzeiten_<lang>.json)
+Abnehmer:     s535 Wortbruecke, s710 Cloud-Export, TAELLA-App (work/530_wortzeiten_<lang>.json)
 (Nomenklatur seit 18.10.2026, Uebersicht: docs/Pipeline_Strang_Matrix.xlsx)
 
 --- Bisherige Beschreibung ---
@@ -16,7 +16,7 @@ READ LAYER — Stage 58c: Wort-Zeitstempel (Karaoke-Grundlage)
 =============================================================
 Input:  fassungen/<lang>/audio/<tag_id>.wav   (Satz-Schnipsel aus 58b)
         work/340_wortalignment.json                    (Wortanker: i + en_span)
-Output: work/520_wortzeiten_<lang>.json
+Output: work/530_wortzeiten_<lang>.json
         { tag_id: [ {"i": <54a-Index>, "t0": <s>, "t1": <s>}, ... ] }
 
 ZWECK: Beim Abspielen soll das gerade gesprochene Wort im Lesetext leuchten.
@@ -58,9 +58,9 @@ RESILIENZ: Das Ergebnis wird alle CHECKPOINT_ALLE Schnipsel zwischengespeichert.
 Ein erneuter Lauf ueberspringt bereits vermessene Tags (--force vermisst neu).
 
 UMGEBUNG: braucht torchaudio -> Python 3.11 verwenden:
-  py -3.11 -m pipeline.s520_wortzeiten call-of-the-wild --lang en
-  py -3.11 -m pipeline.s520_wortzeiten call-of-the-wild --lang en --limit 50
-  py -3.11 -m pipeline.s520_wortzeiten call-of-the-wild --lang de
+  py -3.11 -m pipeline.s530_wortzeiten call-of-the-wild --lang en
+  py -3.11 -m pipeline.s530_wortzeiten call-of-the-wild --lang en --limit 50
+  py -3.11 -m pipeline.s530_wortzeiten call-of-the-wild --lang de
 
 ZIELSPRACHE (ab 2026-10-09): Fuer --lang de (bzw. jede Sprache != Quellsprache)
 werden die Schnipsel aus fassungen/<lang>/audio mit dem Zieltext aus 54a
@@ -82,15 +82,15 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import config
 
-STAGE = "520"
+STAGE = "530"
 CHECKPOINT_ALLE = 200
 
 
 # ---------------------------------------------------------------------------
 # Text -> Lautwoerter mit Zeichen-Offset
 # ---------------------------------------------------------------------------
-# 26.10.2026 (AP 54b): Lautwort-Zerlegung und Token-Bindung liegen an EINER Stelle -> pipeline/s525_wortbruecke.py
-from pipeline.s525_wortbruecke import lautwoerter as _lautwoerter, bind_to_tokens as _bind_to_tokens  # noqa: E402
+# 26.10.2026 (AP 54b): Lautwort-Zerlegung und Token-Bindung liegen an EINER Stelle -> pipeline/s535_wortbruecke.py
+from pipeline.s535_wortbruecke import lautwoerter as _lautwoerter, bind_to_tokens as _bind_to_tokens  # noqa: E402
 
 
 # ---------------------------------------------------------------------------

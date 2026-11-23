@@ -63,15 +63,15 @@ class T710(unittest.TestCase):
               "production": {"pause_after_ms": {t: {"de": 400, "en": 300} for t in content}}},
              config.work_path(w, "400_regie"))
         dump({"je_ziel": {"de": {"tags": {"c001_00002_s": [{"i": 0, "t": [0.1, 0.4], "tz": [[0.0, 0.3]]}]}}}},
-             config.work_path(w, "525_wortbruecke"))
-        m = manifest.Manifest(w, "530_pruefung_de", stage="530")
+             config.work_path(w, "535_wortbruecke"))
+        m = manifest.Manifest(w, "520_pruefung_de", stage="520")
         for t in content:
             p = os.path.join(d, "fassungen", "de", "audio_final", f"{t}.wav")
             os.makedirs(os.path.dirname(p), exist_ok=True)
             open(p, "wb").write(b"RIFF" + t.encode())
             m.setzen(f"hoerbuch/{t}", "e", datei=p)
         m.speichern()
-        dump({"tags": {t: [{"i": 0, "t0": 0.0, "t1": 0.2}] for t in content}}, config.work_path(w, "520_wortzeiten_de"))
+        dump({"tags": {t: [{"i": 0, "t0": 0.0, "t1": 0.2}] for t in content}}, config.work_path(w, "530_wortzeiten_de"))
         dump({"blurb": {"koeder": [{"en": "A.", "de": "A."}], "einordnung": [], "autor": []}, "vermerke": {}},
              config.work_path(w, "600_klappentext"))
         for lg, var in (("en", ""), ("de", "_audio")):
@@ -149,7 +149,7 @@ class T710(unittest.TestCase):
         self.assertEqual((Z.hochgeladen, Z.geloescht), (0, 0))
         p = os.path.join(d, "fassungen", "de", "audio_final", "c001_00003_s.wav")
         open(p, "wb").write(b"RIFF neu")
-        m = manifest.Manifest("w", "530_pruefung_de")
+        m = manifest.Manifest("w", "520_pruefung_de")
         m.setzen("hoerbuch/c001_00003_s", "e2", datei=p)
         m.speichern()
         os.remove(os.path.join(d, "fassungen", "de", "blurb", "audio", "k1.mp3"))
@@ -185,22 +185,22 @@ class T710(unittest.TestCase):
         self.assertEqual(gs["de:taella"].ergebnis["ergebnis"], "stopp")
         self.assertEqual(self.pub_json("demo/katalog.json")["werke"][0]["sprachen"], ["en"])
 
-    def test_audio_luecke_stopp_530(self):
+    def test_audio_luecke_stopp_520(self):
         self.werk()
-        m = manifest.Manifest("w", "530_pruefung_de")
+        m = manifest.Manifest("w", "520_pruefung_de")
         m.entfernen("hoerbuch/c001_00003_s")
         m.speichern()
         gs = self.lauf()
         g = gs["de:taella"]
         self.assertEqual(g.ergebnis["ergebnis"], "stopp")
-        self.assertEqual(g.ergebnis["ruecksprung"], "530")
+        self.assertEqual(g.ergebnis["ruecksprung"], "520")
         self.assertEqual(gs["en:taella"].ergebnis["ergebnis"], "mensch")
 
-    def test_wortzeiten_luecke_stopp_520(self):
+    def test_wortzeiten_luecke_stopp_530(self):
         self.werk()
-        dump({"tags": {"c001_00002_s": [{"i": 0, "t0": 0.0}]}}, config.work_path("w", "520_wortzeiten_de"))
+        dump({"tags": {"c001_00002_s": [{"i": 0, "t0": 0.0}]}}, config.work_path("w", "530_wortzeiten_de"))
         g = self.lauf()["de:taella"]
-        self.assertEqual((g.ergebnis["ergebnis"], g.ergebnis["ruecksprung"]), ("stopp", "520"))
+        self.assertEqual((g.ergebnis["ergebnis"], g.ergebnis["ruecksprung"]), ("stopp", "530"))
 
     def test_privat(self):
         self.werk(mandant="user:u1")

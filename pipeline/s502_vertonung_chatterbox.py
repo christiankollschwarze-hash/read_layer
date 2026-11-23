@@ -1,7 +1,7 @@
 """STAGE 502 — Chatterbox-Engine der Stage 500 (Stufe Basic), kein eigenes Gate (Katalogzeile 500).
 Funktion:     Baut aus den offenen Saetzen von Stage 500 ein Paket gpu_tts/<werk>_<lg>_500/ (jobs.json + ref.wav),
               startet den Modal-Lauf (gpu_tts/tts_modal_opt.py::main, Batch, Satzpruefung per FA im Lauf, bis 2x neu,
-              Nachklang gekappt) und holt die WAVs ab (Rohfassung fassungen/<lg>/audio/; Tempo wendet Stage 530
+              Nachklang gekappt) und holt die WAVs ab (Rohfassung fassungen/<lg>/audio/; Tempo wendet Stage 520
               einmal an, Adapter-Tempo aus lora_werte).
 Aufrufer:     pipeline/s500_vertonung_gemini.py (Stage 500) – nur nach Kostenfreigabe. Kein Start per Bat mehr
               (start_cb_neu.bat / tools/cb_neu.py bleiben fuer Altwerke ausserhalb der Kette).

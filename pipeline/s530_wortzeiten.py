@@ -1,37 +1,37 @@
-"""STAGE 520 — Wortzeiten inkl. 525 Wortbruecke (Phase 2, 03.11.2026, GATE_KATALOG.md Zeile 520)
+"""STAGE 530 — Wortzeiten inkl. 535 Wortbruecke (Phase 2, 03.11.2026, GATE_KATALOG.md Zeile 530)
 Funktion:     Wort-Zeitstempel fuer das Karaoke-Highlighting der TAELLA-App, je Audiosprache mit TAELLA-Audioprodukt und
               Spur: Hoerbuch (fassungen/<lg>/audio_final/) und Hoerspiel (fassungen/<lg>/hoerspiel_final/), beide aus
-              530. Danach (Teil der Stage, ein Gate) die Wortbruecke 525: je Anker aus 340 die Wortzeit im Quell-Audio (t)
+              520. Danach (Teil der Stage, ein Gate) die Wortbruecke 535: je Anker aus 340 die Wortzeit im Quell-Audio (t)
               und im Ziel-Audio (tz), Hoerspiel ths/tzhs.
 Wirkungsweise: Forced Alignment (MMS_FA, pipeline/fa_mms.py; Modal mit CPU-Rueckfall ueber s510.zeiten) je Endfassung auf
               dem gesprochenen Text (Sprechtext 400 + Aussprache-Lexikon wie 500). Rueckabbildung je Lautwort ueber die
               Herkunft der Lexikon-Ersetzungen und die 400-Abbildung (Sprechtext-Span -> Lesetext-Span) auf die
-              \\S+-Tokens des Lesetexts ("Chapter IV" gesprochen "four" -> Token "IV"). Hash je Satz (Datei-Hash 530 +
+              \\S+-Tokens des Lesetexts ("Chapter IV" gesprochen "four" -> Token "IV"). Hash je Satz (Datei-Hash 520 +
               FA-Text + Lesetext + Abbildung): nur neue/geaenderte Saetze werden gemessen (geaenderte WAV -> automatisch
               neu). Auffaelliger Satz (ohne Zeiten, Lautwoerter unter Schwelle, ausserhalb der Dauer, nicht monoton) ->
               1x automatisch neu auf CPU (wenn Modal), danach Pruefliste.
-Eingang:      work/530_pruefung_<lg>.json + Endfassungen (Gate 530 frei), work/400_regie.json (Lesetext, Sprechtext,
+Eingang:      work/520_pruefung_<lg>.json + Endfassungen (Gate 520 frei), work/400_regie.json (Lesetext, Sprechtext,
               Abbildung, Ansagen), work/340_wortalignment.json (Anker, Gate 340 frei, wenn 340 im Bedarf), Lexikon
               work/aussprache_<lg>.json (freigegeben), book.json (Bestellung, wortzeiten_regler).
-Ausgabe:      work/520_wortzeiten_<lg>.json bzw. 520_wortzeiten_<lg>_hoerspiel.json
+Ausgabe:      work/530_wortzeiten_<lg>.json bzw. 530_wortzeiten_<lg>_hoerspiel.json
                 {sprache, spur, einheit, version, tags {tid: [{i, t0, t1}]}, saetze {tid: {h, fa, laut, laut_zeit,
                  dauer, befund, unplausibel, versuch, manuell?}}, meta}
               (i = \\S+-Token im Lesetext der Sprache = s340-Index in der Quellsprache; Sekunden clip-relativ in der
-              Endfassung 530 – Tempo ist dort schon angewandt, playbackRate der App bleibt unabhaengig);
-              work/525_wortbruecke.json {quelle, ziel, tags, messung, hoerspiel, je_ziel {lg: {tags, messung,
-              hoerspiel}}} (tags/messung = erste Zielsprache, Altschnittstelle 710); work/520_pruefung.json (Pruefliste);
-              work/520_korrekturen.json (manuelle Wortzeiten mit Satz-Hash).
-Gate:         je Sprache x Spur: Audio mit TAELLA bestellt, 400 vorhanden, Regler gueltig, Gate 530 (und 340) frei,
-              Endfassung 530 aktuell je Satz (Teillauf: ausserhalb Auswahl nur Hinweis), Lesetext 400 = Text 340, FA
+              Endfassung 520 – Tempo ist dort schon angewandt, playbackRate der App bleibt unabhaengig);
+              work/535_wortbruecke.json {quelle, ziel, tags, messung, hoerspiel, je_ziel {lg: {tags, messung,
+              hoerspiel}}} (tags/messung = erste Zielsprache, Altschnittstelle 710); work/530_pruefung.json (Pruefliste);
+              work/530_korrekturen.json (manuelle Wortzeiten mit Satz-Hash).
+Gate:         je Sprache x Spur: Audio mit TAELLA bestellt, 400 vorhanden, Regler gueltig, Gate 520 (und 340) frei,
+              Endfassung 520 aktuell je Satz (Teillauf: ausserhalb Auswahl nur Hinweis), Lesetext 400 = Text 340, FA
               verfuegbar -> sonst Stopp; Saetze ohne Wortzeiten = 0, Lautwoerter mit Zeit >= 98 %, ausserhalb Dauer = 0,
               nicht monoton = 0, unplausible Wortdauer (0,03–2,0 s) <= 1 % -> sonst Mensch; je Zielsprache Anker mit Zeit
               >= 95 % (Ruecksprung 340) -> sonst Mensch. Mensch-Freigabe gilt bei gleichem ausgabe_hash.
-Kosten:       usage_log Stage 520 (Modal-Sekunden FA je Sprache); CPU 0 $.
-Regler:       book.json wortzeiten_regler: --fa modal|cpu, --wiederholen an|aus, --interpolation an|aus (525),
+Kosten:       usage_log Stage 530 (Modal-Sekunden FA je Sprache); CPU 0 $.
+Regler:       book.json wortzeiten_regler: --fa modal|cpu, --wiederholen an|aus, --interpolation an|aus (535),
               --lautwoerter-min, --anker-min, --wortdauer-min, --wortdauer-max, --unplausibel-max, --toleranz-s;
               dazu --zeit LG:TID:I=T0,T1 (Wortzeit manuell, mit --spur), --satz ID (neu messen), --kapitel c001,c002,
               --lang, --spur hoerbuch|hoerspiel, --neu, --trocken.
-Aufruf:       py -3.11 -m pipeline.s520_wortzeiten <werk> [Regler] [--wer CK]
+Aufruf:       py -3.11 -m pipeline.s530_wortzeiten <werk> [Regler] [--wer CK]
 Exit: 0 auto, 2 Stopp, 3 Mensch, 1 Fehler.
 """
 import argparse
@@ -47,16 +47,16 @@ from pipeline import bestellung, gate, kette, manifest, status, usage_log
 from pipeline import s420_sprecher as s420
 from pipeline import s500_vertonung_gemini as s500
 from pipeline import s510_hoerspiel_hybrid as s510
-from pipeline import s525_wortbruecke as s525
+from pipeline import s535_wortbruecke as s535
 from pipeline import sprechtext as st
 from pipeline.fa_mms import Aligner as _Aligner  # noqa: F401  (Altschnittstelle tools/ap60_c.py)
 
-STAGE = "520"
+STAGE = "530"
 VERSION = 1
 SPUREN = ("hoerbuch", "hoerspiel")
 ZUSATZ = {"hoerbuch": "", "hoerspiel": "_hoerspiel"}
 FINAL = {"hoerbuch": "audio_final", "hoerspiel": "hoerspiel_final"}
-EINHEIT = "sekunden_clip_relativ_endfassung_530"
+EINHEIT = "sekunden_clip_relativ_endfassung_520"
 REGLER_STD = {"fa": "modal", "wiederholen": True, "interpolation": True, "lautwoerter_min": 0.98, "anker_min": 0.95,
               "wortdauer_min": 0.03, "wortdauer_max": 2.0, "unplausibel_max": 0.01, "toleranz_s": 0.05}
 AUFFAELLIG = ("ohne_zeiten", "lautwoerter", "dauer", "monoton")
@@ -68,15 +68,15 @@ def pfad(werk, lg, spur="hoerbuch"):
 
 
 def bruecke_pfad(werk):
-    return config.work_path(werk, "525_wortbruecke")
+    return config.work_path(werk, "535_wortbruecke")
 
 
 def pruef_pfad(werk):
-    return os.path.join(config.work_dir(werk), "520_pruefung.json")
+    return os.path.join(config.work_dir(werk), "530_pruefung.json")
 
 
 def korr_pfad(werk):
-    return os.path.join(config.work_dir(werk), "520_korrekturen.json")
+    return os.path.join(config.work_dir(werk), "530_korrekturen.json")
 
 
 def _json(p, leer=None):
@@ -174,7 +174,7 @@ def vorbereiten(lese, sprech, abb, ers):
     fa_text, herk = lex_spur(sprech, ers)
     karte = lese_karte(sprech, abb)
     n_l = len(lese)
-    laut = s525.lautwoerter(fa_text)
+    laut = s535.lautwoerter(fa_text)
     for x in laut:
         hs = herk[x["c0"]:x["c1"]] or [(0, 1)]
         a, b = min(h[0] for h in hs), max(h[1] for h in hs)
@@ -190,7 +190,7 @@ def vorbereiten(lese, sprech, abb, ers):
 def binden(laut, zeiten, lese):
     """Lautwort-Zeiten -> [{i, t0, t1}] je \\S+-Token des Lesetexts (Token mit groesster Ueberdeckung des
     Lesetext-Spans, sonst naechster Token); mehrere Lautwoerter je Token = ein Fenster."""
-    sp = s525.token_spans(lese)
+    sp = s535.token_spans(lese)
     if not sp:
         return []
     treffer = {}
@@ -302,7 +302,7 @@ def _korrigieren(eintr, zeiten):
 def run(werk, wer=None, regler=None, saetze=None, kapitel=None, nur_lang=None, nur_spur=None, neu=False,
         trocken=False, zeiten_man=None):
     wer = wer or "pipeline"
-    g = gate.Gate(werk, STAGE, ruecksprung="520", wer=wer)
+    g = gate.Gate(werk, STAGE, ruecksprung="530", wer=wer)
     b = bestellung.lesen(werk)
     rg = _regler(dict(b.roh))
     if regler and any(v is not None for v in regler.values()):
@@ -320,7 +320,7 @@ def run(werk, wer=None, regler=None, saetze=None, kapitel=None, nur_lang=None, n
     ok = g.pflicht("audio", any(sp.values()), ruecksprung="095", text="TAELLA-Audioprodukt bestellt")
     ok = g.pflicht("eingang", os.path.exists(ip), ruecksprung="400", text="400_regie.json vorhanden") and ok
     ok = g.pflicht("regler", _regler_gueltig(rg), wert=rg, text="Regler im Bereich") and ok
-    vor = ["530"] + (["340"] if "340" in kette.bedarf(b) else [])
+    vor = ["520"] + (["340"] if "340" in kette.bedarf(b) else [])
     for v in vor:
         z = status.zustand(werk, v)
         if trocken:
@@ -344,8 +344,8 @@ def run(werk, wer=None, regler=None, saetze=None, kapitel=None, nur_lang=None, n
     for lg in sorted(sp):
         texte = saetze_text(data, lg)
         ers = _ersatz(werk, lg)
-        mp = config.work_path(werk, f"530_pruefung_{lg}")
-        m5 = manifest.Manifest(werk, f"530_pruefung_{lg}", stage="530") if os.path.exists(mp) else None
+        mp = config.work_path(werk, f"520_pruefung_{lg}")
+        m5 = manifest.Manifest(werk, f"520_pruefung_{lg}", stage="520") if os.path.exists(mp) else None
         reihe = [u["id"] for u in s500.einheiten(data, lg)[0]]
         for spur in sp[lg]:
             ids = [t for t in reihe if m5 and f"{spur}/{t}" in m5.eintraege] if spur == "hoerspiel" else reihe
@@ -380,7 +380,7 @@ def run(werk, wer=None, regler=None, saetze=None, kapitel=None, nur_lang=None, n
         for x in fe:
             g.hinweis("werkzeug", False, text=f"Werkzeug fehlt: {x} (live Stopp)")
     elif fe:
-        g.pflicht("werkzeug", False, wert=fe, ruecksprung="520", text="Werkzeuge verfuegbar – " + "; ".join(fe))
+        g.pflicht("werkzeug", False, wert=fe, ruecksprung="530", text="Werkzeuge verfuegbar – " + "; ".join(fe))
         g.entscheide(schreiben=True)
         return g
 
@@ -394,7 +394,7 @@ def run(werk, wer=None, regler=None, saetze=None, kapitel=None, nur_lang=None, n
             je[f"{lg}/{spur}"] = {"saetze": len(p["ids"]), "fehlt": len(p["fehlt"]), "offen": len(p["offen"])}
             g.hinweis(f"abdeckung_{lg}_{spur}", not p["fehlt"], wert=len(p["fehlt"]),
                       text=f"{lg}/{spur}: {len(p['ids']) - len(p['fehlt'])}/{len(p['ids'])} Saetze mit aktueller "
-                           f"Endfassung 530; zu messen {len(p['offen'])}")
+                           f"Endfassung 520; zu messen {len(p['offen'])}")
             continue
         jobs = [(t, soll[t]["wav"], [x["w"] for x in soll[t]["laut"]]) for t in p["offen"] if soll[t]["laut"]]
         zeit = fa_zeiten(jobs, werk, lg, rg["fa"]) if jobs else {}
@@ -446,7 +446,7 @@ def run(werk, wer=None, regler=None, saetze=None, kapitel=None, nur_lang=None, n
     for (lg, spur), p in plan.items():
         pruef.setdefault(lg, {})[spur] = _gate_spur(g, lg, spur, p, ausgaben.get(f"{lg}/{spur}"), rg, trocken, teil)
 
-    # ---- 525 Wortbruecke
+    # ---- 535 Wortbruecke
     if d340 and not trocken:
         br = bruecke(werk, b, d340, rg)
         for lg, x in br.get("je_ziel", {}).items():
@@ -457,10 +457,10 @@ def run(werk, wer=None, regler=None, saetze=None, kapitel=None, nur_lang=None, n
                 g.pruefe(f"anker_zeit_{lg}", q >= float(rg["anker_min"]), q, f">= {rg['anker_min']}", "mensch",
                          "340", txt)
         if not br.get("je_ziel"):
-            g.hinweis("bruecke", True, text="525 entfaellt (keine Zielsprache mit Ankern und Audio)")
-        ausgaben["525"] = {lg: x["tags"] for lg, x in br.get("je_ziel", {}).items()}
+            g.hinweis("bruecke", True, text="535 entfaellt (keine Zielsprache mit Ankern und Audio)")
+        ausgaben["535"] = {lg: x["tags"] for lg, x in br.get("je_ziel", {}).items()}
     if not rg.get("interpolation"):
-        g.hinweis("interpolation", False, text="525: Interpolation aus")
+        g.hinweis("interpolation", False, text="535: Interpolation aus")
 
     aus_hash = manifest.hash_obj({k: v.get("tags") if isinstance(v, dict) and "tags" in v else v
                                   for k, v in ausgaben.items()})
@@ -491,11 +491,11 @@ def _gate_spur(g, lg, spur, p, aus, rg, trocken, teil):
     fehlt = [t for t in p["fehlt"] if not p.get("auswahl") or t in p["auswahl"]]
     rest = [t for t in p["fehlt"] if t not in fehlt]
     if fehlt:
-        g.pflicht(f"eingang_{lg}_{spur}", False, wert=len(fehlt), ruecksprung="530",
-                  text=f"{pre}: {len(fehlt)} Saetze ohne aktuelle Endfassung 530 – {', '.join(fehlt[:3])}")
+        g.pflicht(f"eingang_{lg}_{spur}", False, wert=len(fehlt), ruecksprung="520",
+                  text=f"{pre}: {len(fehlt)} Saetze ohne aktuelle Endfassung 520 – {', '.join(fehlt[:3])}")
     if rest:
         g.hinweis(f"eingang_rest_{lg}_{spur}", False, wert=len(rest),
-                  text=f"{pre}: {len(rest)} Saetze ausserhalb der Auswahl ohne aktuelle Endfassung 530")
+                  text=f"{pre}: {len(rest)} Saetze ausserhalb der Auswahl ohne aktuelle Endfassung 520")
     info = (aus or {}).get("saetze") or {}
     fertig = [t for t in ids if t in p["soll"] and (info.get(t) or {}).get("h") == p["soll"][t]["h"]]
     if teil:
@@ -503,7 +503,7 @@ def _gate_spur(g, lg, spur, p, aus, rg, trocken, teil):
                   text=f"{pre}: {len(fertig)}/{len(ids)} Saetze mit aktuellen Wortzeiten (Teillauf)")
     else:
         g.pflicht(f"abdeckung_{lg}_{spur}", len(fertig) == len(ids), wert=round(len(fertig) / n, 4),
-                  ruecksprung="520", text=f"{pre}: Wortzeiten je Satz {len(fertig)}/{len(ids)}")
+                  ruecksprung="530", text=f"{pre}: Wortzeiten je Satz {len(fertig)}/{len(ids)}")
     inf = [info[t] for t in fertig]
     mit = lambda b_: [t for t in fertig if b_ in info[t]["befund"]]
     ohne, dauer, mono = mit("ohne_zeiten"), mit("dauer"), mit("monoton")
@@ -512,15 +512,15 @@ def _gate_spur(g, lg, spur, p, aus, rg, trocken, teil):
     woerter = sum(len((aus or {}).get("tags", {}).get(t) or []) for t in fertig)
     unpl = round(sum(x["unplausibel"] for x in inf) / woerter, 4) if woerter else 0.0
     bsp = lambda l: f" – {', '.join(l[:3])}" if l else ""
-    g.pruefe(f"ohne_zeiten_{lg}_{spur}", not ohne, len(ohne), "= 0", "mensch", "530",
+    g.pruefe(f"ohne_zeiten_{lg}_{spur}", not ohne, len(ohne), "= 0", "mensch", "520",
              f"{pre}: Saetze ohne Wortzeiten {len(ohne)}{bsp(ohne)}")
     g.pruefe(f"lautwoerter_{lg}_{spur}", q >= float(rg["lautwoerter_min"]), q, f">= {rg['lautwoerter_min']}",
-             "mensch", "530", f"{pre}: Lautwoerter mit Zeit {q:.1%}")
-    g.pruefe(f"dauer_{lg}_{spur}", not dauer, len(dauer), "= 0", "mensch", "530",
+             "mensch", "520", f"{pre}: Lautwoerter mit Zeit {q:.1%}")
+    g.pruefe(f"dauer_{lg}_{spur}", not dauer, len(dauer), "= 0", "mensch", "520",
              f"{pre}: Wortzeit ausserhalb der Audiodauer {len(dauer)}{bsp(dauer)}")
-    g.pruefe(f"monoton_{lg}_{spur}", not mono, len(mono), "= 0", "mensch", "520",
+    g.pruefe(f"monoton_{lg}_{spur}", not mono, len(mono), "= 0", "mensch", "530",
              f"{pre}: nicht monoton {len(mono)}{bsp(mono)}")
-    g.max(f"wortdauer_{lg}_{spur}", unpl, float(rg["unplausibel_max"]), ruecksprung="530")
+    g.max(f"wortdauer_{lg}_{spur}", unpl, float(rg["unplausibel_max"]), ruecksprung="520")
     auff = [t for t in fertig if set(info[t]["befund"]) & set(AUFFAELLIG)]
     zeile = lambda t: {"id": t, "text": p["soll"][t]["lese"], "datei": p["soll"][t]["wav"],
                        "befund": info[t]["befund"], "fa": info[t]["fa"], "versuch": info[t]["versuch"]}
@@ -528,9 +528,9 @@ def _gate_spur(g, lg, spur, p, aus, rg, trocken, teil):
             "lautwoerter": q, "unplausibel": unpl}
 
 
-# ============================================================ 525 Wortbruecke (Teil der Stage)
+# ============================================================ 535 Wortbruecke (Teil der Stage)
 def bruecke(werk, b, d340, rg):
-    """Je Zielsprache mit Ankern (align_<lg>) Wortzeiten je Anker aus 520 -> work/525_wortbruecke.json."""
+    """Je Zielsprache mit Ankern (align_<lg>) Wortzeiten je Anker aus 530 -> work/535_wortbruecke.json."""
     src = b.quellsprache
     content = d340.get("content") or {}
     ziele = [lg for lg in (b.zielsprachen or []) if lg != src
@@ -551,11 +551,11 @@ def bruecke(werk, b, d340, rg):
             al = v.get(f"align_{lg}") if isinstance(v, dict) else None
             if not al:
                 continue
-            tags[tid] = s525.bruecke_satz(v.get(src, ""), v.get(lg, ""), al, (zq or {}).get(tid),
+            tags[tid] = s535.bruecke_satz(v.get(src, ""), v.get(lg, ""), al, (zq or {}).get(tid),
                                           zz.get(tid) if zz is not None and tid in zz else None,
                                           bool(rg.get("interpolation")), (hq or {}).get(tid), (hz or {}).get(tid),
                                           lg=lg)
-        m = s525.messen(tags, content, src, q_audio=zq is not None, z_audio=zz is not None)
+        m = s535.messen(tags, content, src, q_audio=zq is not None, z_audio=zz is not None)
         hs = {"saetze_quelle": sum(1 for t in (hq or {}) if t in tags),
               "saetze_ziel": sum(1 for t in (hz or {}) if t in tags),
               "anker_ths": sum(1 for ws in tags.values() for w in ws if w.get("ths")),
@@ -586,7 +586,7 @@ def _zeit_arg(x):
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(description="Stage 520 Wortzeiten (inkl. 525 Wortbruecke)")
+    ap = argparse.ArgumentParser(description="Stage 530 Wortzeiten (inkl. 535 Wortbruecke)")
     ap.add_argument("werk")
     ap.add_argument("--wer")
     ap.add_argument("--fa", choices=("modal", "cpu"))
@@ -621,7 +621,7 @@ def main(argv=None):
         print(e)
         return e.exit_code
     except (ValueError, PermissionError, RuntimeError) as e:
-        print(f"[520] Fehler: {e}")
+        print(f"[530] Fehler: {e}")
         return 1
     print(g.bericht())
     return gate.EXIT[g.ergebnis["ergebnis"]]

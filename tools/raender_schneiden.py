@@ -23,7 +23,7 @@ def main(book, lg):
     werk = config.book_dir(book)
     audio = os.path.join(werk, "fassungen", lg, "audio")
     roh = os.path.join(werk, "fassungen", lg, "audio_ungeschnitten")
-    wt = json.load(open(os.path.join(werk, "work", f"520_wortzeiten_{lg}.json"), encoding="utf-8"))["tags"]
+    wt = json.load(open(os.path.join(werk, "work", f"530_wortzeiten_{lg}.json"), encoding="utf-8"))["tags"]
     os.makedirs(roh, exist_ok=True)
     n = ohne = 0
     weg_s = 0.0

@@ -4,9 +4,9 @@ Funktion:      Liefert die von Gate 700 freigegebenen TAELLA-Produkte eines Werk
                (Plattform-Paket) seit AP 710b, Teil pipeline/s710_kanaele.py.
 Wirkungsweise: Ein Gate je Scope "<lg>:taella", nur Sprachen mit lieferbarem 700-Scope (s700_guard.lieferbar).
                Paket je Sprache: manifest_<lg>.json (Schema 2, Obermenge des Altformats), audio/<lg>/<tid>.mp3 (Hoerbuch,
-               Endfassung 530), audio_hoerspiel/<lg>/<tid>.mp3 (Hoerspiel), wordtimes_<lg>[_hoerspiel].json (520),
+               Endfassung 520), audio_hoerspiel/<lg>/<tid>.mp3 (Hoerspiel), wordtimes_<lg>[_hoerspiel].json (530),
                cover_<lg>.jpg (615 text bzw. audio), teaser/<lg>/ (640); je Werk blurb.json (600) und Katalogeintrag.
-               Anker je Zielsprache align_<lg> aus 340 mit Wortzeiten aus 520/525 (je_ziel); "align" = erste
+               Anker je Zielsprache align_<lg> aus 340 mit Wortzeiten aus 530/535 (je_ziel); "align" = erste
                Zielsprache (Altfeld; App liest align_<lg>). Pausen 400, Sprechergeschlecht 410/210, Rollen 420.
                Manifest work/710_export.json je Ziel x Scope: Datei -> {quelle_hash, md5, groesse}; nur Geaendertes wird
                hochgeladen, Verwaistes geloescht; MP3-Zwischenstand work/_710/<lg>/<spur>/ (Hash Endfassung + Bitrate).
@@ -25,8 +25,8 @@ Ziel-Adapter:  GCS (Bucket config.GCS_BUCKET, ifGenerationMatch) | Lokal (Ordner
                ../taella-app/public; demo/<slug>/ bzw. privat/<uid>/<slug>/). status.json nur beim Standardziel
                (config.AUSLIEFERUNG_ZIEL, Standard gcs); andere Ziele nur Manifest + Bericht.
 Eingang:       Gate 700 + work/700_guard.json, book.json (Bestellung, Mandant 080), work/330_rueckuebersetzung.json
-               (ohne Uebersetzung work/200_tagging.json), 340_wortalignment.json, 400_regie.json, 530_pruefung_<lg>.json +
-               audio_final/ bzw. hoerspiel_final/, 520_wortzeiten_<lg>[_hoerspiel].json, 525_wortbruecke.json,
+               (ohne Uebersetzung work/200_tagging.json), 340_wortalignment.json, 400_regie.json, 520_pruefung_<lg>.json +
+               audio_final/ bzw. hoerspiel_final/, 530_wortzeiten_<lg>[_hoerspiel].json, 535_wortbruecke.json,
                600_klappentext.json, 615 Cover, fassungen/<lg>/blurb/ (640), casting.json, 420_sprecher.json;
                EPUB: work/620_epub.json + fassungen/<lg>/output/<werk>_<lg>[_audio].epub; Extern: work/650_hoerbuch_<lg>
                (Profil extern), cover_final_<lg>_quadrat.jpg, config.EXTERN_PLATTFORMEN / GEMINI_AUDIO_KANAELE.
@@ -321,16 +321,16 @@ class Daten:
         self.text = self.d330 or w("200_tagging") or {}
         self.d340 = w("340_wortalignment") or {}
         self.d400 = w("400_regie") or {}
-        self.d525 = w("525_wortbruecke") or {}
+        self.d535 = w("535_wortbruecke") or {}
         self.d600 = w("600_klappentext") or {}
         self.d420 = w("420_sprecher") or {}
         self.casting = _json(os.path.join(config.work_dir(werk), "casting.json")) or {}
-        self.d520 = {}
+        self.d530 = {}
         for lg in b.sprachen:
             for spur in AUDIO:
-                n = f"520_wortzeiten_{lg}{'_hoerspiel' if spur == 'hoerspiel' else ''}"     # = s520.pfad
-                self.d520[(lg, spur)] = ((_json(config.work_path(werk, n)) or {}).get("tags")) or {}
-        self.m530 = {}
+                n = f"530_wortzeiten_{lg}{'_hoerspiel' if spur == 'hoerspiel' else ''}"     # = s530.pfad
+                self.d530[(lg, spur)] = ((_json(config.work_path(werk, n)) or {}).get("tags")) or {}
+        self.m520 = {}
 
     @property
     def content(self):
@@ -340,12 +340,12 @@ class Daten:
     def meta(self):
         return self.text.get("meta") or {}
 
-    def manifest530(self, lg):
-        if lg not in self.m530:
-            p = config.work_path(self.werk, f"530_pruefung_{lg}")
-            self.m530[lg] = manifest.Manifest(self.werk, f"530_pruefung_{lg}", stage="530") if os.path.exists(p) \
+    def manifest520(self, lg):
+        if lg not in self.m520:
+            p = config.work_path(self.werk, f"520_pruefung_{lg}")
+            self.m520[lg] = manifest.Manifest(self.werk, f"520_pruefung_{lg}", stage="520") if os.path.exists(p) \
                 else None
-        return self.m530[lg]
+        return self.m520[lg]
 
     def pause(self, tid, lg):
         pa = ((self.d400.get("production") or {}).get("pause_after_ms") or {}).get(tid)
@@ -390,7 +390,7 @@ class Daten:
 
 
 def _slim(al, br, src, lg):
-    """Anker auf die App-Felder: i, <src>_span, <lg>, <lg>_span (+ zspans, t, tz, ths, tzhs aus 525)."""
+    """Anker auf die App-Felder: i, <src>_span, <lg>, <lg>_span (+ zspans, t, tz, ths, tzhs aus 535)."""
     k_src, k_tgt, k_tgt_span = f"{src}_span", lg, f"{lg}_span"          # = s340.schluessel(src, lg)
     bm = {x["i"]: x for x in (br or []) if isinstance(x, dict)}
     out = []
@@ -412,7 +412,7 @@ def _slim(al, br, src, lg):
 
 
 def kompakt(tags):
-    """520-Tags {tid: [{i, t0, t1}]} -> {tid: [t0 je Token, None = ohne Zeit]} (Format export_app)."""
+    """530-Tags {tid: [{i, t0, t1}]} -> {tid: [t0 je Token, None = ohne Zeit]} (Format export_app)."""
     out = {}
     for tid, ws in (tags or {}).items():
         ws = [x for x in ws or [] if isinstance(x, dict) and x.get("i") is not None]
@@ -472,55 +472,55 @@ def paket(D, lg, inhalte, werk_id, bitrate, titel, autor):
     hs = "hoerspiel" in inhalte
     ziele = [z for z in taella_sprachen(b) if z != src]
     content, kap = D.content, D.meta.get("chapters") or {}
-    m530 = D.manifest530(lg) if hb else None
+    m520 = D.manifest520(lg) if hb else None
 
     # ---- Audio Hoerbuch
     audio_rel, fehlt_audio = {}, []
     soll_audio = D.audio_ids(lg) if hb else []
     if hb and not D.d400:
         P.befunde.append(("regie", "400_regie.json fehlt (Audio bestellt)", "400"))
-    if hb and m530 is None:
-        P.befunde.append(("endfassung", f"530_pruefung_{lg}.json fehlt", "530"))
+    if hb and m520 is None:
+        P.befunde.append(("endfassung", f"520_pruefung_{lg}.json fehlt", "520"))
     for tid in soll_audio:
         k = f"hoerbuch/{tid}"
-        e = m530.get(k) if m530 else None
-        if not e or not m530.datei_aktuell(k):
+        e = m520.get(k) if m520 else None
+        if not e or not m520.datei_aktuell(k):
             fehlt_audio.append(tid)
             continue
         rel = f"audio/{lg}/{tid}.mp3"
-        P.mp3(rel, m530._abs(e["datei"]), e.get("datei_hash"),
+        P.mp3(rel, m520._abs(e["datei"]), e.get("datei_hash"),
               os.path.join(config.work_dir(werk), "_710", lg, "hoerbuch", f"{tid}.mp3"), bitrate)
         audio_rel[tid] = rel
     # ---- Audio Hoerspiel
     hs_rel, fehlt_hs = {}, []
-    if hs and m530 is not None:
-        for k in sorted(x for x in m530.eintraege if x.startswith("hoerspiel/")):
+    if hs and m520 is not None:
+        for k in sorted(x for x in m520.eintraege if x.startswith("hoerspiel/")):
             tid = k.split("/", 1)[1]
-            e = m530.get(k)
-            if not e or not m530.datei_aktuell(k):
+            e = m520.get(k)
+            if not e or not m520.datei_aktuell(k):
                 fehlt_hs.append(tid)
                 continue
             rel = f"audio_hoerspiel/{lg}/{tid}.mp3"
-            P.mp3(rel, m530._abs(e["datei"]), e.get("datei_hash"),
+            P.mp3(rel, m520._abs(e["datei"]), e.get("datei_hash"),
                   os.path.join(config.work_dir(werk), "_710", lg, "hoerspiel", f"{tid}.mp3"), bitrate)
             hs_rel[tid] = rel
         if not hs_rel and not fehlt_hs:
-            P.befunde.append(("hoerspiel", f"keine Hoerspiel-Endfassung {lg} in 530", "510"))
+            P.befunde.append(("hoerspiel", f"keine Hoerspiel-Endfassung {lg} in 520", "510"))
     # ---- Wortzeiten
     wt, wt_hs, fehlt_wt, fehlt_wths = {}, {}, [], []
     if hb:
-        wt = kompakt(D.d520.get((lg, "hoerbuch")))
+        wt = kompakt(D.d530.get((lg, "hoerbuch")))
         fehlt_wt = [t for t in audio_rel if not wt.get(t)]
         P.json(f"wordtimes_{lg}.json", {"sprache": lg, "spur": "hoerbuch", "tags": wt})
     if hs:
-        wt_hs = kompakt(D.d520.get((lg, "hoerspiel")))
+        wt_hs = kompakt(D.d530.get((lg, "hoerspiel")))
         fehlt_wths = [t for t in hs_rel if not wt_hs.get(t)]
         P.json(f"wordtimes_{lg}_hoerspiel.json", {"sprache": lg, "spur": "hoerspiel", "tags": wt_hs})
 
     # ---- Saetze
     saetze, ohne_text = [], 0
     c340 = D.d340.get("content") or {}
-    je_ziel = D.d525.get("je_ziel") or {}
+    je_ziel = D.d535.get("je_ziel") or {}
     for tid, e in content.items():
         if not isinstance(e, dict):
             continue
@@ -556,16 +556,16 @@ def paket(D, lg, inhalte, werk_id, bitrate, titel, autor):
                           "310" if lg != src else "200"))
     if fehlt_audio:
         P.befunde.append(("audio", f"Hoerbuch {lg}: {len(fehlt_audio)}/{len(soll_audio)} ohne aktuelle Endfassung "
-                                   f"(z. B. {', '.join(fehlt_audio[:3])})", "530"))
+                                   f"(z. B. {', '.join(fehlt_audio[:3])})", "520"))
     if fehlt_hs:
         P.befunde.append(("audio_hoerspiel", f"Hoerspiel {lg}: {len(fehlt_hs)} ohne aktuelle Endfassung "
-                                             f"(z. B. {', '.join(fehlt_hs[:3])})", "530"))
+                                             f"(z. B. {', '.join(fehlt_hs[:3])})", "520"))
     if fehlt_wt:
         P.befunde.append(("wortzeiten", f"Wortzeiten {lg}: {len(fehlt_wt)}/{len(audio_rel)} Saetze ohne Zeiten "
-                                        f"(z. B. {', '.join(fehlt_wt[:3])})", "520"))
+                                        f"(z. B. {', '.join(fehlt_wt[:3])})", "530"))
     if fehlt_wths:
         P.befunde.append(("wortzeiten_hoerspiel", f"Wortzeiten Hoerspiel {lg}: {len(fehlt_wths)} ohne Zeiten "
-                                                  f"(z. B. {', '.join(fehlt_wths[:3])})", "520"))
+                                                  f"(z. B. {', '.join(fehlt_wths[:3])})", "530"))
     if lg == src and ziele and not any(f"align_{z}" in n for n in saetze for z in ziele):
         P.befunde.append(("anker", f"keine Anker align_{'/'.join(ziele)} im Manifest {lg}", "340"))
 

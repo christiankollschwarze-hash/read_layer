@@ -1,5 +1,5 @@
-"""READ LAYER - Sprachpruefung auf Modal (Stage 530): Whisper large-v3 (faster-whisper) je Satz-Audio.
-Wird aus pipeline/s530_audio_pruefung.py (sprache_modal) ueber `with app.run():` aufgerufen; Rueckfall CPU (lokal).
+"""READ LAYER - Sprachpruefung auf Modal (Stage 520): Whisper large-v3 (faster-whisper) je Satz-Audio.
+Wird aus pipeline/s520_audio_pruefung.py (sprache_modal) ueber `with app.run():` aufgerufen; Rueckfall CPU (lokal).
 Je Satz: erkannte Sprache + Wahrscheinlichkeit der Zielsprache (frei) und Abschrift in der Zielsprache (CER).
 Eingang je Job: {key, wav (16 kHz mono WAV-Bytes), lg}. GPU-Liste wie fa_modal.py.
 """
@@ -11,7 +11,7 @@ def _modell_laden():
     snapshot_download("Systran/faster-whisper-large-v3", local_dir="/modell")
 
 
-app = modal.App("readlayer-sprache530")
+app = modal.App("readlayer-sprache520")
 image = (
     modal.Image.from_registry("nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04", add_python="3.11")
     .apt_install("ffmpeg")

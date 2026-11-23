@@ -1,29 +1,29 @@
-"""STAGE 525 — Wortbruecke (Tokenisierungsbruecke 340 <-> MMS_FA)
+"""STAGE 535 — Wortbruecke (Tokenisierungsbruecke 340 <-> MMS_FA)
 Funktion:      Gibt jedem Quellwort (Index i aus s340) eindeutig seine Wortzeit im Quell-Audio
                und jedem Ziel-Anker (de_span, auch mehrere je Wort) seine Wortzeit im Ziel-Audio.
 Wirkungsweise: Gemeinsame Wahrheit ist die ZEICHENPOSITION im Satztext, nie ein Wortindex.
                1) lautwoerter(): Satztext -> MMS_FA-Lautwoerter mit Offset (Apostroph ’ -> ',
                   Bindestrich trennt, Ziffern/Satzzeichen sind keine Lautwoerter).
                2) bind_to_tokens(): Lautwort-Zeiten -> \\S+-Token (Mitte des Lautworts im Token-Span;
-                  mehrere Lautwoerter je Token = ein Fenster). Diese Funktion nutzt s520 fuer BEIDE Sprachen.
+                  mehrere Lautwoerter je Token = ein Fenster). Diese Funktion nutzt s530 fuer BEIDE Sprachen.
                3) tokenzeiten(): Token ohne Zeit (Zahl, nicht darstellbares Zeichen) werden zwischen
                   zeitlich bekannten Nachbarn interpoliert (tq="interp"); reine Satzzeichen-Token bleiben leer.
                4) ziel_spans() (liegt in s340): de_span aus s340; fehlt er (gap_fallback/unresolved), wird das Fragment
                   im Zielsatz neu verortet, Teile ("tauchte ... ein") einzeln -> mehrere Spans (sq="repariert").
                5) zeit_fuer_span(): Span -> Ziel-Tokens; Teil eines Tokens (Kompositum, "Santa-Clara-Tal")
                   bekommt den Zeitanteil nach Buchstabenposition, mehrere Tokens die Vereinigung.
-Komponenten:   pipeline/s525_wortbruecke.py (einzige Stelle fuer Lautwort-Zerlegung + Token-Bindung)
-Phase 2 (03.11.2026): Teil der Stage 520 (ein Gate) – Lauf und Ausgabe in pipeline/s520_wortzeiten.bruecke (je
+Komponenten:   pipeline/s535_wortbruecke.py (einzige Stelle fuer Lautwort-Zerlegung + Token-Bindung)
+Phase 2 (03.11.2026): Teil der Stage 530 (ein Gate) – Lauf und Ausgabe in pipeline/s530_wortzeiten.bruecke (je
                Zielsprache align_<lg>, Ausgabe zusaetzlich je_ziel); dieses Modul ist nur noch Bibliothek.
-Zulieferer:    s340 (work/340_wortalignment.json), s520 (work/520_wortzeiten_<lg>.json)
-Abnehmer:      s520 (lautwoerter, bind_to_tokens), s710 Cloud-Export (Felder t / tz / Ziel-Span je Anker),
-               TAELLA-App. Ausgabe: work/525_wortbruecke.json
+Zulieferer:    s340 (work/340_wortalignment.json), s530 (work/530_wortzeiten_<lg>.json)
+Abnehmer:      s530 (lautwoerter, bind_to_tokens), s710 Cloud-Export (Felder t / tz / Ziel-Span je Anker),
+               TAELLA-App. Ausgabe: work/535_wortbruecke.json
                { "tags": { tid: [ {"i", "t":[t0,t1]|null, "tq", "zspans":[[a,b],..], "tz":[[t0,t1],..]|null, "sq"} ] },
                  "messung": {"vorher": {...}, "nachher": {...}} }
-Aufruf:        ueber Stage 520 (py -3.11 -m pipeline.s520_wortzeiten <werk>)
+Aufruf:        ueber Stage 530 (py -3.11 -m pipeline.s530_wortzeiten <werk>)
 (AP 54b, 26.10.2026)
 AP 55 (26.10.2026): richtungsneutral (Quelle aus book.json, auch DE-Original); Hoerspiel-Zeiten je Anker
-               ths (Quell-Hoerspiel-Clip) / tzhs (Ziel-Hoerspiel-Clip) aus 520_wortzeiten_<lg>_hoerspiel.json.
+               ths (Quell-Hoerspiel-Clip) / tzhs (Ziel-Hoerspiel-Clip) aus 530_wortzeiten_<lg>_hoerspiel.json.
 """
 import os
 import re
@@ -34,7 +34,7 @@ import unicodedata
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import config
 
-STAGE = "525"
+STAGE = "535"
 _APO = str.maketrans({"\u2019": "'", "\u2018": "'", "\u02bc": "'"})   # gleiche Laenge -> Offsets bleiben
 _LAUT = re.compile(r"[^\W\d_]+(?:'[^\W\d_]+)*")
 _TOK = re.compile(r"\S+")
@@ -67,7 +67,7 @@ def token_spans(text):
 
 
 # ---------------------------------------------------------------------------
-# 2) Lautwort-Zeiten -> \S+-Token (von s520 genutzt)
+# 2) Lautwort-Zeiten -> \S+-Token (von s530 genutzt)
 # ---------------------------------------------------------------------------
 def bind_to_tokens(zeiten, text):
     """zeiten = [{c0,c1,t0,t1}] -> [{"i","t0","t1"}], i = \\S+-Index (= s340-Index in der Quellsprache)."""
@@ -158,23 +158,23 @@ def zeit_fuer_span(span, spans, z, text, reparatur=True):
 # ---------------------------------------------------------------------------
 # Bruecke je Satz + Messung
 # ---------------------------------------------------------------------------
-def bruecke_satz(quell_text, ziel_text, align, quell_520, ziel_520, reparatur=True, quell_hs=None, ziel_hs=None,
+def bruecke_satz(quell_text, ziel_text, align, quell_530, ziel_530, reparatur=True, quell_hs=None, ziel_hs=None,
                  lg=None):
-    q_sp, q_z, q_q = tokenzeiten(quell_text, quell_520, reparatur)
-    z_sp, z_z, _ = tokenzeiten(ziel_text, ziel_520, reparatur)
+    q_sp, q_z, q_q = tokenzeiten(quell_text, quell_530, reparatur)
+    z_sp, z_z, _ = tokenzeiten(ziel_text, ziel_530, reparatur)
     zsp = ziel_spans(align, ziel_text, reparatur, lg=lg)
     out = []
     for w, (spans, sq) in zip(align, zsp):
         i = w.get("i")
         t = q_z[i] if isinstance(i, int) and i < len(q_z) else None
         tz = None
-        if spans and ziel_520 is not None:
+        if spans and ziel_530 is not None:
             fen = [zeit_fuer_span(s, z_sp, z_z, ziel_text, reparatur) for s in spans]
             fen = [f for f in fen if f]
             tz = fen or None
         out.append({"i": i, "t": t, "tq": q_q[i] if t else None,
                     "zspans": spans, "tz": tz, "sq": sq})
-    # AP 55: Hoerspiel-Clips haben eigene Zeiten -> ths/tzhs aus 520_wortzeiten_<lg>_hoerspiel (nur wo vorhanden)
+    # AP 55: Hoerspiel-Clips haben eigene Zeiten -> ths/tzhs aus 530_wortzeiten_<lg>_hoerspiel (nur wo vorhanden)
     if quell_hs:
         _, h_z, _ = tokenzeiten(quell_text, quell_hs, reparatur)
         for w in out:

@@ -231,7 +231,7 @@ def zeiten(jobs, werk, lg, art):
 
 
 def woerter(text):
-    from pipeline.s525_wortbruecke import lautwoerter
+    from pipeline.s535_wortbruecke import lautwoerter
     return [x["w"] for x in lautwoerter(text)]
 
 

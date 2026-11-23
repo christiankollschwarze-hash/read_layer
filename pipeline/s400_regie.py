@@ -5,7 +5,7 @@ Komponenten:  pipeline/s400_regie.py, pipeline/sprechtext.py
 Zulieferer:   s330 Rueckuebersetzung (work/330_rueckuebersetzung.json, Stand nach Reparatur; Gate 330 frei),
               Gate 340 frei, Profil 210 (meta.profile: characters, untranslated), book.json (Bestellung, audio_regler,
               audio_pron_skip, audio_pausen, fassungen/titel), author.json (name_display, wirkungssprache)
-Abnehmer:     s410, s420, s500/502, s510, s520 (Abbildung), s530, s650 (Pausen, Ansagen), s710 (work/400_regie.json)
+Abnehmer:     s410, s420, s500/502, s510, s530 (Abbildung), s520, s650 (Pausen, Ansagen), s710 (work/400_regie.json)
 Kosten:       0 $ (kein LLM)
 
 Ausgabe work/400_regie.json = 330 + production:

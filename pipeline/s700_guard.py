@@ -4,7 +4,7 @@ Funktion:      Vertrag vor jeder Auslieferung (710): je bestelltem Produkt x Spr
 Wirkungsweise: Einmal je Werk ueber alle Produkte der Bestellung (book.json). Je Produkt-Scope
                "<lg>:<inhalt>[-<stufe>]:<kanal>" (status.json teile) ein Gate:
                  Text           Text 330 (ohne Uebersetzung: Gate 190), Anker 340 (Zielsprache, TAELLA)
-                 Audio          Endfassung 530 (audio_final bzw. hoerspiel_final, Datei aktuell) + Wortzeiten 520
+                 Audio          Endfassung 520 (audio_final bzw. hoerspiel_final, Datei aktuell) + Wortzeiten 530
                                 (beide Spuren, TAELLA)
                  Klappentext 600, Cover-Variante 615 (text / audio / quadrat), Teaser 640 (TAELLA),
                  ePub 620/630 (text / audio), Hoerbuch 650 (Profil epub / extern)
@@ -17,7 +17,7 @@ Wirkungsweise: Einmal je Werk ueber alle Produkte der Bestellung (book.json). Je
                (Teil 'entfaellt', Rest wird ausgeliefert); sonst nur Admin-Override (pipeline.status --override).
 Komponenten:   pipeline/s700_guard.py
 Eingang:       book.json (Bestellung, quellsprache, Mandant), status.json (Gates aller bestellten Stages), Manifeste/
-               Ausgaben work/330, 340, 520, 525, 530_pruefung_<lg>, 600, 615_cover_final, 620_epub, 640_teaser,
+               Ausgaben work/330, 340, 530, 535, 520_pruefung_<lg>, 600, 615_cover_final, 620_epub, 640_teaser,
                650_hoerbuch_<lg>, 400_regie (Hoerreihenfolge), Dateien unter fassungen/<lg>/.
 Ausgabe:       work/700_guard.json (je Produkt-Scope: Artefakte mit Stage, Datei, Gate, Hash, Befund, Ruecksprung;
                liefern ja/nein), Gate je Scope in status.json; Regler work/700_entscheidungen.json.
@@ -215,15 +215,15 @@ class Pruefer:
 
     # ---- Audio
     def endfassung(self, lg, spur):
-        return self.pruefe(("530", lg, spur), self._end530, lg, spur)
+        return self.pruefe(("520", lg, spur), self._end520, lg, spur)
 
-    def _end530(self, lg, spur):
-        a = self._art("530", f"endfassung_{spur}_{lg}", datei=f"work/530_pruefung_{lg}.json")
-        if not os.path.exists(config.work_path(self.werk, f"530_pruefung_{lg}")):
-            a["befunde"].append(f"530_pruefung_{lg}.json fehlt")
+    def _end520(self, lg, spur):
+        a = self._art("520", f"endfassung_{spur}_{lg}", datei=f"work/520_pruefung_{lg}.json")
+        if not os.path.exists(config.work_path(self.werk, f"520_pruefung_{lg}")):
+            a["befunde"].append(f"520_pruefung_{lg}.json fehlt")
             return self._gate(a)
         try:
-            m = manifest.Manifest(self.werk, f"530_pruefung_{lg}", stage="530")
+            m = manifest.Manifest(self.werk, f"520_pruefung_{lg}", stage="520")
         except RuntimeError as e:
             a["befunde"].append(str(e))
             return self._gate(a)
@@ -260,33 +260,33 @@ class Pruefer:
         return self._gate(a, nach)
 
     def wortzeiten(self, lg, spur):
-        a = self._art("520", f"wortzeiten_{spur}_{lg}")
-        from pipeline import s520_wortzeiten as s520
-        p = s520.pfad(self.werk, lg, spur)
+        a = self._art("530", f"wortzeiten_{spur}_{lg}")
+        from pipeline import s530_wortzeiten as s530
+        p = s530.pfad(self.werk, lg, spur)
         a["datei"] = self._rel(p)
         d = _json(p)
         if not d or not d.get("tags"):
             a["befunde"].append(f"Wortzeiten {spur} {lg} fehlen")
-        h = self.pruefe(("520",), self._hash520)
+        h = self.pruefe(("530",), self._hash530)
         a["hash"] = manifest.hash_obj((d or {}).get("tags"))
         if h is None:
-            a["befunde"].append("Wortzeiten 520 unvollstaendig")
+            a["befunde"].append("Wortzeiten 530 unvollstaendig")
         else:
             self._status_hash(a, h)
-        return self._gate(a, [("530", None), ("340", None)])
+        return self._gate(a, [("520", None), ("340", None)])
 
-    def _hash520(self):
-        from pipeline import s520_wortzeiten as s520
+    def _hash530(self):
+        from pipeline import s530_wortzeiten as s530
         aus = {}
-        for lg, spuren in s520._spuren(self.b).items():
+        for lg, spuren in s530._spuren(self.b).items():
             for spur in spuren:
-                d = _json(s520.pfad(self.werk, lg, spur))
+                d = _json(s530.pfad(self.werk, lg, spur))
                 if d is None:
                     return None
                 aus[f"{lg}/{spur}"] = d.get("tags")
-        br = self._lade("525_wortbruecke")
+        br = self._lade("535_wortbruecke")
         if "340" in self.laeuft and br is not None:
-            aus["525"] = {lg: x.get("tags") for lg, x in (br.get("je_ziel") or {}).items()}
+            aus["535"] = {lg: x.get("tags") for lg, x in (br.get("je_ziel") or {}).items()}
         return manifest.hash_obj(aus)
 
     # ---- Begleitmaterial
@@ -423,7 +423,7 @@ class Pruefer:
                               | {"m4b": ((prof.get("extern") or {}).get("m4b") or {}).get("eingang_hash")})
         a["hash"] = h
         self._status_hash(a, h)
-        nach = [("530", None), ("400", None)] + ([("615", f"{lg}:quadrat")] if profil == "extern" else [])
+        nach = [("520", None), ("400", None)] + ([("615", f"{lg}:quadrat")] if profil == "extern" else [])
         return self._gate(a, nach)
 
     # ---- Werk

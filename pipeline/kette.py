@@ -38,16 +38,16 @@ VORGAENGER = {
     "420": ["410"],
     "500": ["400", "410"],
     "510": ["500", "420"],
-    "530": ["500", "510"],
-    "520": ["530", "340"],
-    "540": ["510", "530", "520"],
+    "520": ["500", "510"],
+    "530": ["520", "340"],
+    "540": ["510", "520", "530"],
     "600": ["190", "330"],   # bei Uebersetzung nach 330, sonst (330 entfaellt) nach 190
     "610": ["600"],
     "615": ["610", "410"],   # Audio-Variante zusaetzlich nach Freigabe 410
     "620": ["615", "650"],   # Audio-Variante nach 650
     "630": ["615", "330", "650"],
     "640": ["600", "410"],
-    "650": ["530", "615"],
+    "650": ["520", "615"],
     "700": None,             # nach der letzten bestellten Stage: alle Stages davor
     "710": ["700"],
 }
@@ -127,11 +127,11 @@ def bedarf(b, roh=None):
     if any(p["sprache"] in ziel for p in taella):
         s.add("340")
     if audio:
-        s |= {"400", "410", "500", "530"}
+        s |= {"400", "410", "500", "520"}
     if hoerspiel:
         s |= {"420", "510", "540"}
     if any(p["inhalt"] in AUDIO for p in taella):
-        s.add("520")
+        s.add("530")
     if taella:
         s.add("640")
     if any(p["inhalt"] == "hoerbuch" and p["stufe"] == "basic" and ({"extern", "epub"} & set(p["kanaele"]))
@@ -170,7 +170,7 @@ def sprachen(stage, b):
         return b.audiosprachen()
     if s == "510":
         return b.audiosprachen("hoerspiel")
-    if s == "520":
+    if s == "530":
         return [lg for lg in b.audiosprachen() if any(p["inhalt"] in AUDIO
                 for p in b.produkte_fuer(sprache=lg, kanal="taella"))]
     if s == "630":

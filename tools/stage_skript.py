@@ -6,12 +6,12 @@ BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 V = {"080": [], "090": ["080"], "095": ["090"], "100": ["095"], "110": ["100"], "150": ["095"],
  "115": ["110", "150"], "120": ["115"], "190": ["120"], "195": ["190"], "200": ["195"], "210": ["200"],
  "300": ["210"], "310": ["300"], "320": ["310"], "330": ["320"], "340": ["330"], "400": ["330"],
- "410": ["400"], "420": ["410"], "500": ["400", "410"], "510": ["500", "420"], "530": ["500", "510"],
- "520": ["530", "340"], "540": ["510", "530", "520"], "600": ["190", "330"], "610": ["600"],
+ "410": ["400"], "420": ["410"], "500": ["400", "410"], "510": ["500", "420"], "520": ["500", "510"],
+ "530": ["520", "340"], "540": ["510", "520", "530"], "600": ["190", "330"], "610": ["600"],
  "615": ["610", "410"], "620": ["615", "650"], "630": ["615", "330", "650"], "640": ["600", "410"],
- "650": ["530", "615"], "700": None, "710": ["700"]}
+ "650": ["520", "615"], "700": None, "710": ["700"]}
 ORD = ["080","090","095","100","110","150","115","120","190","195","200","210","300","310","320","330","340",
-       "400","410","420","500","510","530","520","540","600","610","615","650","620","630","640","700","710"]
+       "400","410","420","500","510","520","530","540","600","610","615","650","620","630","640","700","710"]
 try:
     sys.path.insert(0, BASE)
     from pipeline import kette as _k, status as _s
@@ -63,10 +63,10 @@ D = {
   "Vertont jeden Satz (Basic Chatterbox, Premium/Drama Gemini) nach Kostenfreigabe; prüft jeden Satz per Forced Alignment."),
 "510": ("Hörspiel-Overlay", "Audio", "Hörspiel bestellt",
   "Erzeugt Figuren-Takes und montiert sie in die Hörspielspur; die Hörbuchspur bleibt unberührt."),
-"530": ("Audio-Prüfung", "Audio", "Audio bestellt",
+"520": ("Audio-Prüfung", "Audio", "Audio bestellt",
   "Erstellt die Endfassung: Ränder, Tempo, Lautheit je Kapitel, Sprachprüfung je Satz; gekippte Sätze zurück an 500/510."),
-"520": ("Wortzeiten", "Audio", "TÆLLA-Audio",
-  "Misst Wortzeiten auf der Endfassung (Karaoke) und überträgt sie über die Anker (525) auf die andere Sprache."),
+"530": ("Wortzeiten", "Audio", "TÆLLA-Audio",
+  "Misst Wortzeiten auf der Endfassung (Karaoke) und überträgt sie über die Anker (535) auf die andere Sprache."),
 "540": ("Trennung", "Audio", "Hörspiel bestellt",
   "Prüft, ob Figurenstimmen hörbar vom Erzähler getrennt sind (ECAPA); Nachrunde oder Umbesetzen."),
 "600": ("Klappentext", "Vermarktung", "immer",
@@ -155,7 +155,7 @@ o.append("| 118 | Kapitel | Kapitelplan manuell prüfbar (aus 120 herausgelöst)
 o.append("| 122 | Einfache Sprache | Fassung „einfach“ | 118 | 190 |")
 o.append("| 124 | Gekürzte Lesung | Fassung „gekürzt“ (Nummer Vorschlag) | 118 | 190 |")
 o.append("| 125 | Glace | Fassung „glace“ | 118 | 190 |")
-o.append("\nAußerhalb der Pipeline: 900 LoRA-Training, 910 Sprecherauswahl LibriVox (Schnittstelle nur über freigegebene Adapter in 410/500). 345 ist Teil von 340, 525 Teil von 520.\n")
+o.append("\nAußerhalb der Pipeline: 900 LoRA-Training, 910 Sprecherauswahl LibriVox (Schnittstelle nur über freigegebene Adapter in 410/500). 345 ist Teil von 340, 535 Teil von 530.\n")
 ziel = os.path.join(BASE, "docs", "STAGE_SKRIPT.md") if os.path.isdir(os.path.join(BASE, "docs")) else "STAGE_SKRIPT.md"
 fehlt = [x for x in ORD if x not in D]
 if fehlt:

@@ -5,7 +5,7 @@ Sprache) gilt nur als erledigt, wenn ihr gespeicherter Eingangs-Hash dem aktuell
 Geaendert -> automatisch neu.
 
 1) Manifest je Stage (Einheit = Satz/Datei), Datei work/<name>.json:
-    m = manifest.Manifest(werk, "500_vertonung")          # bzw. "530_pruefung_de"
+    m = manifest.Manifest(werk, "500_vertonung")          # bzw. "520_pruefung_de"
     h = manifest.hash_obj({"sprechtext": t, "stimme": sid, "modell": mv})
     if m.braucht_neu(tid, h) or not m.datei_aktuell(tid, wav):
         ... erzeugen ...

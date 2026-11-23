@@ -230,12 +230,12 @@ class T340(unittest.TestCase):
         self.assertEqual((al[1]["de"], al[2]["de_span"]), ("sagte", [18, 26]))
         self.assertEqual(P.doppelt(al, "de"), [])
 
-    def test_ziel_spans_525_kompatibel(self):
+    def test_ziel_spans_535_kompatibel(self):
         self.lauf()
-        from pipeline import s525_wortbruecke as s525
+        from pipeline import s535_wortbruecke as s535
         e = self.aus()["content"]["c001_00003_s"]
         config.SOURCE_LANGUAGE, config.TARGET_LANGUAGES = "en", ["de"]
-        self.assertEqual(s525.ziel_spans(e["align"], e["de"]), P.ziel_spans(e["align_de"], e["de"], lg="de"))
+        self.assertEqual(s535.ziel_spans(e["align"], e["de"]), P.ziel_spans(e["align_de"], e["de"], lg="de"))
 
     def test_regler_je_werk(self):
         g = self.lauf(inhalt_min=0.9, unresolved_max=0.05, verschoben_max=0.02, doppelt_max=0.02, kette=4,
