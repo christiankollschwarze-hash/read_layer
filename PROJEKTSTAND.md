@@ -1,5 +1,12 @@
 # PROJEKTSTAND — Read Layer
 
+## AP Tausch 520/530 – ERLEDIGT 23.11.2026
+ACHTUNG Nummern: Seit 23.11.2026 gilt 520 = Audio-Pruefung (vorher 530), 530 = Wortzeiten (vorher 520), 535 = Wortbruecke (vorher 525, Teil von 530). Aeltere Prompts, Notizen, BOARD-/AP-Dateien, Logs und dieser PROJEKTSTAND unterhalb dieses Abschnitts nutzen die ALTEN Nummern.
+- Code: pipeline/s520_audio_pruefung.py, s530_wortzeiten.py, s535_wortbruecke.py; tests/test_s520.py (Audio) / test_s530.py (Wortzeiten); status.STAGES, kette.VORGAENGER (650 haengt jetzt an 520), run.py, Cockpit (werk_api, monitor.html), stage_hilfe.json, config, usage_log (TEIL 535->530), gpu_fa/gpu_tts/gpu_sprache, Altweg-Tools. Ausgaben work/520_pruefung_<lg>.json, 520_hoerliste, 520_entscheidungen; work/530_wortzeiten_<lg>[_hoerspiel].json, 530_pruefung, 530_korrekturen, 535_wortbruecke.json; einheit sekunden_clip_relativ_endfassung_520.
+- Migration tools/migration_520_530.py --trocken|--los (Marker work/_migration_520_530.json): 19 Werke umbenannt (16 authors, 2 users + Smoke); status.json bei Kunst des Krieges, Happy Prince, Smoke-Werk, Peter and Wendy. ausgabe_hash 530 (Schluessel 535) und 700-Scopes neu gerechnet, Signaturen nachgezogen -> Freigaben gueltig. Vergleich vorher/nachher: Zustaende, Gates, Ruecksprung, Signatur, Stand identisch; 700-Guard trocken: Endfassung 520 + Wortzeiten 530 ok.
+- Doku: docs/STAGE_SKRIPT.md neu erzeugt (PDF nicht), docs/Pipeline_Strang_Matrix.xlsx Zeilen getauscht. OFFEN: Projekt-Doc GATE_KATALOG.md (nur im Projekt, kein lokale Kopie) -> Nachtrag claude/GATE_KATALOG_NACHTRAG_520_530.md; ebenso GATE_MONITORE/STECKBRIEFE/STAGE_SKRIPT im Projekt noch alt.
+- Tests: alle Testdateien einzeln gruen bis auf test_s120_fremd (1 Fehler 'p. 12' statt 'p. douze', Umgebung/FR-Zahlwort, nicht vom Tausch).
+
 ## OFFENE PUNKTE – priorisiert (Stand 16.10.2026 15:00; ersetzt die verstreuten "Offen"-Listen weiter unten)
 Regel: hoechstens 1 Arbeitspaket + 1 Hintergrundjob gleichzeitig. Neues landet hier, nicht sofort in Arbeit.
 
