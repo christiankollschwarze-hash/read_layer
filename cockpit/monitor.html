@@ -87,13 +87,14 @@ details.ausnahme{margin-top:10px}
 <main>
  <div class="ampel a-ruhe" id="ampel"><span class="dot"></span><span id="ampeltext">–</span></div>
  <div class="box" id="gate"></div>
+ <div id="schritt0"></div>
  <div id="inhalt"></div>
  <div id="freigabe2"></div>
  <div class="box" id="ergebnis"><h2>Ergebnis</h2><div class="klein">lädt …</div></div>
  <div class="box" id="laufbox" style="display:none"><h2>Lauf</h2><div id="laufinfo" class="klein"></div><pre id="log">–</pre></div>
 </main>
 <script>
-let M=null,poll=null,sahLaufen=false,ED=null,edOriginal=null,edGeaendert=false;
+let HILFE={},M=null,poll=null,sahLaufen=false,ED=null,edOriginal=null,edGeaendert=false;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const zb=z=>`<span class="z ${esc(z)}">${esc(z)}</span>`;
@@ -104,6 +105,7 @@ const B=()=>encodeURIComponent(M.book_id);
 async function start(){
   const n=await api("/api/nutzer");
   $("wer").innerHTML=n.nutzer.map(u=>`<option value="${esc(u.id)}" ${u.id==(sessionStorage.getItem("wer")||n.standard)?"selected":""}>${esc(u.id)} (${esc(u.rolle)})</option>`).join("");
+  try{HILFE=await (await fetch("/api/hilfe")).json();}catch(e){HILFE={};}
   window.onhashchange=()=>{ED=null;laden();};
   laden();ampelPoll();
 }
@@ -120,6 +122,7 @@ async function laden(){
   document.title=`${d.stage.stage} ${d.stage.name} – ${d.book_id}`;
   LAUF=d.lauf||null;ampelZeigen(d.ampel);gateZeigen();
   const mon=MON[d.stage.stage];
+  $("schritt0").innerHTML=mon&&mon.naechster&&d.daten?"":naechsterStandard();
   if(d.daten_fehler)$("inhalt").innerHTML=`<div class="box err">Monitor-Daten: ${esc(d.daten_fehler)}</div>`;
   else if(mon&&d.daten){$("inhalt").innerHTML=mon.html(d.daten);mon.danach&&mon.danach(d.daten);}
   else $("inhalt").innerHTML=allgemein(d.stage);
@@ -179,10 +182,37 @@ function freigabeHtml(k){
     <button class="haupt" onclick="entscheide('frei','${k}')">Freigeben – weiter in der Kette</button>
     <button onclick="entscheide('stopp','${k}')">Anhalten (Stopp)</button></div></div>`;
   return `<div class="freigabe"><h3>Entscheidung nötig</h3>
-   <div class="klein">Die Stage wartet auf dich. Entweder oben/unten korrigieren und neu prüfen – oder so wie sie ist entscheiden:${(()=>{const n=Object.values(M.stage.teile||{}).filter(x=>x.zustand=="mensch").length;return n?` „Freigeben“ gibt auch die ${n} offenen Teile frei.`:"";})()}</div>
+   <div>${entscheidungStandard()}</div>
    <div class="akt"><input type="text" id="ausgrund${k}" placeholder="Begründung (Pflicht), z. B. Reste geprüft, klingt richtig" size="52">
     <button class="haupt" onclick="entscheide('frei','${k}')">Freigeben – weiter in der Kette</button>
     <button onclick="entscheide('stopp','${k}')">Anhalten (Stopp)</button></div></div>`;
+}
+// UX-Durchgang 23.11.2026: Laientext + nächster Schritt für Monitore ohne eigene Fassung (Texte: config/stage_hilfe.json)
+function entscheidungStandard(){
+  const s=M.stage,h=HILFE[s.stage]||{},n=(s.befunde||[]).length||(s.gruende||[]).length;
+  const t=Object.values(s.teile||{}).filter(x=>x.zustand=="mensch").length;
+  return `${h.warum?`<p><b>Worum es geht:</b> ${esc(h.warum)}</p>`:""}
+   <p><b>Warum die Stage wartet:</b> ${n?`Die automatische Prüfung hat ${n} Auffälligkeit${n>1?"en":""} gefunden – Details oben unter „Befunde“.`:"Hier entscheidet bewusst ein Mensch."}${t?` Offen sind ${t} Teil${t>1?"e":""}.`:""}</p>
+   ${h.mensch?`<p><b>Was du tun kannst:</b> ${esc(h.mensch)}</p>`:""}
+   <p>Ist alles in Ordnung: kurze Begründung eintragen und freigeben${t?" (das gibt auch die offenen Teile frei)":""}. Sonst unten korrigieren und „Übernehmen“ drücken – die Stage prüft dann neu.</p>`;
+}
+function naechsterStandard(){
+  const s=M.stage,st=s.stage,z=s.zustand,darf=M.rechte.lauf.ok;
+  if(s.nachbar)return schritt(`${st} läuft automatisch mit Stage ${s.nachbar}.`,`<a class="knopf haupt" href="#${esc(M.book_id)}/${s.nachbar}">→ ${s.nachbar} öffnen</a>`);
+  if(LAUF&&LAUF.laeuft)return schritt("Es läuft gerade ein Lauf. Bitte warten – Fortschritt und Log stehen unten unter „Lauf“.","");
+  if(z=="mensch"&&s.nur_kosten)return schritt(`${st} wartet nur auf die Kostenfreigabe. Kosten unten je Sprache prüfen und dort freigeben.`,"");
+  if(z=="mensch")return schritt("Oben im Kasten „Entscheidung nötig“ lesen, was die Stage gefunden hat. Passt es: dort freigeben. Sonst unten korrigieren und „Übernehmen“.","");
+  if(z=="stopp")return (s.ruecksprung_ziele||[]).some(x=>x.ziel&&x.ziel!=st)
+    ?schritt(`${st} ist angehalten. Ursache steht oben unter „Befunde“ – mit „Rücksprung“ an die Stelle springen, die das Problem verursacht, oder unten korrigieren und neu prüfen.`,"")
+    :schritt(`${st} ist angehalten. Ursache steht oben unter „Befunde“.${(HILFE[st]||{}).mensch?" Was hilft: "+esc(HILFE[st].mensch):""} Danach unten „Übernehmen“.`,"");
+  if(["frei","auto","entfaellt"].includes(z)){
+    if((s.fehlende_teile||[]).length)return schritt(`${st} ist frei, aber es fehlen Teile: ${s.fehlende_teile.map(esc).join(", ")}.`,darf?`<button class="haupt" onclick="pruefen()">${st} für die fehlenden Teile starten</button>`:"");
+    if((s.veraltet||[]).length)return schritt(`${st} ist veraltet – eine Stage davor hat sich danach geändert (${s.veraltet.map(v=>esc(v[0])).join(", ")}).`,darf?`<button class="haupt" onclick="pruefen()">${st} neu prüfen</button>`:"");
+    return schrittFertig(st);
+  }
+  const k=M.kette,i=k.findIndex(x=>x.stage==st),v=k.slice(0,i).find(x=>!x.nachbar&&!["frei","auto","entfaellt"].includes(x.zustand));
+  if(v)return schritt(`${st} kann erst laufen, wenn <b>${v.stage} ${esc(v.name)}</b> fertig ist.`,`<a class="knopf haupt" href="#${esc(M.book_id)}/${v.stage}">→ ${v.stage} öffnen</a>`);
+  return schritt(`${st} ist noch nicht gelaufen.`,darf?`<button class="haupt" onclick="pruefen()">${st} starten</button>`:"");
 }
 async function entscheideStandard(nach,grund){
   const r=await api(`/api/werk/${B()}/aktion`,{art:"entscheiden",stage:M.stage.stage,nach,grund,wer:$("wer").value});
