@@ -154,11 +154,22 @@ def pegel(x):
     akt = fr[fr > 10 ** (-45 / 20)]
     if not len(akt):
         return x
-    g = 10 ** (SPRACH_RMS_DB / 20) / np.sqrt((akt ** 2).mean())
-    spitze = np.abs(x).max() * g
-    if spitze > 10 ** (PEAK_MAX_DB / 20):
-        g *= 10 ** (PEAK_MAX_DB / 20) / spitze
-    return np.clip(x * g, -1, 1)
+    y = x * (10 ** (SPRACH_RMS_DB / 20) / np.sqrt((akt ** 2).mean()))
+    return limiter(y)
+
+
+def limiter(y, ms=3):
+    """Spitzenbegrenzer auf PEAK_MAX_DB: Verstaerkung je Sample, Minimum ueber +-ms, geglaettet (kein hartes Clipping)."""
+    import numpy as np
+    from numpy.lib.stride_tricks import sliding_window_view as fenster
+    t = 10 ** (PEAK_MAX_DB / 20)
+    if np.abs(y).max() <= t:
+        return y
+    g = np.minimum(1.0, t / np.maximum(np.abs(y), 1e-9))
+    k = max(1, int(ms / 1000 * SR))
+    g = fenster(np.pad(g, k, mode="edge"), 2 * k + 1).min(axis=1)
+    g = np.convolve(np.pad(g, k, mode="edge"), np.ones(2 * k + 1) / (2 * k + 1), mode="valid")
+    return np.clip(y * g, -t, t)
 
 
 def _schreiben(pfad, x):
