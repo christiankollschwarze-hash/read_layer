@@ -48,6 +48,7 @@ from config import config
 from pipeline import api_layer, bestellung, gate, manifest, mock, status, usage_log
 from pipeline import voice_registry as vr
 from pipeline import trennung
+from pipeline import fish_motor
 
 STAGE = "410"
 SCHEMA = 2
@@ -65,7 +66,7 @@ REGLER_STD = {"erzaehler": {}, "figuren": {}, "statisten": [], "design_prompt": 
               "max_ensemble": getattr(config, "CASTING_MAX_ENSEMBLE", 15),
               "min_anteil": getattr(config, "CASTING_MIN_ANTEIL", 2.0),
               "max_text": getattr(config, "CASTING_MAX_ZEICHEN", 400_000),
-              "modell": None, "reihe_erbe": True, "geschichten": None}
+              "modell": None, "reihe_erbe": True, "geschichten": None, "grundhaltung": {}}
 LANG_NAME = {"en": "English", "de": "German", "fr": "French", "es": "Spanish", "it": "Italian"}
 
 
@@ -102,6 +103,7 @@ def kern(rollen):
             r = [bs.get("erzaehler") or {}] + list(bs.get("ensemble") or [])
             out[f"{lg}/{st}"] = {"adapter": bs.get("adapter"),
                                  "rollen": [[x.get("figur"), x.get("stimme"), x.get("gemini_id"), x.get("referenz")]
+                                            + ([x.get("fish_grundhaltung")] if "fish_grundhaltung" in x else [])
                                             for x in r],
                                  "statisten": sorted(s.get("figur") or "" for s in bs.get("statisten") or [])}
     return manifest.hash_obj(out)
@@ -173,6 +175,13 @@ def nutzbar(name, lg, engine, reg=None, std=None):
         if not vid:
             return False, {}, f"{name} ohne Gemini-ID"
         return True, {"gemini_id": vid, "modell": config.MODELS.get("tts", "")}, ""
+    if engine == "fish":                       # Fish-Motor: Klon-Clip der Sprache (Fish-Modell + VC-Ziel)
+        ref = legacy_tor.ref_clip(name, lg) if name != CB_STANDARD else None
+        if not ref:
+            return False, {}, f"{name} ohne Klon-Clip fuer {lg} (Fish)"
+        from pipeline import fish_motor
+        return True, {"referenz": os.path.relpath(ref, config.BASE_DIR).replace(os.sep, "/"),
+                      "fish_id": fish_motor.fish_id(name, lg), "modell": f"fish-{fish_motor.MODELL}"}, ""
     if name == CB_STANDARD:
         return True, {"referenz": None, "modell": "chatterbox"}, ""
     ref = legacy_tor.ref_clip(name, lg)
@@ -445,6 +454,8 @@ def _rolle(ctx, rolle, figur, stimme_, quelle, lg, engine, merk, **extra):
          "passung": vr.passung(merk, vm) if vm and merk else None, "grundton_hz": f0, "archiv_status": st,
          "gemini_id": info.get("gemini_id"), "referenz": info.get("referenz"), "modell": info.get("modell"),
          "nutzbar": ok}
+    if engine == "fish":
+        e["fish_id"] = info.get("fish_id")
     if grund:
         e["grund"] = grund
     e.update({k: v for k, v in extra.items() if v is not None})
@@ -665,6 +676,8 @@ def plan_bauen(ctx, ziele):
     for lg in sorted(ziele):
         for st, inhalte in sorted(ziele[lg].items()):
             engine = ENGINE[st]
+            if engine == "gemini" and fish_motor.motor(ctx.roh, lg) == "fish":     # AP Fish-Regie 25.11.2026
+                engine = "fish"
             bs = {"stufe": st, "engine": engine, "inhalte": inhalte}
             if engine == "chatterbox":
                 a, ok, grund = adapter(ctx.roh, lg)
@@ -684,8 +697,28 @@ def plan_bauen(ctx, ziele):
                 bs["ensemble"], bs["statisten"] = _ensemble(ctx, lg, st, engine, erz, gesperrt, ensemble)
                 if ctx.geschichten:
                     bs["geschichten"] = [{"name": x["name"], "kapitel": x["kapitel"]} for x in ctx.geschichten]
+            if engine == "fish":
+                fish_anreichern(ctx, bs)
             rollen.setdefault(lg, {})[st] = bs
     return rollen
+
+
+def fish_anreichern(ctx, bs):
+    """Fish (CK 25.11.2026): Erzaehler ohne Grundhaltung; je Figur fish_grundhaltung (manuell aus Regler
+    grundhaltung, '-' = ohne, sonst deterministisch aus Steckbrief) und vc_ziel = Archiv-Klon (Ziel fuer VC in 510)."""
+    man = (ctx.rg.get("grundhaltung") or {})
+    for e in bs.get("ensemble") or []:
+        if not e.get("figur") or not e.get("stimme"):
+            continue
+        m = man.get(e["figur"])
+        if m == "-":
+            e["fish_grundhaltung"], e["fish_grundhaltung_quelle"] = "", "ohne"
+        elif m:
+            e["fish_grundhaltung"], e["fish_grundhaltung_quelle"] = m[:fish_motor.GRUNDHALTUNG_MAX], "manuell"
+        else:
+            e["fish_grundhaltung"] = fish_motor.grundhaltung(e["figur"], (ctx.figuren_sb or {}).get(e["figur"]))
+            e["fish_grundhaltung_quelle"] = "auto"
+        e["vc_ziel"] = e.get("referenz")
 
 
 def kosten_schaetzen(zeichen, modell=None):
@@ -749,7 +782,7 @@ def _plan_v1(rollen):
 def _regler(roh):
     r = dict(REGLER_STD)
     r.update({k: v for k, v in (roh.get("casting_regler") or {}).items() if v is not None})
-    for k in ("erzaehler", "figuren", "design_prompt"):
+    for k in ("erzaehler", "figuren", "design_prompt", "grundhaltung"):
         r[k] = dict(r.get(k) or {})
     r["statisten"] = list(r.get("statisten") or [])
     return r
@@ -779,6 +812,12 @@ def regler_anwenden(rg, aend):
     for x in aend.get("design_prompt") or []:
         f, t = x.split("=", 1)
         rg["design_prompt"][f] = t
+    for x in aend.get("grundhaltung") or []:                          # Fish: FIGUR=TEXT | FIGUR=- (ohne) | FIGUR= (auto)
+        f, t = x.split("=", 1)
+        if t.strip():
+            rg.setdefault("grundhaltung", {})[f.strip()] = t.strip()
+        else:
+            rg.setdefault("grundhaltung", {}).pop(f.strip(), None)
     for k in ("schwelle", "f0_abstand", "max_ensemble", "min_anteil", "max_text", "modell", "reihe_erbe"):
         if aend.get(k) is not None:
             rg[k] = aend[k]
@@ -1042,6 +1081,16 @@ def run(werk, wer=None, design=False, neu=False, neu_steckbriefe=False, grund=No
             nicht = [f"{e.get('figur')}: {e.get('grund')}" for e in alle if e.get("stimme") and not e.get("nutzbar")]
             g.pflicht(f"nutzbar_{k}", not nicht, wert=nicht[:5],
                       text=f"{lg}/{st}: Stimmen fuer {bs['engine']} nutzbar" + (f" – {'; '.join(nicht[:3])}" if nicht else ""))
+            if bs["engine"] == "fish":
+                ohne_gh = [e.get("figur") for e in bs["ensemble"] if e.get("stimme")
+                           and e.get("fish_grundhaltung_quelle") != "ohne"
+                           and not fish_motor.grundhaltung_ok(e.get("fish_grundhaltung"))]
+                g.pruefe(f"grundhaltung_{k}", not ohne_gh, wert=ohne_gh[:5], bei_fehler="mensch", ruecksprung="410",
+                         text=f"{lg}/{st}: Fish-Grundhaltung je Figur (<= {fish_motor.GRUNDHALTUNG_MAX} Zeichen, "
+                              f"ohne [ ] ;) oder Freigabe 'ohne'" + (f" – fehlt/ungueltig: {', '.join(ohne_gh[:3])}" if ohne_gh else ""))
+                g.hinweis(f"fish_stimmen_{k}", True, wert=sum(1 for e in alle if e.get("fish_id")),
+                          text=f"{lg}/{st}: Motor Fish – Fish-Stimmmodelle im Register {sum(1 for e in alle if e.get('fish_id'))}/"
+                               f"{len([e for e in alle if e.get('stimme')])} (fehlende legt 500 an)")
             if bs["engine"] == "chatterbox":
                 g.pflicht(f"adapter_{k}", bs.get("adapter_ok", True), wert=bs.get("adapter"),
                           text=f"{lg}/{st}: LoRA-Adapter {((bs.get('adapter') or {}).get('name')) or 'keiner'} "
@@ -1163,6 +1212,8 @@ def main(argv=None):
     ap.add_argument("--ohne-reihe", action="store_true")
     ap.add_argument("--mit-reihe", action="store_true")
     ap.add_argument("--korrektur", action="append", metavar="FIGUR:LG=FAKTOR[,HT]")
+    ap.add_argument("--grundhaltung", action="append", metavar="FIGUR=TEXT",
+                    help="Fish-Grundhaltung je Figur (EN, <=120 Z.); FIGUR=- ohne, FIGUR= automatisch")
     ap.add_argument("--freigeben", action="store_true")
     ap.add_argument("--trocken", action="store_true")
     a = ap.parse_args(argv)
@@ -1171,6 +1222,7 @@ def main(argv=None):
               "statist_weg": a.statist_weg, "design_prompt": a.design_prompt, "schwelle": a.schwelle,
               "f0_abstand": a.f0_abstand, "max_ensemble": a.max_ensemble, "min_anteil": a.min_anteil,
               "max_text": a.max_text, "modell": a.modell, "geschichten": a.geschichten,
+              "grundhaltung": a.grundhaltung,
               "reihe_erbe": False if a.ohne_reihe else (True if a.mit_reihe else None)}
     try:
         aendert = any(v not in (None, []) for v in regler.values()) or a.korrektur or a.freigeben or a.neu

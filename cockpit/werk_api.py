@@ -2151,6 +2151,8 @@ def _m400_daten(book_id):
     hoerbuch = b.audiosprachen("hoerbuch")
     premium = [lg for lg in audio if any(p.get("stufe") in P.PREMIUM and p.get("inhalt") in ("hoerbuch", "hoerspiel")
                                          for p in b.produkte_fuer(sprache=lg))]
+    from pipeline import fish_motor as _FM
+    fish = _FM.fish_sprachen(roh, premium)                   # Motor Fish: keine Stilzeile (AP Fish-Regie 25.11.2026)
     ein = _m200_lesen(book_id, "330_rueckuebersetzung.json") or {}
     aus = _m200_lesen(book_id, "400_regie.json") or {}
     pr = _m200_lesen(book_id, "400_pruefung.json") or {}
@@ -2182,7 +2184,7 @@ def _m400_daten(book_id):
         bf = sorted(byid.values(), key=lambda x: x["id"])
         for x in bf:
             x["kapitel"] = x["id"].split("_")[0] if x["id"].startswith("c") else "ansage"
-            if lg in premium and "direction" not in x:
+            if lg in premium and lg not in fish and "direction" not in x:
                 x["direction"] = ((prod.get("direction") or {}).get(x["id"]) or {}).get(lg)
         js = {art: len(l) for art, l in (p.get("fehler") or {}).items()}
         # Protokoll der Sprechtext-Anpassungen (23.11.2026): wo und wie der Audio-Text vom Lesetext abweicht
@@ -2201,6 +2203,7 @@ def _m400_daten(book_id):
                              "text": le_t, "sprechtext": sp_t, "stellen": st_})
         prot.sort(key=lambda x: x["id"])
         sprachen[lg] = {"befunde": bf, "zaehler": js, "premium": lg in premium, "hoerbuch": lg in hoerbuch,
+                        "fish": lg in fish,
                         "leer": len(p.get("leer") or []), "ohne_aussprache": p.get("ohne_aussprache") or {},
                         "ansagen": (aus.get("ansagen") or {}).get(lg) or [],
                         "protokoll": prot, "protokoll_zaehler": zp}
@@ -2215,7 +2218,8 @@ def _m400_daten(book_id):
                      "skip": bg["key"].strip().lower() in sk,
                      "ohne": {lg: len((sprachen[lg]["ohne_aussprache"] or {}).get(bg["key"]) or []) for lg in audio}})
     typ_tab, _sz = P.pausen_tabellen(roh)
-    return {"audio": audio, "premium": premium, "hoerbuch": hoerbuch, "vorhanden": bool(aus), "ein_fehlt": not ein,
+    return {"audio": audio, "premium": premium, "fish": fish, "hoerbuch": hoerbuch, "vorhanden": bool(aus),
+            "ein_fehlt": not ein,
             "regler": P._load_reglers(book_id), "pausen": typ_tab, "pausen_werk": roh.get("audio_pausen") or {},
             "pausen_standard": dict(config.PAUSE_AFTER_MS),
             "laenge_max": float(roh.get("audio_laenge_max") or P.LAENGE_MAX),
@@ -2406,7 +2410,7 @@ def _m410_daten(book_id):
     for lg in sorted(ziele):
         for st in sorted(ziele[lg]):
             bs = ((rollen or {}).get(lg) or {}).get(st)
-            engine = P.ENGINE[st]
+            engine = (bs or {}).get("engine") or P.ENGINE[st]
             gr = {"lg": lg, "stufe": st, "engine": engine, "inhalte": ziele[lg][st], "vorhanden": bool(bs),
                   "adapter": (bs or {}).get("adapter"), "adapter_ok": (bs or {}).get("adapter_ok", True),
                   "adapter_grund": (bs or {}).get("adapter_grund"), "zeilen": [], "statisten": [],
@@ -2416,6 +2420,10 @@ def _m410_daten(book_id):
                 continue
             erz = bs.get("erzaehler") or {}
             alle = [erz] + list(bs.get("ensemble") or [])
+            fish_proben = {}
+            if engine == "fish":
+                from pipeline import fish_probe as _FP
+                fish_proben = _FP.proben(book_id, lg)
             belegt = {}
             for e in alle:
                 if e.get("stimme"):
@@ -2445,6 +2453,12 @@ def _m410_daten(book_id):
                 z["design_prompt_werk"] = (rg.get("design_prompt") or {}).get(e.get("figur") if rolle == "figur" else "Erzaehler")
                 z["kandidaten"] = kandidaten(lg, engine, merk, rolle, andere,
                                              erz.get("stimme") if rolle == "figur" else None)
+                if engine == "fish":                         # AP Fish-Regie 25.11.2026
+                    z.update({k: e.get(k) for k in ("fish_grundhaltung", "fish_grundhaltung_quelle", "vc_ziel", "fish_id")})
+                    z["grundhaltung_vorgabe"] = (rg.get("grundhaltung") or {}).get(e.get("figur")) if rolle == "figur" else None
+                    pr = fish_proben.get(f"figur:{e.get('figur')}") or {}
+                    z["fish_probe"] = {k: _rel_base(pr.get(k)) for k in ("fish", "vc")} if pr else None
+                    z["fish_probe_text"] = pr.get("text")
                 gr["zeilen"].append(z)
             for s in bs.get("statisten") or []:
                 f = s.get("figur")
@@ -2454,6 +2468,16 @@ def _m410_daten(book_id):
                                         "kurz": (je_sb.get(f) or {}).get("kurz"), "fest": f in stat_fest,
                                         "vorgabe": vorg_f.get(f), "merkmale": merk,
                                         "kandidaten": kandidaten(lg, engine, merk, "figur", belegt, erz.get("stimme"))})
+            if engine == "fish":                             # Tonlagenabstand der VC-Ziele (Figur <-> Figur)
+                import math as _ma
+                fz = [z for z in gr["zeilen"] if z["rolle"] == "figur" and z.get("grundton_hz")]
+                for z in fz:
+                    best = min(((abs(12 * _ma.log2(z["grundton_hz"] / y["grundton_hz"])), y["figur"])
+                                for y in fz if y is not z), default=None)
+                    k = z.get("korrektur") or {}
+                    z["vc_abstand"] = {"figur": best[1], "ht": round(best[0], 1)} if best else None
+                    z["vc_abstand_korr_ht"] = k.get("tonhoehe_ht")
+                gr["fish"] = True
             gruppen.append(gr)
 
     try:
@@ -2514,6 +2538,19 @@ def _m410_argv(book_id, e, wer):
         if any(ch in f for ch in "=:"):
             raise ValueError(f"Figur {f!r}: '=' oder ':' im Namen nicht erlaubt")
         return f
+    fp = e.get("fish_probe")                                  # Hoerprobe Fish (+ VC) statt 410-Lauf
+    if fp:
+        lg_p, fig_p = str(fp.get("lg") or ""), fig_ok(fp.get("figur"))
+        if lg_p not in ziele:
+            raise ValueError(f"Probe: Sprache {lg_p!r} ohne Casting")
+        a = [PY, "-m", "pipeline.fish_probe", book_id, "figur", lg_p, fig_p, "--wer", wer]
+        if fp.get("grundhaltung"):
+            a.append(f"--grundhaltung={' '.join(str(fp['grundhaltung']).split())[:120]}")
+        if fp.get("text"):
+            a.append(f"--text={' '.join(str(fp['text']).split())[:400]}")
+        if fp.get("vc"):
+            a.append("--vc")
+        return a
     a = [PY, "-m", "pipeline.s410_casting", book_id, "--wer", wer]
     aend, design = False, bool(e.get("design"))
     for lg, n in (e.get("erzaehler") or {}).items():
@@ -2555,6 +2592,13 @@ def _m410_argv(book_id, e, wer):
             aend = True
     if e.get("reihe_erbe") is not None:
         a.append("--mit-reihe" if e["reihe_erbe"] else "--ohne-reihe")
+        aend = True
+    from pipeline import fish_motor as _FM
+    for f, t in (e.get("grundhaltung") or {}).items():         # Fish-Grundhaltung je Figur ('-' ohne, '' automatisch)
+        f, t = fig_ok(f), " ".join(str(t).split())
+        if t not in ("", "-") and not _FM.grundhaltung_ok(t):
+            raise ValueError(f"Grundhaltung {f}: <= {_FM.GRUNDHALTUNG_MAX} Zeichen, ohne [ ] ;")
+        a.append(f"--grundhaltung={f}={t}")
         aend = True
     if e.get("geschichten") is not None:
         gs = str(e["geschichten"]).replace(" ", "")
@@ -2822,7 +2866,10 @@ def _m500_daten(book_id):
         ids = {x["id"] for x in liste}
         liste += [zeile(x, "probe") for x in p.get("probe") or [] if x["id"] not in ids]
         stimme = js.get("stimme") or p.get("stimme")
-        sprachen[lg] = {"stufen": st, "engine": js.get("engine") or p.get("engine") or (kj.get(lg) or {}).get("engine"),
+        fish_bl = [dict(x, audio=rel(x.get("datei"))) for x in p.get("bloecke") or []]
+        sprachen[lg] = {"motor": "fish" if (js.get("engine") or p.get("engine")) == "fish" else "gemini/chatterbox",
+                        "bloecke": fish_bl, "fish_modell": js.get("modell"), "quelle": p.get("quelle"),
+                        "stufen": st, "engine": js.get("engine") or p.get("engine") or (kj.get(lg) or {}).get("engine"),
                         "stimme": stimme, "stimme_probe": _m410_probe(stimme, lg),
                         "einheiten": js.get("einheiten"), "im_manifest": len(eint), "herkunft": q,
                         "dauer_s": round(sum(float(e.get("dauer") or 0) for e in eint.values()), 1),
@@ -2897,6 +2944,113 @@ def _m500_argv(book_id, e, wer):
 
 MONITOR_DATEN["500"] = _m500_daten
 MONITOR_SPEICHERN["500"] = _m500_argv
+
+
+# ---- 430 Fish-Regie (AP Fish-Regie 25.11.2026): Beitragsliste je Kapitel (Figur, Text, Anweisung), Anweisung aendern,
+#      Einzelbeitrag anhoeren (Fish-API-Probe); Regler Bloecke/Anweisungslaenge
+def _rel_base(p):
+    if not p:
+        return None
+    q = os.path.relpath(p, BASE)
+    return None if q.startswith("..") or not os.path.isfile(os.path.join(BASE, q)) else q.replace("\\", "/")
+
+
+def _m430_daten(book_id):
+    from pipeline import s430_fish_regie as P, fish_motor as FM
+    b = bestellung.lesen(book_id)
+    rg = P._regler(b.roh or {})
+    d = P.laden(book_id) or {}
+    korr = P.korrekturen(book_id)
+    ziele = P.ziele(b)
+    sprachen = {}
+    for lg, st in sorted(ziele.items()):
+        v = (d.get("sprachen") or {}).get(lg) or {}
+        bts = v.get("beitraege") or []
+        kap = {}
+        for x in bts:
+            k = x["tid"][:4] if x.get("typ") != "ansage" else "ansage"
+            e = kap.setdefault(k, {"kap": k, "beitraege": 0, "figuren": 0, "manuell": 0})
+            e["beitraege"] += 1
+            e["figuren"] += x["fig"] != "Erzaehler"
+            e["manuell"] += bool(x.get("manuell"))
+        figs = {}
+        for x in bts:
+            if x["fig"] != "Erzaehler":
+                figs[x["fig"]] = figs.get(x["fig"], 0) + 1
+        sprachen[lg] = {"stufe": st, "kapitel": list(kap.values()), "figuren": figs,
+                        "bloecke": len(v.get("bloecke") or []),
+                        "zeichen": sum(x.get("zeichen", 0) for x in v.get("bloecke") or []),
+                        "usd_500": round(sum(FM.kosten_usd(P.block_text([y for y in bts if y["block"] == bl["nr"]]))
+                                             for bl in v.get("bloecke") or []), 2),
+                        "manuell": len(korr.get(lg) or {})}
+    return {"vorhanden": bool(d), "datum": d.get("datum"), "ziele": ziele, "sprachen": sprachen,
+            "regler": rg, "standard": dict(P.REGLER_STD), "werk_regler": P.werk_regler(b.roh or {}),
+            "vokabular": {"stimmung": P.STIMMUNG, "nonverbal": P.NONVERBAL, "vortrag": P.VORTRAG},
+            "motor": {lg: FM.motor(b.roh or {}, lg) for lg in b.audiosprachen()}}
+
+
+def _m430_teil(book_id, q):
+    from pipeline import s430_fish_regie as P, fish_probe as FP
+    lg, kap = q.get("lg"), q.get("kap")
+    d = P.laden(book_id) or {}
+    bts = ((d.get("sprachen") or {}).get(lg) or {}).get("beitraege") or []
+    pr = FP.proben(book_id, lg) if lg else {}
+    out = []
+    for x in bts:
+        k = x["tid"][:4] if x.get("typ") != "ansage" else "ansage"
+        if k != kap:
+            continue
+        p = (pr.get(f"beitrag:{x['id']}") or {})
+        out.append({k2: x.get(k2) for k2 in ("id", "tid", "fig", "text", "text_fish", "anweisung", "moment", "block",
+                                              "manuell", "absatz")}
+                   | {"probe": _rel_base(p.get("fish")), "probe_text": p.get("text")})
+    return {"lg": lg, "kap": kap, "beitraege": out}
+
+
+def _m430_argv(book_id, e, wer):
+    import re as _re
+    from pipeline import s430_fish_regie as P
+    b = bestellung.lesen(book_id)
+    ziele = P.ziele(b)
+    pr = e.get("probe")
+    if pr:                                                     # Einzelbeitrag anhoeren (Fish-API, Cent-Betrag)
+        lg = pr.get("lg")
+        if lg not in ziele or not _re.fullmatch(r"[\w-]+", str(pr.get("id") or "")):
+            raise ValueError("Probe: Sprache/Beitrag ungueltig")
+        a = [PY, "-m", "pipeline.fish_probe", book_id, "beitrag", lg, pr["id"], "--wer", wer]
+        if pr.get("anweisung") is not None:
+            a.append(f"--anweisung={' '.join(str(pr['anweisung']).split())}")
+        return a
+    a = [PY, "-m", "pipeline.s430_fish_regie", book_id, "--wer", wer]
+    rg = P._regler(b.roh or {})
+    for lgid, t in (e.get("anweisung") or {}).items():
+        lg, _, bid = str(lgid).partition("/")
+        t = " ".join(str(t).split())
+        if lg not in ziele or not _re.fullmatch(r"[\w-]+", bid):
+            raise ValueError(f"Anweisung {lgid!r}: Sprache/Beitrag ungueltig")
+        if t != "-" and len(t) > int(rg["anweisung_max"]):
+            raise ValueError(f"Anweisung {bid}: > {rg['anweisung_max']} Zeichen")
+        a.append(f"--anweisung={lg}/{bid}={t or '-'}")
+    for k, lo, hi in (("block_min", 500, 5000), ("block_max", 500, 5000), ("anweisung_max", 50, 400)):
+        if e.get(k) not in (None, ""):
+            x = int(e[k])
+            if not lo <= x <= hi:
+                raise ValueError(f"{k} {lo}–{hi}")
+            a.append(f"--{k.replace('_', '-')}={x}")
+    if e.get("kapitel"):
+        a.append(f"--kapitel={','.join(str(k) for k in e['kapitel'])}")
+    if e.get("neu"):
+        a.append("--neu")
+    if e.get("trocken"):
+        if e.get("anweisung"):
+            raise ValueError("Anweisungen werden sofort geschrieben – Probe ohne sie")
+        a.append("--trocken")
+    return a
+
+
+MONITOR_DATEN["430"] = _m430_daten
+MONITOR_SPEICHERN["430"] = _m430_argv
+MONITOR_TEIL["430"] = _m430_teil
 
 
 # ---- 510 Hoerspiel-Overlay (Steckbrief GATE_MONITORE 500/510: Kostenfreigabe je Sprache; Hoerliste abspielen /
@@ -2994,7 +3148,14 @@ def _m510_daten(book_id):
                             "korrektur": e.get("korrektur") or None, "saetze": n_fig.get(f, 0),
                             "probe": _m410_probe(e.get("stimme"), lg), "stichprobe": len(stich.get(f) or [])})
         erz = (bs.get("erzaehler") or {}).get("stimme") or p.get("erzaehler")
-        sprachen[lg] = {"stufe": stufe, "erzaehler": erz, "erzaehler_probe": _m410_probe(erz, lg),
+        fish_b = [dict(x, vorher=rel(x.get("vorher")), nachher=rel(x.get("nachher"))) for x in p.get("beitraege") or []] \
+            if p.get("motor") == "fish" or bs.get("engine") == "fish" else []
+        if bs.get("engine") == "fish":
+            for f in figuren:
+                f["vc_ziel"] = (ens.get(f["figur"]) or {}).get("vc_ziel")
+                f["grundhaltung"] = (ens.get(f["figur"]) or {}).get("fish_grundhaltung")
+        sprachen[lg] = {"motor": "fish" if bs.get("engine") == "fish" else "gemini", "fish_beitraege": fish_b,
+                        "stufe": stufe, "erzaehler": erz, "erzaehler_probe": _m410_probe(erz, lg),
                         "saetze": js.get("saetze"), "im_manifest": len(eint), "herkunft": q,
                         "fehlt": max(len(p.get("fehlt") or []), (js.get("saetze") or 0) - len(eint)),
                         "veraltet": len(p.get("veraltet") or []),
@@ -3046,6 +3207,23 @@ def _m510_argv(book_id, e, wer):
             a.append(f"--grenze={lg}/{t}:{int(k)}={x0:g}-{x1:g}")
     if (e.get("behalten") or e.get("bauen") or e.get("grenze")) and e.get("trocken"):
         raise ValueError("Hoerliste-Entscheidungen werden sofort geschrieben – Probe ohne sie")
+    ko = e.get("korrektur") or {}                              # Korrektur je Figur (schreibt 410, Protokoll)
+    if ko:
+        if len(ko) > 1 or not lg:
+            raise ValueError("Korrektur: je Lauf eine Figur und die Sprache")
+        from pipeline import trennung as T
+        fig, w = next(iter(ko.items()))
+        w = str(w).strip()
+        if w != "weg":
+            t_ = [x.strip() for x in w.split(",")]
+            ff, ht = float(t_[0]), float(t_[1]) if len(t_) > 1 and t_[1] else 0.0
+            if not T.FORMANT_MIN <= ff <= T.FORMANT_MAX or abs(ht) > T.TONHOEHE_MAX_HT:
+                raise ValueError(f"Korrektur {fig}: Formant {T.FORMANT_MIN}–{T.FORMANT_MAX}, Tonhoehe ±{T.TONHOEHE_MAX_HT} HT")
+            w = f"{ff:g},{ht:g}"
+        grund = " ".join(str(e.get("grund") or "").split())
+        if not grund:
+            raise ValueError("Korrektur braucht einen Grund")
+        a += [f"--korrektur={fig}:{lg}={w}", f"--grund={grund}"]
     for k, v in (e.get("kosten_freigeben") or {}).items():
         if k not in ziele:
             raise ValueError(f"Kostenfreigabe: Sprache {k!r} nicht bestellt")

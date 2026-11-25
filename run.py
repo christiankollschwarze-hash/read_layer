@@ -2,7 +2,7 @@
 READ LAYER — Orchestrator (Phase 2, Fundament 6, 01.11.2026)
 ============================================================
 Eine Kette fuer jedes Werk, Reihenfolge laut Gate-Katalog (pipeline.status.STAGES):
-  080 090 095 100 110 150 115 120 190 195 200 210 300 310 320 330 340 400 410 420
+  080 090 095 100 110 150 115 120 190 195 200 210 300 310 320 330 340 400 410 420 430
   500 510 520 530 540 600 610 615 650 620 630 640 700 710
 - Welche Stages laufen bzw. entfallen, kommt aus der Bestellung in book.json (095, pipeline.kette.bedarf
   -> status.bedarf_setzen). Linien (--line epub/audio) gibt es nicht mehr.
@@ -46,7 +46,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from config import config
 
 # Stages, die ihr Gate selbst ueber gate.py/status.py schreiben (waechst mit jedem Stage-Umbau).
-UMGEBAUT = {"080", "090", "095", "100", "110", "115", "120", "150", "190", "195", "200", "210", "300", "310", "320", "330", "340", "400", "410", "420", "500", "510", "520", "530", "540", "600", "610", "615", "620", "630", "640", "650", "700", "710"}
+UMGEBAUT = {"080", "090", "095", "100", "110", "115", "120", "150", "190", "195", "200", "210", "300", "310", "320", "330", "340", "400", "410", "420", "430", "500", "510", "520", "530", "540", "600", "610", "615", "620", "630", "640", "650", "700", "710"}
 
 
 
@@ -126,6 +126,7 @@ NEU = {"090": _neu("pipeline.s090_eingang"),
        "400": _neu("pipeline.s400_regie"),
        "410": _neu("pipeline.s410_casting"),
        "420": _neu("pipeline.s420_sprecher"),
+       "430": _neu("pipeline.s430_fish_regie"),
        "500": _neu("pipeline.s500_vertonung_gemini"),
        "510": _neu("pipeline.s510_hoerspiel_hybrid"),
        "520": _neu("pipeline.s520_audio_pruefung"),

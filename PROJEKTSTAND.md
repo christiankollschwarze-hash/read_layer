@@ -1,5 +1,60 @@
 # PROJEKTSTAND — Read Layer
 
+## AP Fish-Regie + Cockpit-Umbau – CODE ERLEDIGT 25.11.2026, Abnahme offen (Prompt claude/PROMPT_fish_regie_cockpit.md, Stand-Doc claude/STAND_fish_test_2026-11-24.md)
+Sicherung: archive/2026-11-25_fish_regie/ (s400/410/420/500/502/510, status, kette, trennung, tts_client, hoerprobe, werk_api, monitor.html, server, gpu_overlay, run.py, config, PROJEKTSTAND).
+Schritt 1 ERLEDIGT (Bestand): Neue Stage = 430 "Fish-Regie" (zwischen 420 und 500). Motor-Schalter book.json audio_motor ("gemini"|"fish" oder {lg: motor}; Standard gemini).
+  Fish ersetzt nur die Gemini-Stufen (premium/drama); basic bleibt Chatterbox. Bis Modal-Hosting: Fish-API (.env FISH_AUDIO_API).
+  Befund Alice: Altwerk (kein status.json, 400 ohne Sprechtext, casting.json Schema 1, sprecher.json alt) -> fuer Abnahme ueber die neue Kette erst 095-420 im neuen Format; Happy Prince ist voll in der Kette (Schema 2, 420).
+Schritt 2 ERLEDIGT: pipeline/fish_motor.py – motor(roh,lg), grundhaltung() (deterministisch aus Steckbrief, z. B. "voicing the March Hare: giddy, silly, irascible, fast, high-pitched"),
+  Fish-Client (tts_zeitmarken = /v1/tts/stream/with-timestamp SSE UTF-8, Alignment je chunk_seq ersetzt + Offset; tts_einfach fuer Proben; fix_wav; Header model drama-3 gesetzt + geprueft -> ModellRueckfall;
+  Semaphore 3; Retry 429/5xx), kosten_usd ($15/Mio Bytes, config.FISH_USD_JE_MIO_BYTES), Stimm-Register stimmen_archiv/_fish/fish_ids.json (uebernimmt tools/fish_test/stimmen_fish.json, 10 IDs; fish_id(..., anlegen=True) legt neu an).
+Schritt 3 ERLEDIGT (400/410):
+  400: Fish-Sprachen (premium/drama + audio_motor fish) ohne Stilzeile/direction (auch Ansagen); Sprechtext/Abbildung/Pausen/Aussprache-Pruefung/Ansagen unveraendert; meta.regie.fish, Metrik fish. test_s400 gruen.
+  410: Engine "fish" statt gemini bei Motor fish (Stimme nutzbar = Klon-Clip der Sprache; fish_id aus Register, Modell fish-drama-3). Je Ensemble-Figur fish_grundhaltung (+ _quelle auto|manuell|ohne) und vc_ziel (= Klon-Clip, Ziel fuer VC 510);
+    Erzaehler ohne Grundhaltung. Regler casting_regler.grundhaltung, CLI --grundhaltung FIGUR=TEXT | FIGUR=- (ohne) | FIGUR= (auto); bei freigegebenem Casting nur mit --grund.
+    Freigabe-Hash (kern) enthaelt Grundhaltung nur wenn vorhanden -> bestehende Freigaben bleiben gueltig. Gate grundhaltung_<lg>_<st> -> Mensch; Hinweis Anzahl Fish-Stimmmodelle.
+    Trennung/korrektur unveraendert (VC-Ziel = Archivstimme, d. h. bestehende D-Messung gilt). tests/test_fish.py (Motor, Grundhaltung, SSE, Modell-Rueckfall, 410 Fish) + test_s410 gruen.
+Schritt 4 ERLEDIGT: NEU pipeline/s430_fish_regie.py (Stage 430 Fish-Regie). status.STAGES + kette (VORGAENGER 430 <- 420,410; 500 <- 400,410,430; Bedarf nur bei Hoerspiel premium/drama mit Motor fish; sprachen("430")),
+  run.py (UMGEBAUT, Stage-Tabelle), config/stage_hilfe.json (430).
+  Ausgabe work/430_fish_regie.json: je Sprache beitraege [{id=<tid>_<seg>, tid, seg, fig, text, text_fish, anweisung, moment, absatz, block}] + bloecke [{nr, kap, ids, zeichen}]; Ansagen als Erzaehler-Beitraege.
+  Text = 420-Segmente (die schon auf dem 400-Sprechtext liegen); passen sie nicht mehr zum Sprechtext -> ganzer Satz Erzaehler + Hinweis. Statisten/unbekannte Sprecher -> Erzaehler (unbekannt = Hinweis). Erzaehler-Stuecke eines Satzes zusammengefasst.
+  Anweisung "[<Grundhaltung>; <Moment>]" + nonverbal ([laughs]/[sighs]/[yawns]/[gasps]); Moment per DeepSeek (Task caster) festes Vokabular, Checkpoint work/ckpt/430 je Kapitel x Sprache.
+  Tabelle: Intensitaet 1/2/3 -> slightly/–/very, Regler emotion <=3 eine Stufe runter, >=7 eine hoch (4 = extremely); tempo >=7 brisk, <=3 unhurried; betonung >=4 -> <emphasis>Wort</emphasis>; vortrag fluestern/leise -> <whisper>/<soft>.
+  Bloecke 2.000-2.500 Zeichen an Absatzgrenzen, hart an Satzgrenze > 2.500, Kapitelwechsel = neuer Block (Regler book.json fish_regler block_min/block_max/anweisung_max).
+  Manuelle Anweisung: work/430_korrekturen.json (an Texthash), CLI --anweisung LG/ID=TEXT ('-' = weg). Gate: Abdeckung -> Stopp; Anweisung > 200, Figur ohne Grundhaltung -> Mensch; Mensch-Freigabe gilt bei gleichem ausgabe_hash.
+  Entscheidung: Hoerbuch-Spur einer Fish-Hoerspielsprache = 500-Aufnahme (Erzaehler spielt die Figuren); nur-Hoerbuch -> 430 entfaellt, 500 vertont ohne Anweisungen.
+  Tests: tests/test_fish.py T430 (Anweisung, Markup, Checkpoint, manuell, Bloecke) + test_kette/test_status gruen.
+Schritt 5a ERLEDIGT (500 Motor Fish): NEU pipeline/s503_vertonung_fish.py, Einstieg in s500.run (alle Audiosprachen mit Motor fish; gemischte Motoren je Werk -> Stopp, ausser --lang).
+  Block-Vertonung (430-Bloecke bzw. Hoerbuch-Bloecke ohne Anweisungen) in der Erzaehlerstimme, Lexikon wie 500, ein API-Aufruf je Block (<= 3 parallel, Retry 429). Fish-Modell fehlt -> wird aus klon_<lg>.wav angelegt.
+  Schnitt: Fish-Wortzeitmarken gegen Beitragstexte ueber Buchstabenstrom (robust gegen Tokenisierung), Grenze = leisester Punkt in der Pause zwischen den Woertern -> Satz-WAVs fassungen/<lg>/audio/<tid>.wav (Rohfassung fuer 520).
+  Manifest work/500_vertonung.json: <lg>/_fish/<erste Beitrags-ID> (Blockhash) + <lg>/<tid> mit spannen [{id, fig, a, b}] (Grundlage 510-VC), block, pause_ms. Block-WAV + Woerter: work/_500/<lg>/fish/.
+  Pruefung: Zeitmarken-Abdeckung je Block 0,85-1,15 (sonst bis versuche x neu), je Satz leer/Clipping/Dauer (Median); Modell-Rueckfall -> Stopp. Kosten $/Byte (config STUECKPREISE fish-drama-3, FISH_USD_JE_MIO_BYTES 15) + Freigabe je Sprache wie bisher; usage_log Stueck.
+  --satz ID -> Block des Satzes neu. config: FISH_API, FISH_MODELL, MODAL_A10G_USD_H 1,10 (Schaetzung). Tests: test_fish.T430.test_500_fish (Freigabe, Schnitt, Spannen, Resume, Satz neu) + test_s500 gruen.
+Schritt 5b ERLEDIGT (510 Overlay -> VC): NEU pipeline/s511_vc_fish.py, Einstieg in s510.run (Hoerspiel-Sprachen mit Motor fish; gemischt -> Stopp). NEU gpu_overlay/vc_modal.py (Kern overlay_gpu.py/ChatterboxVC,
+  laedt nur das eine Paket als Zip hoch, GPU-Fallback L4/A10G/L40S; Start aus der Pipeline per subprocess "modal run", kein .bat).
+  Quelle = Figurenspannen aus dem 500-Manifest, Ziel = vc_ziel aus 410; VC-Cache work/_510/<lg>/vc/<id>.wav (+ index.json), Quellen work/_510/<lg>/src/<id>.wav (Hoerliste vorher/nachher).
+  Montage je Satz: korrektur[lg] (Praat, wie bisher), Lautheit an die Erzaehlerstuecke, Ueberblendung -> fassungen/<lg>/hoerspiel/<tid>.wav; Manifest 510_overlay.json (engine fish-vc) wie Gemini-Gleis (fuer 520).
+  Pruefung je Beitrag: Laenge VC/Quelle in [dauer_min, dauer_max], Nahtsprung <= naht_db, VC fehlt -> Hoerliste 510_pruefung.json (+ beitraege vorher/nachher). Kosten GPU-s = Dialog x 0,25 + 90 s Laden -> A10G-Preis, Freigabe wie 510; usage_log GPU aus WALL-Zeit.
+  Werkzeug-Check modal/parselmouth -> Stopp. Hoerspiel-Freigabe immer Mensch (gilt bei gleichem ausgabe_hash). Test: test_fish (500 -> 510 Fish-Kette) + test_s510/test_s520 gruen.
+  OFFEN: 540 (Trennung) nutzt Gemini-Takes (take_dir) – fuer Fish-Werke noch nicht angepasst (Figurenstimmen liegen als VC-Cache vor).
+Schritt 6 ERLEDIGT (Cockpit): Patches archive/2026-11-25_fish_regie/patch_werk_api.py + patch_monitor.py (einmalig angewandt). NEU pipeline/fish_probe.py (Hoerproben: figur = Erzaehler + Grundhaltung [--vc: + Modal-VC + Korrektur], beitrag = 430-Beitrag mit Anweisung; Ablage work/_probe/fish/<lg>/, proben.json).
+  Monitor 400: Stilzeile fuer Fish-Sprachen ausgeblendet, Sprachknopf "premium · Fish, ohne Stilzeile".
+  Monitor 410: bei Engine fish Spalte "Fish-Grundhaltung · Probe" (Feld je Figur, '-' ohne, leer automatisch -> --grundhaltung; Knoepfe Fish-Probe / + VC), VC-Abstand Figur<->Figur in HT (rot < 2 HT), Korrektur wie bisher.
+  Monitor 420: Hinweis "Zuordnungsfehler = falsche Stimme". NEU Monitor 430: Beitragsliste je Kapitel (Figur, Text mit Markup, Anweisung editierbar, Moment), Figurfilter, "anhoeren" (Fish-API-Probe), Regler Bloecke/Anweisung, Momente neu.
+  Monitor 500: Engine/Motor Fish + Modell + Quelle, offen in Saetzen/Bloecken/Bytes/$, Block-Hoerliste (Audio, Zeitmarken-Abdeckung, "Block neu vertonen" = --satz erster Satz).
+  Monitor 510: Box "Fish -> VC" (Figuren mit VC-Ziel/Grundhaltung, Korrektur-Regler je Figur -> s510 --korrektur mit Grund, Beitraege vorher Fish / nachher VC je Figur). Kosten 510 in GPU-min/$.
+  NICHT gebaut: "Start Modal aus Cockpit" fuer 500 (erst mit Hosting-Paket; 510-VC startet Modal bereits aus der Pipeline). JS-Syntax geprueft (node --check), Tests test_fish (inkl. Monitor-Daten/argv) + test_cockpit_werk/test_kunde gruen.
+Schritt 7 ERLEDIGT (Pruefung): Live-Probe Fish-API aus der Pipeline (fish_motor.tts_zeitmarken, Erzaehler grossmutter_a DE, 104 Bytes ~0,002 $): SSE/Umlaute/Zeitmarken ok, Tags nicht in den Zeitmarken,
+  Schnitt in die Pause (Grenzen 2,04 s / 3,90 s bei Wortpausen 1,68-2,56 / 3,76-3,92). BEFUND: Fish-Antwort traegt KEINEN Modell-Header -> Rueckfall auf s2.1-pro ist per Header nicht pruefbar (Request-Header model: drama-3 wird gesendet; Pruefung greift nur, falls Fish einen Header liefert).
+  Tests: test_fish, test_s400/410/420/500/510/520, test_kette, test_status, test_cockpit_werk, test_kunde gruen (test_kunde einmal flaky: offener Socket). Nicht committet (git braucht Loeschrecht).
+ABNAHME (CK, Cockpit, ohne tools/fish_test):
+  1. Werk waehlen: Alice ist Altwerk (keine Bestellung/produkte, kein status.json, 400 ohne Sprechtext, casting Schema 1) -> erst Bestellung 095 (de+en Hoerspiel premium) und Kette bis 420 im neuen Format;
+     alternativ Kap. 7 als Teilwerk. Danach book.json "audio_motor": "fish".
+  2. 400 neu pruefen (Fish ohne Stilzeile) -> 410 neu (Engine fish, Grundhaltung pruefen; Maerzhase: Grundhaltung staerker + VC-Abstand zum Hutmacher in HT ansehen, ggf. Korrektur Tonhoehe/Formant; Fish-Probe / + VC) -> Freigabe.
+  3. 420 -> 430 (Momente DeepSeek, Anweisungen ansehen/anhoeren) -> 500 (Kostenfreigabe Fish-API) -> 510 (Kostenfreigabe GPU, vorher/nachher anhoeren, Freigabe) -> 520.
+  4. Vergleich mit tools/fish_test/de/fish_erz_vc_c007_de.wav.
+OFFEN: 540 fuer Fish-Werke (Takes -> VC-Cache); gemischte Motoren je Werk (Stopp); Start Modal fuer 500 aus Cockpit erst mit Hosting-Paket; Modell-Header-Pruefung (s. o.); docs/STAGE_SKRIPT.md + Projekt-Docs GATE_KATALOG/GATE_MONITORE/STECKBRIEFE um 430 ergaenzen; Fish-API-Key rotieren (aus STAND-Doc).
+
 ## AP Kunden-Cockpit – Punkt 1+2 ERLEDIGT 23.11.2026 (Commit dcd42cb; Sicherung archive/2026-11-23_kunde/)
 - Rollen (pipeline/s080_mandant.py): neu autor; KUNDEN_ROLLEN verlag/autor; ist_kunde(), eigenes_werk() (verlag auch ueber "mandanten"), tarif() (Nutzer > Mandant > pay-per-job). config/rollen.json: Testkunde verlag-demo (Tarif basic, mandanten user:smoketest -> Smoke-Werk u-smoketest-the-mirror-sisters).
 - Anmeldung cockpit/anmeldung.py: Kennwort-Hash (pbkdf2) als "zugang" in rollen.json, setzen: py -3.11 -m cockpit.anmeldung setzen <nutzer>. Sitzung per Cookie (HttpOnly, SameSite=Strict, 12 h, nur im Speicher). Testzugang verlag-demo: config/demo_zugang.txt (gitignored).
@@ -1301,3 +1356,9 @@ Sicherung: archive/2026-10-29_62/ (PROJEKTSTAND, hybrid_einbau.py, tts_client.py
   VORGEMERKT (CK-Entscheidung offen): Frische-Kaskade nach Ergebnis-Hash statt Zeitstempel (410-Neulauf ohne Stimmaenderung machte 615/640 unnoetig veraltet).
 - 2026-11-23 15:00 710 STANDARDZIEL = LOKAL (CK: solange keine Mobile App existiert, ist das Mockup taella-app/public das Ziel; danach beides, Mockup bleibt Kurationsplattform). config.AUSLIEFERUNG_ZIEL Standard "lokal" (Status/Gate laufen gegen das Mockup); neu config.AUSLIEFERUNG_ZUSATZ (Liste, Env "a,b"): jeder 710-Standardlauf beliefert diese Ziele mit (ohne Status, Entscheidungen gelten mit). Umstellung nach App-Start: AUSLIEFERUNG_ZIEL=gcs, AUSLIEFERUNG_ZUSATZ=lokal. Tests test_s710 + test_cockpit_werk gruen.
   Die Kunst des Krieges: wurde heute 14:14 nach gcs ausgeliefert (TAELLA frei); fuer das Mockup 710 einmal neu starten.
+
+
+## Fish-Audio-Test (24.11.2026) – Stand
+- Details: Projekt-Doc claude/STAND_fish_test_2026-11-24.md; Ordner tools/fish_test/
+- Offen: start_alice_fish_vc.bat (GPU-Fallback L4/A10G/L40S) -> python tools/fish_test/vc_montage.py -> de/fish_erz_vc_c007_de.wav
+- Fish-Key nach Tests rotieren.

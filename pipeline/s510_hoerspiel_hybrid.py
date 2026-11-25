@@ -3,6 +3,8 @@ Funktion:     Hoerspielspur je bestellter Hoerspiel-Sprache: jeder Satz mit Figu
               Figurenrede als Gemini-Take in der Figurenstimme aus casting.json (Abstandskorrektur je Figur x Sprache
               per Praat), Erzaehlerstuecke aus der Hoerbuchspur 500, Schnitt per Forced Alignment (MMS_FA, Modal oder
               CPU). Reine Figurensaetze bestehen nur aus Figurenstuecken. Hoerbuchspur bleibt unberuehrt.
+              Motor fish (book.json audio_motor, seit 25.11.2026): pipeline/s511_vc_fish.py – Fish-Erzaehleraufnahme der
+              Figurenbeitraege (Spannen aus 500) per Chatterbox-VC (Modal, gpu_overlay/vc_modal.py) auf die Figurenstimme.
 Wirkungsweise: Manifest work/510_overlay.json je Sprache/Satz mit Eingangs-Hash (Segmente 420, Sprechtext 400 inkl.
               Lexikon, 500-WAV, Stimm-IDs, Korrektur, Naht-Regler, Entscheidungen): nur neue/geaenderte Saetze werden
               gebaut; Takes werden wiederverwendet, solange Text + Stimme gleich sind (Korrektur/Schnitt neu = 0 $).
@@ -442,6 +444,22 @@ def run(werk, wer=None, regler=None, saetze=None, kapitel=None, nur_lang=None, n
     m = manifest.Manifest(werk, "510_overlay", stage=STAGE)
     ent = entscheidungen(werk)
     saetze, kap = set(saetze or []), set(kapitel or [])
+
+    # ---- Motor Fish (AP Fish-Regie 25.11.2026): VC-Gleis s511 (Fish-Erzaehleraufnahme -> Chatterbox-VC)
+    from pipeline import fish_motor
+    fish_lg = {lg: st for lg, st in ziele.items() if s410.ENGINE.get(st) == "gemini"
+               and fish_motor.motor(b.roh, lg) == "fish"}
+    if fish_lg:
+        rest = sorted(set(ziele) - set(fish_lg))
+        if rest and not (nur_lang and nur_lang in fish_lg):
+            g.pflicht("motor", False, wert={"fish": sorted(fish_lg), "sonst": rest}, ruecksprung="095",
+                      text=f"Motor je Werk einheitlich – fish {sorted(fish_lg)}, sonst {rest}: gemischte Motoren "
+                           f"noch nicht unterstuetzt")
+            g.entscheide(schreiben=not trocken)
+            return g
+        from pipeline import s511_vc_fish as s511
+        return s511.run(werk, g, b, rg, c, m500, m, ent, wer, fish_lg, saetze=saetze, kapitel=kap, nur_lang=nur_lang,
+                        neu=neu, probe=probe, kosten_freigeben=kosten_freigeben, trocken=trocken, nachrunde=nachrunde)
 
     # ---- Planung je Sprache
     plan, je_sprache = {}, {}

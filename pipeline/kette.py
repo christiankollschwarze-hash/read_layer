@@ -36,7 +36,8 @@ VORGAENGER = {
     "400": ["330"],
     "410": ["400"],
     "420": ["410"],
-    "500": ["400", "410"],
+    "430": ["420", "410"],   # Fish-Regie (nur Hoerspiel mit Motor Fish)
+    "500": ["400", "410", "430"],
     "510": ["500", "420"],
     "520": ["500", "510"],
     "530": ["520", "340"],
@@ -130,6 +131,10 @@ def bedarf(b, roh=None):
         s |= {"400", "410", "500", "520"}
     if hoerspiel:
         s |= {"420", "510", "540"}
+        from pipeline import fish_motor           # 430: Hoerspiel (premium/drama) mit Motor Fish
+        if any(p.get("stufe") in ("premium", "drama") and fish_motor.motor(roh, p["sprache"]) == "fish"
+               for p in hoerspiel):
+            s.add("430")
     if any(p["inhalt"] in AUDIO for p in taella):
         s.add("530")
     if taella:
@@ -170,6 +175,9 @@ def sprachen(stage, b):
         return b.audiosprachen()
     if s == "510":
         return b.audiosprachen("hoerspiel")
+    if s == "430":
+        from pipeline import s430_fish_regie
+        return sorted(s430_fish_regie.ziele(b))
     if s == "530":
         return [lg for lg in b.audiosprachen() if any(p["inhalt"] in AUDIO
                 for p in b.produkte_fuer(sprache=lg, kanal="taella"))]

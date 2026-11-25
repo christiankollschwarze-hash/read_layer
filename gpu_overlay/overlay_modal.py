@@ -28,7 +28,7 @@ image = (
 )
 
 
-@app.function(image=image, gpu="L4", timeout=2 * 3600,
+@app.function(image=image, gpu=["L4", "A10G", "L40S"], timeout=2 * 3600,
               secrets=[modal.Secret.from_dict({"HF_TOKEN": _hf_token()})])
 def lauf(paket: str) -> bytes:
     import shutil, subprocess

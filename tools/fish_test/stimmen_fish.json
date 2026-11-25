@@ -1,0 +1,52 @@
+{
+ "grossmutter_a_de": {
+  "figur": "Erzaehler",
+  "fish_id": "656be0028b1643d2be047f2fd17f40ec",
+  "clip": "stimmen_archiv/grossmutter_a/klon_de.wav"
+ },
+ "w_kind_hoch_neugierig_de": {
+  "figur": "Alice",
+  "fish_id": "e8be8582bfaa4ab48d14f5207d214c3a",
+  "clip": "stimmen_archiv/w_kind_hoch_neugierig/klon_de.wav"
+ },
+ "m_mittel_mittel_albern_de": {
+  "figur": "Hatter",
+  "fish_id": "0d70e2fb7f6548f48e737aee5820a1bf",
+  "clip": "stimmen_archiv/m_mittel_mittel_albern/klon_de.wav"
+ },
+ "m_mittel_hoch_albern_de": {
+  "figur": "March Hare",
+  "fish_id": "8030c3907e4d4bb29eb766910a28c0f2",
+  "clip": "stimmen_archiv/m_mittel_hoch_albern/klon_de.wav"
+ },
+ "m_alt_tief_schlaefrig_de": {
+  "figur": "Dormouse",
+  "fish_id": "0078a87e6419423abf36c5ae72cc4780",
+  "clip": "stimmen_archiv/m_alt_tief_schlaefrig/klon_de.wav"
+ },
+ "grossmutter_a_en": {
+  "figur": "Erzaehler",
+  "fish_id": "33c10959f0ea4bbb9fd9bd8090dbb9e1",
+  "clip": "stimmen_archiv/grossmutter_a/klon_en.wav"
+ },
+ "w_kind_hoch_neugierig_en": {
+  "figur": "Alice",
+  "fish_id": "c5280b6d46fe4b23953256b03e2c1ce5",
+  "clip": "stimmen_archiv/w_kind_hoch_neugierig/klon_en.wav"
+ },
+ "m_mittel_mittel_albern_en": {
+  "figur": "Hatter",
+  "fish_id": "f9ec459a601141c79b4db9d3c2551f96",
+  "clip": "stimmen_archiv/m_mittel_mittel_albern/klon_en.wav"
+ },
+ "m_mittel_hoch_albern_en": {
+  "figur": "March Hare",
+  "fish_id": "21093a79688648a1a3a146db4f93a7b5",
+  "clip": "stimmen_archiv/m_mittel_hoch_albern/klon_en.wav"
+ },
+ "m_alt_tief_schlaefrig_en": {
+  "figur": "Dormouse",
+  "fish_id": "d5a9b6e926f74c239c602f4438b7c193",
+  "clip": "stimmen_archiv/m_alt_tief_schlaefrig/klon_en.wav"
+ }
+}

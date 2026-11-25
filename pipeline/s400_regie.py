@@ -391,6 +391,11 @@ def run(werk, wer=None, regler=None, pausen=None, pron_skip=None, aussprache=Non
     premium = [lg for lg in audio if any(p.get("stufe") in PREMIUM and p.get("inhalt") in ("hoerbuch", "hoerspiel")
                                          for p in b.produkte_fuer(sprache=lg))]
     r = _regler_roh(roh)
+    # Motor Fish (AP Fish-Regie 25.11.2026): keine Stilzeile (direction) – Regie macht Stage 430
+    from pipeline import fish_motor
+    fish = fish_motor.fish_sprachen(roh, premium)
+    premium_stil = [lg for lg in premium if lg not in fish]
+    g.metrik("fish", fish)
     for k, v in (("audiosprachen", audio), ("premium", premium), ("regler", r)):
         g.metrik(k, v)
 
@@ -459,7 +464,8 @@ def run(werk, wer=None, regler=None, pausen=None, pron_skip=None, aussprache=Non
     z = {"knoten": 0, "erweitert": 0, "repariert": 0, "manuell": 0, "manuell_veraltet": 0}
     n_mock = 0
     for lg in audio:
-        prem = lg in premium
+        prem = lg in premium_stil              # Fish: ohne Stilzeile
+        prem_aus = lg in premium              # Aussprache-Pruefung Premium/Drama (Fish: Hinweis)
         man_lg = korr["sprechtext"].get(lg) or {}
         namen = {}
         for bg in alle_begriffe:
@@ -542,7 +548,7 @@ def run(werk, wer=None, regler=None, pausen=None, pron_skip=None, aussprache=Non
                      text=f"{lg}: {txt} {len(l)}" + (f" {[x['id'] for x in l[:5]]}" if l else ""))
         txt = f"{lg}: Figuren/Unuebersetzt ohne Aussprache {len(ohne_aus)}" + \
               (f" {sorted(ohne_aus)[:6]}" if ohne_aus else "")
-        if prem:
+        if prem_aus:
             g.pruefe(f"aussprache_{lg}", not ohne_aus, wert=len(ohne_aus), schwelle="= 0", bei_fehler="mensch",
                      ruecksprung="210", text=txt + " (Premium/Drama)")
         else:
@@ -565,7 +571,7 @@ def run(werk, wer=None, regler=None, pausen=None, pron_skip=None, aussprache=Non
 
     data["production"] = prod
     data["ansagen"] = ansage_out
-    meta["regie"] = {"audiosprachen": audio, "premium": premium, "regler": reglers, "namensprache": namensprache,
+    meta["regie"] = {"audiosprachen": audio, "premium": premium, "fish": fish, "regler": reglers, "namensprache": namensprache,
                      "regeln_v": st.REGELN_V, "laenge_max": laenge_max, "style_max": style_max,
                      "tts_backend": getattr(config, "TTS_BACKEND", ""), "erzeugt": manifest.jetzt()}
     aus_hash = manifest.hash_obj({"p": prod, "a": ansage_out})

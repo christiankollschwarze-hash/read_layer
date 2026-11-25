@@ -268,6 +268,7 @@ LORA_ADAPTER = {"mix_v1": {"version": "1", "freigegeben": True, "datei": "gpu_lo
 # Gemini: Developer-API-Preisliste laut CK, Stand 10.10.2026. "ab" = Preiswechsel zum Datum,
 # "gross" = Aufschlag ab Schwelle Eingabe-Token je Aufruf. Fehlt ein Modell, werden nur Token gezaehlt.
 MODAL_L4_USD_H = 0.80   # Modal L4 inkl. CPU/RAM-Anteil, $/h (Messung 16.10.) -> kosten.jsonl (Smoke #7, 24.10.2026)
+MODAL_A10G_USD_H = 1.10  # Modal A10G (Listenpreis ~1,10 $/h, Schaetzung; Fish-VC 510)
 MODAL_T4_USD_H = 0.59   # Modal T4 (Pruefaligner 345, bisher PREIS_T4_S 0.000164 $/s)
 # Stueckpreise USD je Aufruf (usage_log.log_stueck). None = Preis unbekannt, nur Anzahl gezaehlt.
 # Kostenangebot 095 (Selbstkosten-Schaetzung, USD je 100.000 Zeichen Werktext). Mediane aus kosten.jsonl
@@ -286,7 +287,12 @@ ANGEBOT_GEMINI_FAKTOR_AB = ("2027-01-01", 2.0)
 STUECKPREISE = {
     "gemini-voice-design": None,   # Voice Design (Stimme anlegen); Muster-TTS laeuft ueber gemini-3.8-flash-tts
     "gcs_upload_gb": 0.0,          # Stage 710: Upload-Eingang kostenlos; Bytes werden fuer Speicher/Abfluss mitgeloggt
+    "fish-drama-3": 15.0 / 1e6,    # Fish-API je Byte Text (Listenpreis $15/Mio. Bytes, AP Fish-Regie 25.11.2026)
 }
+# Fish Audio (AP Fish-Regie 25.11.2026): bis Modal-Hosting ueber die API (.env FISH_AUDIO_API)
+FISH_API = "https://api.fish.audio"
+FISH_MODELL = "drama-3"
+FISH_USD_JE_MIO_BYTES = 15.0
 PREISE = {
     "deepseek-v4-pro":       {"in": 1.32, "cache": 0.044, "out": 3.96},
     "deepseek-v4-flash":     {"in": 0.30, "cache": 0.006, "out": 1.20},

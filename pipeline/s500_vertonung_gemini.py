@@ -1,6 +1,8 @@
 """STAGE 500 — Vertonung (Umbau Phase 2, GATE_KATALOG.md Zeile 500, 02.11.2026)
 Funktion:     Satz-WAVs je bestellter Audiosprache (Hoerbuch/Hoerspiel-Erzaehlerspur) in der Engine der Stufe:
               Basic -> Chatterbox auf Modal (pipeline/s502_vertonung_chatterbox.py), Premium/Drama -> Gemini-TTS
+              bzw. bei book.json audio_motor fish -> Fish Drama 3 (pipeline/s503_vertonung_fish.py, Block-Vertonung mit
+              Wort-Zeitmarken, Bloecke/Anweisungen aus 430; seit 25.11.2026)
               (hier: Bloecke mit FA-Schnitt am Energietal, Sentinel, Solo-Fallback). Ansage-Knoten aus 400 mit.
 Wirkungsweise: Manifest work/500_vertonung.json je Sprache/Satz mit Eingangs-Hash (Sprechtext inkl. Aussprache-
               Lexikon, Engine, Stimme, Modell, Adapter-Version, Stil): nur neue/geaenderte Saetze werden
@@ -773,6 +775,22 @@ def run(werk, wer=None, regler=None, saetze=None, kapitel=None, nur_lang=None, n
         alt500 = _json(os.path.join(config.work_dir(werk), "500_vertonung_v1.json")) or {}
     m, erstlauf = _manifest(werk, not trocken)
     saetze, kap = set(saetze or []), set(kapitel or [])
+
+    # ---- Motor Fish (AP Fish-Regie 25.11.2026): eigene Engine s503 (Block-Vertonung mit Wort-Zeitmarken)
+    from pipeline import fish_motor
+    fish_lg = [lg for lg in sorted(stufen) if fish_motor.motor(b.roh, lg) == "fish"
+               and any(ENGINE.get(s_) == "gemini" for s_ in stufen[lg])]
+    if fish_lg:
+        rest = [lg for lg in sorted(stufen) if lg not in fish_lg]
+        if rest and not (nur_lang and nur_lang in fish_lg):
+            g.pflicht("motor", False, wert={"fish": fish_lg, "sonst": rest}, ruecksprung="095",
+                      text=f"Motor je Werk einheitlich – fish {fish_lg}, sonst {rest}: gemischte Motoren noch nicht "
+                           f"unterstuetzt (book.json audio_motor angleichen oder --lang)")
+            g.entscheide(schreiben=not trocken)
+            return g
+        from pipeline import s503_vertonung_fish as s503
+        return s503.run(werk, g, b, rg, c, data, m, wer, saetze=saetze, kapitel=kap, nur_lang=nur_lang, neu=neu,
+                        probe=probe, kosten_freigeben=kosten_freigeben, trocken=trocken, sprachen=fish_lg)
 
     # ---- Planung je Sprache
     plan, je_sprache = {}, {}
