@@ -62,6 +62,7 @@ TESTWERK Fish-Strasse 25.11. (CK): NEUES Werk = Le comte de Monte-Cristo, Tome I
   Jetzt status.entscheiden/override -> s410.freigabe_nachziehen. Monte-Cristo 1-1 nachgezogen. test_s410 +1 Assert.
   GEMESSEN 500 Monte-Cristo 1-1 (25.11., H100, SGLang 16 parallel): 187 Bloecke, 0 Fehler, AUDIO 30.268 s (8,4 h), KALTSTART 206 s,
   TTS-RTF 0,022 (je Block 0,34), WALL 877 s, Modal-Rechnung 1,15 $ (= 0,14 $/Audio-h; Gemini-Angebot Teil ~8,70 $; Schaetzung 500 war 4,94 $).
+  510 VC (Chatterbox, Modal L4/A10G): 2.440 Figurenbeitraege, 0,62 $ (~22 min). TEIL 1 GESAMT AUDIO 1,77 $ = 0,21 $/Audio-h.
   -> Config: FISH_MODAL_RTF 0,025, FISH_ZEICHEN_JE_AUDIO_S 13,3 (gesprochen), KALTSTART 210, NEU FISH_MODAL_AUFSCHLAG 1,2;
   s503: Modal-Schaetzung auf gesprochenen Zeichen (_klartext ohne [..]/<..>; Block-Text 628k vs gesprochen 401k). Nachrechnung 1,27 $.
   LIZENZ drama-3 (Community License, HF LICENSE, gelesen 25.11.): kommerziell + Self-Hosting ok bei Jahresumsatz < 500k USD (inkl. Affiliates,
