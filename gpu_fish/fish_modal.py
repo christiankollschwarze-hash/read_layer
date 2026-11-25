@@ -29,10 +29,14 @@ LESER = HIER.parent
 GEWICHTE = "/vol/drama-3"
 S2_CODEC = "/vol/s2-pro"
 SR = 24000
-NACH = "pegel1"                  # Version der Nachbearbeitung (aendern -> fertige Bloecke im Volume werden neu erzeugt)
+# Inferenz-Engine: sglang (SGLang-Omni, buendelt viele Stroeme auf einer GPU; Standard seit 25.11.) | fish (fish-speech
+# api_server, arbeitet Anfragen nacheinander ab: Pruefblock RTF 0,56 -> ~2,2 $/Audio-h auf H100)
+ENGINE = os.environ.get("READLAYER_FISH_ENGINE", "sglang")
+NACH = f"{ENGINE}-pegel1"        # Engine + Nachbearbeitung (aendern -> fertige Bloecke im Volume werden neu erzeugt)
+TEIL_MAX = 1000                  # sglang: Block in Teile <= so viele Zeichen (max_new_tokens <= 2048 Frames ~ 95 s je Anfrage)
 SPRACH_RMS_DB = -16.5            # Ziel-Pegel der Sprachanteile (wie Fish-API, Pruefblock 25.11.: API -16,4 / Modal roh -22,1 dBFS)
 PEAK_MAX_DB = -1.0
-PARALLEL = 4                     # gleichzeitige Anfragen an den lokalen Server (Batching im Server)
+PARALLEL = 16 if ENGINE == "sglang" else 4   # gleichzeitige Bloecke (SGLang-Omni: Standard 16 laufende Anfragen)
 GPU = [g.strip() for g in os.environ.get("READLAYER_FISH_GPU", "H100,L40S").split(",") if g.strip()]
 
 
@@ -57,6 +61,12 @@ image = (
         # fish-speech in EIGENER venv: seine Abhaengigkeiten (u. a. protobuf 3.19) zerschiessen sonst Modals Laufzeit
         "python -m venv /fishenv",
         "cd /fish && /fishenv/bin/pip install --extra-index-url https://download.pytorch.org/whl/cu129 -e '.[cu129]'",
+        # SGLang-Omni (empfohlen von Fish fuer Effizienz) ebenfalls in eigener venv
+        "git clone --depth 1 https://github.com/sgl-project/sglang-omni.git /omni",
+        "cd /omni && git rev-parse HEAD > /omni/COMMIT",
+        "python -m venv /omnienv",
+        "/omnienv/bin/pip install uv",
+        "cd /omni && /omnienv/bin/uv pip install --python /omnienv/bin/python --prerelease=allow -e '.[fishaudio]'",
     )
     .pip_install("torch==2.8.0", "torchaudio==2.8.0", index_url="https://download.pytorch.org/whl/cu129")  # MMS_FA
     .pip_install("huggingface_hub[cli]", "ormsgpack", "requests", "soundfile", "numpy")
@@ -94,6 +104,61 @@ def modell_pruefen():
 
 # ============================================================ Server + Vertonung
 def _server_starten():
+    return _sglang_starten() if ENGINE == "sglang" else _fish_starten()
+
+
+def _sglang_starten():
+    """sgl-omni serve (Standard-FP8, Attention triton, 16 laufende Anfragen, 0,70 GPU-Speicher); bereit = /health 200."""
+    import subprocess
+    import requests
+    cmd = ["/omnienv/bin/sgl-omni", "serve", "--model-path", GEWICHTE, "--port", "8000"]
+    log = open("/tmp/server.log", "w")
+    proc = subprocess.Popen(cmd, cwd="/omni", stdout=log, stderr=subprocess.STDOUT)
+    t0 = time.time()
+    while time.time() - t0 < 1800:
+        if proc.poll() is not None:
+            raise RuntimeError("SGLang-Omni beendet:\n" + open("/tmp/server.log").read()[-3000:])
+        try:
+            if requests.get("http://127.0.0.1:8000/health", timeout=5).status_code == 200:
+                return proc, time.time() - t0
+        except Exception:
+            pass
+        time.sleep(5)
+    raise RuntimeError("SGLang-Omni nicht bereit nach 30 min:\n" + open("/tmp/server.log").read()[-3000:])
+
+
+def teile(text, maxz=TEIL_MAX):
+    """Block -> Teile <= maxz Zeichen; bevorzugt vor einer Anweisung '[' (Figurenwechsel), sonst am Satzende."""
+    import re
+    out = []
+    while len(text) > maxz:
+        stueck = text[:maxz]
+        vor_anw = [m.start() for m in re.finditer(r"(?<!\])\s\[", stueck) if m.start() > maxz * 0.4]  # vor Tag-Folge
+        satz = [m.end() for m in re.finditer(r"[.!?…][»“\"«]?\s", stueck) if m.end() > maxz * 0.4]
+        k = (vor_anw or satz or [stueck.rfind(" ")])[-1]
+        if k <= 0:
+            k = maxz
+        out.append(text[:k].strip())
+        text = text[k:].strip()
+    if text:
+        out.append(text)
+    return out
+
+
+def _tts_sglang(text, ref_pfad, ref_text, extra=None):
+    """POST /v1/audio/speech (OpenAI-kompatibel) -> WAV-Bytes (44,1 kHz). seed wird von SGLang-Omni abgelehnt."""
+    import requests
+    daten = {"input": text, "references": [{"audio_path": ref_pfad, "text": ref_text}], "response_format": "wav"}
+    daten.update(extra or {})
+    for versuch in range(3):
+        r = requests.post("http://127.0.0.1:8000/v1/audio/speech", json=daten, timeout=1800)
+        if r.status_code == 200 and r.content:
+            return r.content
+        time.sleep(3 * (versuch + 1))
+    raise RuntimeError(f"/v1/audio/speech {r.status_code}: {r.text[:300]}")
+
+
+def _fish_starten():
     import subprocess
     import requests
     codec = Path(GEWICHTE, "codec.pth") if Path(GEWICHTE, "codec.pth").exists() else Path(S2_CODEC, "codec.pth")
@@ -192,6 +257,7 @@ def vertonen(paket_zip: bytes) -> str:
     jobs = json.loads(Path(d, "jobs.json").read_text(encoding="utf-8"))
     ref = jobs["ref"]
     ref_audio = Path(d, "ref", ref["datei"]).read_bytes()
+    ref_pfad = str(Path(d, "ref", ref["datei"]))
     os.makedirs("/vol/out", exist_ok=True)
     def fertig(j):
         p = Path("/vol/out", j["key"] + ".json")
@@ -205,7 +271,8 @@ def vertonen(paket_zip: bytes) -> str:
     gpu = subprocess.run(["nvidia-smi", "--query-gpu=name,memory.total", "--format=csv,noheader"],
                          capture_output=True, text=True).stdout.strip()
     modell, cfg = modell_pruefen()
-    bericht = [f"GPU {gpu}", f"MODELL {modell} {json.dumps(cfg)}", f"COMMIT {Path('/fish/COMMIT').read_text().strip()}",
+    commit = Path("/omni/COMMIT" if ENGINE == "sglang" else "/fish/COMMIT").read_text().strip()
+    bericht = [f"GPU {gpu}", f"MODELL {modell} {json.dumps(cfg)}", f"ENGINE {ENGINE} {commit}",
                f"JOBS {len(jobs['jobs'])} offen {len(offen)}"]
     if modell != "drama-3" or not offen:
         bericht.append(f"WALL {time.time() - t_start:.1f} s")
@@ -222,8 +289,13 @@ def vertonen(paket_zip: bytes) -> str:
         t0 = time.time()
         if j.get("audio"):                         # nur Zeitmarken (Pruefblock: MMS_FA auf fremdes Audio)
             return j, _nach_24k(Path(d, j["audio"]).read_bytes()), 0.0
-        wav = _tts(j["text"], ref_audio, ref.get("text") or "", int(j.get("seed") or 0) or None,
-                   {k: j[k] for k in ("temperature", "top_p") if j.get(k) is not None})
+        extra = {k: j[k] for k in ("temperature", "top_p") if j.get(k) is not None}
+        if ENGINE == "sglang":
+            import numpy as np
+            x = np.concatenate([_nach_24k(_tts_sglang(t, ref_pfad, ref.get("text") or "", extra))
+                                for t in teile(j["text"])])
+            return j, pegel(x), time.time() - t0
+        wav = _tts(j["text"], ref_audio, ref.get("text") or "", int(j.get("seed") or 0) or None, extra)
         return j, pegel(_nach_24k(wav)), time.time() - t0
 
     fehler, n, audio_s, tts_s = [], 0, 0.0, 0.0

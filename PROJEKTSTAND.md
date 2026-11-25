@@ -35,6 +35,13 @@ PRUEFBLOCK 25.11. 09:55 (DE, 1.818 Z.): Gewichte im Volume (41,5 GB, 100 s). Mod
   -> FIX gpu_fish: Pegel auf -16,5 dBFS Sprache + weicher Limiter -1 dBFS (NACH="pegel1", alte Bloecke im Volume werden neu erzeugt); Kontrollprobe tools/fish_pruefblock/de/modal_pegel.wav.
   Prosodie: Pruefblock hatte nur "[voicing <Figur>]" ohne Steckbrief-Grundhaltung und ohne Moment -> naechster Pruefblock mit 430-Anweisungen.
   Fehlerbehebungen Image: clang (pyaudio), fish-speech in eigener venv /fishenv (protobuf 3.19 brach Modal-Laufzeit).
+PROSODIE-STRESSTEST 25.11. 10:16 (tools/fish_prosodie_test.py, Fantasietext, 4 Varianten, fish-speech-Server): CK: Fluestern, Freude, Wut usw. gut abgebildet;
+  "stark" (Verstaerker + nonverbal) kaum Unterschied, baut nur unnoetiges Kichern ein -> Anweisungen wie Stage 430 genuegen, Tabelle 430 bleibt. Takes: tools/fish_prosodie_test/de_fishspeech/.
+  Kosten: fish-speech-Server arbeitet Anfragen nacheinander ab (RTF 0,56, je Block 2,2 bei 4 parallel) -> ~2,2 $/Audio-h auf H100, teurer als API (~1-1,3 $/h).
+UMBAU SGLang-Omni 25.11.: gpu_fish/fish_modal.py ENGINE (Umgebung READLAYER_FISH_ENGINE, Standard sglang; fish = alter Weg, Sicherung archive/.../fish_modal_fishspeech.py).
+  sglang-omni in venv /omnienv, sgl-omni serve --model-path /vol/drama-3 --port 8000, /health; POST /v1/audio/speech {input, references [{audio_path, text}], response_format wav}
+  (44,1 kHz -> 24 kHz; seed nicht unterstuetzt; Standard temperature 1,0 / top_p 0,9). Bloecke in Teile <= 1.000 Zeichen (vor Tag-Folge "[", sonst Satzende), 16 Bloecke parallel.
+  NACH = "<engine>-pegel1" -> Engine-Wechsel erzeugt Bloecke im Volume neu. Bericht: ENGINE + Commit. Ungetestet auf Modal.
 ABNAHME offen: (a) Pruefblock + CK-Freigabe (b) anstehendes Werk 430 -> 500 (modal) -> 510 ohne Handeingriff bis Gate (vorher FISH_MODAL_FREI True, book.json fish_weg modal oder > 60.000 Z.).
 .gitignore: gpu_fish/*/ und tools/fish_pruefblock/ (Audio/Jobs).
 
