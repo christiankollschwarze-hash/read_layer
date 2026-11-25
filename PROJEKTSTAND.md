@@ -64,6 +64,9 @@ TESTWERK Fish-Strasse 25.11. (CK): NEUES Werk = Le comte de Monte-Cristo, Tome I
   TTS-RTF 0,022 (je Block 0,34), WALL 877 s, Modal-Rechnung 1,15 $ (= 0,14 $/Audio-h; Gemini-Angebot Teil ~8,70 $; Schaetzung 500 war 4,94 $).
   -> Config: FISH_MODAL_RTF 0,025, FISH_ZEICHEN_JE_AUDIO_S 13,3 (gesprochen), KALTSTART 210, NEU FISH_MODAL_AUFSCHLAG 1,2;
   s503: Modal-Schaetzung auf gesprochenen Zeichen (_klartext ohne [..]/<..>; Block-Text 628k vs gesprochen 401k). Nachrechnung 1,27 $.
+  IDEE/AP (CK wichtig, 25.11.): Stimmvariabilitaet jenseits Tonhoehe – Projekt-Doc claude/IDEE_stimmvariabilitaet.md
+  (Prosodie-Merkmale via Fish-Grundhaltung, Timbre via Archiv/Nachbearbeitung; 410-Abstand mehrdimensional: ECAPA + Tempo + Spektrum;
+  Statistengrenze lockern; Archiv-Merkmale Timbre). Dazu: dialogreiche Werke = Premium-Kandidaten (Startliste/Pricing).
   BEFUND 210/420 (Monte-Cristo 1-1): 'le pere Dantes' fehlt in 210-Figuren -> 420 gab seine Saetze Louis XVIII (~20 Seg. c002/c005/c010).
   CK 25.11.: bleibt so (Doppelbesetzung, nie gemeinsam in einer Szene). Offen: 210 erkennt Beinamen-Figuren ('le pere X') nicht.
   BEFUND Kapitelerkennung (Monte-Cristo, 25.11.): roemische Einzelbuchstaben-Kapitel V und X nicht als Kapitel erkannt (in IV/IX
