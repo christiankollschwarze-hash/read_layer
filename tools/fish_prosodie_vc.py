@@ -10,7 +10,6 @@ import argparse
 import io
 import json
 import os
-import re
 import shutil
 import subprocess
 import sys
@@ -21,7 +20,7 @@ import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import config  # noqa: E402
-from pipeline import s535_wortbruecke as wb  # noqa: E402
+from pipeline import s503_vertonung_fish as V503  # noqa: E402
 from tools import fish_prosodie_test as P  # noqa: E402
 
 SR = 24000
@@ -59,33 +58,14 @@ def rms_db(x):
     return float(20 * np.log10(np.sqrt((akt ** 2).mean()))) if len(akt) else None
 
 
-def wortzahl(t):
-    return len(wb.lautwoerter(re.sub(r"<[^>]+>|\[[^\]]*\]", " ", t)))
-
-
-def spannen(woerter, dauer):
-    """SZENE -> [(figur, a_s, b_s)] ueber Wortzahlen je Passage."""
-    n = [wortzahl(t) for _, t, _, _ in P.SZENE]
-    if sum(n) != len(woerter):
-        raise SystemExit(f"Wortzahl passt nicht: Szene {sum(n)}, Zeitmarken {len(woerter)}")
-    out, i = [], 0
-    for (fig, *_), k in zip(P.SZENE, n):
-        out.append((fig, i, i + k - 1))
-        i += k
-    sp = []
-    for j, (fig, i0, i1) in enumerate(out):
-        a = woerter[i0]["a"] - 0.12
-        b = woerter[i1]["b"] + 0.15
-        if j:                                          # Nahtstelle mittig in der Pause, nie ins Nachbarwort
-            a = max(a, (woerter[out[j - 1][2]]["b"] + woerter[i0]["a"]) / 2)
-        if j + 1 < len(out):
-            b = min(b, (woerter[i1]["b"] + woerter[out[j + 1][1]]["a"]) / 2)
-        sp.append((fig, max(0.0, a), min(dauer, b)))
-    for j in range(1, len(sp)):                        # lueckenlos
-        sp[j] = (sp[j][0], sp[j - 1][2], sp[j][2])
-    sp[0] = (sp[0][0], 0.0, sp[0][2])
-    sp[-1] = (sp[-1][0], sp[-1][1], dauer)
-    return sp
+def spannen(woerter, x):
+    """SZENE -> [(figur, a_s, b_s)] mit der Schnitt-Mechanik aus Stage 503 (s503.schnittpunkte: Grenze im leisesten
+    Punkt der Pause zwischen den Woertern, Buchstabenstrom-Abgleich) -> Auslaut-Konsonanten bleiben am Wort."""
+    grenzen, abd = V503.schnittpunkte([{"text": t} for _, t, _, _ in P.SZENE], woerter, x, SR)
+    if grenzen is None or not 0.97 <= abd <= 1.03:
+        raise SystemExit(f"Zeitmarken decken die Szene nicht ab (Abdeckung {abd:.2f})")
+    pk = [0.0] + grenzen + [len(x) / SR]
+    return [(fig, pk[k], pk[k + 1]) for k, (fig, *_) in enumerate(P.SZENE)]
 
 
 def main(argv=None):
@@ -107,7 +87,7 @@ def main(argv=None):
         j = jobs[v]
         x = lesen(os.path.join(pf, "out", j["key"] + ".wav"))
         woerter = json.load(open(os.path.join(pf, "out", j["key"] + ".json"), encoding="utf-8"))["woerter"]
-        sp = spannen(woerter, len(x) / SR)
+        sp = spannen(woerter, x)
         plan[v] = (x, sp)
         for k, (fig, s0, s1) in enumerate(sp):
             if fig not in BESETZUNG:
