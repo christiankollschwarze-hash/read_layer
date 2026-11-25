@@ -46,6 +46,9 @@ UMBAU SGLang-Omni 25.11.: gpu_fish/fish_modal.py ENGINE (Umgebung READLAYER_FISH
   GEMESSEN 25.11. (Prosodietest, 4 Bloecke, 461 s Audio, H100): KALTSTART 175 s, RTF 0,077 (je Block 0,26), FA 205/205 Woerter, WALL 215 s.
   -> ca. 0,30 $/Audio-h + ca. 0,19 $ Kaltstart je Lauf (fish-speech 2,2 $/h, API ca. 1-1,3 $/h). Config FISH_MODAL_RTF 0,10, KALTSTART 180 s.
   CK 25.11.: SGLang-Takes in Prosodie/Qualitaet hoerbar unveraendert gegenueber fish-speech -> FREIGEGEBEN, config.FISH_MODAL_FREI = True.
+  CHATTERBOX-OVERLAY-TEST 25.11. (tools/fish_prosodie_vc.py, Figurenpassagen per VC wie 511): VC glaettet die Prosodie;
+  mit Overlay traegt die STARKE Anweisungsvariante besser (ohne Overlay reicht 430-Normal). Schnitt jetzt mit 503-Mechanik
+  (erster Lauf: eigene Regel Wortende+150 ms kappte Auslaut-Konsonanten). Idee offen: Figuren direkt in Fish mit Figurenreferenz statt VC.
 ABNAHME: (a) Pruefblock + CK-Freigabe ERLEDIGT 25.11. (b) OFFEN: anstehendes Werk 430 -> 500 (modal) -> 510 ohne Handeingriff bis Gate (vorher FISH_MODAL_FREI True, book.json fish_weg modal oder > 60.000 Z.).
 .gitignore: gpu_fish/*/ und tools/fish_pruefblock/ (Audio/Jobs).
 
