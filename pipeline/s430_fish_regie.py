@@ -22,7 +22,8 @@ Gate:         Hoerspiel mit Motor Fish bestellt, Gate 400/410/420 frei, Casting 
               (Sprechtext nach 420 geaendert) -> ganzer Satz Erzaehler + Hinweis; Moment ungueltig -> ohne Moment + Hinweis.
               Mensch-Freigabe gilt bei gleichem ausgabe_hash. Tags zaehlen nicht in Laengenpruefungen (400).
 Kosten:       usage_log Stage 430 (DeepSeek, Cent-Bereich je Werk).
-Regler:       book.json fish_regler: --block-min 2000, --block-max 2500, --anweisung-max 200, --modell;
+Regler:       book.json fish_regler: --block-min 2000, --block-max 2500, --anweisung-max 200, --modell,
+              overlay_plus 1 (Figuren mit vc_ziel: Intensitaet +1, VC in 511 glaettet; 0 = aus);
               dazu --anweisung LG/ID=TEXT (manuell, '-' = weg), --kapitel, --neu, --trocken.
 Aufruf:       py -3.11 -m pipeline.s430_fish_regie <werk> [Regler] [--wer CK]
 Exit: 0 auto, 2 Stopp, 3 Mensch, 1 Fehler.
@@ -43,7 +44,7 @@ STAGE = "430"
 SCHEMA = 1
 PROMPT_V = 1
 ERZ = s420.ERZ
-REGLER_STD = {"block_min": 2000, "block_max": 2500, "anweisung_max": 200, "modell": None}
+REGLER_STD = {"block_min": 2000, "block_max": 2500, "anweisung_max": 200, "modell": None, "overlay_plus": 1}
 STIMMUNG = {"ruhig": "calm", "gespannt": "tense", "heiter": "cheerful", "duester": "gloomy", "dramatisch": "dramatic"}
 NONVERBAL = {"—": "", "lachen": "[laughs]", "seufzen": "[sighs]", "gaehnen": "[yawns]", "staunen": "[gasps]"}
 VORTRAG = {"normal": None, "fluestern": "whisper", "leise": "soft"}
@@ -88,7 +89,8 @@ def _regler(roh):
 
 def _regler_gueltig(rg):
     try:
-        return 500 <= int(rg["block_min"]) <= int(rg["block_max"]) <= 5000 and 50 <= int(rg["anweisung_max"]) <= 400
+        return (500 <= int(rg["block_min"]) <= int(rg["block_max"]) <= 5000 and 50 <= int(rg["anweisung_max"]) <= 400
+                and 0 <= int(rg["overlay_plus"]) <= 2)
     except Exception:
         return False
 
@@ -127,11 +129,12 @@ def moment_norm(m):
     return {"stimmung": s, "intensitaet": i, "nonverbal": n, "vortrag": v, "betonung": b or None}
 
 
-def moment_text(m, wr):
-    """Moment -> englische Stichworte (Teil 2 der Anweisung)."""
+def moment_text(m, wr, plus=0):
+    """Moment -> englische Stichworte (Teil 2 der Anweisung). plus: Verstaerkung fuer Figuren mit VC-Overlay
+    (510/511 glaettet die Prosodie; CK 25.11.2026: mit Overlay traegt die starke Fassung)."""
     if not m:
         return ""
-    stufe = m["intensitaet"] + (-1 if wr["emotion"] <= 3 else 1 if wr["emotion"] >= 7 else 0)
+    stufe = m["intensitaet"] + (-1 if wr["emotion"] <= 3 else 1 if wr["emotion"] >= 7 else 0) + plus
     teile = []
     if stufe >= 1:
         teile.append(VERSTAERKER[min(stufe, 4)] + STIMMUNG[m["stimmung"]])
@@ -142,8 +145,8 @@ def moment_text(m, wr):
     return ", ".join(teile)
 
 
-def anweisung_bauen(grundhaltung, m, wr):
-    teile = [x for x in (grundhaltung or "", moment_text(m, wr)) if x]
+def anweisung_bauen(grundhaltung, m, wr, plus=0):
+    teile = [x for x in (grundhaltung or "", moment_text(m, wr, plus)) if x]
     out = f"[{'; '.join(teile)}]" if teile else ""
     nv = NONVERBAL.get((m or {}).get("nonverbal") or "—", "")
     return (out + (" " + nv if out and nv else nv)).strip()
@@ -452,7 +455,8 @@ def run(werk, wer=None, regler=None, kapitel=None, neu=False, anweisungen=None, 
             if bt["id"] in momente and m is None:
                 ungueltig += 1
             bt["moment"] = m
-            bt["anweisung"] = anweisung_bauen(gh, m, wr)
+            bt["overlay"] = bool(e.get("vc_ziel"))      # Figur wird in 510/511 per Chatterbox-VC umgefaerbt
+            bt["anweisung"] = anweisung_bauen(gh, m, wr, int(rg["overlay_plus"]) if bt["overlay"] else 0)
             bt["text_fish"] = text_markieren(bt["text"], m, wr)
             mk = man.get(bt["id"])
             if mk and mk.get("h") == manifest.hash_text(bt["text"]):
@@ -500,13 +504,14 @@ def main(argv=None):
     ap.add_argument("--block-max", type=int)
     ap.add_argument("--anweisung-max", type=int)
     ap.add_argument("--modell")
+    ap.add_argument("--overlay-plus", type=int, help="Intensitaet +N fuer Figuren mit VC-Overlay (0-2, Std 1)")
     ap.add_argument("--anweisung", action="append", metavar="LG/ID=TEXT")
     ap.add_argument("--kapitel")
     ap.add_argument("--neu", action="store_true")
     ap.add_argument("--trocken", action="store_true")
     a = ap.parse_args(argv)
     regler = {"block_min": a.block_min, "block_max": a.block_max, "anweisung_max": a.anweisung_max,
-              "modell": a.modell}
+              "modell": a.modell, "overlay_plus": a.overlay_plus}
     try:
         if (any(v is not None for v in regler.values()) or a.anweisung) and not a.trocken:
             from pipeline import s080_mandant

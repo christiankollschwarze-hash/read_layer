@@ -57,6 +57,19 @@ class TFishMotor(unittest.TestCase):
             F._modell_pruefen({"x-model": "s2.1-pro"})
 
 
+class T430Overlay(unittest.TestCase):
+    def test_overlay_plus(self):
+        from pipeline import s430_fish_regie as R
+        wr = {"betonung": 5, "emotion": 5, "tempo": 5}
+        m = {"stimmung": "gespannt", "intensitaet": 2, "nonverbal": "—", "vortrag": "normal", "betonung": None}
+        self.assertEqual(R.moment_text(m, wr), "tense")
+        self.assertEqual(R.moment_text(m, wr, 1), "very tense")
+        self.assertEqual(R.moment_text(dict(m, intensitaet=3), wr, 2), "extremely tense")   # Deckel 4
+        self.assertEqual(R.anweisung_bauen("voicing X", m, wr, 1), "[voicing X; very tense]")
+        self.assertTrue(R._regler_gueltig(dict(R.REGLER_STD)))
+        self.assertFalse(R._regler_gueltig(dict(R.REGLER_STD, overlay_plus=3)))
+
+
 class T410Fish(T410):
     def test_fish_casting(self):
         self.werk(produkte=self.HS, extra={"audio_motor": "fish"})

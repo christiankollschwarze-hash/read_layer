@@ -49,6 +49,8 @@ UMBAU SGLang-Omni 25.11.: gpu_fish/fish_modal.py ENGINE (Umgebung READLAYER_FISH
   CHATTERBOX-OVERLAY-TEST 25.11. (tools/fish_prosodie_vc.py, Figurenpassagen per VC wie 511): VC glaettet die Prosodie;
   mit Overlay traegt die STARKE Anweisungsvariante besser (ohne Overlay reicht 430-Normal). Schnitt jetzt mit 503-Mechanik
   (erster Lauf: eigene Regel Wortende+150 ms kappte Auslaut-Konsonanten). Idee offen: Figuren direkt in Fish mit Figurenreferenz statt VC.
+  UMGESETZT 25.11.: 430 Regler overlay_plus (Std 1, 0-2; --overlay-plus): Figuren mit vc_ziel (= 511-Overlay) bekommen
+  Moment-Intensitaet +1 (very/extremely); Beitrag-Feld overlay. Test T430Overlay; tests.test_fish 65 gruen.
 ABNAHME: (a) Pruefblock + CK-Freigabe ERLEDIGT 25.11. (b) OFFEN: anstehendes Werk 430 -> 500 (modal) -> 510 ohne Handeingriff bis Gate (vorher FISH_MODAL_FREI True, book.json fish_weg modal oder > 60.000 Z.).
 .gitignore: gpu_fish/*/ und tools/fish_pruefblock/ (Audio/Jobs).
 
