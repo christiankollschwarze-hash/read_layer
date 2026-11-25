@@ -60,6 +60,9 @@ TESTWERK Fish-Strasse 25.11. (CK): NEUES Werk = Le comte de Monte-Cristo, Tome I
   FIX 25.11. 410->420: Gate-Entscheidung 410 'frei' (Cockpit/status, auch override) schrieb casting.json-Freigabe erst beim
   naechsten 410-Lauf -> 420 stoppte ('casting.json freigegeben'), keine Zuordnung sichtbar, Korrekturen nur in 420_korrekturen.json.
   Jetzt status.entscheiden/override -> s410.freigabe_nachziehen. Monte-Cristo 1-1 nachgezogen. test_s410 +1 Assert.
+  BEFUND Kapitelerkennung (Monte-Cristo, 25.11.): roemische Einzelbuchstaben-Kapitel V und X nicht als Kapitel erkannt (in IV/IX
+  enthalten, Teil 1 = 15 statt 17 Kap.); Kapiteltitel nur roem. Zahl (echter Titel 'Marseille.--L'arrivee.' in Folgezeile fehlt),
+  Kap. I traegt Buchtitel. Offen: Regel 118/120 fixen, Werk ab 120 neu (nach Fish-Test). Teil 1 = Kap. I-XVII (bis 'La chambre de l'abbe').
   430 Momente jetzt Kapitel parallel (config.FISH_REGIE_PARALLEL 5; Checkpoint je Kapitel im Haupt-Thread). Anlass: Monte-Cristo 1-1
   sequentiell ~1 min/Kapitel (30 Kap. ~30 min).
   Bekannt flaky: test_s420 test_kaputt_einzeln_neu_dann_rueckfall (Reihenfolge paralleler Aufrufe).
