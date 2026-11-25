@@ -51,9 +51,9 @@ UMBAU SGLang-Omni 25.11.: gpu_fish/fish_modal.py ENGINE (Umgebung READLAYER_FISH
   (erster Lauf: eigene Regel Wortende+150 ms kappte Auslaut-Konsonanten). Idee offen: Figuren direkt in Fish mit Figurenreferenz statt VC.
   UMGESETZT 25.11.: 430 Regler overlay_plus (Std 1, 0-2; --overlay-plus): Figuren mit vc_ziel (= 511-Overlay) bekommen
   Moment-Intensitaet +1 (very/extremely); Beitrag-Feld overlay. Test T430Overlay; tests.test_fish 65 gruen.
-TESTWERK Fish-Strasse 25.11.: winnie-the-pooh (Hoerspiel-Eignung geeignet/premium: Rede 47 %, 10 Sprecher; 124k Z. -> Weiche auto = modal).
-  095: de:text + de:hoerspiel:premium (+ ergaenzt de:hoerbuch:premium), Angebot 5,18 $ (Gemini-Basis); book.json audio_motor fish. Kette ab 080 im Cockpit.
-  Verworfen: die-spiegelschwestern (Eignung ungeeignet: Rede 18 %, 0 Sprecher; 095 zurueckgenommen, status.json -> work/_to_delete/), Happy Prince (Gemini-Fassung bleibt).
+TESTWERK Fish-Strasse 25.11. (CK): NEUES Werk = Le comte de Monte-Cristo, Tome I (Gutenberg 17989, franz. Original; Tome II-IV 17990-17992),
+  Ziel de Hoerspiel premium, audio_motor fish. Anlegen auf Windows (VM ohne Gutenberg-Zugang). Probelaeufe zurueckgenommen:
+  die-spiegelschwestern (Eignung ungeeignet) und winnie-the-pooh (095 rueckgaengig; je status.json -> work/_to_delete/).
 ABNAHME: (a) Pruefblock + CK-Freigabe ERLEDIGT 25.11. (b) OFFEN: anstehendes Werk 430 -> 500 (modal) -> 510 ohne Handeingriff bis Gate (vorher FISH_MODAL_FREI True, book.json fish_weg modal oder > 60.000 Z.).
 .gitignore: gpu_fish/*/ und tools/fish_pruefblock/ (Audio/Jobs).
 
