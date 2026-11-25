@@ -21,7 +21,7 @@ from config import config
 from pipeline import bestellung, gate, s080_mandant, s095_produktwahl
 
 STAGE = "115"
-MODERN_SPRACHEN = ("en", "de")    # Sprachen mit Modernisierungs-Prompt in 120 (de seit 22.11.2026)
+MODERN_SPRACHEN = ("en", "de", "fr")    # Sprachen mit Modernisierungs-Prompt in 120 (de 22.11., fr 25.11.2026)
 VERMERK = {"modernisiert": "Sanft modernisierte Fassung", "original": None}
 
 

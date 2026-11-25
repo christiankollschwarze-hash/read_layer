@@ -86,8 +86,26 @@ _BASIS_DE = ("Du {art} einen gemeinfreien deutschen literarischen Text für heut
 _RECHTSCHREIBUNG_DE = ("bringe die Rechtschreibung auf den heutigen Stand (z. B. dass statt daß, muss statt muß, "
                        "Ue/Ae/Oe am Wortanfang als Ü/Ä/Ö, Tür statt Thür, Intrigen statt Intriguen, Getrennt- und "
                        "Zusammenschreibung nach heutiger Regel); ")
+# Franzoesisch (25.11.2026, Testwerk Monte-Cristo): Prosa um 1840-1900; Rechtschreibung ist weitgehend heutig,
+# Schwerpunkt Satzbau, veraltete Woerter und Passé simple bleibt (literarische Erzaehlzeit, nicht ersetzen).
+_BASIS_FR = ("Tu {art} un texte littéraire français du domaine public pour des lecteurs et apprenants d'aujourd'hui. "
+             "Pour chaque segment numéroté : {was} PRÉSERVE l'intrigue, le sens, la voix narrative, le ton et TOUS "
+             "les noms propres dans leur graphie. Garde le passé simple et l'imparfait de la narration ainsi que le "
+             "vouvoiement des dialogues. Laisse les passages dans d'autres langues (citations latines, italiennes, "
+             "anglaises) exactement tels quels, sans les traduire. Ne résume pas, n'omets rien, n'ajoute rien ; "
+             "longueur à peu près identique. Les vers restent des vers. Rends chaque résultat sur sa propre ligne, "
+             "précédé du MÊME numéro sous la forme [n], dans le même ordre. Ne rends QUE les lignes numérotées.")
 SYS_SPRACHE = {
     "en": SYS,
+    "fr": {
+        "sanft": _BASIS_FR.format(art="modernises avec délicatesse", was=(
+            "remplace les mots, tournures et graphies vieillis ou devenus obscurs par un français naturel "
+            "d'aujourd'hui ; ne simplifie la syntaxe que pour les phrases très longues et enchevêtrées.")),
+        "mittel": _BASIS_FR.format(art="modernises", was=(
+            "reformule les phrases longues et enchevêtrées en phrases claires d'aujourd'hui ; remplace les mots, "
+            "tournures et formules de politesse vieillis par un français naturel d'aujourd'hui ; modernise la "
+            "ponctuation.")),
+    },
     "de": {
         "sanft": _BASIS_DE.format(art="modernisierst behutsam", was=(
             _RECHTSCHREIBUNG_DE + "ersetze veraltete oder heute unverständliche Wörter und Wendungen durch "

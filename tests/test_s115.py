@@ -79,7 +79,7 @@ class T(unittest.TestCase):
         self.assertEqual(self.bj()["fassung"], "original")
 
     def test_quellsprache_ohne_prompt_original(self):
-        self.book(quellsprache="fr")   # de hat seit 22.11.2026 einen Prompt
+        self.book(quellsprache="it")   # de (22.11.) und fr (25.11.2026) haben einen Prompt
         self.assertEqual(self.lauf(), "auto")
         self.assertEqual(self.bj()["fassung"], "original")
 

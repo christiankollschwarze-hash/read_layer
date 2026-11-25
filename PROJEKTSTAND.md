@@ -55,6 +55,8 @@ TESTWERK Fish-Strasse 25.11. (CK): NEUES Werk = Le comte de Monte-Cristo, Tome I
   Ziel de Hoerspiel premium, audio_motor fish. ANGELEGT 25.11. (100 auto, Text von Spiegel mirrors.xmission.com, gutenberg.org war down; 727.599 Z.),
   Eignung geeignet/premium (Rede 26 %, 18 Sprecher); 080/090/095 auto, Angebot 30,99 $ (Audio noch Gemini-Basis; Fish-Modal real ~4 $ statt 16,7 $), Weiche modal.
   BEFUND: authors/dumas-a vermischt Vater (1802-1870) und Sohn (1824-1895; Kameliendame) -> author.json Todesjahr 1895; offen (betrifft 4 Werke).
+  115/120: franzoesischer Modernisierungs-Prompt (s120 SYS_SPRACHE fr sanft/mittel; passé simple + vouvoiement bleiben),
+  s115.MODERN_SPRACHEN + fr -> Monitor 115 erlaubt 'modernisiert'. test_s115 (ohne Prompt jetzt it) + test_s120 gruen.
   Probelaeufe zurueckgenommen:
   die-spiegelschwestern (Eignung ungeeignet) und winnie-the-pooh (095 rueckgaengig; je status.json -> work/_to_delete/).
 ABNAHME: (a) Pruefblock + CK-Freigabe ERLEDIGT 25.11. (b) OFFEN: anstehendes Werk 430 -> 500 (modal) -> 510 ohne Handeingriff bis Gate (vorher FISH_MODAL_FREI True, book.json fish_weg modal oder > 60.000 Z.).
