@@ -314,6 +314,9 @@ def entscheiden(book_id, stage, nach, wer, grund, scope=None, rolle="kurator"):
             _gesamt_aus_teilen(_st(d, stage))
         _protokoll(d, wer=wer, rolle=rolle, aktion="entscheidung", stage=stage, scope=scope,
                    von=von, nach=nach, grund=grund)
+    if stage == "410" and nach == "frei":           # Casting-Freigabe gehoert zur Gate-Freigabe (420 prueft casting.json)
+        from pipeline import s410_casting
+        s410_casting.freigabe_nachziehen(book_id, wer)
 
 
 def override(book_id, stage, wer, rolle, grund, nach="frei", scope=None):
@@ -334,6 +337,9 @@ def override(book_id, stage, wer, rolle, grund, nach="frei", scope=None):
             _gesamt_aus_teilen(_st(d, stage))
         _protokoll(d, wer=wer, rolle=rolle, aktion="override", stage=stage, scope=scope,
                    von=von, nach=nach, grund=grund)
+    if stage == "410" and nach == "frei":
+        from pipeline import s410_casting
+        s410_casting.freigabe_nachziehen(book_id, wer)
 
 
 def zuruecksetzen(book_id, stage, wer, grund, scope=None):

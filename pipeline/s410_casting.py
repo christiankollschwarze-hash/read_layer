@@ -864,6 +864,17 @@ def korrektur_setzen(werk, figur, lg, formant=None, tonhoehe=None, wer="pipeline
 
 
 # ============================================================ Freigabe
+def freigabe_nachziehen(werk, wer):
+    """Gate-410-Entscheidung 'frei' (Cockpit/status) -> casting.json-Freigabe sofort schreiben (25.11.2026: sonst
+    stoppte 420 mit 'casting.json freigegeben', bis 410 erneut lief). -> True, wenn geschrieben."""
+    c = laden(werk)
+    if not c or c.get("schema") != SCHEMA or freigegeben(c):
+        return False
+    _freigabe_anwenden(werk, c, wer, bestellung.lesen(werk))
+    manifest.json_atomar(casting_pfad(werk), c, indent=1)
+    return True
+
+
 def _freigabe_anwenden(werk, c, wer, b):
     h = kern(c["rollen"])
     if (c.get("freigabe") or {}).get("hash") == h:

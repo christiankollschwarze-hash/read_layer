@@ -57,6 +57,10 @@ TESTWERK Fish-Strasse 25.11. (CK): NEUES Werk = Le comte de Monte-Cristo, Tome I
   BEFUND: authors/dumas-a vermischt Vater (1802-1870) und Sohn (1824-1895; Kameliendame) -> author.json Todesjahr 1895; offen (betrifft 4 Werke).
   115/120: franzoesischer Modernisierungs-Prompt (s120 SYS_SPRACHE fr sanft/mittel; passé simple + vouvoiement bleiben),
   s115.MODERN_SPRACHEN + fr -> Monitor 115 erlaubt 'modernisiert'. test_s115 (ohne Prompt jetzt it) + test_s120 gruen.
+  FIX 25.11. 410->420: Gate-Entscheidung 410 'frei' (Cockpit/status, auch override) schrieb casting.json-Freigabe erst beim
+  naechsten 410-Lauf -> 420 stoppte ('casting.json freigegeben'), keine Zuordnung sichtbar, Korrekturen nur in 420_korrekturen.json.
+  Jetzt status.entscheiden/override -> s410.freigabe_nachziehen. Monte-Cristo 1-1 nachgezogen. test_s410 +1 Assert.
+  Bekannt flaky: test_s420 test_kaputt_einzeln_neu_dann_rueckfall (Reihenfolge paralleler Aufrufe).
   Probelaeufe zurueckgenommen:
   die-spiegelschwestern (Eignung ungeeignet) und winnie-the-pooh (095 rueckgaengig; je status.json -> work/_to_delete/).
 ABNAHME: (a) Pruefblock + CK-Freigabe ERLEDIGT 25.11. (b) OFFEN: anstehendes Werk 430 -> 500 (modal) -> 510 ohne Handeingriff bis Gate (vorher FISH_MODAL_FREI True, book.json fish_weg modal oder > 60.000 Z.).

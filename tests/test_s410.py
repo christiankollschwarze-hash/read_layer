@@ -165,6 +165,7 @@ class T410(unittest.TestCase):
         self.assertIsNone(P.stimme("w", "en"))                   # noch nicht freigegeben
         self.assertIn("CHARACTER LIST", self.prompt)
         S.entscheiden("w", "410", "frei", "CK", "Hoerprobe ok")
+        self.assertTrue(P.freigegeben(P.laden("w")))            # Gate-Freigabe zieht casting.json sofort nach (420)
         g = self.lauf()
         self.assertEqual(g.ergebnis["ergebnis"], "auto", g.bericht())
         c = P.laden("w")
