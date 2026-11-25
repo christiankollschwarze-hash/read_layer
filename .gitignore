@@ -53,3 +53,4 @@ config/demo_zugang.txt
 # AP Fish-Modal 25.11.: Modal-Pakete/Ergebnisse (Audio, Jobs) nicht versionieren
 gpu_fish/*/
 tools/fish_pruefblock/
+tools/fish_prosodie_test/

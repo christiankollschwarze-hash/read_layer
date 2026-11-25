@@ -115,12 +115,13 @@ def _server_starten():
     raise RuntimeError("Fish-Server nicht bereit nach 30 min:\n" + open("/tmp/server.log").read()[-3000:])
 
 
-def _tts(text, ref_audio, ref_text, seed):
+def _tts(text, ref_audio, ref_text, seed, extra=None):
     import ormsgpack
     import requests
     # Felder wie fish_speech.utils.schema.ServeTTSRequest (als dict, fish-speech liegt in eigener venv)
     daten = {"text": text, "references": [{"audio": ref_audio, "text": ref_text}], "reference_id": None,
              "format": "wav", "streaming": False, "use_memory_cache": "on", "seed": seed, "normalize": True}
+    daten.update(extra or {})                      # z. B. temperature/top_p (Pruefzwecke)
     for versuch in range(3):
         r = requests.post("http://127.0.0.1:8080/v1/tts", params={"format": "msgpack"},
                           data=ormsgpack.packb(daten),
@@ -221,7 +222,8 @@ def vertonen(paket_zip: bytes) -> str:
         t0 = time.time()
         if j.get("audio"):                         # nur Zeitmarken (Pruefblock: MMS_FA auf fremdes Audio)
             return j, _nach_24k(Path(d, j["audio"]).read_bytes()), 0.0
-        wav = _tts(j["text"], ref_audio, ref.get("text") or "", int(j.get("seed") or 0) or None)
+        wav = _tts(j["text"], ref_audio, ref.get("text") or "", int(j.get("seed") or 0) or None,
+                   {k: j[k] for k in ("temperature", "top_p") if j.get(k) is not None})
         return j, pegel(_nach_24k(wav)), time.time() - t0
 
     fehler, n, audio_s, tts_s = [], 0, 0.0, 0.0
