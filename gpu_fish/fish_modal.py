@@ -51,8 +51,11 @@ image = (
     .run_commands(
         "git clone --depth 1 https://github.com/fishaudio/fish-speech.git /fish",
         "cd /fish && git rev-parse HEAD > /fish/COMMIT",
-        "cd /fish && pip install --extra-index-url https://download.pytorch.org/whl/cu129 -e '.[cu129]'",
+        # fish-speech in EIGENER venv: seine Abhaengigkeiten (u. a. protobuf 3.19) zerschiessen sonst Modals Laufzeit
+        "python -m venv /fishenv",
+        "cd /fish && /fishenv/bin/pip install --extra-index-url https://download.pytorch.org/whl/cu129 -e '.[cu129]'",
     )
+    .pip_install("torch==2.8.0", "torchaudio==2.8.0", index_url="https://download.pytorch.org/whl/cu129")  # MMS_FA
     .pip_install("huggingface_hub[cli]", "ormsgpack", "requests", "soundfile", "numpy")
     .env({"PYTHONUNBUFFERED": "1", "HF_HUB_ENABLE_HF_TRANSFER": "0", "TORCH_HOME": "/vol/torch"})
     .add_local_file(str(LESER / "pipeline" / "fa_mms.py"), remote_path="/rl/fa_mms.py")
@@ -91,7 +94,7 @@ def _server_starten():
     import subprocess
     import requests
     codec = Path(GEWICHTE, "codec.pth") if Path(GEWICHTE, "codec.pth").exists() else Path(S2_CODEC, "codec.pth")
-    cmd = ["python", "tools/api_server.py", "--listen", "127.0.0.1:8080", "--llama-checkpoint-path", GEWICHTE,
+    cmd = ["/fishenv/bin/python", "tools/api_server.py", "--listen", "127.0.0.1:8080", "--llama-checkpoint-path", GEWICHTE,
            "--decoder-checkpoint-path", str(codec), "--device", "cuda"]
     log = open("/tmp/server.log", "w")
     proc = subprocess.Popen(cmd, cwd="/fish", stdout=log, stderr=subprocess.STDOUT)
@@ -112,16 +115,12 @@ def _server_starten():
 def _tts(text, ref_audio, ref_text, seed):
     import ormsgpack
     import requests
-    from fish_speech.utils.schema import ServeReferenceAudio, ServeTTSRequest
-    daten = {"text": text, "references": [ServeReferenceAudio(audio=ref_audio, text=ref_text)], "reference_id": None,
+    # Felder wie fish_speech.utils.schema.ServeTTSRequest (als dict, fish-speech liegt in eigener venv)
+    daten = {"text": text, "references": [{"audio": ref_audio, "text": ref_text}], "reference_id": None,
              "format": "wav", "streaming": False, "use_memory_cache": "on", "seed": seed, "normalize": True}
-    felder = getattr(ServeTTSRequest, "model_fields", None) or {}
-    if felder:
-        daten = {k: v for k, v in daten.items() if k in felder}
-    req = ServeTTSRequest(**daten)
     for versuch in range(3):
         r = requests.post("http://127.0.0.1:8080/v1/tts", params={"format": "msgpack"},
-                          data=ormsgpack.packb(req, option=ormsgpack.OPT_SERIALIZE_PYDANTIC),
+                          data=ormsgpack.packb(daten),
                           headers={"content-type": "application/msgpack"}, timeout=1800)
         if r.status_code == 200 and r.content:
             return r.content
