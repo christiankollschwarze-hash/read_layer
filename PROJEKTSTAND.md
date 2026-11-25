@@ -45,8 +45,8 @@ UMBAU SGLang-Omni 25.11.: gpu_fish/fish_modal.py ENGINE (Umgebung READLAYER_FISH
   Image: ninja-build (SGLang-JIT-Kernel). Referenz > 55 s (SGLang-Limit 60 s) wird per MMS_FA am Satzende gekuerzt (Bericht REFERENZ).
   GEMESSEN 25.11. (Prosodietest, 4 Bloecke, 461 s Audio, H100): KALTSTART 175 s, RTF 0,077 (je Block 0,26), FA 205/205 Woerter, WALL 215 s.
   -> ca. 0,30 $/Audio-h + ca. 0,19 $ Kaltstart je Lauf (fish-speech 2,2 $/h, API ca. 1-1,3 $/h). Config FISH_MODAL_RTF 0,10, KALTSTART 180 s.
-  OFFEN: CK-Hoervergleich de/ (sglang) gegen de_fishspeech/; danach FISH_MODAL_FREI = True.
-ABNAHME offen: (a) Pruefblock + CK-Freigabe (b) anstehendes Werk 430 -> 500 (modal) -> 510 ohne Handeingriff bis Gate (vorher FISH_MODAL_FREI True, book.json fish_weg modal oder > 60.000 Z.).
+  CK 25.11.: SGLang-Takes in Prosodie/Qualitaet hoerbar unveraendert gegenueber fish-speech -> FREIGEGEBEN, config.FISH_MODAL_FREI = True.
+ABNAHME: (a) Pruefblock + CK-Freigabe ERLEDIGT 25.11. (b) OFFEN: anstehendes Werk 430 -> 500 (modal) -> 510 ohne Handeingriff bis Gate (vorher FISH_MODAL_FREI True, book.json fish_weg modal oder > 60.000 Z.).
 .gitignore: gpu_fish/*/ und tools/fish_pruefblock/ (Audio/Jobs).
 
 ## AP Fish-Regie + Cockpit-Umbau – CODE ERLEDIGT 25.11.2026, Abnahme offen (Prompt claude/PROMPT_fish_regie_cockpit.md, Stand-Doc claude/STAND_fish_test_2026-11-24.md)
