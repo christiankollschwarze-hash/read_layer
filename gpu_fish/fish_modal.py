@@ -47,7 +47,7 @@ app = modal.App("readlayer-fish-500")
 vol = modal.Volume.from_name("readlayer-fish", create_if_missing=True)
 image = (
     modal.Image.from_registry("nvidia/cuda:12.9.1-devel-ubuntu22.04", add_python="3.12")
-    .apt_install("git", "ffmpeg", "portaudio19-dev", "libsox-dev", "libsndfile1")
+    .apt_install("git", "ffmpeg", "portaudio19-dev", "libsox-dev", "libsndfile1", "clang")   # clang: pyaudio-Build (Python von Modal ist mit clang gebaut)
     .run_commands(
         "git clone --depth 1 https://github.com/fishaudio/fish-speech.git /fish",
         "cd /fish && git rev-parse HEAD > /fish/COMMIT",
