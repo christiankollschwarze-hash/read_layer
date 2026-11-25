@@ -29,6 +29,12 @@ Schritt 5 TEILWEISE: 540 fuer Fish-Werke: Zielstimme = vc_ziel aus 410 (keine Ta
   Doku: docs/STAGE_SKRIPT.md neu (tools/stage_skript.py mit 430, Texte 500/510/540, Stand 25.11.), Projekt-Doc claude/GATE_NACHTRAG_FISH_430_503_511.md (Nachtrag GATE_KATALOG/GATE_MONITORE/STECKBRIEFE).
   OFFEN: gemischte Motoren je Werk (Gemini/Fish je Sprache) – weiter Stopp ausser --lang (Umbau s500.run: zwei Engines in einem Gate/Manifest, eigenes kleines AP).
 Tests (Linux-VM, python3 -m unittest): test_fish 64, test_s500 35, test_s510 33, test_s520 19, test_s530 14, test_s540 21, test_s400/410/420, test_kette, test_status, test_cockpit_werk, test_kunde gruen.
+PRUEFBLOCK 25.11. 09:55 (DE, 1.818 Z.): Gewichte im Volume (41,5 GB, 100 s). Modal H100: Kaltstart 65 s, WALL 150 s, ~0,16 $; API ~0,03 $.
+  Zeitmarken MMS_FA vs. Fish auf gleichem Audio: Wortanfaenge Median 0,043 s / max 0,142 s, Schnittgrenzen Median 0,024 s / max 0,076 s -> FA-Ersatz traegt.
+  CK-Hoerurteil: Modal leiser (gemessen Sprache -22,1 vs. -16,4 dBFS, Pausen 30 % vs. 19 %, 123,5 vs. 115,2 s), Prosodie bei beiden zu schwach, Modal leicht schwaecher.
+  -> FIX gpu_fish: Pegel auf -16,5 dBFS Sprache + weicher Limiter -1 dBFS (NACH="pegel1", alte Bloecke im Volume werden neu erzeugt); Kontrollprobe tools/fish_pruefblock/de/modal_pegel.wav.
+  Prosodie: Pruefblock hatte nur "[voicing <Figur>]" ohne Steckbrief-Grundhaltung und ohne Moment -> naechster Pruefblock mit 430-Anweisungen.
+  Fehlerbehebungen Image: clang (pyaudio), fish-speech in eigener venv /fishenv (protobuf 3.19 brach Modal-Laufzeit).
 ABNAHME offen: (a) Pruefblock + CK-Freigabe (b) anstehendes Werk 430 -> 500 (modal) -> 510 ohne Handeingriff bis Gate (vorher FISH_MODAL_FREI True, book.json fish_weg modal oder > 60.000 Z.).
 .gitignore: gpu_fish/*/ und tools/fish_pruefblock/ (Audio/Jobs).
 
