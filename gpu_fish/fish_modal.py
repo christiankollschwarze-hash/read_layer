@@ -29,6 +29,9 @@ LESER = HIER.parent
 GEWICHTE = "/vol/drama-3"
 S2_CODEC = "/vol/s2-pro"
 SR = 24000
+NACH = "pegel1"                  # Version der Nachbearbeitung (aendern -> fertige Bloecke im Volume werden neu erzeugt)
+SPRACH_RMS_DB = -16.5            # Ziel-Pegel der Sprachanteile (wie Fish-API, Pruefblock 25.11.: API -16,4 / Modal roh -22,1 dBFS)
+PEAK_MAX_DB = -1.0
 PARALLEL = 4                     # gleichzeitige Anfragen an den lokalen Server (Batching im Server)
 GPU = [g.strip() for g in os.environ.get("READLAYER_FISH_GPU", "H100,L40S").split(",") if g.strip()]
 
@@ -141,6 +144,23 @@ def _nach_24k(wav_bytes):
     return np.clip(x, -1, 1)
 
 
+def pegel(x):
+    """Sprach-RMS (50-ms-Fenster ueber -45 dBFS) auf SPRACH_RMS_DB, Spitze <= PEAK_MAX_DB (Fish-API liefert ~-16,5 dBFS)."""
+    import numpy as np
+    w = int(0.05 * SR)
+    if len(x) < w:
+        return x
+    fr = np.sqrt((x[:len(x) // w * w].reshape(-1, w) ** 2).mean(1))
+    akt = fr[fr > 10 ** (-45 / 20)]
+    if not len(akt):
+        return x
+    g = 10 ** (SPRACH_RMS_DB / 20) / np.sqrt((akt ** 2).mean())
+    spitze = np.abs(x).max() * g
+    if spitze > 10 ** (PEAK_MAX_DB / 20):
+        g *= 10 ** (PEAK_MAX_DB / 20) / spitze
+    return np.clip(x * g, -1, 1)
+
+
 def _schreiben(pfad, x):
     import numpy as np
     import soundfile as sf
@@ -161,7 +181,15 @@ def vertonen(paket_zip: bytes) -> str:
     ref = jobs["ref"]
     ref_audio = Path(d, "ref", ref["datei"]).read_bytes()
     os.makedirs("/vol/out", exist_ok=True)
-    offen = [j for j in jobs["jobs"] if not Path("/vol/out", j["key"] + ".json").exists()]
+    def fertig(j):
+        p = Path("/vol/out", j["key"] + ".json")
+        if not p.exists():
+            return False
+        try:
+            return j.get("audio") or json.loads(p.read_text(encoding="utf-8"))["info"].get("nach") == NACH
+        except Exception:
+            return False
+    offen = [j for j in jobs["jobs"] if not fertig(j)]
     gpu = subprocess.run(["nvidia-smi", "--query-gpu=name,memory.total", "--format=csv,noheader"],
                          capture_output=True, text=True).stdout.strip()
     modell, cfg = modell_pruefen()
@@ -183,9 +211,9 @@ def vertonen(paket_zip: bytes) -> str:
         if j.get("audio"):                         # nur Zeitmarken (Pruefblock: MMS_FA auf fremdes Audio)
             return j, _nach_24k(Path(d, j["audio"]).read_bytes()), 0.0
         wav = _tts(j["text"], ref_audio, ref.get("text") or "", int(j.get("seed") or 0) or None)
-        return j, _nach_24k(wav), time.time() - t0
+        return j, pegel(_nach_24k(wav)), time.time() - t0
 
-    fehler, n, audio_s = [], 0, 0.0
+    fehler, n, audio_s, tts_s = [], 0, 0.0, 0.0
     with cf.ThreadPoolExecutor(PARALLEL) as ex:
         futs = [ex.submit(ein_block, j) for j in offen]
         for fu in cf.as_completed(futs):
@@ -201,11 +229,14 @@ def vertonen(paket_zip: bytes) -> str:
             woerter = [{"w": w["w"], "a": round(z[0], 3), "b": round(z[1], 3)}
                        for w, z in zip(j["woerter"], zeiten) if z]
             info = {"bytes": len(j["text"].encode("utf-8")), "sek": round(len(x) / SR, 2), "tts_s": round(dt, 1),
-                    "fa_woerter": f"{len(woerter)}/{len(lw)}", "modell": modell, "zeitmarken": "mms_fa"}
+                    "fa_woerter": f"{len(woerter)}/{len(lw)}", "modell": modell, "zeitmarken": "mms_fa",
+                    "nach": None if j.get("audio") else NACH}
             Path(f"/vol/out/{j['key']}.json").write_text(json.dumps({"woerter": woerter, "info": info},
                                                                      ensure_ascii=False), encoding="utf-8")
             n += 1
-            audio_s += len(x) / SR
+            if not j.get("audio"):                 # RTF nur ueber vertonte Bloecke (nicht reine FA-Jobs)
+                audio_s += len(x) / SR
+                tts_s += dt
             if n % 10 == 0:
                 vol.commit()
                 print(f"[fish] {n}/{len(offen)} Bloecke, {audio_s / 60:.1f} min Audio", flush=True)
@@ -213,7 +244,8 @@ def vertonen(paket_zip: bytes) -> str:
     proc.terminate()
     rt = time.time() - t_tts
     bericht += [f"BLOECKE {n} fehler {len(fehler)}", f"AUDIO {audio_s:.1f} s", f"TTS {rt:.1f} s RTF "
-                f"{rt / audio_s if audio_s else 0:.3f}", f"WALL {time.time() - t_start:.1f} s"] + fehler[:20]
+                f"{rt / audio_s if audio_s else 0:.3f} (je Block {tts_s / audio_s if audio_s else 0:.3f}, {PARALLEL} parallel)",
+                f"PEGEL {NACH} Sprache {SPRACH_RMS_DB} dBFS", f"WALL {time.time() - t_start:.1f} s"] + fehler[:20]
     if torch.cuda.is_available():
         bericht.append(f"VRAM_MAX {torch.cuda.max_memory_allocated() / 1e9:.1f} GB (nur FA-Prozess)")
     return "\n".join(bericht)
