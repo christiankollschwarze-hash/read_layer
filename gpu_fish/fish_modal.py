@@ -71,6 +71,7 @@ image = (
     .pip_install("torch==2.8.0", "torchaudio==2.8.0", index_url="https://download.pytorch.org/whl/cu129")  # MMS_FA
     .pip_install("huggingface_hub[cli]", "ormsgpack", "requests", "soundfile", "numpy")
     .env({"PYTHONUNBUFFERED": "1", "HF_HUB_ENABLE_HF_TRANSFER": "0", "TORCH_HOME": "/vol/torch"})
+    .run_commands("apt-get update && apt-get install -y ninja-build")   # SGLang baut Kernel per JIT (ninja + nvcc)
     .add_local_file(str(LESER / "pipeline" / "fa_mms.py"), remote_path="/rl/fa_mms.py")
 )
 geheim = [modal.Secret.from_dict({"HF_TOKEN": _hf_token()})]
@@ -113,7 +114,8 @@ def _sglang_starten():
     import requests
     cmd = ["/omnienv/bin/sgl-omni", "serve", "--model-path", GEWICHTE, "--port", "8000"]
     log = open("/tmp/server.log", "w")
-    proc = subprocess.Popen(cmd, cwd="/omni", stdout=log, stderr=subprocess.STDOUT)
+    env = dict(os.environ, PATH="/omnienv/bin:/usr/local/cuda/bin:" + os.environ.get("PATH", ""))   # ninja/nvcc fuer JIT-Kernel
+    proc = subprocess.Popen(cmd, cwd="/omni", stdout=log, stderr=subprocess.STDOUT, env=env)
     t0 = time.time()
     while time.time() - t0 < 1800:
         if proc.poll() is not None:
