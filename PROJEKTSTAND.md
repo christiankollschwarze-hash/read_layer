@@ -68,6 +68,8 @@ TESTWERK Fish-Strasse 25.11. (CK): NEUES Werk = Le comte de Monte-Cristo, Tome I
   LIZENZ drama-3 (Community License, HF LICENSE, gelesen 25.11.): kommerziell + Self-Hosting ok bei Jahresumsatz < 500k USD (inkl. Affiliates,
   Meldung 30 Tage nach Erreichen, 90 Tage Uebergang), KEIN gehosteter Dienst fuer Dritte; eigene Inhalte + gelieferte fertige Audios ausgenommen;
   Pflicht 'Built with Fish Audio'. Grauzone Kunden-Cockpit (Kunde startet Vertonung selbst). CK: Klaerung business@fish.audio erst zum Business-Start.
+  IDEE/AP (CK 25.11.): Stimmenensemble als Markenzeichen – Projekt-Doc claude/IDEE_stimmen_ensemble.md (rufname Pflicht, 4 fehlen:
+  Vorschlag Henry/Ernest/Douglas/Gordon fuer die Thornton-Stimmen; Sprecherverzeichnis Abspann/710/App + Kennzeichnung KI-Stimmen).
   IDEE/AP (CK wichtig, 25.11.): Stimmvariabilitaet jenseits Tonhoehe – Projekt-Doc claude/IDEE_stimmvariabilitaet.md
   (Prosodie-Merkmale via Fish-Grundhaltung, Timbre via Archiv/Nachbearbeitung; 410-Abstand mehrdimensional: ECAPA + Tempo + Spektrum;
   Statistengrenze lockern; Archiv-Merkmale Timbre). Dazu: dialogreiche Werke = Premium-Kandidaten (Startliste/Pricing).
