@@ -54,6 +54,22 @@ def _tts(werk, stage, lg, text, ref, ziel):
     if mock.aktiv():
         mock.wav(ziel)
         return 0
+    from pipeline import bestellung
+    w = fish_motor.weg(bestellung.lesen(werk), lg, len(text), einzel=True)
+    if w["stopp"]:
+        raise RuntimeError(f"Probe {lg}: {w['stopp']}")
+    if w["weg"] == "modal":                       # Kundenwerk: Probe ueber eigene Gewichte (Datenschutz)
+        from pipeline import s503_vertonung_fish as s503
+        _, bs = _besetzung(werk, lg)
+        b_ = {"text": text, "ids": [os.path.basename(ziel)[:-4]], "key": "probe",
+              "soll": manifest.hash_obj({"t": text, "probe": True})}
+        erg, _ = s503.modal_stapel(werk, lg, [b_], {"stimme": (bs.get("erzaehler") or {}).get("stimme")},
+                                   paket=f"{werk}_{lg}_probe", bdir=os.path.dirname(ziel), stage=stage)
+        if "probe" not in erg:
+            raise RuntimeError(f"Probe {lg}: Modal lieferte kein Audio")
+        if os.path.abspath(erg["probe"][0]) != os.path.abspath(ziel):
+            shutil.move(erg["probe"][0], ziel)
+        return len(text.encode("utf-8"))
     wav, info = fish_motor.tts_einfach(text, ref)
     with open(ziel, "wb") as f:
         f.write(wav)

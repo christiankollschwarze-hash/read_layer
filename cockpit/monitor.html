@@ -1915,9 +1915,17 @@ MON["430"]={
 MON["500"]={
   E:null,lg:null,fa:"",
   ART:{auffaellig:["mensch","auffällig"],leer:["stopp","leer"],angenommen:["frei","angenommen"],probe:["","Probe"]},
-  leer(){return {neu:{},an:{},kf:{},regler:{},probe:5,probeLg:"",grund:""};},
+  leer(){return {neu:{},an:{},kf:{},regler:{},fw:{},probe:5,probeLg:"",grund:""};},
   set(o,lg){return o[lg]=o[lg]||new Set();},
   probe(p){return p?`<audio controls preload="none" src="/datei?p=${encodeURIComponent(p)}" style="width:210px;height:30px"></audio>`:'<span class="klein">–</span>';},
+  weg(lg,s){const w=s.fish_weg;if(!w)return "";const m=w.modal,l=w.letzter_modal_lauf,wahl=this.E.fw[lg]??w.wahl;
+    return `<br><span class="klein">Motor Fish ${esc(s.fish_modell||"")} · Quelle ${esc(s.quelle||"")}</span>
+     <br>Weg <b>${esc(w.weg||"–")}</b> <span class="klein">(${esc(w.grund||"")})</span>${w.stopp?`<br><span class="err klein">${esc(w.stopp)}</span>`:""}
+     <br><span class="klein">Wahl <select onchange="MON['500'].fwe('${lg}',this.value)">${["auto","api","modal"].map(x=>`<option ${wahl==x?"selected":""}>${x}</option>`).join("")}</select>
+      · auto ab ${w.schwelle.toLocaleString("de-DE")} Z.${w.kundenwerk?" · Kundenwerk → modal":""}${w.modal_frei?"":" · Modal noch nicht freigegeben (Prüfblock)"}</span>
+     ${m?`<br><span class="klein">Modal ~${Math.round(m.gpu_s/60)} GPU-min ${esc(m.gpu)} ≈ ${(+m.usd).toFixed(2)} $ + Kaltstart ${Math.round(m.kaltstart_s/60)} min ≈ ${(+m.kaltstart_usd).toFixed(2)} $</span>`:""}
+     ${l?`<br><span class="klein">letzter Modal-Lauf: ${esc(l.gpu||"")} · Kaltstart ${l.kalt_s!=null?Math.round(l.kalt_s)+" s":"–"} · WALL ${Math.round(l.wall_s||0)} s · RTF ${l.rtf??"–"}</span>`:""}`;},
+  fwe(lg,v){if(v==M.daten.sprachen[lg].fish_weg.wahl)delete this.E.fw[lg];else this.E.fw[lg]=v;this.zf();},
   html(d){
     if(!this.E)this.E=this.leer();
     const E=this.E,L=Object.keys(d.sprachen),ki=(M.stage.kosten||{}).usd;
@@ -1932,11 +1940,11 @@ MON["500"]={
      </div>
      <table class="kapt" style="margin-top:8px"><tr><th>Sprache</th><th>Engine</th><th>Stimme</th><th>Audio</th><th>Herkunft</th><th>offen</th><th>Kosten freigeben</th></tr>
       ${L.map(lg=>{const s=d.sprachen[lg],o=s.offen||{};const fr=E.kf[lg]!=null;
-        return `<tr><td><b>${esc(lg)}</b><br><span class="klein">${esc(s.stufen&&s.stufen.join?s.stufen.join(", "):JSON.stringify(s.stufen))}</span></td><td>${esc(s.engine||"–")}${s.engine=="fish"?`<br><span class="klein">Motor Fish ${esc(s.fish_modell||"")} · Fish-API (bis Modal-Hosting) · Quelle ${esc(s.quelle||"")}</span>`:""}</td>
+        return `<tr><td><b>${esc(lg)}</b><br><span class="klein">${esc(s.stufen&&s.stufen.join?s.stufen.join(", "):JSON.stringify(s.stufen))}</span></td><td>${esc(s.engine||"–")}${s.engine=="fish"?this.weg(lg,s):""}</td>
         <td>${esc(s.stimme||"–")}<br>${this.probe(s.stimme_probe)}</td>
         <td>${s.im_manifest}/${s.einheiten??"?"} Sätze · ${(s.dauer_s/60).toFixed(1)} min${s.fehlt?` · <span class="err">${s.fehlt} fehlen</span>`:""}${s.veraltet?` · <span class="err">${s.veraltet} veraltet</span>`:""}${s.fallback_bloecke?` · ${s.fallback_bloecke} Fallback-Blöcke`:""}</td>
         <td class="klein">${Object.entries(s.herkunft).map(([k,v])=>esc(k)+" "+v).join(" · ")||"–"}</td>
-        <td>${o.saetze?`${o.saetze} Sätze${o.bloecke?" in "+o.bloecke+" Blöcken":""} · ${o.zeichen.toLocaleString("de-DE")} Z.${o.bytes?" ("+o.bytes.toLocaleString("de-DE")+" Bytes Fish-API)":""} · ~${(+o.usd).toFixed(2)} $`:'<span class="klein">nichts offen</span>'}</td>
+        <td>${o.saetze?`${o.saetze} Sätze${o.bloecke?" in "+o.bloecke+" Blöcken":""} · ${o.zeichen.toLocaleString("de-DE")} Z.${o.bytes&&o.weg!="modal"?" ("+o.bytes.toLocaleString("de-DE")+" Bytes Fish-API)":""}${o.weg=="modal"?" (Modal inkl. Kaltstart)":""} · ~${(+o.usd).toFixed(2)} $`:'<span class="klein">nichts offen</span>'}</td>
         <td>${o.saetze?`<label><input type="checkbox" ${fr?"checked":""} onchange="MON['500'].kfr('${lg}',this.checked)"> bis</label> <input type="number" step="0.01" min="0" style="width:70px" value="${fr?E.kf[lg]:(Math.ceil(o.usd*100+1)/100).toFixed(2)}" onchange="MON['500'].E.kf['${lg}']=+this.value;MON['500'].zf()"> $`:""}</td></tr>`;}).join("")}</table>
      <div class="akt">Probe vor dem Volllauf: <input type="number" min="1" max="20" value="${E.probe}" style="width:50px" onchange="MON['500'].E.probe=+this.value"> Sätze
       <select onchange="MON['500'].E.probeLg=this.value">${L.map(lg=>`<option ${E.probeLg==lg?"selected":""}>${lg}</option>`).join("")}</select>
@@ -1986,6 +1994,7 @@ MON["500"]={
     for(const [lg,s] of Object.entries(E.neu))if(s.size)t.push(`${lg}: ${s.size} neu`);
     for(const [lg,s] of Object.entries(E.an))if(s.size)t.push(`${lg}: ${s.size} annehmen`);
     for(const [lg,v] of Object.entries(E.kf))t.push(`Kosten ${lg} bis ${(+v).toFixed(2)} $`);
+    for(const [lg,v] of Object.entries(E.fw))t.push(`Fish-Weg ${lg} → ${v}`);
     for(const [k,v] of Object.entries(E.regler))t.push(k+" "+v);
     const el=$("zf500");if(el)el.textContent=t.join(" · ");},
   probeLos(){const lg=this.E.probeLg||Object.keys(M.daten.sprachen)[0],o=M.daten.sprachen[lg].offen||{};
@@ -2001,6 +2010,7 @@ MON["500"]={
       if(n.length){e.satz=n;const usd=d.sprachen[lg].hoerliste.filter(x=>n.includes(x.id)).reduce((s,x)=>s+(+x.usd_neu),0);
         if(E.kf[lg]==null&&!(d.mandant=="somnio"&&usd<=(E.regler.budget??d.budget)))E.kf[lg]=Math.ceil(usd*150+1)/100;}}
     if(Object.keys(E.kf).length)e.kosten_freigeben=E.kf;Object.assign(e,E.regler);
+    if(Object.keys(E.fw).length)e.fish_weg=E.fw;
     if(trocken){delete e.annehmen;delete e.grund;e.trocken=true;}
     const kost=Object.values(E.kf).reduce((s,v)=>s+(+v),0);
     if(!trocken&&kost&&!confirm(`Vertonung startet mit Kostenfreigabe bis ${kost.toFixed(2)} $ (${Object.keys(E.kf).join(", ")}). Weiter?`))return;

@@ -293,6 +293,15 @@ STUECKPREISE = {
 FISH_API = "https://api.fish.audio"
 FISH_MODELL = "drama-3"
 FISH_USD_JE_MIO_BYTES = 15.0
+# AP Fish-Modal 25.11.2026: Weiche fish_weg api|modal|auto (book.json, Standard auto), Self-Hosting gpu_fish/fish_modal.py
+FISH_MODAL_FREI = False          # erst nach CK-Freigabe Pruefblock API vs. Modal auf True (sonst api-Fallback bzw. Stopp bei Kundenwerk)
+FISH_MODAL_AB_ZEICHEN = 60000    # auto: Zeichen je Sprache (Bloecke inkl. Anweisungen) >= Schwelle -> modal (~1 Audiostunde)
+FISH_MODAL_GPU = "H100"          # Preisannahme (gpu_fish: READLAYER_FISH_GPU, Standard H100,L40S)
+FISH_MODAL_RTF = 0.25            # GPU-s je Audio-s inkl. FA (Schaetzung, nach Pruefblock nachjustieren)
+FISH_ZEICHEN_JE_AUDIO_S = 16.7   # ~60.000 Zeichen je Audiostunde
+FISH_MODAL_KALTSTART_S = 300     # Container + Gewichte laden (Schaetzung, Pruefblock misst KALTSTART)
+MODAL_H100_USD_H = 3.95          # Modal-Listenpreis (Schaetzung)
+MODAL_L40S_USD_H = 1.95          # Modal-Listenpreis (Schaetzung)
 PREISE = {
     "deepseek-v4-pro":       {"in": 1.32, "cache": 0.044, "out": 3.96},
     "deepseek-v4-flash":     {"in": 0.30, "cache": 0.006, "out": 1.20},

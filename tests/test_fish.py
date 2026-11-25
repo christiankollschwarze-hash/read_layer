@@ -253,6 +253,12 @@ class T430(T410):
                 d5 = W._m500_daten("w")
             self.assertEqual(d5["sprachen"]["en"]["motor"], "fish")
             self.assertTrue(d5["sprachen"]["en"]["bloecke"])
+            fw = d5["sprachen"]["en"]["fish_weg"]                        # Weiche im Monitor (AP Fish-Modal)
+            self.assertEqual((fw["weg"], fw["wahl"]), ("api", "auto"))
+            self.assertIn("schwelle", fw)
+            self.assertIn("--fish-weg=en=modal", W._m500_argv("w", {"fish_weg": {"en": "modal"}}, "CK"))
+            with self.assertRaises(ValueError):
+                W._m500_argv("w", {"fish_weg": {"en": "quatsch"}}, "CK")
             with contextlib.redirect_stdout(io.StringIO()):
                 d51 = W._m510_daten("w")
             self.assertEqual(d51["sprachen"]["en"]["motor"], "fish")
@@ -276,5 +282,165 @@ class T430(T410):
         self.assertTrue(all(bts[[x["id"] for x in bts].index(b["ids"][0])]["absatz"] for b in bl[1:-1]))
 
 
+class TFishWeg(unittest.TestCase):
+    """AP Fish-Modal 25.11.2026: Weiche fish_weg api|modal|auto."""
+    class B:
+        def __init__(self, roh=None, art="somnio"):
+            self.roh, self.mandant_art = roh or {}, art
+
+    def setUp(self):
+        self.alt = (config.FISH_MODAL_FREI, config.FISH_MODAL_AB_ZEICHEN)
+        config.FISH_MODAL_AB_ZEICHEN = 60000
+
+    def tearDown(self):
+        config.FISH_MODAL_FREI, config.FISH_MODAL_AB_ZEICHEN = self.alt
+
+    def test_auto_schwelle(self):
+        config.FISH_MODAL_FREI = True
+        self.assertEqual(F.weg(self.B(), "de", 59999)["weg"], "api")
+        w = F.weg(self.B(), "de", 60000)
+        self.assertEqual((w["weg"], w["wahl"]), ("modal", "auto"))
+        self.assertIn("60000", w["grund"])
+        self.assertEqual(F.weg(self.B({"fish_weg": "api"}), "de", 10 ** 6)["weg"], "api")
+        self.assertEqual(F.weg(self.B({"fish_weg": {"de": "modal"}}), "de", 10)["weg"], "modal")
+        self.assertEqual(F.weg(self.B({"fish_weg": {"de": "modal"}}), "en", 10)["weg"], "api")
+        self.assertEqual(F.weg(self.B({"fish_weg": "quatsch"}), "de", 10)["wahl"], "auto")
+
+    def test_einzel_und_kunde(self):
+        config.FISH_MODAL_FREI = True
+        self.assertEqual(F.weg(self.B(), "de", 10 ** 6, einzel=True)["weg"], "api")
+        for art in ("verlag", "user"):
+            w = F.weg(self.B({"fish_weg": "api"}, art), "de", 10, einzel=True)
+            self.assertEqual(w["weg"], "modal")
+            self.assertIn("Kundenwerk", w["grund"])
+            self.assertIsNone(w["stopp"])
+
+    def test_nicht_freigegeben(self):
+        config.FISH_MODAL_FREI = False
+        w = F.weg(self.B(), "de", 10 ** 6)
+        self.assertEqual(w["weg"], "api")
+        self.assertIn("Fallback", w["grund"])
+        w = F.weg(self.B(art="verlag"), "de", 10)
+        self.assertEqual(w["weg"], "modal")
+        self.assertTrue(w["stopp"])
+
+    def test_schaetzung_bericht(self):
+        from pipeline import s503_vertonung_fish as V
+        sch = F.modal_schaetzung(60000, "H100")
+        self.assertAlmostEqual(sch["audio_s"], 3593, delta=5)
+        self.assertGreater(sch["usd"], 0)
+        self.assertGreater(sch["kaltstart_usd"], 0)
+        ber = V.bericht_lesen("GPU NVIDIA H100 80GB HBM3, 81559 MiB\nMODELL drama-3 {}\nKALTSTART 212.5 s (Server 180.0 s)"
+                              "\nTTS 100.0 s RTF 0.210\nAUDIO 476.0 s\nWALL 330.2 s")
+        self.assertEqual((ber["gpu"], ber["modell"], ber["kalt_s"], ber["wall_s"], ber["rtf"]),
+                         ("H100", "drama-3", 212.5, 330.2, 0.21))
+
+    def test_modal_jobs_woerter(self):
+        from pipeline import s503_vertonung_fish as V
+        j = V._modal_jobs({"text": "[voicing Alice; very tense] Grüß dich, <emphasis>Hatter</emphasis>!",
+                           "soll": "h", "ids": ["x"]}, 1)
+        self.assertEqual(j["key"], "h_v1")
+        self.assertEqual(j["seed"], 2)
+        self.assertEqual([w["l"] for w in j["woerter"]], ["gruss", "dich", "hatter"])
+        self.assertEqual([w["w"] for w in j["woerter"]], ["Grüß", "dich", "Hatter"])
+
+
+class _T503Modal:
+    """500 Motor Fish ueber den Modal-Weg (modal run durch Fake ersetzt: schreibt out/<key>.wav/json + bericht).
+    Methoden werden an T430 gehaengt (keine doppelten Erbtests)."""
+
+    def test_500_fish_modal(self):
+        import numpy as np, subprocess as sp_
+        from pipeline import s500_vertonung_gemini as V, s503_vertonung_fish as W, manifest
+        R = self.vorbereiten()
+        with contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(R.run("w", wer="test").ergebnis["ergebnis"], "auto")
+        laeufe = []
+        klon = os.path.join(self.d, "klon.wav")
+        with open(klon, "wb") as f:
+            f.write(F.wav_bytes(b"\0\0" * 2400))
+
+        def fake_run(cmd, cwd=None, **k):
+            paket = cmd[cmd.index("--paket") + 1]
+            d = os.path.join(config.BASE_DIR, "gpu_fish", paket)
+            with open(os.path.join(d, "jobs.json"), encoding="utf-8") as f:
+                jobs = json.load(f)
+            laeufe.append([j["key"] for j in jobs["jobs"]])
+            os.makedirs(os.path.join(d, "out"), exist_ok=True)
+            for j in jobs["jobs"]:
+                ww, t, y = [], 0.05, [np.zeros(int(0.05 * 24000))]
+                for w in j["woerter"]:
+                    ww.append({"w": w["w"], "a": round(t, 3), "b": round(t + 0.3, 3)})
+                    y += [np.sin(np.arange(int(0.3 * 24000)) / 5) * 0.3, np.zeros(int(0.1 * 24000))]
+                    t += 0.4
+                y = np.concatenate(y).astype("float32")
+                with open(os.path.join(d, "out", j["key"] + ".wav"), "wb") as f:
+                    f.write(F.wav_bytes((y * 32767).astype("<i2").tobytes()))
+                with open(os.path.join(d, "out", j["key"] + ".json"), "w", encoding="utf-8") as f:
+                    json.dump({"woerter": ww, "info": {"bytes": len(j["text"].encode())}}, f)
+            with open(os.path.join(d, "bericht.txt"), "w", encoding="utf-8") as f:
+                f.write("GPU NVIDIA H100\nMODELL drama-3 {}\nWALL 12.0 s\n")
+            return sp_.CompletedProcess(cmd, 0)
+
+        alt = (W.subprocess.run, F.klon_clip, F.fish_id, F.tts_zeitmarken, config.FISH_MODAL_FREI,
+               getattr(config, "KOSTEN_KLEINBETRAG_USD", None))
+        W.subprocess.run, F.klon_clip = fake_run, lambda st, lg: klon
+        F.fish_id = lambda st, lg, anlegen=False: "fid_test"
+        F.tts_zeitmarken = lambda *a, **k: self.fail("API darf auf dem Modal-Weg nicht gerufen werden")
+        config.KOSTEN_KLEINBETRAG_USD = 0.0
+        try:
+            config.FISH_MODAL_FREI = False                                   # nicht freigegeben -> api-Fallback
+            V.fish_weg_setzen("w", ["modal"], "test")
+            with contextlib.redirect_stdout(io.StringIO()):
+                g = V.run("w", wer="test", trocken=True)
+            self.assertEqual(g.metriken["kosten_je_sprache"]["en"]["weg"], "api")
+            config.FISH_MODAL_FREI = True
+            with contextlib.redirect_stdout(io.StringIO()):
+                g = V.run("w", wer="test", kosten_freigeben=5.0)
+            self.assertNotEqual(g.ergebnis["ergebnis"], "stopp", g.bericht())
+            self.assertEqual(len(laeufe), 1)                                 # ein Stapel je Sprache
+            m = manifest.Manifest("w", "500_vertonung")
+            self.assertEqual(m.meta["fish_weg"]["en"]["weg"], "modal")
+            self.assertEqual(m.meta["je_sprache"]["en"]["weg"], "modal")
+            e = m.get("en/c001_00003_dl")
+            self.assertEqual([x["fig"] for x in e["spannen"]], ["Hatter", "Erzaehler"])
+            blk = [k for k in m.eintraege if "/_fish/" in k]
+            self.assertTrue(blk)
+            self.assertEqual({(m.get(k) or {}).get("weg") for k in blk}, {"modal"})
+            soll_modal = {k: m.eintraege[k] for k in blk}
+            V.fish_weg_setzen("w", ["api"], "test")                          # Wegwechsel: kein Neuvertonen
+            F.tts_zeitmarken = lambda *a, **k: self.fail("Wegwechsel darf nicht neu vertonen")
+            with contextlib.redirect_stdout(io.StringIO()):
+                V.run("w", wer="test", kosten_freigeben=5.0)
+            self.assertEqual(len(laeufe), 1)
+            m = manifest.Manifest("w", "500_vertonung")
+            self.assertEqual({k: m.eintraege[k] for k in blk}, soll_modal)
+        finally:
+            (W.subprocess.run, F.klon_clip, F.fish_id, F.tts_zeitmarken, config.FISH_MODAL_FREI,
+             config.KOSTEN_KLEINBETRAG_USD) = alt
+            import shutil
+            shutil.rmtree(os.path.join(config.BASE_DIR, "gpu_fish", "w_en_500"), ignore_errors=True)
+
+    def test_kundenwerk_stopp(self):
+        from pipeline import s500_vertonung_gemini as V, bestellung
+        R = self.vorbereiten()
+        with contextlib.redirect_stdout(io.StringIO()):
+            R.run("w", wer="test")
+        alt = (config.FISH_MODAL_FREI, bestellung.Bestellung.mandant_art)
+        config.FISH_MODAL_FREI = False
+        bestellung.Bestellung.mandant_art = property(lambda self: "verlag")
+        try:
+            with contextlib.redirect_stdout(io.StringIO()):
+                g = V.run("w", wer="test", trocken=True)
+            self.assertTrue(any(x["name"] == "weg_en" and not x["ok"] for x in g.pruefungen), g.bericht())
+        finally:
+            config.FISH_MODAL_FREI, bestellung.Bestellung.mandant_art = alt
+
+
 if __name__ == "__main__":
     unittest.main()
+
+
+for _n in ("test_500_fish_modal", "test_kundenwerk_stopp"):
+    setattr(T430, _n, getattr(_T503Modal, _n))
+

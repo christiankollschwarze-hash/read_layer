@@ -301,3 +301,72 @@ def fish_id(stimme, lg, anlegen=False):
                   "quelle": "api", "angelegt": time.strftime("%Y-%m-%d %H:%M:%S")}
         _register_schreiben(reg)
         return reg[k]["fish_id"]
+
+
+# ============================================================ Weiche api | modal | auto (AP Fish-Modal 25.11.2026)
+WEGE = ("api", "modal", "auto")
+
+
+def weg_roh(roh, lg):
+    """book.json fish_weg: 'api'|'modal'|'auto' oder {lg: weg}; fehlt/unbekannt -> auto."""
+    w = (roh or {}).get("fish_weg")
+    if isinstance(w, dict):
+        w = w.get(lg) or w.get("*")
+    return w if w in WEGE else "auto"
+
+
+def ist_kundenwerk(b):
+    return getattr(b, "mandant_art", "somnio") != "somnio"
+
+
+def weg(b, lg, zeichen=0, einzel=False):
+    """Entscheidung je Werk x Sprache -> {weg, grund, wahl, stopp}. stopp = Text, wenn kein Weg zulaessig ist.
+    Kundenwerk -> modal (Datenschutz); Einzelaktion -> api; auto: zeichen < FISH_MODAL_AB_ZEICHEN -> api, sonst modal.
+    Solange config.FISH_MODAL_FREI False: modal -> api mit Hinweis, Kundenwerk -> Stopp."""
+    wahl = weg_roh(getattr(b, "roh", None), lg)
+    schwelle = int(getattr(config, "FISH_MODAL_AB_ZEICHEN", 60000))
+    frei = bool(getattr(config, "FISH_MODAL_FREI", False))
+    if ist_kundenwerk(b):
+        w, grund = "modal", "Kundenwerk (Datenschutz)" + (" – Wahl api uebergangen" if wahl == "api" else "")
+    elif einzel:
+        w, grund = "api", "Einzelaktion (kein Kaltstart)"
+    elif wahl != "auto":
+        w, grund = wahl, "manuell (book.json fish_weg)"
+    elif zeichen < schwelle:
+        w, grund = "api", f"auto: {zeichen} < {schwelle} Zeichen"
+    else:
+        w, grund = "modal", f"auto: {zeichen} >= {schwelle} Zeichen"
+    out = {"weg": w, "grund": grund, "wahl": wahl, "zeichen": int(zeichen), "stopp": None}
+    if w == "modal" and not frei:
+        if ist_kundenwerk(b):
+            out["stopp"] = "Kundenwerk braucht Modal, Self-Hosting noch nicht freigegeben (config.FISH_MODAL_FREI)"
+        else:
+            out.update(weg="api", grund=grund + " – Modal noch nicht freigegeben, Fallback api")
+    return out
+
+
+def modal_preis_h(gpu=None):
+    g = (gpu or getattr(config, "FISH_MODAL_GPU", "H100")).upper()
+    return float(getattr(config, f"MODAL_{g}_USD_H", 3.95))
+
+
+def modal_schaetzung(zeichen, gpu=None):
+    """Zeichen -> {audio_s, gpu_s, usd, kaltstart_s, kaltstart_usd} (Schaetzung aus config)."""
+    audio_s = zeichen / float(getattr(config, "FISH_ZEICHEN_JE_AUDIO_S", 16.7))
+    gpu_s = audio_s * float(getattr(config, "FISH_MODAL_RTF", 0.25))
+    kalt = float(getattr(config, "FISH_MODAL_KALTSTART_S", 300))
+    p = modal_preis_h(gpu)
+    return {"audio_s": round(audio_s), "gpu_s": round(gpu_s), "usd": round(gpu_s / 3600 * p, 4),
+            "kaltstart_s": round(kalt), "kaltstart_usd": round(kalt / 3600 * p, 4), "gpu": gpu or config.FISH_MODAL_GPU}
+
+
+def klon_text(lg):
+    """Transkript des Klon-Clips (Nordwind-Text der Sprache) – Referenztext fuer Self-Hosting."""
+    from pipeline import voice_registry as vr
+    p = os.path.join(vr.STIMMEN_DIR, "_texte", "nordwind.json")
+    if not os.path.exists(p):
+        return ""
+    with open(p, encoding="utf-8") as f:
+        t = json.load(f).get(lg) or ""
+    return " ".join(t) if isinstance(t, list) else t
+

@@ -1,4 +1,4 @@
-# STAGE-SKRIPT – Read Layer Pipeline (Stand 04.11.2026)
+# STAGE-SKRIPT – Read Layer Pipeline (Stand 25.11.2026)
 
 Je Stage: Name, Ziel, Bereich, wann sie läuft, **zuliefernde** Stages (direkte Eingänge, deren Gate frei sein muss), **folgende** Stages (die direkt auf ihr aufbauen) und **betroffene** Stages in der Kette (alle, die bei einem Neulauf veraltet sind und neu laufen müssen).
 
@@ -6,7 +6,7 @@ Quelle der Abhängigkeiten: `pipeline/kette.py` (VORGAENGER, Reihenfolge = `pipe
 
 ## Reihenfolge
 
-080 → 090 → 095 → 100 → 110 → 150 → 115 → 120 → 190 → 195 → 200 → 210 → 300 → 310 → 320 → 330 → 340 → 400 → 410 → 420 → 500 → 510 → 520 → 530 → 540 → 600 → 610 → 615 → 650 → 620 → 630 → 640 → 700 → 710
+080 → 090 → 095 → 100 → 110 → 150 → 115 → 120 → 190 → 195 → 200 → 210 → 300 → 310 → 320 → 330 → 340 → 400 → 410 → 420 → 430 → 500 → 510 → 520 → 530 → 540 → 600 → 610 → 615 → 650 → 620 → 630 → 640 → 700 → 710
 
 ## Übersicht
 
@@ -30,9 +30,10 @@ Quelle der Abhängigkeiten: `pipeline/kette.py` (VORGAENGER, Reihenfolge = `pipe
 | 330 | Rückübersetzung | Übersetzung | Zielsprache bestellt | 320 | 340 · 400 · 600 · 630 |
 | 340 | Wort-Alignment | Übersetzung | TÆLLA-Produkt in Zielsprache | 330 | 530 |
 | 400 | Regie | Audio | Audio bestellt | 330 | 410 · 500 |
-| 410 | Casting | Audio | Audio bestellt | 400 | 420 · 500 · 615 · 640 |
-| 420 | Sprecher | Audio | Hörspiel bestellt | 410 | 510 |
-| 500 | Vertonung | Audio | Audio bestellt | 400 · 410 | 510 · 520 |
+| 410 | Casting | Audio | Audio bestellt | 400 | 420 · 430 · 500 · 615 · 640 |
+| 420 | Sprecher | Audio | Hörspiel bestellt | 410 | 430 · 510 |
+| 430 | Fish-Regie | Audio | Hörspiel premium/drama mit Motor Fish | 420 · 410 | 500 |
+| 500 | Vertonung | Audio | Audio bestellt | 400 · 410 · 430 | 510 · 520 |
 | 510 | Hörspiel-Overlay | Audio | Hörspiel bestellt | 500 · 420 | 520 · 540 |
 | 520 | Audio-Prüfung | Audio | Audio bestellt | 500 · 510 | 530 · 540 · 650 |
 | 530 | Wortzeiten | Audio | TÆLLA-Audio | 520 · 340 | 540 |
@@ -57,7 +58,7 @@ Quelle der Abhängigkeiten: `pipeline/kette.py` (VORGAENGER, Reihenfolge = `pipe
 - **Bereich / läuft bei:** Querschicht · immer
 - **Zuliefernd:** –
 - **Folgend:** 090 Eingangsweiche
-- **Betroffen in der Kette (bei Neulauf):** 090 · 095 · 100 · 110 · 150 · 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 340 · 400 · 410 · 420 · 500 · 510 · 520 · 530 · 540 · 600 · 610 · 615 · 650 · 620 · 630 · 640 · 700 · 710 (33 Stages)
+- **Betroffen in der Kette (bei Neulauf):** 090 · 095 · 100 · 110 · 150 · 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 340 · 400 · 410 · 420 · 430 · 500 · 510 · 520 · 530 · 540 · 600 · 610 · 615 · 650 · 620 · 630 · 640 · 700 · 710 (34 Stages)
 - **Gesamte Vorkette:** –
 
 ### 090 Eingangsweiche
@@ -68,7 +69,7 @@ Quelle der Abhängigkeiten: `pipeline/kette.py` (VORGAENGER, Reihenfolge = `pipe
 - **Bereich / läuft bei:** Eingang · immer
 - **Zuliefernd:** 080 Mandant & Rechte
 - **Folgend:** 095 Produktwahl
-- **Betroffen in der Kette (bei Neulauf):** 095 · 100 · 110 · 150 · 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 340 · 400 · 410 · 420 · 500 · 510 · 520 · 530 · 540 · 600 · 610 · 615 · 650 · 620 · 630 · 640 · 700 · 710 (32 Stages)
+- **Betroffen in der Kette (bei Neulauf):** 095 · 100 · 110 · 150 · 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 340 · 400 · 410 · 420 · 430 · 500 · 510 · 520 · 530 · 540 · 600 · 610 · 615 · 650 · 620 · 630 · 640 · 700 · 710 (33 Stages)
 - **Gesamte Vorkette:** 080
 
 ### 095 Produktwahl
@@ -79,7 +80,7 @@ Quelle der Abhängigkeiten: `pipeline/kette.py` (VORGAENGER, Reihenfolge = `pipe
 - **Bereich / läuft bei:** Eingang · immer
 - **Zuliefernd:** 090 Eingangsweiche
 - **Folgend:** 100 Werk anlegen, 150 ePub-Import
-- **Betroffen in der Kette (bei Neulauf):** 100 · 110 · 150 · 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 340 · 400 · 410 · 420 · 500 · 510 · 520 · 530 · 540 · 600 · 610 · 615 · 650 · 620 · 630 · 640 · 700 · 710 (31 Stages)
+- **Betroffen in der Kette (bei Neulauf):** 100 · 110 · 150 · 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 340 · 400 · 410 · 420 · 430 · 500 · 510 · 520 · 530 · 540 · 600 · 610 · 615 · 650 · 620 · 630 · 640 · 700 · 710 (32 Stages)
 - **Gesamte Vorkette:** 080 · 090
 
 ### 100 Werk anlegen
@@ -90,7 +91,7 @@ Quelle der Abhängigkeiten: `pipeline/kette.py` (VORGAENGER, Reihenfolge = `pipe
 - **Bereich / läuft bei:** Eingang · Gutenberg, user_txt
 - **Zuliefernd:** 095 Produktwahl
 - **Folgend:** 110 Wikidata
-- **Betroffen in der Kette (bei Neulauf):** 110 · 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 340 · 400 · 410 · 420 · 500 · 510 · 520 · 530 · 540 · 600 · 610 · 615 · 650 · 620 · 630 · 640 · 700 · 710 (29 Stages)
+- **Betroffen in der Kette (bei Neulauf):** 110 · 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 340 · 400 · 410 · 420 · 430 · 500 · 510 · 520 · 530 · 540 · 600 · 610 · 615 · 650 · 620 · 630 · 640 · 700 · 710 (30 Stages)
 - **Gesamte Vorkette:** 080 · 090 · 095
 
 ### 110 Wikidata
@@ -101,7 +102,7 @@ Quelle der Abhängigkeiten: `pipeline/kette.py` (VORGAENGER, Reihenfolge = `pipe
 - **Bereich / läuft bei:** Eingang · Gutenberg, user_txt
 - **Zuliefernd:** 100 Werk anlegen
 - **Folgend:** 115 Fassungsweiche
-- **Betroffen in der Kette (bei Neulauf):** 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 340 · 400 · 410 · 420 · 500 · 510 · 520 · 530 · 540 · 600 · 610 · 615 · 650 · 620 · 630 · 640 · 700 · 710 (28 Stages)
+- **Betroffen in der Kette (bei Neulauf):** 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 340 · 400 · 410 · 420 · 430 · 500 · 510 · 520 · 530 · 540 · 600 · 610 · 615 · 650 · 620 · 630 · 640 · 700 · 710 (29 Stages)
 - **Gesamte Vorkette:** 080 · 090 · 095 · 100
 
 ### 150 ePub-Import
@@ -112,7 +113,7 @@ Quelle der Abhängigkeiten: `pipeline/kette.py` (VORGAENGER, Reihenfolge = `pipe
 - **Bereich / läuft bei:** Eingang · user_epub, verlag_epub
 - **Zuliefernd:** 095 Produktwahl
 - **Folgend:** 115 Fassungsweiche
-- **Betroffen in der Kette (bei Neulauf):** 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 340 · 400 · 410 · 420 · 500 · 510 · 520 · 530 · 540 · 600 · 610 · 615 · 650 · 620 · 630 · 640 · 700 · 710 (28 Stages)
+- **Betroffen in der Kette (bei Neulauf):** 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 340 · 400 · 410 · 420 · 430 · 500 · 510 · 520 · 530 · 540 · 600 · 610 · 615 · 650 · 620 · 630 · 640 · 700 · 710 (29 Stages)
 - **Gesamte Vorkette:** 080 · 090 · 095
 
 ### 115 Fassungsweiche
@@ -123,7 +124,7 @@ Quelle der Abhängigkeiten: `pipeline/kette.py` (VORGAENGER, Reihenfolge = `pipe
 - **Bereich / läuft bei:** Text · immer
 - **Zuliefernd:** 110 Wikidata, 150 ePub-Import
 - **Folgend:** 120 Modernisierung (sanft)
-- **Betroffen in der Kette (bei Neulauf):** 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 340 · 400 · 410 · 420 · 500 · 510 · 520 · 530 · 540 · 600 · 610 · 615 · 650 · 620 · 630 · 640 · 700 · 710 (27 Stages)
+- **Betroffen in der Kette (bei Neulauf):** 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 340 · 400 · 410 · 420 · 430 · 500 · 510 · 520 · 530 · 540 · 600 · 610 · 615 · 650 · 620 · 630 · 640 · 700 · 710 (28 Stages)
 - **Gesamte Vorkette:** 080 · 090 · 095 · 100 · 110 · 150
 
 ### 120 Modernisierung (sanft)
@@ -134,7 +135,7 @@ Quelle der Abhängigkeiten: `pipeline/kette.py` (VORGAENGER, Reihenfolge = `pipe
 - **Bereich / läuft bei:** Text · immer
 - **Zuliefernd:** 115 Fassungsweiche
 - **Folgend:** 190 Eingangsvertrag
-- **Betroffen in der Kette (bei Neulauf):** 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 340 · 400 · 410 · 420 · 500 · 510 · 520 · 530 · 540 · 600 · 610 · 615 · 650 · 620 · 630 · 640 · 700 · 710 (26 Stages)
+- **Betroffen in der Kette (bei Neulauf):** 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 340 · 400 · 410 · 420 · 430 · 500 · 510 · 520 · 530 · 540 · 600 · 610 · 615 · 650 · 620 · 630 · 640 · 700 · 710 (27 Stages)
 - **Gesamte Vorkette:** 080 · 090 · 095 · 100 · 110 · 150 · 115
 
 ### 190 Eingangsvertrag
@@ -145,7 +146,7 @@ Quelle der Abhängigkeiten: `pipeline/kette.py` (VORGAENGER, Reihenfolge = `pipe
 - **Bereich / läuft bei:** Vertrag · immer
 - **Zuliefernd:** 120 Modernisierung (sanft)
 - **Folgend:** 195 Teilung, 600 Klappentext
-- **Betroffen in der Kette (bei Neulauf):** 195 · 200 · 210 · 300 · 310 · 320 · 330 · 340 · 400 · 410 · 420 · 500 · 510 · 520 · 530 · 540 · 600 · 610 · 615 · 650 · 620 · 630 · 640 · 700 · 710 (25 Stages)
+- **Betroffen in der Kette (bei Neulauf):** 195 · 200 · 210 · 300 · 310 · 320 · 330 · 340 · 400 · 410 · 420 · 430 · 500 · 510 · 520 · 530 · 540 · 600 · 610 · 615 · 650 · 620 · 630 · 640 · 700 · 710 (26 Stages)
 - **Gesamte Vorkette:** 080 · 090 · 095 · 100 · 110 · 150 · 115 · 120
 
 ### 195 Teilung
@@ -156,7 +157,7 @@ Quelle der Abhängigkeiten: `pipeline/kette.py` (VORGAENGER, Reihenfolge = `pipe
 - **Bereich / läuft bei:** Text · immer
 - **Zuliefernd:** 190 Eingangsvertrag
 - **Folgend:** 200 Tagging
-- **Betroffen in der Kette (bei Neulauf):** 200 · 210 · 300 · 310 · 320 · 330 · 340 · 400 · 410 · 420 · 500 · 510 · 520 · 530 · 540 · 600 · 610 · 615 · 650 · 620 · 630 · 640 · 700 · 710 (24 Stages)
+- **Betroffen in der Kette (bei Neulauf):** 200 · 210 · 300 · 310 · 320 · 330 · 340 · 400 · 410 · 420 · 430 · 500 · 510 · 520 · 530 · 540 · 600 · 610 · 615 · 650 · 620 · 630 · 640 · 700 · 710 (25 Stages)
 - **Gesamte Vorkette:** 080 · 090 · 095 · 100 · 110 · 150 · 115 · 120 · 190
 
 ### 200 Tagging
@@ -167,7 +168,7 @@ Quelle der Abhängigkeiten: `pipeline/kette.py` (VORGAENGER, Reihenfolge = `pipe
 - **Bereich / läuft bei:** Text · alles außer reinem Text-ePub in Ausgangssprache
 - **Zuliefernd:** 195 Teilung
 - **Folgend:** 210 Profil
-- **Betroffen in der Kette (bei Neulauf):** 210 · 300 · 310 · 320 · 330 · 340 · 400 · 410 · 420 · 500 · 510 · 520 · 530 · 540 · 600 · 610 · 615 · 650 · 620 · 630 · 640 · 700 · 710 (23 Stages)
+- **Betroffen in der Kette (bei Neulauf):** 210 · 300 · 310 · 320 · 330 · 340 · 400 · 410 · 420 · 430 · 500 · 510 · 520 · 530 · 540 · 600 · 610 · 615 · 650 · 620 · 630 · 640 · 700 · 710 (24 Stages)
 - **Gesamte Vorkette:** 080 · 090 · 095 · 100 · 110 · 150 · 115 · 120 · 190 · 195
 
 ### 210 Profil
@@ -178,7 +179,7 @@ Quelle der Abhängigkeiten: `pipeline/kette.py` (VORGAENGER, Reihenfolge = `pipe
 - **Bereich / läuft bei:** Text · Übersetzung oder Audio bestellt
 - **Zuliefernd:** 200 Tagging
 - **Folgend:** 300 Vorübersetzung
-- **Betroffen in der Kette (bei Neulauf):** 300 · 310 · 320 · 330 · 340 · 400 · 410 · 420 · 500 · 510 · 520 · 530 · 540 · 600 · 610 · 615 · 650 · 620 · 630 · 640 · 700 · 710 (22 Stages)
+- **Betroffen in der Kette (bei Neulauf):** 300 · 310 · 320 · 330 · 340 · 400 · 410 · 420 · 430 · 500 · 510 · 520 · 530 · 540 · 600 · 610 · 615 · 650 · 620 · 630 · 640 · 700 · 710 (23 Stages)
 - **Gesamte Vorkette:** 080 · 090 · 095 · 100 · 110 · 150 · 115 · 120 · 190 · 195 · 200
 
 ### 300 Vorübersetzung
@@ -189,7 +190,7 @@ Quelle der Abhängigkeiten: `pipeline/kette.py` (VORGAENGER, Reihenfolge = `pipe
 - **Bereich / läuft bei:** Übersetzung · Zielsprache bestellt
 - **Zuliefernd:** 210 Profil
 - **Folgend:** 310 Übersetzung
-- **Betroffen in der Kette (bei Neulauf):** 310 · 320 · 330 · 340 · 400 · 410 · 420 · 500 · 510 · 520 · 530 · 540 · 600 · 610 · 615 · 650 · 620 · 630 · 640 · 700 · 710 (21 Stages)
+- **Betroffen in der Kette (bei Neulauf):** 310 · 320 · 330 · 340 · 400 · 410 · 420 · 430 · 500 · 510 · 520 · 530 · 540 · 600 · 610 · 615 · 650 · 620 · 630 · 640 · 700 · 710 (22 Stages)
 - **Gesamte Vorkette:** 080 · 090 · 095 · 100 · 110 · 150 · 115 · 120 · 190 · 195 · 200 · 210
 
 ### 310 Übersetzung
@@ -200,7 +201,7 @@ Quelle der Abhängigkeiten: `pipeline/kette.py` (VORGAENGER, Reihenfolge = `pipe
 - **Bereich / läuft bei:** Übersetzung · Zielsprache bestellt
 - **Zuliefernd:** 300 Vorübersetzung
 - **Folgend:** 320 Integrität
-- **Betroffen in der Kette (bei Neulauf):** 320 · 330 · 340 · 400 · 410 · 420 · 500 · 510 · 520 · 530 · 540 · 600 · 610 · 615 · 650 · 620 · 630 · 640 · 700 · 710 (20 Stages)
+- **Betroffen in der Kette (bei Neulauf):** 320 · 330 · 340 · 400 · 410 · 420 · 430 · 500 · 510 · 520 · 530 · 540 · 600 · 610 · 615 · 650 · 620 · 630 · 640 · 700 · 710 (21 Stages)
 - **Gesamte Vorkette:** 080 · 090 · 095 · 100 · 110 · 150 · 115 · 120 · 190 · 195 · 200 · 210 · 300
 
 ### 320 Integrität
@@ -211,7 +212,7 @@ Quelle der Abhängigkeiten: `pipeline/kette.py` (VORGAENGER, Reihenfolge = `pipe
 - **Bereich / läuft bei:** Vertrag · Zielsprache bestellt
 - **Zuliefernd:** 310 Übersetzung
 - **Folgend:** 330 Rückübersetzung
-- **Betroffen in der Kette (bei Neulauf):** 330 · 340 · 400 · 410 · 420 · 500 · 510 · 520 · 530 · 540 · 600 · 610 · 615 · 650 · 620 · 630 · 640 · 700 · 710 (19 Stages)
+- **Betroffen in der Kette (bei Neulauf):** 330 · 340 · 400 · 410 · 420 · 430 · 500 · 510 · 520 · 530 · 540 · 600 · 610 · 615 · 650 · 620 · 630 · 640 · 700 · 710 (20 Stages)
 - **Gesamte Vorkette:** 080 · 090 · 095 · 100 · 110 · 150 · 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310
 
 ### 330 Rückübersetzung
@@ -222,7 +223,7 @@ Quelle der Abhängigkeiten: `pipeline/kette.py` (VORGAENGER, Reihenfolge = `pipe
 - **Bereich / läuft bei:** Übersetzung · Zielsprache bestellt
 - **Zuliefernd:** 320 Integrität
 - **Folgend:** 340 Wort-Alignment, 400 Regie, 600 Klappentext, 630 ePub Zielsprache
-- **Betroffen in der Kette (bei Neulauf):** 340 · 400 · 410 · 420 · 500 · 510 · 520 · 530 · 540 · 600 · 610 · 615 · 650 · 620 · 630 · 640 · 700 · 710 (18 Stages)
+- **Betroffen in der Kette (bei Neulauf):** 340 · 400 · 410 · 420 · 430 · 500 · 510 · 520 · 530 · 540 · 600 · 610 · 615 · 650 · 620 · 630 · 640 · 700 · 710 (19 Stages)
 - **Gesamte Vorkette:** 080 · 090 · 095 · 100 · 110 · 150 · 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320
 
 ### 340 Wort-Alignment
@@ -244,7 +245,7 @@ Quelle der Abhängigkeiten: `pipeline/kette.py` (VORGAENGER, Reihenfolge = `pipe
 - **Bereich / läuft bei:** Audio · Audio bestellt
 - **Zuliefernd:** 330 Rückübersetzung
 - **Folgend:** 410 Casting, 500 Vertonung
-- **Betroffen in der Kette (bei Neulauf):** 410 · 420 · 500 · 510 · 520 · 530 · 540 · 615 · 650 · 620 · 630 · 640 · 700 · 710 (14 Stages)
+- **Betroffen in der Kette (bei Neulauf):** 410 · 420 · 430 · 500 · 510 · 520 · 530 · 540 · 615 · 650 · 620 · 630 · 640 · 700 · 710 (15 Stages)
 - **Gesamte Vorkette:** 080 · 090 · 095 · 100 · 110 · 150 · 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330
 
 ### 410 Casting
@@ -254,8 +255,8 @@ Quelle der Abhängigkeiten: `pipeline/kette.py` (VORGAENGER, Reihenfolge = `pipe
 - **Mensch entscheidet:** Bei neu entworfenen Stimmen und immer beim Hörspiel: Der Mensch hört Proben, besetzt um und gibt das Casting frei.
 - **Bereich / läuft bei:** Audio · Audio bestellt
 - **Zuliefernd:** 400 Regie
-- **Folgend:** 420 Sprecher, 500 Vertonung, 615 Cover final, 640 Teaser
-- **Betroffen in der Kette (bei Neulauf):** 420 · 500 · 510 · 520 · 530 · 540 · 615 · 650 · 620 · 630 · 640 · 700 · 710 (13 Stages)
+- **Folgend:** 420 Sprecher, 430 Fish-Regie, 500 Vertonung, 615 Cover final, 640 Teaser
+- **Betroffen in der Kette (bei Neulauf):** 420 · 430 · 500 · 510 · 520 · 530 · 540 · 615 · 650 · 620 · 630 · 640 · 700 · 710 (14 Stages)
 - **Gesamte Vorkette:** 080 · 090 · 095 · 100 · 110 · 150 · 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 400
 
 ### 420 Sprecher
@@ -265,31 +266,42 @@ Quelle der Abhängigkeiten: `pipeline/kette.py` (VORGAENGER, Reihenfolge = `pipe
 - **Mensch entscheidet:** Bei unsicheren Zuordnungen (bei Verlagen immer) wählt der Mensch den Sprecher je Segment oder teilt Segmente.
 - **Bereich / läuft bei:** Audio · Hörspiel bestellt
 - **Zuliefernd:** 410 Casting
-- **Folgend:** 510 Hörspiel-Overlay
-- **Betroffen in der Kette (bei Neulauf):** 510 · 520 · 530 · 540 · 650 · 620 · 630 · 700 · 710 (9 Stages)
+- **Folgend:** 430 Fish-Regie, 510 Hörspiel-Overlay
+- **Betroffen in der Kette (bei Neulauf):** 430 · 500 · 510 · 520 · 530 · 540 · 650 · 620 · 630 · 700 · 710 (11 Stages)
 - **Gesamte Vorkette:** 080 · 090 · 095 · 100 · 110 · 150 · 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 400 · 410
+
+### 430 Fish-Regie
+
+- **Ziel:** Baut je Sprache die Redebeiträge mit Anweisung [Grundhaltung; Moment] (DeepSeek, festes Vokabular) und teilt sie in Blöcke von 2.000–2.500 Zeichen; die Erzählerstimme spielt alle Figuren.
+- **Produziert:** Redebeiträge je Sprache mit Anweisung (Englisch, wird nicht gesprochen) und Blöcke à ~2.000–2.500 Zeichen für die Vertonung.
+- **Mensch entscheidet:** Anweisungen prüfen und einzeln ändern, Beitrag anhören (Fish-Probe). Nötig bei zu langen Anweisungen oder Figuren ohne Grundhaltung.
+- **Bereich / läuft bei:** Audio · Hörspiel premium/drama mit Motor Fish
+- **Zuliefernd:** 420 Sprecher, 410 Casting
+- **Folgend:** 500 Vertonung
+- **Betroffen in der Kette (bei Neulauf):** 500 · 510 · 520 · 530 · 540 · 650 · 620 · 630 · 700 · 710 (10 Stages)
+- **Gesamte Vorkette:** 080 · 090 · 095 · 100 · 110 · 150 · 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 400 · 410 · 420
 
 ### 500 Vertonung
 
-- **Ziel:** Vertont jeden Satz (Basic Chatterbox, Premium/Drama Gemini) nach Kostenfreigabe; prüft jeden Satz per Forced Alignment.
+- **Ziel:** Vertont jeden Satz (Basic Chatterbox, Premium/Drama Gemini oder Motor Fish Drama 3 als Block-Vertonung über Fish-API oder eigene Gewichte auf Modal, Weiche api/modal/auto) nach Kostenfreigabe; prüft jeden Satz bzw. Block (Zeitmarken-Abdeckung).
 - **Produziert:** Eine Audiodatei je Satz und Audiosprache (Rohfassung).
 - **Mensch entscheidet:** Liegen die Kosten über dem Budget, gibt der Mensch frei. Auffällige Sätze hört er an und lässt sie neu vertonen oder nimmt sie an.
 - **Bereich / läuft bei:** Audio · Audio bestellt
-- **Zuliefernd:** 400 Regie, 410 Casting
+- **Zuliefernd:** 400 Regie, 410 Casting, 430 Fish-Regie
 - **Folgend:** 510 Hörspiel-Overlay, 520 Audio-Prüfung
 - **Betroffen in der Kette (bei Neulauf):** 510 · 520 · 530 · 540 · 650 · 620 · 630 · 700 · 710 (9 Stages)
-- **Gesamte Vorkette:** 080 · 090 · 095 · 100 · 110 · 150 · 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 400 · 410
+- **Gesamte Vorkette:** 080 · 090 · 095 · 100 · 110 · 150 · 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 400 · 410 · 420 · 430
 
 ### 510 Hörspiel-Overlay
 
-- **Ziel:** Erzeugt Figuren-Takes und montiert sie in die Hörspielspur; die Hörbuchspur bleibt unberührt.
+- **Ziel:** Erzeugt Figuren-Takes und montiert sie in die Hörspielspur (Motor Fish: Chatterbox-VC der Figurenbeiträge auf die Figurenstimme); die Hörbuchspur bleibt unberührt.
 - **Produziert:** Hörspielspur je Satz mit Figurenanteil; die Hörbuchspur bleibt unverändert.
 - **Mensch entscheidet:** Die Hörspiel-Freigabe macht immer ein Mensch (Hörprobe je Figur); auffällige Sätze werden neu gebaut oder in Erzählerfassung belassen.
 - **Bereich / läuft bei:** Audio · Hörspiel bestellt
 - **Zuliefernd:** 500 Vertonung, 420 Sprecher
 - **Folgend:** 520 Audio-Prüfung, 540 Trennung
 - **Betroffen in der Kette (bei Neulauf):** 520 · 530 · 540 · 650 · 620 · 630 · 700 · 710 (8 Stages)
-- **Gesamte Vorkette:** 080 · 090 · 095 · 100 · 110 · 150 · 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 400 · 410 · 420 · 500
+- **Gesamte Vorkette:** 080 · 090 · 095 · 100 · 110 · 150 · 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 400 · 410 · 420 · 430 · 500
 
 ### 520 Audio-Prüfung
 
@@ -300,7 +312,7 @@ Quelle der Abhängigkeiten: `pipeline/kette.py` (VORGAENGER, Reihenfolge = `pipe
 - **Zuliefernd:** 500 Vertonung, 510 Hörspiel-Overlay
 - **Folgend:** 530 Wortzeiten, 540 Trennung, 650 Hörbuch-Assembler
 - **Betroffen in der Kette (bei Neulauf):** 530 · 540 · 650 · 620 · 630 · 700 · 710 (7 Stages)
-- **Gesamte Vorkette:** 080 · 090 · 095 · 100 · 110 · 150 · 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 400 · 410 · 420 · 500 · 510
+- **Gesamte Vorkette:** 080 · 090 · 095 · 100 · 110 · 150 · 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 400 · 410 · 420 · 430 · 500 · 510
 
 ### 530 Wortzeiten
 
@@ -311,18 +323,18 @@ Quelle der Abhängigkeiten: `pipeline/kette.py` (VORGAENGER, Reihenfolge = `pipe
 - **Zuliefernd:** 520 Audio-Prüfung, 340 Wort-Alignment
 - **Folgend:** 540 Trennung
 - **Betroffen in der Kette (bei Neulauf):** 540 · 700 · 710 (3 Stages)
-- **Gesamte Vorkette:** 080 · 090 · 095 · 100 · 110 · 150 · 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 340 · 400 · 410 · 420 · 500 · 510 · 520
+- **Gesamte Vorkette:** 080 · 090 · 095 · 100 · 110 · 150 · 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 340 · 400 · 410 · 420 · 430 · 500 · 510 · 520
 
 ### 540 Trennung
 
-- **Ziel:** Prüft, ob Figurenstimmen hörbar vom Erzähler getrennt sind (ECAPA); Nachrunde oder Umbesetzen.
+- **Ziel:** Prüft, ob Figurenstimmen hörbar vom Erzähler getrennt sind (ECAPA; Zielstimme = Takes 510, bei Motor Fish das VC-Ziel aus 410); Nachrunde oder Umbesetzen.
 - **Produziert:** Messergebnis je Figur (Stimmabstand).
 - **Mensch entscheidet:** Ist eine Figur nicht klar getrennt, entscheidet der Mensch nach Hörprobe: umbesetzen oder annehmen.
 - **Bereich / läuft bei:** Audio · Hörspiel bestellt
 - **Zuliefernd:** 510 Hörspiel-Overlay, 520 Audio-Prüfung, 530 Wortzeiten
 - **Folgend:** 700 Auslieferungs-Vertrag
 - **Betroffen in der Kette (bei Neulauf):** 700 · 710 (2 Stages)
-- **Gesamte Vorkette:** 080 · 090 · 095 · 100 · 110 · 150 · 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 340 · 400 · 410 · 420 · 500 · 510 · 520 · 530
+- **Gesamte Vorkette:** 080 · 090 · 095 · 100 · 110 · 150 · 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 340 · 400 · 410 · 420 · 430 · 500 · 510 · 520 · 530
 
 ### 600 Klappentext
 
@@ -366,7 +378,7 @@ Quelle der Abhängigkeiten: `pipeline/kette.py` (VORGAENGER, Reihenfolge = `pipe
 - **Zuliefernd:** 520 Audio-Prüfung, 615 Cover final
 - **Folgend:** 620 ePub Ausgangssprache, 630 ePub Zielsprache
 - **Betroffen in der Kette (bei Neulauf):** 620 · 630 · 700 · 710 (4 Stages)
-- **Gesamte Vorkette:** 080 · 090 · 095 · 100 · 110 · 150 · 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 400 · 410 · 420 · 500 · 510 · 520 · 600 · 610 · 615
+- **Gesamte Vorkette:** 080 · 090 · 095 · 100 · 110 · 150 · 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 400 · 410 · 420 · 430 · 500 · 510 · 520 · 600 · 610 · 615
 
 ### 620 ePub Ausgangssprache
 
@@ -377,7 +389,7 @@ Quelle der Abhängigkeiten: `pipeline/kette.py` (VORGAENGER, Reihenfolge = `pipe
 - **Zuliefernd:** 615 Cover final, 650 Hörbuch-Assembler
 - **Folgend:** 700 Auslieferungs-Vertrag
 - **Betroffen in der Kette (bei Neulauf):** 700 · 710 (2 Stages)
-- **Gesamte Vorkette:** 080 · 090 · 095 · 100 · 110 · 150 · 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 400 · 410 · 420 · 500 · 510 · 520 · 600 · 610 · 615 · 650
+- **Gesamte Vorkette:** 080 · 090 · 095 · 100 · 110 · 150 · 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 400 · 410 · 420 · 430 · 500 · 510 · 520 · 600 · 610 · 615 · 650
 
 ### 630 ePub Zielsprache
 
@@ -388,7 +400,7 @@ Quelle der Abhängigkeiten: `pipeline/kette.py` (VORGAENGER, Reihenfolge = `pipe
 - **Zuliefernd:** 615 Cover final, 330 Rückübersetzung, 650 Hörbuch-Assembler
 - **Folgend:** 700 Auslieferungs-Vertrag
 - **Betroffen in der Kette (bei Neulauf):** 700 · 710 (2 Stages)
-- **Gesamte Vorkette:** 080 · 090 · 095 · 100 · 110 · 150 · 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 400 · 410 · 420 · 500 · 510 · 520 · 600 · 610 · 615 · 650
+- **Gesamte Vorkette:** 080 · 090 · 095 · 100 · 110 · 150 · 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 400 · 410 · 420 · 430 · 500 · 510 · 520 · 600 · 610 · 615 · 650
 
 ### 640 Teaser
 
@@ -410,7 +422,7 @@ Quelle der Abhängigkeiten: `pipeline/kette.py` (VORGAENGER, Reihenfolge = `pipe
 - **Zuliefernd:** alle bestellten Stages davor
 - **Folgend:** 710 Auslieferung
 - **Betroffen in der Kette (bei Neulauf):** 710 (1 Stages)
-- **Gesamte Vorkette:** 080 · 090 · 095 · 100 · 110 · 150 · 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 340 · 400 · 410 · 420 · 500 · 510 · 520 · 530 · 540 · 600 · 610 · 615 · 650 · 620 · 630 · 640
+- **Gesamte Vorkette:** 080 · 090 · 095 · 100 · 110 · 150 · 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 340 · 400 · 410 · 420 · 430 · 500 · 510 · 520 · 530 · 540 · 600 · 610 · 615 · 650 · 620 · 630 · 640
 
 ### 710 Auslieferung
 
@@ -421,7 +433,7 @@ Quelle der Abhängigkeiten: `pipeline/kette.py` (VORGAENGER, Reihenfolge = `pipe
 - **Zuliefernd:** 700 Auslieferungs-Vertrag
 - **Folgend:** –
 - **Betroffen in der Kette (bei Neulauf):** –
-- **Gesamte Vorkette:** 080 · 090 · 095 · 100 · 110 · 150 · 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 340 · 400 · 410 · 420 · 500 · 510 · 520 · 530 · 540 · 600 · 610 · 615 · 650 · 620 · 630 · 640 · 700
+- **Gesamte Vorkette:** 080 · 090 · 095 · 100 · 110 · 150 · 115 · 120 · 190 · 195 · 200 · 210 · 300 · 310 · 320 · 330 · 340 · 400 · 410 · 420 · 430 · 500 · 510 · 520 · 530 · 540 · 600 · 610 · 615 · 650 · 620 · 630 · 640 · 700
 
 ## Entschieden, noch nicht in der Kette (Fassungsweiche 115, CK 03.11.2026)
 

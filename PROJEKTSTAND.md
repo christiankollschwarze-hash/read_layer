@@ -1,5 +1,37 @@
 # PROJEKTSTAND — Read Layer
 
+## AP Fish Drama 3 auf Modal – CODE ERLEDIGT 25.11.2026, Modal-Lauf + Abnahme offen (Prompt claude/PROMPT_fish_modal_hosting.md)
+Sicherung: archive/2026-11-25_fish_modal/ (s500, s503, fish_motor, fish_probe, config, werk_api, monitor.html, run.py, PROJEKTSTAND); Vor-Paket committet e3cc2f1.
+Quellen Gewichte (gelesen 25.11.): HF fishaudio/drama-3 (35B MoE, 3B aktiv, FP8-Experten + BF16, Fish Audio Community License), Inferenz fish-speech
+  (tools/api_server.py, msgpack /v1/tts, references = Audio + Transkript), >= 48 GB GPU (FP8), Python 3.12, cu129, kein --compile; Codec-Fallback s2-pro/codec.pth.
+  Lokaler Server liefert KEINE Wort-Zeitmarken -> MMS_FA (pipeline/fa_mms.py) im selben Container.
+Schritt 1 CODE ERLEDIGT (ungetestet auf Modal): NEU gpu_fish/fish_modal.py – Image nvidia/cuda 12.9 + Python 3.12 + fish-speech (Commit wird im Bericht protokolliert),
+  Volume readlayer-fish (/drama-3 Gewichte, /out/<key>.* Ergebnisse = Resume), GPU-Liste READLAYER_FISH_GPU (Standard H100,L40S), Server im Container, 4 parallele Anfragen,
+  je Block WAV -> 24 kHz mono 16 bit + MMS_FA-Woerter [{w,a,b}]; Modell-Pruefung ueber Checkpoint-config.json (MODELL drama-3, sonst Abbruch = garantiert kein Rueckfall).
+  Bericht: GPU, MODELL, COMMIT, KALTSTART, AUDIO, TTS/RTF, WALL. Einmalig Gewichte: py -3.11 -m modal run gpu_fish/fish_modal.py --gewichte-laden (CPU).
+Schritt 2 ERLEDIGT: Weiche fish_motor.weg(b, lg, zeichen, einzel) – book.json fish_weg api|modal|auto (oder {lg: weg}), Standard auto; Kundenwerk (mandant != somnio) -> modal;
+  Einzelaktion (--satz, Proben) -> api ausser Kundenwerk; auto: Zeichen je Sprache (alle Bloecke inkl. Anweisungen) < config.FISH_MODAL_AB_ZEICHEN (60.000) -> api.
+  config.FISH_MODAL_FREI = False bis CK-Freigabe Pruefblock -> modal faellt auf api zurueck (Hinweis), Kundenwerk -> Stopp (Gate weg_<lg>).
+  s503: Modal-Stapel modal_stapel() = EIN modal run je Werk x Sprache (Paket gpu_fish/<werk>_<lg>_500, jobs.json + ref/ref.wav + Nordwind-Text), Wiederholungsrunden mit neuem Seed (key Blockhash_v<runde>).
+  Manifest-meta fish_weg {lg: weg, grund, wahl, zeichen}, je_sprache weg/weg_grund/modal_bericht, Blockeintrag weg; Blockhash OHNE Weg (Test: Wegwechsel vertont nicht neu).
+  Kosten modal: fish_motor.modal_schaetzung (Zeichen -> Audio-s -> GPU-s x RTF 0,25 x H100 3,95 $/h + Kaltstart 300 s, alles Schaetzung in config) in Freigabe/Metrik kosten_je_sprache;
+  Ist: usage_log.log_gpu (WALL, gpu aus Bericht, extra kaltstart_s/rtf/audio_s). CLI s500 --fish-weg [LG=]api|modal|auto (setzt book.json). fish_probe: Kundenwerk -> Probe ueber Modal (Paket <werk>_<lg>_probe).
+  Tests: tests/test_fish.py TFishWeg (5) + T430.test_500_fish_modal / test_kundenwerk_stopp (Fake modal run) – test_fish 64 gruen.
+Schritt 3 VORBEREITET (Lauf durch CK, kostet ~0,03 $ API + ~0,5-1 $ Modal inkl. Kaltstart/Erstdownload): NEU tools/fish_pruefblock.py – ~1.800 Zeichen Alice Kap. 7 DE
+  (tools/fish_test/de/block_*.txt, Erzaehler grossmutter_a + [voicing ...]) ueber API und Modal; im selben Modal-Lauf MMS_FA auf das API-Audio (Job mit "audio" in fish_modal.py)
+  -> Zeitmarken-Abweichung FA vs. Fish auf GLEICHEM Audio (Wortanfaenge + Schnittgrenzen). Ausgabe tools/fish_pruefblock/<lg>/ (api.wav, modal.wav, bericht.md, modal_bericht.txt), Kosten kosten.jsonl.
+  Ablauf CK: (1) einmalig py -3.11 -m modal run gpu_fish/fish_modal.py --gewichte-laden (~40 GB ins Volume, CPU) (2) py -3.11 tools/fish_pruefblock.py
+  (3) api.wav vs. modal.wav hoeren, Urteil in bericht.md (4) bei Freigabe config.FISH_MODAL_FREI = True; RTF/Kaltstart aus Bericht in config (FISH_MODAL_RTF, FISH_MODAL_KALTSTART_S), ggf. GPU-Liste.
+  RISIKO erster Lauf: Image-Build fish-speech (cu129) + api_server-Flags/Health-Route sind nach Doku gebaut, nicht erprobt -> Fehler im Modal-Log, dann gpu_fish/fish_modal.py anpassen.
+Schritt 4 ERLEDIGT (Cockpit Monitor 500): je Fish-Sprache Weg + Grund, Wahl auto/api/modal (-> --fish-weg), Schwelle, Kundenwerk-/Freigabe-Hinweis, Modal-Schaetzung (GPU-min, $, Kaltstart),
+  letzter Modal-Lauf (GPU, Kaltstart, WALL, RTF); offen-Spalte "Modal inkl. Kaltstart". Start = "Uebernehmen und 500 starten" (laeuft modal, wenn Weg modal). werk_api _m500_daten fish_weg, _m500_argv fish_weg. node --check ok, test_fish Monitor-Daten/argv gruen.
+Schritt 5 TEILWEISE: 540 fuer Fish-Werke: Zielstimme = vc_ziel aus 410 (keine Takes) – s540_trennung.plan_sprache; Modell-Pruefung Self-Hosting ueber Checkpoint (s. Schritt 1);
+  Doku: docs/STAGE_SKRIPT.md neu (tools/stage_skript.py mit 430, Texte 500/510/540, Stand 25.11.), Projekt-Doc claude/GATE_NACHTRAG_FISH_430_503_511.md (Nachtrag GATE_KATALOG/GATE_MONITORE/STECKBRIEFE).
+  OFFEN: gemischte Motoren je Werk (Gemini/Fish je Sprache) – weiter Stopp ausser --lang (Umbau s500.run: zwei Engines in einem Gate/Manifest, eigenes kleines AP).
+Tests (Linux-VM, python3 -m unittest): test_fish 64, test_s500 35, test_s510 33, test_s520 19, test_s530 14, test_s540 21, test_s400/410/420, test_kette, test_status, test_cockpit_werk, test_kunde gruen.
+ABNAHME offen: (a) Pruefblock + CK-Freigabe (b) anstehendes Werk 430 -> 500 (modal) -> 510 ohne Handeingriff bis Gate (vorher FISH_MODAL_FREI True, book.json fish_weg modal oder > 60.000 Z.).
+.gitignore: gpu_fish/*/ und tools/fish_pruefblock/ (Audio/Jobs).
+
 ## AP Fish-Regie + Cockpit-Umbau – CODE ERLEDIGT 25.11.2026, Abnahme offen (Prompt claude/PROMPT_fish_regie_cockpit.md, Stand-Doc claude/STAND_fish_test_2026-11-24.md)
 Sicherung: archive/2026-11-25_fish_regie/ (s400/410/420/500/502/510, status, kette, trennung, tts_client, hoerprobe, werk_api, monitor.html, server, gpu_overlay, run.py, config, PROJEKTSTAND).
 Schritt 1 ERLEDIGT (Bestand): Neue Stage = 430 "Fish-Regie" (zwischen 420 und 500). Motor-Schalter book.json audio_motor ("gemini"|"fish" oder {lg: motor}; Standard gemini).

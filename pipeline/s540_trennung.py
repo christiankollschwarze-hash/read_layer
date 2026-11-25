@@ -12,7 +12,8 @@ Wirkungsweise: Figurenstuecke aus hoerspiel_final/ (520): Satz-Segmente 420 -> L
               -> 530 bauen nur die betroffenen Saetze neu (Hash), dann neue Messung.
 Eingang:      work/510_overlay.json (Schnittprotokoll, Figuren je Satz), work/520_pruefung_<lg>.json + hoerspiel_final/ und
               audio_final/, work/530_wortzeiten_<lg>_hoerspiel.json, work/420_sprecher.json, work/400_regie.json,
-              work/casting.json (Schema 2 freigegeben: Erzaehler, Ensemble, Korrekturstufe), Takes work/_510/<lg>/takes/,
+              work/casting.json (Schema 2 freigegeben: Erzaehler, Ensemble, Korrekturstufe), Takes work/_510/<lg>/takes/
+              (Motor Fish: keine Takes -> Zielstimme = vc_ziel der Figur aus 410, d. h. der Klon-Clip),
               stimmen_archiv/_trennungsregel.json (Regel mit Version).
 Ausgabe:      work/540_trennung_<lg>.json (je Figur ECAPA, D, pyannote, Runde, Urteil, Hoerproben), work/_540/<lg>/
               (Paket, Messergebnis, Hoerproben), work/540_entscheidungen.json (Annahmen, Nachrunden-Zaehler).
@@ -350,6 +351,9 @@ def plan_sprache(werk, lg, stufe, c, data, spr, m510, rg):
     takes = sorted(os.listdir(tdir)) if os.path.isdir(tdir) else []
     for f in sorted(fig_saetze):
         ws = [os.path.join(tdir, n) for n in takes if n.endswith(f"__{f}.wav")]
+        vz = ens[f].get("vc_ziel")                       # Motor Fish (AP Fish-Modal 25.11.2026): keine Takes, Ziel = VC-Ziel 410
+        if not ws and vz and os.path.exists(os.path.join(config.BASE_DIR, vz)):
+            ws = [os.path.join(config.BASE_DIR, vz)]
         if not ws:
             st = ens[f].get("stimme") or ""
             ws = [x for x in (os.path.join(trennung.STIMMEN_DIR, st, f"muster_{lg}.wav"),

@@ -1164,6 +1164,28 @@ def _gate_sprache(g, m, lg, p, fb, n_bl, rg, trocken, probe, kap, nur_lang):
             "probe": [zeile(t) for t in p["offen"]] if probe else [], "fallback_bloecke": fb}
 
 
+def fish_weg_setzen(werk, angaben, wer, trocken=False):
+    """--fish-weg [LG=]api|modal|auto -> book.json fish_weg (Text oder {lg: weg}); 'auto' fuer alle = Feld entfernen."""
+    from pipeline import bestellung, fish_motor
+    alt = bestellung.lesen(werk).roh.get("fish_weg")
+    neu = dict(alt) if isinstance(alt, dict) else ({"*": alt} if alt in fish_motor.WEGE else {})
+    for x in angaben:
+        k, v = x.split("=", 1) if "=" in x else ("*", x)
+        if v not in fish_motor.WEGE:
+            raise ValueError(f"--fish-weg {x}: erlaubt {fish_motor.WEGE}")
+        if k == "*":
+            neu = {}
+        neu[k] = v
+    neu = {k: v for k, v in neu.items() if v != "auto" or k != "*"}
+    wert = neu.get("*") if list(neu) == ["*"] else (neu or None)
+    if trocken:
+        print(f"[500] fish_weg (trocken): {wert}")
+        return wert
+    bestellung.feld_setzen(werk, fish_weg=wert)
+    print(f"[500] fish_weg = {wert} (wer {wer})")
+    return wert
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Stage 500 Vertonung")
     ap.add_argument("werk")
@@ -1183,6 +1205,8 @@ def main(argv=None):
     ap.add_argument("--annehmen", action="append", metavar="ID")
     ap.add_argument("--grund")
     ap.add_argument("--trocken", action="store_true")
+    ap.add_argument("--fish-weg", action="append", metavar="[LG=]api|modal|auto",
+                    help="Motor fish: Weg je Sprache in book.json fish_weg setzen (manuelle Uebersteuerung)")
     a = ap.parse_args(argv)
     wer = a.wer or "pipeline"
 
@@ -1207,9 +1231,11 @@ def main(argv=None):
             k, v = x.split("=", 1) if "=" in x else ("*", x)
             kf[k] = float(v)
     try:
-        if (kf or a.annehmen or any(v is not None for v in regler.values())) and not a.trocken:
+        if (kf or a.annehmen or a.fish_weg or any(v is not None for v in regler.values())) and not a.trocken:
             from pipeline import s080_mandant
             s080_mandant.darf(a.werk, "entscheiden", wer)
+        if a.fish_weg:
+            fish_weg_setzen(a.werk, a.fish_weg, wer, trocken=a.trocken)
         if a.annehmen:
             if not a.lang:
                 raise ValueError("--annehmen braucht --lang")

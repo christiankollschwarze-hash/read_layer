@@ -59,16 +59,18 @@ D = {
   "Besetzt Erzähler und (Hörspiel) Figuren mit Stimmen; prüft Passung und Abstand; casting.json ist die einzige Stimmablage."),
 "420": ("Sprecher", "Audio", "Hörspiel bestellt",
   "Ordnet jedem Satzsegment den Sprecher zu (Erzähler oder Figur) – Drehbuch fürs Hörspiel."),
+"430": ("Fish-Regie", "Audio", "Hörspiel premium/drama mit Motor Fish",
+  "Baut je Sprache die Redebeiträge mit Anweisung [Grundhaltung; Moment] (DeepSeek, festes Vokabular) und teilt sie in Blöcke von 2.000–2.500 Zeichen; die Erzählerstimme spielt alle Figuren."),
 "500": ("Vertonung", "Audio", "Audio bestellt",
-  "Vertont jeden Satz (Basic Chatterbox, Premium/Drama Gemini) nach Kostenfreigabe; prüft jeden Satz per Forced Alignment."),
+  "Vertont jeden Satz (Basic Chatterbox, Premium/Drama Gemini oder Motor Fish Drama 3 als Block-Vertonung über Fish-API oder eigene Gewichte auf Modal, Weiche api/modal/auto) nach Kostenfreigabe; prüft jeden Satz bzw. Block (Zeitmarken-Abdeckung)."),
 "510": ("Hörspiel-Overlay", "Audio", "Hörspiel bestellt",
-  "Erzeugt Figuren-Takes und montiert sie in die Hörspielspur; die Hörbuchspur bleibt unberührt."),
+  "Erzeugt Figuren-Takes und montiert sie in die Hörspielspur (Motor Fish: Chatterbox-VC der Figurenbeiträge auf die Figurenstimme); die Hörbuchspur bleibt unberührt."),
 "520": ("Audio-Prüfung", "Audio", "Audio bestellt",
   "Erstellt die Endfassung: Ränder, Tempo, Lautheit je Kapitel, Sprachprüfung je Satz; gekippte Sätze zurück an 500/510."),
 "530": ("Wortzeiten", "Audio", "TÆLLA-Audio",
   "Misst Wortzeiten auf der Endfassung (Karaoke) und überträgt sie über die Anker (535) auf die andere Sprache."),
 "540": ("Trennung", "Audio", "Hörspiel bestellt",
-  "Prüft, ob Figurenstimmen hörbar vom Erzähler getrennt sind (ECAPA); Nachrunde oder Umbesetzen."),
+  "Prüft, ob Figurenstimmen hörbar vom Erzähler getrennt sind (ECAPA; Zielstimme = Takes 510, bei Motor Fish das VC-Ziel aus 410); Nachrunde oder Umbesetzen."),
 "600": ("Klappentext", "Vermarktung", "immer",
   "Übernimmt oder erzeugt den Klappentext (Köder, Einordnung, Autor) je Sprache mit Pflichtvermerken; Metadaten für Cover und Teaser."),
 "610": ("Cover", "Vermarktung", "immer",
@@ -122,7 +124,7 @@ def vorkette(s):
 L = lambda xs: ", ".join(f"{x} {D[x][0]}" for x in xs) or "–"
 K = lambda xs: " · ".join(xs) or "–"
 o = []
-o.append("# STAGE-SKRIPT – Read Layer Pipeline (Stand 04.11.2026)\n")
+o.append("# STAGE-SKRIPT – Read Layer Pipeline (Stand 25.11.2026)\n")
 o.append("Je Stage: Name, Ziel, Bereich, wann sie läuft, **zuliefernde** Stages (direkte Eingänge, deren Gate frei sein muss), **folgende** Stages (die direkt auf ihr aufbauen) und **betroffene** Stages in der Kette (alle, die bei einem Neulauf veraltet sind und neu laufen müssen).\n")
 o.append("Quelle der Abhängigkeiten: `pipeline/kette.py` (VORGAENGER, Reihenfolge = `pipeline/status.STAGES`); Ziele aus `GATE_KATALOG.md`; „Produziert“ und „Mensch entscheidet“ aus `config/stage_hilfe.json` (dieselben Texte wie das Hilfe-Popup im Cockpit). Regeln: 700 kommt nach der letzten bestellten Stage (alle davor) und ist daher bei jeder Stage betroffen; unter „folgend“ steht 700 nur, wenn sonst nichts folgt; entfällt ein Zulieferer laut Bestellung (095), springt die Kette auf dessen Zulieferer.\n")
 o.append("## Reihenfolge\n")

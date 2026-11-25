@@ -2867,7 +2867,17 @@ def _m500_daten(book_id):
         liste += [zeile(x, "probe") for x in p.get("probe") or [] if x["id"] not in ids]
         stimme = js.get("stimme") or p.get("stimme")
         fish_bl = [dict(x, audio=rel(x.get("datei"))) for x in p.get("bloecke") or []]
-        sprachen[lg] = {"motor": "fish" if (js.get("engine") or p.get("engine")) == "fish" else "gemini/chatterbox",
+        fweg = None                                            # Weiche api/modal (AP Fish-Modal 25.11.2026)
+        if (js.get("engine") or p.get("engine") or (kj.get(lg) or {}).get("engine")) == "fish":
+            from pipeline import fish_motor as _FM
+            k_ = kj.get(lg) or {}
+            stopp = next((x for x in (g.pruefungen if g else []) if x["name"] == f"weg_{lg}" and not x["ok"]), None)
+            fweg = {"weg": k_.get("weg") or (js.get("weg")), "grund": k_.get("grund") or js.get("weg_grund"),
+                    "wahl": _FM.weg_roh(roh, lg), "modal": k_.get("modal"), "stopp": stopp["text"] if stopp else None,
+                    "modal_frei": bool(getattr(config, "FISH_MODAL_FREI", False)),
+                    "schwelle": int(getattr(config, "FISH_MODAL_AB_ZEICHEN", 60000)), "kundenwerk": _FM.ist_kundenwerk(b),
+                    "letzter_modal_lauf": js.get("modal_bericht")}
+        sprachen[lg] = {"fish_weg": fweg, "motor": "fish" if (js.get("engine") or p.get("engine")) == "fish" else "gemini/chatterbox",
                         "bloecke": fish_bl, "fish_modell": js.get("modell"), "quelle": p.get("quelle"),
                         "stufen": st, "engine": js.get("engine") or p.get("engine") or (kj.get(lg) or {}).get("engine"),
                         "stimme": stimme, "stimme_probe": _m410_probe(stimme, lg),
@@ -2937,6 +2947,11 @@ def _m500_argv(book_id, e, wer):
             if not lo <= x <= hi:
                 raise ValueError(f"{k} {lo}–{hi}")
             a.append(f"--{k.replace('_', '-')}={x:g}")
+    for k, v in (e.get("fish_weg") or {}).items():          # Motor fish: Weg manuell uebersteuern (book.json)
+        from pipeline import fish_motor as _FM
+        if k not in audio or v not in _FM.WEGE:
+            raise ValueError(f"Fish-Weg {k}={v!r}: Sprache bestellt und {_FM.WEGE}")
+        a.append(f"--fish-weg={k}={v}")
     if e.get("trocken"):
         a.append("--trocken")
     return a

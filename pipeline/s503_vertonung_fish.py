@@ -12,12 +12,19 @@ Wirkungsweise: Manifest work/500_vertonung.json: Block-Eintraege <lg>/_fish/<ers
               Budget, Kleinbetrag, sonst --kosten-freigeben). Concurrency <= 3, Retry 429.
 Pruefung:     je Block Zeitmarken-Abdeckung (Fish-Woerter vs. Text, 0,85–1,15) und je Satz leer/Clipping/Dauer je
               Zeichen (Median der Sprache); auffaellige Bloecke bis rg['versuche'] x neu. Modell-Rueckfall -> Stopp.
+Weiche:       fish_motor.weg (book.json fish_weg api|modal|auto, AP Fish-Modal 25.11.2026): je Sprache api (Fish-API,
+              Kosten $/Byte) oder modal (gpu_fish/fish_modal.py, eigene Gewichte, ein Stapel-Lauf je Werk x Sprache,
+              Zeitmarken per MMS_FA im Container, Kosten GPU-s -> $ + Kaltstart). Entscheidung + Grund in
+              Manifest-meta fish_weg; Blockhash ohne Weg (Wegwechsel allein vertont nicht neu).
 Aufrufer:     pipeline/s500_vertonung_gemini.run (alle Audiosprachen des Werks mit Motor fish).
 """
 import concurrent.futures as cf
 import json
 import os
 import re
+import shutil
+import subprocess
+import sys
 import time
 import unicodedata
 
@@ -175,6 +182,95 @@ def _vertonen_block(werk, lg, b_, fish_id):
     return p, woerter, info
 
 
+def paket_name(werk, lg):
+    return f"{werk}_{lg}_500"
+
+
+def paket_dir(werk, lg):
+    return os.path.join(config.BASE_DIR, "gpu_fish", paket_name(werk, lg))
+
+
+def modal_key(b_, runde):
+    return f"{b_['soll']}_v{runde}"
+
+
+def _modal_jobs(b_, runde):
+    from pipeline import s535_wortbruecke as wb
+    klar = re.sub(r"<[^>]+>|\[[^\]]*\]", " ", b_["text"])
+    woerter = [{"w": klar[x["c0"]:x["c1"]], "l": x["w"]} for x in wb.lautwoerter(klar)]
+    return {"key": modal_key(b_, runde), "text": b_["text"], "woerter": woerter, "seed": runde + 1, "id": b_["ids"][0]}
+
+
+def bericht_lesen(text):
+    """bericht.txt aus gpu_fish -> {gpu, wall_s, kalt_s, modell, ...}."""
+    def zahl(muster):
+        mm = re.search(muster, text or "")
+        return float(mm.group(1)) if mm else None
+    mg = re.search(r"GPU ([^\n]+)", text or "")
+    gname = mg.group(1) if mg else ""
+    gpu = next((g for g in ("H200", "H100", "L40S", "A100", "A10G", "L4") if g in gname), "H100")
+    mm = re.search(r"MODELL (\S+)", text or "")
+    return {"gpu": gpu, "gpu_name": gname.strip(), "wall_s": zahl(r"WALL ([\d.]+) s") or 0.0,
+            "kalt_s": zahl(r"KALTSTART ([\d.]+) s"), "modell": mm.group(1) if mm else None,
+            "rtf": zahl(r"RTF ([\d.]+)"), "audio_s": zahl(r"AUDIO ([\d.]+) s")}
+
+
+def modal_stapel(werk, lg, bloecke, info, runde=0, paket=None, bdir=None, stage="500"):
+    """Alle Bloecke einer Sprache in EINEM Modal-Lauf -> ({key: (wav, woerter, info)}, bericht{}).
+    Modell-Pruefung: bericht MODELL != drama-3 -> ModellRueckfall. paket/bdir/stage fuer Proben (fish_probe)."""
+    paket = paket or paket_name(werk, lg)
+    d = os.path.join(config.BASE_DIR, "gpu_fish", paket)
+    shutil.rmtree(os.path.join(d, "ref"), ignore_errors=True)
+    os.makedirs(os.path.join(d, "ref"), exist_ok=True)
+    clip = fish_motor.klon_clip(info["stimme"], lg)
+    if not clip:
+        raise RuntimeError(f"{info['stimme']}: kein klon_{lg}.wav im Archiv")
+    shutil.copy2(clip, os.path.join(d, "ref", "ref.wav"))
+    jobs = [_modal_jobs(b_, runde) for b_ in bloecke]
+    manifest.json_atomar(os.path.join(d, "jobs.json"), {"werk": werk, "lang": lg, "stimme": info["stimme"],
+                                                        "ref": {"datei": "ref.wav", "text": fish_motor.klon_text(lg)},
+                                                        "jobs": jobs}, indent=1)
+    cmd = [sys.executable, "-m", "modal", "run", "gpu_fish/fish_modal.py", "--paket", paket]
+    print(f"[503] Modal Fish {lg}: {len(jobs)} Bloecke (Stapel, Resume im Volume)", flush=True)
+    bp = os.path.join(d, "bericht.txt")
+    if os.path.exists(bp):
+        os.remove(bp)
+    from pipeline import spuren as SP
+    with SP.modal_platz():
+        r = subprocess.run(cmd, cwd=config.BASE_DIR)
+    roh = ""
+    if os.path.exists(bp):
+        with open(bp, encoding="utf-8") as f:
+            roh = f.read()
+    ber = bericht_lesen(roh)
+    if ber["modell"] and ber["modell"] != "drama-3":
+        raise fish_motor.ModellRueckfall(f"Modal-Checkpoint {ber['modell']} statt drama-3")
+    if r.returncode != 0 and not os.path.isdir(os.path.join(d, "out")):
+        raise RuntimeError(f"Modal-Fish {paket} Exit {r.returncode}")
+    erg = {}
+    bdir = bdir or block_dir(werk, lg)
+    os.makedirs(bdir, exist_ok=True)
+    for b_, j in zip(bloecke, jobs):
+        w = os.path.join(d, "out", j["key"] + ".wav")
+        js = os.path.join(d, "out", j["key"] + ".json")
+        if not (os.path.exists(w) and os.path.exists(js)):
+            continue
+        p = os.path.join(bdir, f"{b_['ids'][0]}.wav")
+        shutil.move(w, p + ".tmp")                 # verschieben: Block-WAV nur einmal auf der Platte
+        os.replace(p + ".tmp", p)
+        with open(js, encoding="utf-8") as f:
+            o = json.load(f)
+        inf = dict(o.get("info") or {}, weg="modal", gpu=ber["gpu"])
+        with open(p[:-4] + ".json", "w", encoding="utf-8") as f:
+            json.dump({"woerter": o["woerter"], "info": inf, "text": b_["text"]}, f, ensure_ascii=False)
+        erg[b_["key"]] = (p, o["woerter"], inf)
+    if not mock.aktiv() and ber["wall_s"]:
+        usage_log.log_gpu(werk, stage, ber["wall_s"], gpu=ber["gpu"],
+                          extra={"sprache": lg, "art": "fish-tts", "bloecke": len(erg), "kaltstart_s": ber["kalt_s"],
+                                 "rtf": ber["rtf"], "audio_s": ber["audio_s"]})
+    return erg, ber
+
+
 def _schneiden(werk, lg, b_, wav, woerter, adir):
     """Block -> Satz-WAVs + Spannen. -> ({tid: {pfad, spannen}}, abdeckung)."""
     x = _lesen(wav)
@@ -194,9 +290,13 @@ def _schneiden(werk, lg, b_, wav, woerter, adir):
 
 
 def vertonen(werk, lg, plan, info, m, rg, adir, units, versuche=2):
-    """Offene Bloecke vertonen (<= 3 parallel), schneiden, verbuchen. -> (befund {tid: grund}, n_bloecke, rueckfall)."""
+    """Offene Bloecke vertonen (api: <= 3 parallel; modal: ein Stapel-Lauf je Runde), schneiden, verbuchen.
+    -> (befund {tid: grund}, n_bloecke, rueckfall)."""
+    weg = (plan.get("weg") or {}).get("weg", "api")
     fid = info.get("fish_id")
-    if not fid and not mock.aktiv():
+    if weg == "modal":
+        fid = fid or None
+    elif not fid and not mock.aktiv():
         fid = fish_motor.fish_id(info["stimme"], lg, anlegen=True)
         info["fish_id"] = fid
     pause = {u["id"]: u.get("pause") for u in units}
@@ -206,16 +306,23 @@ def vertonen(werk, lg, plan, info, m, rg, adir, units, versuche=2):
         if not offen:
             break
         erg = {}
-        with cf.ThreadPoolExecutor(fish_motor.PARALLEL) as ex:
-            futs = {ex.submit(_vertonen_block, werk, lg, b_, fid): b_ for b_ in offen}
-            for fu in cf.as_completed(futs):
-                b_ = futs[fu]
-                try:
-                    erg[b_["key"]] = fu.result()
-                except fish_motor.ModellRueckfall as e:
-                    rueckfall = str(e)
-                except Exception as e:
-                    print(f"[503] {lg} Block {b_['ids'][0]}: {type(e).__name__}: {str(e)[:160]}", flush=True)
+        if weg == "modal" and not mock.aktiv():
+            try:
+                erg, ber = modal_stapel(werk, lg, offen, info, runde)
+                plan.setdefault("modal_berichte", []).append(ber)
+            except fish_motor.ModellRueckfall as e:
+                rueckfall = str(e)
+        else:
+            with cf.ThreadPoolExecutor(fish_motor.PARALLEL) as ex:
+                futs = {ex.submit(_vertonen_block, werk, lg, b_, fid): b_ for b_ in offen}
+                for fu in cf.as_completed(futs):
+                    b_ = futs[fu]
+                    try:
+                        erg[b_["key"]] = fu.result()
+                    except fish_motor.ModellRueckfall as e:
+                        rueckfall = str(e)
+                    except Exception as e:
+                        print(f"[503] {lg} Block {b_['ids'][0]}: {type(e).__name__}: {str(e)[:160]}", flush=True)
         if rueckfall:
             break
         schlecht = []
@@ -228,7 +335,7 @@ def vertonen(werk, lg, plan, info, m, rg, adir, units, versuche=2):
             n += 1
             saetze, abd = _schneiden(werk, lg, b_, p, woerter, adir)
             ok = ABDECKUNG[0] <= abd <= ABDECKUNG[1] or mock.aktiv()
-            m.setzen(b_["key"], b_["soll"], datei=p, engine="fish", stimme=info["stimme"], fish_id=fid,
+            m.setzen(b_["key"], b_["soll"], datei=p, engine="fish", stimme=info["stimme"], fish_id=fid, weg=weg,
                      modell=f"fish-{fish_motor.MODELL}", q="mock" if mock.aktiv() else "neu", abdeckung=round(abd, 3),
                      bytes=inf.get("bytes"), saetze=b_["tids"], versuche=runde)
             for tid, s_ in saetze.items():
@@ -330,10 +437,20 @@ def run(werk, g, b, rg, c, data, m, wer, saetze=None, kapitel=None, nur_lang=Non
         lex, n_lex = s500._lexikon(werk, lg)
         p = planen(werk, lg, data, regie, info, lex, m, saetze or (), set(kapitel or ()), neu, probe)
         p.update(info=info, stufe=st, units=units, n_lex=n_lex, engine="fish")
+        w = fish_motor.weg(b, lg, sum(len(b_["text"]) for b_ in p["bloecke"]), einzel=bool(saetze) and not neu)
+        if not g.pflicht(f"weg_{lg}", w["stopp"] is None, wert=w, ruecksprung="500",
+                         text=f"{lg}: Fish-Weg {w['weg']} ({w['grund']})" + (f" – {w['stopp']}" if w["stopp"] else "")):
+            continue
+        p["weg"] = w
+        if w["weg"] == "modal":
+            sch = fish_motor.modal_schaetzung(p["zeichen"])
+            p["modal"] = sch
+            p["usd"] = round((sch["usd"] * 1.15 + sch["kaltstart_usd"]) if p["offen"] else 0.0, 4)
         plan[lg] = p
     usd = round(sum(p["usd"] for p in plan.values()), 4)
     g.metrik("kosten_usd", usd)
-    g.metrik("kosten_je_sprache", {lg: {"engine": "fish", "bloecke": len(p["offen"]), "zeichen": p["zeichen"],
+    g.metrik("kosten_je_sprache", {lg: {"engine": "fish", "weg": p["weg"]["weg"], "grund": p["weg"]["grund"],
+                                        "modal": p.get("modal"), "bloecke": len(p["offen"]), "zeichen": p["zeichen"],
                                         "saetze": sum(len(b_["tids"]) for b_ in p["offen"]),
                                         "bytes": sum(len(b_["text"].encode("utf-8")) for b_ in p["offen"]),
                                         "usd": p["usd"]} for lg, p in plan.items()})
@@ -352,7 +469,8 @@ def run(werk, g, b, rg, c, data, m, wer, saetze=None, kapitel=None, nur_lang=Non
         for lg in sorted(gesperrt):
             p = plan[lg]
             g.pruefe(f"kosten_{lg}", False, wert=p["usd"], bei_fehler="mensch", ruecksprung="500",
-                     text=f"{lg}: Kosten ~{p['usd']:.2f} $ fuer {len(p['offen'])} Bloecke (Fish {fish_motor.MODELL}, "
+                     text=f"{lg}: Kosten ~{p['usd']:.2f} $ fuer {len(p['offen'])} Bloecke (Fish {fish_motor.MODELL} "
+                          f"{p['weg']['weg']}, "
                           f"{p['zeichen']} Z.) nicht freigegeben – Freigabe im Cockpit (Monitor 500) bzw. "
                           f"--kosten-freigeben {lg}={p['usd']:.2f}")
             p["offen"], p["gesperrt"] = [], True
@@ -370,7 +488,7 @@ def run(werk, g, b, rg, c, data, m, wer, saetze=None, kapitel=None, nur_lang=Non
         if p["offen"] and not trocken:
             usage_log.set_context(werk, "500", sprache=lg)
             adir = s500.audio_dir(werk, lg)
-            print(f"[503] {lg} (Fish {fish_motor.MODELL}, {p['info']['stimme']}): {len(p['offen'])} Bloecke, "
+            print(f"[503] {lg} (Fish {fish_motor.MODELL} {p['weg']['weg']}, {p['info']['stimme']}): {len(p['offen'])} Bloecke, "
                   f"{p['zeichen']} Zeichen, ~{p['usd']:.2f} $ (Quelle {p['quelle']})", flush=True)
             try:
                 befund, n_bl, rf = vertonen(werk, lg, p, p["info"], m, rg, adir, p["units"], rg["versuche"])
@@ -380,7 +498,9 @@ def run(werk, g, b, rg, c, data, m, wer, saetze=None, kapitel=None, nur_lang=Non
                 g.pflicht(f"modell_{lg}", False, ruecksprung="500",
                           text=f"{lg}: Fish-Modell-Rueckfall – {rf} (Header model: {fish_motor.MODELL} pruefen)")
         pruef[lg] = gate_sprache(g, m, lg, p, p["units"], befund, rg, trocken, probe, werk)
-        je_sprache[lg] = {"engine": "fish", "stufe": p["stufe"], "stimme": p["info"]["stimme"],
+        ber = (p.get("modal_berichte") or [None])[-1]
+        je_sprache[lg] = {"engine": "fish", "weg": p["weg"]["weg"], "weg_grund": p["weg"]["grund"],
+                          "modal_bericht": ber, "stufe": p["stufe"], "stimme": p["info"]["stimme"],
                           "fish_id": p["info"].get("fish_id"), "modell": fish_motor.MODELL,
                           "einheiten": len(p["units"]), "bloecke": len(p["bloecke"]), "vertont_bloecke": n_bl,
                           "quelle": p["quelle"], "lexikon": p["n_lex"]}
@@ -399,7 +519,8 @@ def run(werk, g, b, rg, c, data, m, wer, saetze=None, kapitel=None, nur_lang=Non
                 x["bei_fehler"] = "hinweis"
                 x["text"] += " [Mensch-Freigabe gilt, Audio unveraendert]"
     if not trocken:
-        m.meta.update({"je_sprache": je_sprache, "ausgabe_hash": aus_hash, "regler": rg, "motor": "fish"})
+        m.meta.update({"je_sprache": je_sprache, "ausgabe_hash": aus_hash, "regler": rg, "motor": "fish",
+                       "fish_weg": {lg: p["weg"] for lg, p in plan.items()}})
         if plan:
             m.speichern()
         manifest.json_atomar(os.path.join(config.work_dir(werk), "500_pruefung.json"), pruef, indent=1)
