@@ -41,7 +41,11 @@ PROSODIE-STRESSTEST 25.11. 10:16 (tools/fish_prosodie_test.py, Fantasietext, 4 V
 UMBAU SGLang-Omni 25.11.: gpu_fish/fish_modal.py ENGINE (Umgebung READLAYER_FISH_ENGINE, Standard sglang; fish = alter Weg, Sicherung archive/.../fish_modal_fishspeech.py).
   sglang-omni in venv /omnienv, sgl-omni serve --model-path /vol/drama-3 --port 8000, /health; POST /v1/audio/speech {input, references [{audio_path, text}], response_format wav}
   (44,1 kHz -> 24 kHz; seed nicht unterstuetzt; Standard temperature 1,0 / top_p 0,9). Bloecke in Teile <= 1.000 Zeichen (vor Tag-Folge "[", sonst Satzende), 16 Bloecke parallel.
-  NACH = "<engine>-pegel1" -> Engine-Wechsel erzeugt Bloecke im Volume neu. Bericht: ENGINE + Commit. Ungetestet auf Modal.
+  NACH = "<engine>-pegel1" -> Engine-Wechsel erzeugt Bloecke im Volume neu; Download holt nur passende Version. Bericht: ENGINE + Commit.
+  Image: ninja-build (SGLang-JIT-Kernel). Referenz > 55 s (SGLang-Limit 60 s) wird per MMS_FA am Satzende gekuerzt (Bericht REFERENZ).
+  GEMESSEN 25.11. (Prosodietest, 4 Bloecke, 461 s Audio, H100): KALTSTART 175 s, RTF 0,077 (je Block 0,26), FA 205/205 Woerter, WALL 215 s.
+  -> ca. 0,30 $/Audio-h + ca. 0,19 $ Kaltstart je Lauf (fish-speech 2,2 $/h, API ca. 1-1,3 $/h). Config FISH_MODAL_RTF 0,10, KALTSTART 180 s.
+  OFFEN: CK-Hoervergleich de/ (sglang) gegen de_fishspeech/; danach FISH_MODAL_FREI = True.
 ABNAHME offen: (a) Pruefblock + CK-Freigabe (b) anstehendes Werk 430 -> 500 (modal) -> 510 ohne Handeingriff bis Gate (vorher FISH_MODAL_FREI True, book.json fish_weg modal oder > 60.000 Z.).
 .gitignore: gpu_fish/*/ und tools/fish_pruefblock/ (Audio/Jobs).
 

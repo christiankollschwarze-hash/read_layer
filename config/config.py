@@ -297,9 +297,9 @@ FISH_USD_JE_MIO_BYTES = 15.0
 FISH_MODAL_FREI = False          # erst nach CK-Freigabe Pruefblock API vs. Modal auf True (sonst api-Fallback bzw. Stopp bei Kundenwerk)
 FISH_MODAL_AB_ZEICHEN = 60000    # auto: Zeichen je Sprache (Bloecke inkl. Anweisungen) >= Schwelle -> modal (~1 Audiostunde)
 FISH_MODAL_GPU = "H100"          # Preisannahme (gpu_fish: READLAYER_FISH_GPU, Standard H100,L40S)
-FISH_MODAL_RTF = 0.25            # GPU-s je Audio-s inkl. FA (Schaetzung, nach Pruefblock nachjustieren)
+FISH_MODAL_RTF = 0.10            # SGLang-Omni H100 gemessen 0,077 (4 Bloecke, 25.11.2026); fish-speech seriell 0,56
 FISH_ZEICHEN_JE_AUDIO_S = 16.7   # ~60.000 Zeichen je Audiostunde
-FISH_MODAL_KALTSTART_S = 300     # Container + Gewichte laden (Schaetzung, Pruefblock misst KALTSTART)
+FISH_MODAL_KALTSTART_S = 180     # SGLang-Omni inkl. JIT-Kernel gemessen 175 s
 MODAL_H100_USD_H = 3.95          # Modal-Listenpreis (Schaetzung)
 MODAL_L40S_USD_H = 1.95          # Modal-Listenpreis (Schaetzung)
 PREISE = {
