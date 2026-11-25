@@ -340,7 +340,8 @@ class TFishWeg(unittest.TestCase):
     def test_schaetzung_bericht(self):
         from pipeline import s503_vertonung_fish as V
         sch = F.modal_schaetzung(60000, "H100")
-        self.assertAlmostEqual(sch["audio_s"], 3593, delta=5)
+        self.assertAlmostEqual(sch["audio_s"], 60000 / config.FISH_ZEICHEN_JE_AUDIO_S, delta=1)
+        self.assertEqual(V._klartext("[voicing X; very tense] <whisper>Pst</whisper> da."), "Pst da.")
         self.assertGreater(sch["usd"], 0)
         self.assertGreater(sch["kaltstart_usd"], 0)
         ber = V.bericht_lesen("GPU NVIDIA H100 80GB HBM3, 81559 MiB\nMODELL drama-3 {}\nKALTSTART 212.5 s (Server 180.0 s)"

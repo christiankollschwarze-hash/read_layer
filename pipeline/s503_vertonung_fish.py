@@ -55,6 +55,11 @@ def _schreiben(p, y):
 
 
 # ============================================================ Zeitmarken -> Schnitt
+def _klartext(s):
+    """Gesprochener Text eines Blocks: Anweisungen [..] und Markup <..> entfernt, Leerraum verdichtet."""
+    return " ".join(re.sub(r"<[^>]+>|\[[^\]]*\]", " ", s or "").split())
+
+
 def _buchst(s):
     s = unicodedata.normalize("NFKC", re.sub(r"<[^>]+>|\[[^\]]*\]", " ", s or "")).casefold()
     return "".join(ch for ch in s if ch.isalnum())
@@ -152,8 +157,10 @@ def planen(werk, lg, data, regie, info, lex, m, saetze=(), kapitel=(), neu=False
     if probe:
         offen = offen[:int(probe)]
     zeichen = sum(len(b_["text"]) for b_ in offen)
+    gesprochen = sum(len(_klartext(b_["text"])) for b_ in offen)     # ohne Anweisungen/Markup (Modal-Schaetzung)
     usd = round(sum(fish_motor.kosten_usd(b_["text"]) for b_ in offen) * 1.15, 4)   # Puffer Wiederholungen
-    return {"bloecke": bl, "beitraege": bts, "quelle": quelle, "offen": offen, "zeichen": zeichen, "usd": usd}
+    return {"bloecke": bl, "beitraege": bts, "quelle": quelle, "offen": offen, "zeichen": zeichen,
+            "gesprochen": gesprochen, "usd": usd}
 
 
 # ============================================================ Vertonen
@@ -443,9 +450,10 @@ def run(werk, g, b, rg, c, data, m, wer, saetze=None, kapitel=None, nur_lang=Non
             continue
         p["weg"] = w
         if w["weg"] == "modal":
-            sch = fish_motor.modal_schaetzung(p["zeichen"])
+            sch = fish_motor.modal_schaetzung(p.get("gesprochen", p["zeichen"]))
             p["modal"] = sch
-            p["usd"] = round((sch["usd"] * 1.15 + sch["kaltstart_usd"]) if p["offen"] else 0.0, 4)
+            p["usd"] = round((sch["usd"] + sch["kaltstart_usd"]) * float(getattr(config, "FISH_MODAL_AUFSCHLAG", 1.2))
+                             if p["offen"] else 0.0, 4)
         plan[lg] = p
     usd = round(sum(p["usd"] for p in plan.values()), 4)
     g.metrik("kosten_usd", usd)

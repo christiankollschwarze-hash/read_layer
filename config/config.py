@@ -298,9 +298,10 @@ FISH_REGIE_PARALLEL = 5          # 430: Kapitel gleichzeitig bei DeepSeek (Momen
 FISH_MODAL_FREI = True           # CK-Freigabe 25.11.2026 (Pruefblock + Prosodietest SGLang-Omni = fish-speech hoerbar gleich)
 FISH_MODAL_AB_ZEICHEN = 60000    # auto: Zeichen je Sprache (Bloecke inkl. Anweisungen) >= Schwelle -> modal (~1 Audiostunde)
 FISH_MODAL_GPU = "H100"          # Preisannahme (gpu_fish: READLAYER_FISH_GPU, Standard H100,L40S)
-FISH_MODAL_RTF = 0.10            # SGLang-Omni H100 gemessen 0,077 (4 Bloecke, 25.11.2026); fish-speech seriell 0,56
-FISH_ZEICHEN_JE_AUDIO_S = 16.7   # ~60.000 Zeichen je Audiostunde
-FISH_MODAL_KALTSTART_S = 180     # SGLang-Omni inkl. JIT-Kernel gemessen 175 s
+FISH_MODAL_RTF = 0.025           # GPU-s je Audio-s ohne Kaltstart, inkl. FA; gemessen Monte-Cristo 1-1 (187 Bl., 8,4 h, 16 parallel): 0,022
+FISH_ZEICHEN_JE_AUDIO_S = 13.3   # gesprochene Zeichen (ohne Anweisungen) je Audio-s, gemessen DE Monte-Cristo: 401.318 Z. / 30.268 s
+FISH_MODAL_KALTSTART_S = 210     # SGLang-Omni inkl. JIT-Kernel gemessen 175-206 s
+FISH_MODAL_AUFSCHLAG = 1.2       # Modal-Rechnung / reine GPU-Zeit (CPU, RAM; Monte-Cristo 1,15 $ zu 0,96 $ GPU)
 MODAL_H100_USD_H = 3.95          # Modal-Listenpreis (Schaetzung)
 MODAL_L40S_USD_H = 1.95          # Modal-Listenpreis (Schaetzung)
 PREISE = {
