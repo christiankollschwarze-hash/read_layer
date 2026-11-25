@@ -33,7 +33,8 @@ SR = 24000
 # api_server, arbeitet Anfragen nacheinander ab: Pruefblock RTF 0,56 -> ~2,2 $/Audio-h auf H100)
 ENGINE = os.environ.get("READLAYER_FISH_ENGINE", "sglang")
 NACH = f"{ENGINE}-pegel1"        # Engine + Nachbearbeitung (aendern -> fertige Bloecke im Volume werden neu erzeugt)
-TEIL_MAX = 1000                  # sglang: Block in Teile <= so viele Zeichen (max_new_tokens <= 2048 Frames ~ 95 s je Anfrage)
+TEIL_MAX = 1000
+REF_MAX_S = 55.0                # SGLang-Omni lehnt Referenzen > 60 s ab                  # sglang: Block in Teile <= so viele Zeichen (max_new_tokens <= 2048 Frames ~ 95 s je Anfrage)
 SPRACH_RMS_DB = -16.5            # Ziel-Pegel der Sprachanteile (wie Fish-API, Pruefblock 25.11.: API -16,4 / Modal roh -22,1 dBFS)
 PEAK_MAX_DB = -1.0
 PARALLEL = 16 if ENGINE == "sglang" else 4   # gleichzeitige Bloecke (SGLang-Omni: Standard 16 laufende Anfragen)
@@ -246,6 +247,30 @@ def _schreiben(pfad, x):
     sf.write(pfad, (x * 32767).astype(np.int16), SR, subtype="PCM_16")
 
 
+def ref_kuerzen(ref_audio, ref_text, al, max_s=REF_MAX_S):
+    """Referenz > max_s (SGLang-Omni: Limit 60 s) -> an letztem Satzende <= max_s schneiden; Text passend (MMS_FA)."""
+    import re
+    x = _nach_24k(ref_audio)
+    if len(x) / SR <= max_s or not ref_text:
+        return None, ref_text, len(x) / SR
+    _schreiben("/tmp/ref_voll.wav", x)
+    worte = ref_text.split()
+    um = str.maketrans({"ä": "a", "ö": "o", "ü": "u", "ß": "s"})
+    lw = ["".join(c for c in w.lower().translate(um) if c in al.zeichen) for w in worte]
+    zeiten = al.ausrichten("/tmp/ref_voll.wav", lw)
+    ende = None
+    for i, (w, z) in enumerate(zip(worte, zeiten)):
+        if z and z[1] <= max_s and re.search(r"[.!?][\"'»«“”]?$", w):
+            ende = (i, z[1])
+    if ende is None:
+        raise RuntimeError(f"Referenz {len(x) / SR:.1f} s ohne Satzende vor {max_s} s")
+    i, t = ende
+    nxt = next((z[0] for z in zeiten[i + 1:] if z), t + 0.3)
+    cut = int(min(t + 0.3, (t + nxt) / 2 if nxt > t else t + 0.3) * SR)
+    _schreiben("/tmp/ref_kurz.wav", x[:cut])
+    return "/tmp/ref_kurz.wav", " ".join(worte[:i + 1]), cut / SR
+
+
 @app.function(image=image, gpu=GPU, volumes={"/vol": vol}, timeout=12 * 3600, secrets=geheim)
 def vertonen(paket_zip: bytes) -> str:
     import concurrent.futures as cf
@@ -285,6 +310,12 @@ def vertonen(paket_zip: bytes) -> str:
     os.environ["READLAYER_FA_DEVICE"] = "cuda"
     from fa_mms import Aligner
     al = Aligner()
+    ref_text = ref.get("text") or ""
+    if ENGINE == "sglang":
+        kurz, ref_text, ref_s = ref_kuerzen(ref_audio, ref_text, al)
+        if kurz:
+            ref_pfad = kurz
+            bericht.append(f"REFERENZ gekuerzt auf {ref_s:.1f} s ({len(ref_text.split())} Woerter)")
     t_tts = time.time()
 
     def ein_block(j):
@@ -294,7 +325,7 @@ def vertonen(paket_zip: bytes) -> str:
         extra = {k: j[k] for k in ("temperature", "top_p") if j.get(k) is not None}
         if ENGINE == "sglang":
             import numpy as np
-            x = np.concatenate([_nach_24k(_tts_sglang(t, ref_pfad, ref.get("text") or "", extra))
+            x = np.concatenate([_nach_24k(_tts_sglang(t, ref_pfad, ref_text, extra))
                                 for t in teile(j["text"])])
             return j, pegel(x), time.time() - t0
         wav = _tts(j["text"], ref_audio, ref.get("text") or "", int(j.get("seed") or 0) or None, extra)
@@ -367,6 +398,8 @@ def main(paket: str = "", gewichte_laden: bool = False):
                 daten = b"".join(vol.read_file(f"/out/{j['key']}{end}"))
             except Exception:
                 break
+            if end == ".json" and not j.get("audio") and json.loads(daten)["info"].get("nach") != NACH:
+                break                              # alter Stand (andere Engine/Nachbearbeitung) -> nicht holen
             (out / f"{j['key']}{end}").write_bytes(daten)
         else:
             geholt += 1

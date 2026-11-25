@@ -77,6 +77,9 @@ def main(argv=None):
     lg = a.lang
     d = os.path.join(AUS, lg)
     os.makedirs(d, exist_ok=True)
+    for alt in os.listdir(d):                      # alte Takes weg (sonst stehen sie bei Fehlern im Hoertest)
+        if alt.endswith(".wav"):
+            os.remove(os.path.join(d, alt))
     paket = f"prosodie_test_{lg}"
     pd = os.path.join(config.BASE_DIR, "gpu_fish", paket)
     shutil.rmtree(pd, ignore_errors=True)
