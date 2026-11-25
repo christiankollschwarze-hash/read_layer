@@ -427,6 +427,7 @@ def run(werk, wer=None, regler=None, kapitel=None, neu=False, anweisungen=None, 
         usage_log.set_context(werk, STAGE, sprache=lg)
         kaps = list(dict.fromkeys(x["tid"][:4] for x in bts if x["typ"] != "ansage"))
         momente, ungueltig, offen_trocken = {}, 0, 0
+        llm_kaps = []                                    # (kap, hash, beitraege) -> parallel (25.11.2026)
         for kap in kaps:
             fig_bts = [x for x in bts if x["tid"].startswith(kap)]
             h = manifest.hash_obj({"v": PROMPT_V, "m": rg["modell"],
@@ -439,10 +440,22 @@ def run(werk, wer=None, regler=None, kapitel=None, neu=False, anweisungen=None, 
                     offen_trocken += 1
                     alt = {}
                 else:
-                    alt = momente_kapitel(fig_bts, lg, rg["modell"])
-                    n_llm += 1
-                    ck.schreiben(kap, lg, h, alt)
+                    llm_kaps.append((kap, h, fig_bts))
+                    continue
             momente.update(alt)
+        if llm_kaps:
+            import concurrent.futures as cf
+
+            def _kap(k):
+                usage_log.set_context(werk, STAGE, sprache=lg)      # Neben-Thread: Kontext je Thread
+                return k, momente_kapitel(k[2], lg, rg["modell"])
+            n_par = max(1, int(getattr(config, "FISH_REGIE_PARALLEL", 5)))
+            print(f"[430] {lg}: Momente fuer {len(llm_kaps)} Kapitel ({n_par} parallel)", flush=True)
+            with cf.ThreadPoolExecutor(n_par) as ex:
+                for (kap, h, _), alt in ex.map(_kap, llm_kaps):
+                    ck.schreiben(kap, lg, h, alt)               # Checkpoint je Kapitel (Abbruch -> Rest neu)
+                    momente.update(alt)
+                    n_llm += 1
         # Anweisungen
         man = korr.get(lg) or {}
         n_man, lang = 0, []
