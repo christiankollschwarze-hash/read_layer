@@ -1,0 +1,1616 @@
+[
+{
+"n": 1,
+"start": 0.0,
+"fig": "Erzaehler",
+"t": "Unter einem Baum vor dem Hause war eine Tafel gedeckt, und der Märzhase und der "
+},
+{
+"n": 2,
+"start": 20.96,
+"fig": "Alice",
+"t": "„Sehr unbequem für das Murmelthier,“"
+},
+{
+"n": 3,
+"start": 23.44,
+"fig": "Erzaehler",
+"t": "dachte Alice;"
+},
+{
+"n": 4,
+"start": 25.17,
+"fig": "Alice",
+"t": "„nur, da es schläft, macht es sich vermutlich nichts daraus.“"
+},
+{
+"n": 5,
+"start": 29.3,
+"fig": "Erzaehler",
+"t": "Der Tisch war groß, aber die Drei saßen dicht an einer Ecke zusammengedrängt."
+},
+{
+"n": 6,
+"start": 35.58,
+"fig": "Hatter",
+"t": "„Kein Platz! Kein Platz!“"
+},
+{
+"n": 7,
+"start": 38.8,
+"fig": "Erzaehler",
+"t": "riefen sie, als sie Alice kommen sahen."
+},
+{
+"n": 8,
+"start": 42.06,
+"fig": "Alice",
+"t": "„Es ist Platz genug da!“"
+},
+{
+"n": 9,
+"start": 44.03,
+"fig": "Erzaehler",
+"t": "sagte Alice entrüstet und setzte sich in einen großen Lehnstuhl an dem einen End"
+},
+{
+"n": 10,
+"start": 51.31,
+"fig": "March Hare",
+"t": "„Nimm etwas Wein,“"
+},
+{
+"n": 11,
+"start": 53.14,
+"fig": "Erzaehler",
+"t": "sagte der Märzhase in ermunterndem Tone."
+},
+{
+"n": 12,
+"start": 56.85,
+"fig": "Erzaehler",
+"t": "Alice sah über den ganzen Tisch hin, aber es war nichts darauf als Thee."
+},
+{
+"n": 13,
+"start": 62.53,
+"fig": "Alice",
+"t": "„Ich sehe keinen Wein,“"
+},
+{
+"n": 14,
+"start": 64.4,
+"fig": "Erzaehler",
+"t": "bemerkte sie."
+},
+{
+"n": 15,
+"start": 66.02,
+"fig": "March Hare",
+"t": "„Es ist keiner da,“"
+},
+{
+"n": 16,
+"start": 67.89,
+"fig": "Erzaehler",
+"t": "sagte der Märzhase."
+},
+{
+"n": 17,
+"start": 70.16,
+"fig": "Alice",
+"t": "„Dann war es nicht sehr höflich von dir, ihn anzubieten,“"
+},
+{
+"n": 18,
+"start": 73.52,
+"fig": "Erzaehler",
+"t": "sagte Alice ärgerlich."
+},
+{
+"n": 19,
+"start": 76.07,
+"fig": "March Hare",
+"t": "„Es war nicht sehr höflich von dir, dich ohne Einladung zu setzen,“"
+},
+{
+"n": 20,
+"start": 80.08,
+"fig": "Erzaehler",
+"t": "sagte der Märzhase."
+},
+{
+"n": 21,
+"start": 82.53,
+"fig": "Alice",
+"t": "„Ich wußte nicht, daß es dein Tisch ist,“"
+},
+{
+"n": 22,
+"start": 85.29,
+"fig": "Erzaehler",
+"t": "sagte Alice;"
+},
+{
+"n": 23,
+"start": 86.79,
+"fig": "Alice",
+"t": "„er ist für viel mehr als drei gedeckt.“"
+},
+{
+"n": 24,
+"start": 90.22,
+"fig": "Hatter",
+"t": "„Dein Haar muß geschnitten werden,“"
+},
+{
+"n": 25,
+"start": 93.11,
+"fig": "Erzaehler",
+"t": "sagte der Hutmacher. Er hatte Alice einige Zeit mit großer Neugierde angesehen, "
+},
+{
+"n": 26,
+"start": 102.76,
+"fig": "Alice",
+"t": "„Du solltest lernen, keine persönlichen Bemerkungen zu machen,“"
+},
+{
+"n": 27,
+"start": 106.68,
+"fig": "Erzaehler",
+"t": "sagte Alice mit einiger Strenge;"
+},
+{
+"n": 28,
+"start": 109.29,
+"fig": "Alice",
+"t": "„das ist sehr unhöflich.“"
+},
+{
+"n": 29,
+"start": 111.84,
+"fig": "Erzaehler",
+"t": "Der Hutmacher riß bei diesen Worten die Augen weit auf; aber er sagte weiter nic"
+},
+{
+"n": 30,
+"start": 119.1,
+"fig": "Hatter",
+"t": "„Warum ist ein Rabe wie ein Schreibtisch?“"
+},
+{
+"n": 31,
+"start": 123.18,
+"fig": "Alice",
+"t": "„Nun, jetzt wird’s lustig!“"
+},
+{
+"n": 32,
+"start": 125.52,
+"fig": "Erzaehler",
+"t": "dachte Alice."
+},
+{
+"n": 33,
+"start": 127.21,
+"fig": "Alice",
+"t": "„Es ist gut, daß sie anfangen, Räthsel aufzugeben. – Ich glaube, das kann ich ra"
+},
+{
+"n": 34,
+"start": 132.51,
+"fig": "Erzaehler",
+"t": "fügte sie laut hinzu."
+},
+{
+"n": 35,
+"start": 134.83,
+"fig": "March Hare",
+"t": "„Meinst du, daß du die Antwort darauf herausfinden kannst?“"
+},
+{
+"n": 36,
+"start": 138.33,
+"fig": "Erzaehler",
+"t": "fragte der Märzhase."
+},
+{
+"n": 37,
+"start": 140.64,
+"fig": "Alice",
+"t": "„Ganz genau,“"
+},
+{
+"n": 38,
+"start": 142.14,
+"fig": "Erzaehler",
+"t": "sagte Alice."
+},
+{
+"n": 39,
+"start": 144.18,
+"fig": "March Hare",
+"t": "„Dann solltest du sagen, was du meinst,“"
+},
+{
+"n": 40,
+"start": 146.89,
+"fig": "Erzaehler",
+"t": "fuhr der Märzhase fort."
+},
+{
+"n": 41,
+"start": 149.34,
+"fig": "Alice",
+"t": "„Das thue ich,“"
+},
+{
+"n": 42,
+"start": 150.75,
+"fig": "Erzaehler",
+"t": "antwortete Alice schnell;"
+},
+{
+"n": 43,
+"start": 153.09,
+"fig": "Alice",
+"t": "„wenigstens – wenigstens meine ich, was ich sage – das ist doch dasselbe, weißt "
+},
+{
+"n": 44,
+"start": 159.72,
+"fig": "Hatter",
+"t": "„Ganz und gar nicht dasselbe!“"
+},
+{
+"n": 45,
+"start": 162.62,
+"fig": "Erzaehler",
+"t": "sagte der Hutmacher."
+},
+{
+"n": 46,
+"start": 164.49,
+"fig": "Hatter",
+"t": "„Du könntest ebenso gut sagen: ‚Ich sehe, was ich esse‘ ist dasselbe wie ‚Ich es"
+},
+{
+"n": 47,
+"start": 173.45,
+"fig": "March Hare",
+"t": "„Du könntest ebenso gut sagen,“"
+},
+{
+"n": 48,
+"start": 175.83,
+"fig": "Erzaehler",
+"t": "fügte der Märzhase hinzu,"
+},
+{
+"n": 49,
+"start": 178.72,
+"fig": "March Hare",
+"t": "„‚Ich mag, was ich bekomme‘ ist dasselbe wie ‚Ich bekomme, was ich mag‘!“"
+},
+{
+"n": 50,
+"start": 184.52,
+"fig": "Dormouse",
+"t": "„Du könntest ebenso gut sagen,“"
+},
+{
+"n": 51,
+"start": 189.18,
+"fig": "Erzaehler",
+"t": "fügte das Murmelthier hinzu, das im Schlafe zu sprechen schien,"
+},
+{
+"n": 52,
+"start": 194.58,
+"fig": "Dormouse",
+"t": "„‚Ich athme, wenn ich schlafe‘ ist dasselbe wie ‚Ich schlafe, wenn ich athme‘!“"
+},
+{
+"n": 53,
+"start": 203.58,
+"fig": "Hatter",
+"t": "„Bei dir ist es allerdings dasselbe,“"
+},
+{
+"n": 54,
+"start": 206.76,
+"fig": "Erzaehler",
+"t": "sagte der Hutmacher, und hierbei schlief das Gespräch ein. Die Gesellschaft saß "
+},
+{
+"n": 55,
+"start": 222.77,
+"fig": "Erzaehler",
+"t": "Der Hutmacher brach zuerst das Schweigen."
+},
+{
+"n": 56,
+"start": 226.13,
+"fig": "Hatter",
+"t": "„Den wievielten haben wir im Monat?“"
+},
+{
+"n": 57,
+"start": 228.89,
+"fig": "Erzaehler",
+"t": "sagte er, sich an Alice wendend. Er hatte seine Uhr aus der Tasche gezogen, sah "
+},
+{
+"n": 58,
+"start": 241.05,
+"fig": "Erzaehler",
+"t": "Alice überlegte ein wenig und sagte dann:"
+},
+{
+"n": 59,
+"start": 244.36,
+"fig": "Alice",
+"t": "„Den vierten.“"
+},
+{
+"n": 60,
+"start": 246.16,
+"fig": "Hatter",
+"t": "„Zwei Tage falsch!“"
+},
+{
+"n": 61,
+"start": 248.41,
+"fig": "Erzaehler",
+"t": "seufzte der Hutmacher."
+},
+{
+"n": 62,
+"start": 250.7,
+"fig": "Hatter",
+"t": "„Ich habe dir ja gesagt, Butter bekäme dem Uhrwerk nicht!“"
+},
+{
+"n": 63,
+"start": 255.08,
+"fig": "Erzaehler",
+"t": "fügte er hinzu und sah den Märzhasen ärgerlich an."
+},
+{
+"n": 64,
+"start": 259.71,
+"fig": "March Hare",
+"t": "„Es war die beste Butter,“"
+},
+{
+"n": 65,
+"start": 262.42,
+"fig": "Erzaehler",
+"t": "antwortete der Märzhase demüthig."
+},
+{
+"n": 66,
+"start": 266.04,
+"fig": "Hatter",
+"t": "„Ja, aber es müssen auch Brotkrumen hineingekommen sein,“"
+},
+{
+"n": 67,
+"start": 270.42,
+"fig": "Erzaehler",
+"t": "brummte der Hutmacher."
+},
+{
+"n": 68,
+"start": 272.38,
+"fig": "Hatter",
+"t": "„Du hättest sie nicht mit dem Brodmesser hineinthun sollen.“"
+},
+{
+"n": 69,
+"start": 277.3,
+"fig": "Erzaehler",
+"t": "Der Märzhase nahm die Uhr und betrachtete sie trübselig. Dann tauchte er sie in "
+},
+{
+"n": 70,
+"start": 292.32,
+"fig": "March Hare",
+"t": "„Es war die beste Butter, weißt du.“"
+},
+{
+"n": 71,
+"start": 295.61,
+"fig": "Erzaehler",
+"t": "Alice hatte ihm neugierig über die Schulter gesehen."
+},
+{
+"n": 72,
+"start": 299.43,
+"fig": "Alice",
+"t": "„Was für eine komische Uhr!“"
+},
+{
+"n": 73,
+"start": 302.0,
+"fig": "Erzaehler",
+"t": "bemerkte sie."
+},
+{
+"n": 74,
+"start": 303.55,
+"fig": "Alice",
+"t": "„Sie zeigt den Tag des Monats an, und sie zeigt nicht an, wie spät es ist!“"
+},
+{
+"n": 75,
+"start": 309.02,
+"fig": "Hatter",
+"t": "„Warum sollte sie?“"
+},
+{
+"n": 76,
+"start": 311.17,
+"fig": "Erzaehler",
+"t": "brummte der Hutmacher."
+},
+{
+"n": 77,
+"start": 313.18,
+"fig": "Hatter",
+"t": "„Zeigt deine Uhr an, welches Jahr es ist?“"
+},
+{
+"n": 78,
+"start": 316.75,
+"fig": "Alice",
+"t": "„Natürlich nicht,“"
+},
+{
+"n": 79,
+"start": 318.25,
+"fig": "Erzaehler",
+"t": "antwortete Alice sehr bereitwillig;"
+},
+{
+"n": 80,
+"start": 321.61,
+"fig": "Alice",
+"t": "„aber das kommt daher, daß es so lange hintereinander dasselbe Jahr bleibt.“"
+},
+{
+"n": 81,
+"start": 327.36,
+"fig": "Hatter",
+"t": "„Was bei meiner gerade auch der Fall ist,“"
+},
+{
+"n": 82,
+"start": 330.77,
+"fig": "Erzaehler",
+"t": "sagte der Hutmacher."
+},
+{
+"n": 83,
+"start": 332.8,
+"fig": "Erzaehler",
+"t": "Alice war furchtbar verwirrt. Die Bemerkung des Hutmachers schien gar keinen Sin"
+},
+{
+"n": 84,
+"start": 342.62,
+"fig": "Alice",
+"t": "„Ich verstehe dich nicht ganz,“"
+},
+{
+"n": 85,
+"start": 344.68,
+"fig": "Erzaehler",
+"t": "sagte sie so höflich wie möglich."
+},
+{
+"n": 86,
+"start": 347.64,
+"fig": "Hatter",
+"t": "„Das Murmelthier schläft wieder,“"
+},
+{
+"n": 87,
+"start": 350.58,
+"fig": "Erzaehler",
+"t": "sagte der Hutmacher und goß ihm etwas heißen Thee auf die Nase."
+},
+{
+"n": 88,
+"start": 355.82,
+"fig": "Erzaehler",
+"t": "Das Murmelthier schüttelte ungeduldig den Kopf und sagte, ohne die Augen zu öffn"
+},
+{
+"n": 89,
+"start": 362.62,
+"fig": "Dormouse",
+"t": "„Natürlich, natürlich; gerade was ich selbst bemerken wollte.“"
+},
+{
+"n": 90,
+"start": 370.88,
+"fig": "Hatter",
+"t": "„Hast du das Räthsel schon errathen?“"
+},
+{
+"n": 91,
+"start": 373.72,
+"fig": "Erzaehler",
+"t": "fragte der Hutmacher, sich wieder an Alice wendend."
+},
+{
+"n": 92,
+"start": 377.76,
+"fig": "Alice",
+"t": "„Nein, ich gebe es auf,“"
+},
+{
+"n": 93,
+"start": 380.19,
+"fig": "Erzaehler",
+"t": "antwortete Alice;"
+},
+{
+"n": 94,
+"start": 382.06,
+"fig": "Alice",
+"t": "„was ist die Antwort?“"
+},
+{
+"n": 95,
+"start": 383.96,
+"fig": "Hatter",
+"t": "„Ich habe nicht die geringste Ahnung,“"
+},
+{
+"n": 96,
+"start": 387.27,
+"fig": "Erzaehler",
+"t": "sagte der Hutmacher."
+},
+{
+"n": 97,
+"start": 389.54,
+"fig": "March Hare",
+"t": "„Ich auch nicht,“"
+},
+{
+"n": 98,
+"start": 391.74,
+"fig": "Erzaehler",
+"t": "sagte der Märzhase."
+},
+{
+"n": 99,
+"start": 393.82,
+"fig": "Erzaehler",
+"t": "Alice seufzte müde."
+},
+{
+"n": 100,
+"start": 396.06,
+"fig": "Alice",
+"t": "„Ich denke, ihr könntet etwas Besseres mit der Zeit anfangen,“"
+},
+{
+"n": 101,
+"start": 399.65,
+"fig": "Erzaehler",
+"t": "sagte sie,"
+},
+{
+"n": 102,
+"start": 401.2,
+"fig": "Alice",
+"t": "„als sie mit Räthseln zu vergeuden, die keine Antwort haben.“"
+},
+{
+"n": 103,
+"start": 405.47,
+"fig": "Hatter",
+"t": "„Wenn du die Zeit so gut kenntest wie ich,“"
+},
+{
+"n": 104,
+"start": 409.34,
+"fig": "Erzaehler",
+"t": "sagte der Hutmacher,"
+},
+{
+"n": 105,
+"start": 411.58,
+"fig": "Hatter",
+"t": "„würdest du nicht davon reden, sie zu vergeuden. Es ist Er.“"
+},
+{
+"n": 106,
+"start": 417.47,
+"fig": "Alice",
+"t": "„Ich weiß nicht, was du meinst,“"
+},
+{
+"n": 107,
+"start": 419.58,
+"fig": "Erzaehler",
+"t": "sagte Alice."
+},
+{
+"n": 108,
+"start": 421.38,
+"fig": "Hatter",
+"t": "„Natürlich weißt du das nicht!“"
+},
+{
+"n": 109,
+"start": 423.95,
+"fig": "Erzaehler",
+"t": "sagte der Hutmacher und warf verächtlich den Kopf zurück."
+},
+{
+"n": 110,
+"start": 428.42,
+"fig": "Hatter",
+"t": "„Ich wette, du hast nie auch nur mit der Zeit gesprochen!“"
+},
+{
+"n": 111,
+"start": 433.01,
+"fig": "Alice",
+"t": "„Vielleicht nicht,“"
+},
+{
+"n": 112,
+"start": 434.52,
+"fig": "Erzaehler",
+"t": "antwortete Alice vorsichtig;"
+},
+{
+"n": 113,
+"start": 437.18,
+"fig": "Alice",
+"t": "„aber ich weiß, daß ich beim Musiklernen die Zeit schlagen muß.“"
+},
+{
+"n": 114,
+"start": 441.58,
+"fig": "Hatter",
+"t": "„Ah! das erklärt es,“"
+},
+{
+"n": 115,
+"start": 444.2,
+"fig": "Erzaehler",
+"t": "sagte der Hutmacher."
+},
+{
+"n": 116,
+"start": 446.26,
+"fig": "Hatter",
+"t": "„Er will nicht geschlagen werden. Wenn du nur gut mit ihm stündest, würde er mit"
+},
+{
+"n": 117,
+"start": 469.35,
+"fig": "March Hare",
+"t": "„Ich wollte nur, es wäre so,“"
+},
+{
+"n": 118,
+"start": 471.69,
+"fig": "Erzaehler",
+"t": "flüsterte der Märzhase vor sich hin."
+},
+{
+"n": 119,
+"start": 475.07,
+"fig": "Alice",
+"t": "„Das wäre freilich großartig,“"
+},
+{
+"n": 120,
+"start": 477.59,
+"fig": "Erzaehler",
+"t": "sagte Alice nachdenklich;"
+},
+{
+"n": 121,
+"start": 479.7,
+"fig": "Alice",
+"t": "„aber dann – ich hätte noch keinen Hunger, weißt du.“"
+},
+{
+"n": 122,
+"start": 483.08,
+"fig": "Hatter",
+"t": "„Anfangs vielleicht nicht,“"
+},
+{
+"n": 123,
+"start": 485.14,
+"fig": "Erzaehler",
+"t": "sagte der Hutmacher;"
+},
+{
+"n": 124,
+"start": 487.15,
+"fig": "Hatter",
+"t": "„aber du könntest es auf halb zwei halten, so lange du wolltest.“"
+},
+{
+"n": 125,
+"start": 492.63,
+"fig": "Alice",
+"t": "„Macht ihr es so?“"
+},
+{
+"n": 126,
+"start": 494.08,
+"fig": "Erzaehler",
+"t": "fragte Alice."
+},
+{
+"n": 127,
+"start": 496.02,
+"fig": "Erzaehler",
+"t": "Der Hutmacher schüttelte traurig den Kopf."
+},
+{
+"n": 128,
+"start": 499.57,
+"fig": "Hatter",
+"t": "„Ich nicht!“"
+},
+{
+"n": 129,
+"start": 501.12,
+"fig": "Erzaehler",
+"t": "antwortete er."
+},
+{
+"n": 130,
+"start": 502.62,
+"fig": "Hatter",
+"t": "„Wir haben uns letzten März gezankt – gerade bevor er verrückt wurde, weißt du –"
+},
+{
+"n": 131,
+"start": 508.39,
+"fig": "Erzaehler",
+"t": "(dabei zeigte er mit dem Theelöffel auf den Märzhasen,)"
+},
+{
+"n": 132,
+"start": 512.31,
+"fig": "Hatter",
+"t": "„– es war bei dem großen Concert, das die Herz-Königin gab, und ich mußte singen"
+},
+{
+"n": 133,
+"start": 527.11,
+"fig": "Alice",
+"t": "„Ich habe so etwas gehört,“"
+},
+{
+"n": 134,
+"start": 529.03,
+"fig": "Erzaehler",
+"t": "sagte Alice."
+},
+{
+"n": 135,
+"start": 531.07,
+"fig": "Hatter",
+"t": "„Es geht weiter, weißt du,“"
+},
+{
+"n": 136,
+"start": 533.13,
+"fig": "Erzaehler",
+"t": "fuhr der Hutmacher fort,"
+},
+{
+"n": 137,
+"start": 535.23,
+"fig": "Hatter",
+"t": "„so: ‚Hoch über uns die Welt du fliegst,\nWie ein Theebrett, das am Himmel liegt."
+},
+{
+"n": 138,
+"start": 544.53,
+"fig": "Erzaehler",
+"t": "Hier schüttelte sich das Murmelthier und fing im Schlafe an zu singen:"
+},
+{
+"n": 139,
+"start": 549.8,
+"fig": "Dormouse",
+"t": "„Funkle, funkle, funkle, funkle –“"
+},
+{
+"n": 140,
+"start": 555.2,
+"fig": "Erzaehler",
+"t": "und fuhr so lange fort, daß sie es kneifen mußten, um es zum Schweigen zu bringe"
+},
+{
+"n": 141,
+"start": 561.14,
+"fig": "Hatter",
+"t": "„Nun, ich hatte kaum den ersten Vers beendet,“"
+},
+{
+"n": 142,
+"start": 564.63,
+"fig": "Erzaehler",
+"t": "sagte der Hutmacher,"
+},
+{
+"n": 143,
+"start": 566.6,
+"fig": "Hatter",
+"t": "„als die Königin aufsprang und brüllte: ‚Er mordet die Zeit! Herunter mit seinem"
+},
+{
+"n": 144,
+"start": 573.88,
+"fig": "Alice",
+"t": "„Wie schrecklich grausam!“"
+},
+{
+"n": 145,
+"start": 576.36,
+"fig": "Erzaehler",
+"t": "rief Alice."
+},
+{
+"n": 146,
+"start": 578.12,
+"fig": "Hatter",
+"t": "„Und seitdem,“"
+},
+{
+"n": 147,
+"start": 579.71,
+"fig": "Erzaehler",
+"t": "fuhr der Hutmacher in traurigem Tone fort,"
+},
+{
+"n": 148,
+"start": 583.21,
+"fig": "Hatter",
+"t": "„thut er nichts von dem, was ich verlange! Es ist jetzt immer sechs Uhr.“"
+},
+{
+"n": 149,
+"start": 589.52,
+"fig": "Erzaehler",
+"t": "Alice kam ein heller Gedanke."
+},
+{
+"n": 150,
+"start": 592.37,
+"fig": "Alice",
+"t": "„Ist das der Grund, warum hier so viele Theesachen herumstehen?“"
+},
+{
+"n": 151,
+"start": 596.14,
+"fig": "Erzaehler",
+"t": "fragte sie."
+},
+{
+"n": 152,
+"start": 597.81,
+"fig": "Hatter",
+"t": "„Ja, das ist es,“"
+},
+{
+"n": 153,
+"start": 600.47,
+"fig": "Erzaehler",
+"t": "sagte der Hutmacher mit einem Seufzer;"
+},
+{
+"n": 154,
+"start": 604.11,
+"fig": "Hatter",
+"t": "„es ist immer Theestunde, und wir haben keine Zeit, das Geschirr zwischendurch z"
+},
+{
+"n": 155,
+"start": 610.14,
+"fig": "Alice",
+"t": "„Dann rückt ihr wohl immer weiter, nehme ich an?“"
+},
+{
+"n": 156,
+"start": 612.85,
+"fig": "Erzaehler",
+"t": "sagte Alice."
+},
+{
+"n": 157,
+"start": 614.79,
+"fig": "Hatter",
+"t": "„Ganz recht,“"
+},
+{
+"n": 158,
+"start": 616.01,
+"fig": "Erzaehler",
+"t": "sagte der Hutmacher;"
+},
+{
+"n": 159,
+"start": 617.98,
+"fig": "Hatter",
+"t": "„wenn die Sachen verbraucht sind.“"
+},
+{
+"n": 160,
+"start": 621.13,
+"fig": "Alice",
+"t": "„Aber was geschieht, wenn ihr wieder an den Anfang kommt?“"
+},
+{
+"n": 161,
+"start": 624.44,
+"fig": "Erzaehler",
+"t": "wagte Alice zu fragen."
+},
+{
+"n": 162,
+"start": 626.94,
+"fig": "March Hare",
+"t": "„Wir wollen das Thema wechseln,“"
+},
+{
+"n": 163,
+"start": 629.19,
+"fig": "Erzaehler",
+"t": "unterbrach sie der Märzhase gähnend."
+},
+{
+"n": 164,
+"start": 632.22,
+"fig": "March Hare",
+"t": "„Ich werde dessen müde. Ich schlage vor, die junge Dame erzählt uns eine Geschic"
+},
+{
+"n": 165,
+"start": 637.93,
+"fig": "Alice",
+"t": "„Ich fürchte, ich weiß keine,“"
+},
+{
+"n": 166,
+"start": 640.35,
+"fig": "Erzaehler",
+"t": "sagte Alice, ziemlich erschrocken über den Vorschlag."
+},
+{
+"n": 167,
+"start": 644.53,
+"fig": "Hatter",
+"t": "„Dann soll das Murmelthier!“"
+},
+{
+"n": 168,
+"start": 647.24,
+"fig": "Erzaehler",
+"t": "riefen beide."
+},
+{
+"n": 169,
+"start": 648.74,
+"fig": "Hatter",
+"t": "„Wach auf, Murmelthier!“"
+},
+{
+"n": 170,
+"start": 651.21,
+"fig": "Erzaehler",
+"t": "Und sie kniffen es zu gleicher Zeit von beiden Seiten."
+},
+{
+"n": 171,
+"start": 655.66,
+"fig": "Erzaehler",
+"t": "Das Murmelthier öffnete langsam die Augen."
+},
+{
+"n": 172,
+"start": 659.53,
+"fig": "Dormouse",
+"t": "„Ich habe nicht geschlafen,“"
+},
+{
+"n": 173,
+"start": 662.61,
+"fig": "Erzaehler",
+"t": "sagte es mit heiserer, matter Stimme."
+},
+{
+"n": 174,
+"start": 666.2,
+"fig": "Dormouse",
+"t": "„Ich habe jedes Wort gehört, das ihr Kerle gesagt habt.“"
+},
+{
+"n": 175,
+"start": 672.65,
+"fig": "March Hare",
+"t": "„Erzähle uns eine Geschichte!“"
+},
+{
+"n": 176,
+"start": 674.76,
+"fig": "Erzaehler",
+"t": "sagte der Märzhase."
+},
+{
+"n": 177,
+"start": 677.07,
+"fig": "Alice",
+"t": "„Ja, bitte, thu es!“"
+},
+{
+"n": 178,
+"start": 679.36,
+"fig": "Erzaehler",
+"t": "bat Alice."
+},
+{
+"n": 179,
+"start": 681.31,
+"fig": "Hatter",
+"t": "„Und beeile dich,“"
+},
+{
+"n": 180,
+"start": 683.13,
+"fig": "Erzaehler",
+"t": "fügte der Hutmacher hinzu,"
+},
+{
+"n": 181,
+"start": 685.38,
+"fig": "Hatter",
+"t": "„sonst schläfst du wieder ein, bevor du fertig bist.“"
+},
+{
+"n": 182,
+"start": 689.27,
+"fig": "Dormouse",
+"t": "„Es waren einmal drei kleine Schwestern,“"
+},
+{
+"n": 183,
+"start": 693.98,
+"fig": "Erzaehler",
+"t": "begann das Murmelthier in großer Eile,"
+},
+{
+"n": 184,
+"start": 697.89,
+"fig": "Dormouse",
+"t": "„und sie hießen Elsie, Lacie und Tillie; und sie lebten auf dem Grunde eines Bru"
+},
+{
+"n": 185,
+"start": 710.01,
+"fig": "Alice",
+"t": "„Wovon lebten sie?“"
+},
+{
+"n": 186,
+"start": 711.65,
+"fig": "Erzaehler",
+"t": "fragte Alice, die sich stets sehr für Fragen des Essens und Trinkens interessirt"
+},
+{
+"n": 187,
+"start": 717.58,
+"fig": "Dormouse",
+"t": "„Sie lebten von Sirup,“"
+},
+{
+"n": 188,
+"start": 720.53,
+"fig": "Erzaehler",
+"t": "sagte das Murmelthier, nachdem es eine Minute oder zwei nachgedacht hatte."
+},
+{
+"n": 189,
+"start": 726.42,
+"fig": "Alice",
+"t": "„Das hätten sie nicht gekonnt, weißt du,“"
+},
+{
+"n": 190,
+"start": 729.08,
+"fig": "Erzaehler",
+"t": "bemerkte Alice sanft."
+},
+{
+"n": 191,
+"start": 731.14,
+"fig": "Alice",
+"t": "„Sie wären krank geworden.“"
+},
+{
+"n": 192,
+"start": 733.54,
+"fig": "Dormouse",
+"t": "„Das wurden sie auch,“"
+},
+{
+"n": 193,
+"start": 736.86,
+"fig": "Erzaehler",
+"t": "sagte das Murmelthier."
+},
+{
+"n": 194,
+"start": 738.92,
+"fig": "Dormouse",
+"t": "„Sehr krank.“"
+},
+{
+"n": 195,
+"start": 742.11,
+"fig": "Erzaehler",
+"t": "Alice versuchte sich vorzustellen, wie eine so außergewöhnliche Lebensweise wohl"
+},
+{
+"n": 196,
+"start": 752.76,
+"fig": "Alice",
+"t": "„Aber warum lebten sie auf dem Grunde eines Brunnens?“"
+},
+{
+"n": 197,
+"start": 756.66,
+"fig": "March Hare",
+"t": "„Nimm noch etwas Thee,“"
+},
+{
+"n": 198,
+"start": 758.48,
+"fig": "Erzaehler",
+"t": "sagte der Märzhase sehr ernst zu Alice."
+},
+{
+"n": 199,
+"start": 762.38,
+"fig": "Alice",
+"t": "„Ich habe noch gar nichts gehabt,“"
+},
+{
+"n": 200,
+"start": 764.99,
+"fig": "Erzaehler",
+"t": "antwortete Alice in beleidigtem Tone,"
+},
+{
+"n": 201,
+"start": 768.35,
+"fig": "Alice",
+"t": "„also kann ich nicht noch mehr nehmen.“"
+},
+{
+"n": 202,
+"start": 771.41,
+"fig": "Hatter",
+"t": "„Du meinst, du kannst nicht weniger nehmen,“"
+},
+{
+"n": 203,
+"start": 775.05,
+"fig": "Erzaehler",
+"t": "sagte der Hutmacher."
+},
+{
+"n": 204,
+"start": 776.92,
+"fig": "Hatter",
+"t": "„Es ist sehr leicht, mehr als nichts zu nehmen.“"
+},
+{
+"n": 205,
+"start": 781.32,
+"fig": "Alice",
+"t": "„Niemand hat dich um deine Meinung gefragt,“"
+},
+{
+"n": 206,
+"start": 783.8,
+"fig": "Erzaehler",
+"t": "sagte Alice."
+},
+{
+"n": 207,
+"start": 785.84,
+"fig": "Hatter",
+"t": "„Wer macht jetzt persönliche Bemerkungen?“"
+},
+{
+"n": 208,
+"start": 789.71,
+"fig": "Erzaehler",
+"t": "fragte der Hutmacher triumphirend."
+},
+{
+"n": 209,
+"start": 792.72,
+"fig": "Erzaehler",
+"t": "Alice wußte nicht recht, was sie darauf sagen sollte; sie nahm sich etwas Thee u"
+},
+{
+"n": 210,
+"start": 803.79,
+"fig": "Alice",
+"t": "„Warum lebten sie auf dem Grunde eines Brunnens?“"
+},
+{
+"n": 211,
+"start": 807.31,
+"fig": "Erzaehler",
+"t": "Das Murmelthier dachte wieder eine Minute oder zwei nach und sagte dann:"
+},
+{
+"n": 212,
+"start": 813.73,
+"fig": "Dormouse",
+"t": "„Es war ein Sirup-Brunnen.“"
+},
+{
+"n": 213,
+"start": 817.58,
+"fig": "Alice",
+"t": "„So etwas giebt es nicht!“"
+},
+{
+"n": 214,
+"start": 819.55,
+"fig": "Erzaehler",
+"t": "fing Alice sehr ärgerlich an, aber der Hutmacher und der Märzhase machten"
+},
+{
+"n": 215,
+"start": 825.41,
+"fig": "Hatter",
+"t": "„Pst! pst!“"
+},
+{
+"n": 216,
+"start": 827.14,
+"fig": "Erzaehler",
+"t": "und das Murmelthier bemerkte schmollend:"
+},
+{
+"n": 217,
+"start": 830.22,
+"fig": "Dormouse",
+"t": "„Wenn du nicht höflich sein kannst, solltest du die Geschichte lieber selbst zu "
+},
+{
+"n": 218,
+"start": 839.04,
+"fig": "Alice",
+"t": "„Nein, bitte, erzähle weiter!“"
+},
+{
+"n": 219,
+"start": 841.56,
+"fig": "Erzaehler",
+"t": "sagte Alice sehr demüthig."
+},
+{
+"n": 220,
+"start": 844.18,
+"fig": "Alice",
+"t": "„Ich will nicht wieder unterbrechen. Es mag wohl einen geben.“"
+},
+{
+"n": 221,
+"start": 848.26,
+"fig": "Dormouse",
+"t": "„Einen, allerdings!“"
+},
+{
+"n": 222,
+"start": 851.94,
+"fig": "Erzaehler",
+"t": "sagte das Murmelthier entrüstet. Doch willigte es ein fortzufahren."
+},
+{
+"n": 223,
+"start": 857.07,
+"fig": "Dormouse",
+"t": "„Und so lernten diese drei kleinen Schwestern – zeichnen, weißt du –“"
+},
+{
+"n": 224,
+"start": 865.42,
+"fig": "Alice",
+"t": "„Was zeichneten sie?“"
+},
+{
+"n": 225,
+"start": 867.25,
+"fig": "Erzaehler",
+"t": "sagte Alice, die ihr Versprechen ganz vergessen hatte."
+},
+{
+"n": 226,
+"start": 871.46,
+"fig": "Dormouse",
+"t": "„Sirup,“"
+},
+{
+"n": 227,
+"start": 874.22,
+"fig": "Erzaehler",
+"t": "sagte das Murmelthier, diesmal ohne sich im Geringsten zu bedenken."
+},
+{
+"n": 228,
+"start": 880.11,
+"fig": "Hatter",
+"t": "„Ich will eine saubere Tasse,“"
+},
+{
+"n": 229,
+"start": 882.87,
+"fig": "Erzaehler",
+"t": "unterbrach der Hutmacher."
+},
+{
+"n": 230,
+"start": 884.88,
+"fig": "Hatter",
+"t": "„Laßt uns alle einen Platz weiterrücken.“"
+},
+{
+"n": 231,
+"start": 888.17,
+"fig": "Erzaehler",
+"t": "Er rückte weiter, während er sprach, und das Murmelthier folgte ihm. Der Märzhas"
+},
+{
+"n": 232,
+"start": 914.03,
+"fig": "Erzaehler",
+"t": "Alice wollte das Murmelthier nicht noch einmal kränken, deshalb begann sie sehr "
+},
+{
+"n": 233,
+"start": 920.82,
+"fig": "Alice",
+"t": "„Aber ich verstehe nicht. Woher holten sie den Sirup?“"
+},
+{
+"n": 234,
+"start": 925.46,
+"fig": "Hatter",
+"t": "„Du kannst Wasser aus einem Wasser-Brunnen holen,“"
+},
+{
+"n": 235,
+"start": 929.14,
+"fig": "Erzaehler",
+"t": "sagte der Hutmacher,"
+},
+{
+"n": 236,
+"start": 930.97,
+"fig": "Hatter",
+"t": "„also solltest du wohl auch Sirup aus einem Sirup-Brunnen holen können – wie, Du"
+},
+{
+"n": 237,
+"start": 937.98,
+"fig": "Alice",
+"t": "„Aber sie waren doch in dem Brunnen,“"
+},
+{
+"n": 238,
+"start": 939.94,
+"fig": "Erzaehler",
+"t": "sagte Alice zu dem Murmelthier, ohne die letzte Bemerkung beachten zu wollen."
+},
+{
+"n": 239,
+"start": 945.83,
+"fig": "Dormouse",
+"t": "„Natürlich waren sie das,“"
+},
+{
+"n": 240,
+"start": 949.05,
+"fig": "Erzaehler",
+"t": "sagte das Murmelthier."
+},
+{
+"n": 241,
+"start": 951.11,
+"fig": "Dormouse",
+"t": "„– ganz drin.“"
+},
+{
+"n": 242,
+"start": 954.28,
+"fig": "Erzaehler",
+"t": "Diese Antwort verwirrte die arme Alice so sehr, daß sie das Murmelthier einige Z"
+},
+{
+"n": 243,
+"start": 963.7,
+"fig": "Dormouse",
+"t": "„Sie lernten zeichnen,“"
+},
+{
+"n": 244,
+"start": 967.25,
+"fig": "Erzaehler",
+"t": "fuhr das Murmelthier fort, gähnend und sich die Augen reibend, denn es wurde seh"
+},
+{
+"n": 245,
+"start": 974.6,
+"fig": "Dormouse",
+"t": "„und sie zeichneten alle möglichen Dinge – alles, was mit einem M anfängt –“"
+},
+{
+"n": 246,
+"start": 982.63,
+"fig": "Alice",
+"t": "„Warum mit einem M?“"
+},
+{
+"n": 247,
+"start": 984.59,
+"fig": "Erzaehler",
+"t": "fragte Alice."
+},
+{
+"n": 248,
+"start": 986.68,
+"fig": "March Hare",
+"t": "„Warum nicht?“"
+},
+{
+"n": 249,
+"start": 988.04,
+"fig": "Erzaehler",
+"t": "sagte der Märzhase."
+},
+{
+"n": 250,
+"start": 990.17,
+"fig": "Erzaehler",
+"t": "Alice schwieg."
+},
+{
+"n": 251,
+"start": 992.16,
+"fig": "Erzaehler",
+"t": "Das Murmelthier hatte inzwischen die Augen geschlossen und war im Begriff einzun"
+},
+{
+"n": 252,
+"start": 1005.31,
+"fig": "Dormouse",
+"t": "„– was mit einem M anfängt, wie Mausefallen und der Mond und memory und muchness"
+},
+{
+"n": 253,
+"start": 1028.16,
+"fig": "Alice",
+"t": "„Wirklich, da du mich jetzt fragst,“"
+},
+{
+"n": 254,
+"start": 1030.82,
+"fig": "Erzaehler",
+"t": "sagte Alice, sehr verwirrt,"
+},
+{
+"n": 255,
+"start": 1033.39,
+"fig": "Alice",
+"t": "„ich glaube nicht –“"
+},
+{
+"n": 256,
+"start": 1035.7,
+"fig": "Hatter",
+"t": "„Dann solltest du nicht reden,“"
+},
+{
+"n": 257,
+"start": 1038.23,
+"fig": "Erzaehler",
+"t": "sagte der Hutmacher."
+},
+{
+"n": 258,
+"start": 1040.4,
+"fig": "Erzaehler",
+"t": "Diese Grobheit war mehr, als Alice ertragen konnte: sie stand in großem Abscheu "
+},
+{
+"n": 259,
+"start": 1070.91,
+"fig": "Alice",
+"t": "„Jedenfalls gehe ich nie wieder dorthin!“"
+},
+{
+"n": 260,
+"start": 1073.66,
+"fig": "Erzaehler",
+"t": "sagte Alice, während sie sich ihren Weg durch den Wald suchte."
+},
+{
+"n": 261,
+"start": 1077.85,
+"fig": "Alice",
+"t": "„Es ist die dümmste Theegesellschaft, auf der ich je in meinem ganzen Leben war!"
+},
+{
+"n": 262,
+"start": 1083.19,
+"fig": "Erzaehler",
+"t": "Gerade als sie dies sagte, bemerkte sie, daß einer der Bäume eine Thür hatte, di"
+},
+{
+"n": 263,
+"start": 1092.17,
+"fig": "Alice",
+"t": "„Das ist sehr sonderbar!“"
+},
+{
+"n": 264,
+"start": 1094.27,
+"fig": "Erzaehler",
+"t": "dachte sie."
+},
+{
+"n": 265,
+"start": 1095.59,
+"fig": "Alice",
+"t": "„Aber heute ist alles sonderbar. Ich glaube, ich kann ebenso gut gleich hineinge"
+},
+{
+"n": 266,
+"start": 1102.06,
+"fig": "Erzaehler",
+"t": "Und hinein ging sie."
+},
+{
+"n": 267,
+"start": 1104.37,
+"fig": "Erzaehler",
+"t": "Wieder fand sie sich in der langen Halle und dicht bei dem kleinen Glastisch."
+},
+{
+"n": 268,
+"start": 1109.87,
+"fig": "Alice",
+"t": "„Nun, diesmal will ich es besser machen,“"
+},
+{
+"n": 269,
+"start": 1112.71,
+"fig": "Erzaehler",
+"t": "sagte sie sich und begann damit, den kleinen goldenen Schlüssel zu nehmen und di"
+}
+]

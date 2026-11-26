@@ -1,0 +1,90 @@
+{
+ "werk": "prosodie_test",
+ "lang": "de",
+ "jobs": [
+  {
+   "id": "2_anweisung_01",
+   "figur": "Mira",
+   "stimme": "w_kind_hoch_neugierig",
+   "text": "",
+   "lang": "de"
+  },
+  {
+   "id": "2_anweisung_03",
+   "figur": "Holm",
+   "stimme": "m_alt_mittel_ruhig",
+   "text": "",
+   "lang": "de"
+  },
+  {
+   "id": "2_anweisung_05",
+   "figur": "Mira",
+   "stimme": "w_kind_hoch_neugierig",
+   "text": "",
+   "lang": "de"
+  },
+  {
+   "id": "2_anweisung_07",
+   "figur": "Alba",
+   "stimme": "grossmutter_b",
+   "text": "",
+   "lang": "de"
+  },
+  {
+   "id": "2_anweisung_09",
+   "figur": "Brand",
+   "stimme": "m_alt_tief_cholerisch",
+   "text": "",
+   "lang": "de"
+  },
+  {
+   "id": "2_anweisung_11",
+   "figur": "Oda",
+   "stimme": "w_jung_mittel_ruhig",
+   "text": "",
+   "lang": "de"
+  },
+  {
+   "id": "3_stark_01",
+   "figur": "Mira",
+   "stimme": "w_kind_hoch_neugierig",
+   "text": "",
+   "lang": "de"
+  },
+  {
+   "id": "3_stark_03",
+   "figur": "Holm",
+   "stimme": "m_alt_mittel_ruhig",
+   "text": "",
+   "lang": "de"
+  },
+  {
+   "id": "3_stark_05",
+   "figur": "Mira",
+   "stimme": "w_kind_hoch_neugierig",
+   "text": "",
+   "lang": "de"
+  },
+  {
+   "id": "3_stark_07",
+   "figur": "Alba",
+   "stimme": "grossmutter_b",
+   "text": "",
+   "lang": "de"
+  },
+  {
+   "id": "3_stark_09",
+   "figur": "Brand",
+   "stimme": "m_alt_tief_cholerisch",
+   "text": "",
+   "lang": "de"
+  },
+  {
+   "id": "3_stark_11",
+   "figur": "Oda",
+   "stimme": "w_jung_mittel_ruhig",
+   "text": "",
+   "lang": "de"
+  }
+ ]
+}

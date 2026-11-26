@@ -262,7 +262,9 @@
     "u-ck-peter-and-wendy": "user:ck",
     "book-of-war-navarra": "sunzi",
     "die-kunst-des-krieges": "navarra-b",
-    "le-comte-de-monte-cristo-1": "dumas-a"
+    "le-comte-de-monte-cristo-1": "dumas-a",
+    "le-comte-de-monte-cristo-1-1": "dumas-a",
+    "le-comte-de-monte-cristo-1-2": "dumas-a"
   },
   "authors": {
     "stevenson-rl": "",
@@ -340,7 +342,7 @@
     "stacpoole-hdvdv": "",
     "otis-j": "",
     "thorne-g": "",
-    "dumas-a": "",
+    "dumas-a": "Q169150",
     "joyce-j": "",
     "bennett-a": "",
     "montgomery-lmm": "",

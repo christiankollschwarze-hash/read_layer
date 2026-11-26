@@ -20,7 +20,20 @@
   "inhaltshinweise": [],
   "sicherheit": "",
   "bedeutung_werk": "",
-  "fassungen": [],
+  "fassungen": [
+    {
+      "sprache": "fr",
+      "titel": "Le comte de Monte-Cristo, Tome I",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Der Graf von Monte Christo, Erster Band",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ],
   "quelle": "gutenberg",
   "quellsprache": "fr",
   "textquelle": {
@@ -72,5 +85,10 @@
       "zusatz": []
     }
   ],
-  "audio_motor": "fish"
+  "audio_motor": "fish",
+  "fassung": "modernisiert",
+  "geteilt_in": [
+    "le-comte-de-monte-cristo-1-1",
+    "le-comte-de-monte-cristo-1-2"
+  ]
 }

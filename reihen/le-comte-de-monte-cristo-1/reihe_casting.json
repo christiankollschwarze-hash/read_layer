@@ -1,0 +1,158 @@
+{
+ "reihe": "le-comte-de-monte-cristo-1",
+ "teile": [
+  {
+   "werk": "le-comte-de-monte-cristo-1-1",
+   "teil": 1,
+   "wann": "2026-11-25T13:25:42+00:00"
+  }
+ ],
+ "rollen": {
+  "de": {
+   "premium": {
+    "erzaehler": {
+     "figur": "Erzaehler",
+     "stimme": "herr_b",
+     "gemini_id": null,
+     "referenz": "stimmen_archiv/herr_b/klon_de.wav",
+     "modell": "fish-drama-3"
+    },
+    "ensemble": [
+     {
+      "figur": "Edmond Dantès",
+      "stimme": "m_jung_mittel_ruhig",
+      "gemini_id": null,
+      "referenz": "stimmen_archiv/m_jung_mittel_ruhig/klon_de.wav",
+      "modell": "fish-drama-3"
+     },
+     {
+      "figur": "Gérard de Villefort",
+      "stimme": "m_jung_mittel_cholerisch",
+      "gemini_id": null,
+      "referenz": "stimmen_archiv/m_jung_mittel_cholerisch/klon_de.wav",
+      "modell": "fish-drama-3"
+     },
+     {
+      "figur": "Danglars",
+      "stimme": "m_mittel_mittel_albern",
+      "gemini_id": null,
+      "referenz": "stimmen_archiv/m_mittel_mittel_albern/klon_de.wav",
+      "modell": "fish-drama-3"
+     },
+     {
+      "figur": "Abbé Faria",
+      "stimme": "m_alt_tief_schlaefrig",
+      "gemini_id": null,
+      "referenz": "stimmen_archiv/m_alt_tief_schlaefrig/klon_de.wav",
+      "modell": "fish-drama-3"
+     },
+     {
+      "figur": "Mercédès",
+      "stimme": "w_jung_hoch_ruhig",
+      "gemini_id": null,
+      "referenz": "stimmen_archiv/w_jung_hoch_ruhig/klon_de.wav",
+      "modell": "fish-drama-3"
+     },
+     {
+      "figur": "Fernand",
+      "stimme": "m_jung_mittel_melancholisch",
+      "gemini_id": null,
+      "referenz": "stimmen_archiv/m_jung_mittel_melancholisch/klon_de.wav",
+      "modell": "fish-drama-3"
+     },
+     {
+      "figur": "M. Morrel",
+      "stimme": "m_mittel_hoeher_thornton_2",
+      "gemini_id": null,
+      "referenz": "stimmen_archiv/m_mittel_hoeher_thornton_2/klon_de.wav",
+      "modell": "fish-drama-3"
+     },
+     {
+      "figur": "Caderousse",
+      "stimme": "m_alt_hoch_hochmuetig",
+      "gemini_id": null,
+      "referenz": "stimmen_archiv/m_alt_hoch_hochmuetig/klon_de.wav",
+      "modell": "fish-drama-3"
+     },
+     {
+      "figur": "Louis XVIII",
+      "stimme": "m_alt_mittel_ruhig",
+      "gemini_id": null,
+      "referenz": "stimmen_archiv/m_alt_mittel_ruhig/klon_de.wav",
+      "modell": "fish-drama-3"
+     },
+     {
+      "figur": "Noirtier",
+      "stimme": "m_alt_tief_cholerisch",
+      "gemini_id": null,
+      "referenz": "stimmen_archiv/m_alt_tief_cholerisch/klon_de.wav",
+      "modell": "fish-drama-3"
+     },
+     {
+      "figur": "M. de Blacas",
+      "stimme": "m_mittel_hoch_albern",
+      "gemini_id": null,
+      "referenz": "stimmen_archiv/m_mittel_hoch_albern/klon_de.wav",
+      "modell": "fish-drama-3"
+     },
+     {
+      "figur": "M. Dandré",
+      "stimme": "m_mittel_mittel_ruhig",
+      "gemini_id": null,
+      "referenz": "stimmen_archiv/m_mittel_mittel_ruhig/klon_de.wav",
+      "modell": "fish-drama-3"
+     },
+     {
+      "figur": "Renée de Saint-Méran",
+      "stimme": "w_jung_mittel_aengstlich",
+      "gemini_id": null,
+      "referenz": "stimmen_archiv/w_jung_mittel_aengstlich/klon_de.wav",
+      "modell": "fish-drama-3"
+     },
+     {
+      "figur": "Marquise de Saint-Méran",
+      "stimme": "w_alt_tief_cholerisch",
+      "gemini_id": null,
+      "referenz": "stimmen_archiv/w_alt_tief_cholerisch/klon_de.wav",
+      "modell": "fish-drama-3"
+     },
+     {
+      "figur": "Leclère",
+      "stimme": "m_alt_tief_melancholisch",
+      "gemini_id": null,
+      "referenz": "stimmen_archiv/m_alt_tief_melancholisch/klon_de.wav",
+      "modell": "fish-drama-3"
+     },
+     {
+      "figur": "Marquis de Saint-Méran",
+      "stimme": "m_alt_tief_ruhig",
+      "gemini_id": null,
+      "referenz": "stimmen_archiv/m_alt_tief_ruhig/klon_de.wav",
+      "modell": "fish-drama-3"
+     },
+     {
+      "figur": "Comte de Salvieux",
+      "stimme": "m_greis_mittel_guetig",
+      "gemini_id": null,
+      "referenz": "stimmen_archiv/m_greis_mittel_guetig/klon_de.wav",
+      "modell": "fish-drama-3"
+     },
+     {
+      "figur": "Napoléon",
+      "stimme": "m_alt_tief_feierlich",
+      "gemini_id": null,
+      "referenz": "stimmen_archiv/m_alt_tief_feierlich/klon_de.wav",
+      "modell": "fish-drama-3"
+     },
+     {
+      "figur": "Antoine",
+      "stimme": "m_mittel_tief_ruhig",
+      "gemini_id": null,
+      "referenz": "stimmen_archiv/m_mittel_tief_ruhig/klon_de.wav",
+      "modell": "fish-drama-3"
+     }
+    ]
+   }
+  }
+ }
+}

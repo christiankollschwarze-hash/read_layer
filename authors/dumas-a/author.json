@@ -1,21 +1,24 @@
 {
-  "wikidata_id": "",
-  "verified": false,
+  "wikidata_id": "Q169150",
+  "verified": true,
   "name_display": "Alexandre Dumas",
   "name_sort": "",
   "geburtsjahr": 1824,
   "todesjahr": 1895,
-  "geburtsort": "",
-  "wirkungssprache": "",
-  "notable_works": [],
+  "geburtsort": "Paris",
+  "wirkungssprache": "fr",
+  "notable_works": [
+    "La Dame aux camélias"
+  ],
   "epoche": "",
   "stilrichtung": [],
   "bedeutung_kurz": "",
-  "quelle_weich": "",
+  "quelle_weich": "https://fr.wikipedia.org/wiki/Alexandre_Dumas_%28fils%29",
   "werke_im_bestand": [
     "camille-la-dame-aux-camilias",
     "twenty-years-after",
     "celebrated-crimes-complete",
     "le-comte-de-monte-cristo-1"
-  ]
+  ],
+  "autor_geschlecht": "maennlich"
 }

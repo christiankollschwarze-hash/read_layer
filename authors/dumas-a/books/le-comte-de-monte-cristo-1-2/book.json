@@ -1,0 +1,97 @@
+{
+  "book_slug": "le-comte-de-monte-cristo-1-2",
+  "author_slug": "dumas-a",
+  "author_wikidata_id": "",
+  "work_wikidata_id": "",
+  "publisher": "<eigenes-label>",
+  "titel_original": "Le comte de Monte-Cristo, Tome I",
+  "originalsprache": "fr",
+  "erscheinungsjahr": null,
+  "gutenberg_id": "17989",
+  "quell_uebersetzer": "",
+  "quell_uebersetzer_todesjahr": null,
+  "thema_codes": [],
+  "bisac_codes": [],
+  "genre_eigen": "",
+  "ton": "",
+  "schauplatz": "",
+  "essenz": "",
+  "leseprobe_zitat": "",
+  "inhaltshinweise": [],
+  "sicherheit": "",
+  "bedeutung_werk": "",
+  "fassungen": [
+    {
+      "sprache": "fr",
+      "titel": "Le comte de Monte-Cristo, Tome I",
+      "titel_quelle": "original",
+      "titel_pruefen": false
+    },
+    {
+      "sprache": "de",
+      "titel": "Der Graf von Monte Christo, Erster Band",
+      "titel_quelle": "llm",
+      "titel_pruefen": true
+    }
+  ],
+  "quelle": "gutenberg",
+  "quellsprache": "fr",
+  "textquelle": {
+    "art": "url",
+    "quelle": "https://mirrors.xmission.com/gutenberg/1/7/9/8/17989/17989-0.txt",
+    "wer": "CK",
+    "wann": "2026-11-25T12:39:37"
+  },
+  "mandant": "somnio",
+  "besitzer": "somnio",
+  "wunsch": {
+    "zielsprachen": [
+      "de"
+    ]
+  },
+  "rechte": {
+    "art": "gemeinfrei",
+    "bearbeitung": true,
+    "drm_frei": true,
+    "versichert": null,
+    "hinweis": null
+  },
+  "produkte": [
+    {
+      "sprache": "de",
+      "inhalt": "text",
+      "stufe": null,
+      "kanaele": [
+        "taella"
+      ],
+      "zusatz": []
+    },
+    {
+      "sprache": "de",
+      "inhalt": "hoerspiel",
+      "stufe": "premium",
+      "kanaele": [
+        "taella"
+      ],
+      "zusatz": []
+    },
+    {
+      "sprache": "de",
+      "inhalt": "hoerbuch",
+      "stufe": "premium",
+      "kanaele": [
+        "taella"
+      ],
+      "zusatz": []
+    }
+  ],
+  "audio_motor": "fish",
+  "fassung": "modernisiert",
+  "reihe": "le-comte-de-monte-cristo-1",
+  "teil": 2,
+  "teile_gesamt": 2,
+  "teil_von": "le-comte-de-monte-cristo-1",
+  "kapitel_von": 16,
+  "kapitel_bis": 33,
+  "teil_titel": null
+}

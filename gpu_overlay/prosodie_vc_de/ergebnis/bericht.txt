@@ -1,0 +1,3 @@
+Jobs: 12 | Audio gesamt 121 s | VC 24 s (RTF 0.20) | TTS 0 s (RTF 0.00) | GPU NVIDIA L4
+
+WALL 52.9 s

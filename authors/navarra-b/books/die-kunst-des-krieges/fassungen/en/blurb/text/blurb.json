@@ -1,0 +1,35 @@
+{
+  "lang": "en",
+  "snippets": [
+    {
+      "id": "koeder_01",
+      "block": "koeder",
+      "index": 1,
+      "text": "At first conduct yourself with the modesty and demureness of a young maiden; but if the enemy shows you a small opening, then spring upon him with the liveliness of a rabbit—he will not be able to defend himself."
+    },
+    {
+      "id": "einordnung_01",
+      "block": "einordnung",
+      "index": 1,
+      "text": "This non-fiction text analyzes the art of war of the Chinese generals Suntzu and Wutzu in a factual, historical tone."
+    },
+    {
+      "id": "einordnung_02",
+      "block": "einordnung",
+      "index": 2,
+      "text": "The principles of these strategists endured for over 2500 years and had a lasting influence on both China and Japan."
+    },
+    {
+      "id": "einordnung_03",
+      "block": "einordnung",
+      "index": 3,
+      "text": "A focused examination of military wisdom spanning from antiquity to the modern era."
+    },
+    {
+      "id": "autor_01",
+      "block": "autor",
+      "index": 1,
+      "text": "Bruno Navarra was born in 1850 and died in 1911."
+    }
+  ]
+}
