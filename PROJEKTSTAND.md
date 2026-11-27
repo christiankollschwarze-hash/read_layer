@@ -9,6 +9,9 @@ OFFEN: Standardstufe Hoerspiel auf die neue Linie (Fish Drama 3 / QWEN + Chatter
 NACHTRAG (CK): Sound-Carpet aus 095 entfernt (kein Schalter, Bestellung immer ohne Zusatz), bis entwickelt und kalkuliert; kein Werk hatte ihn bestellt.
   Hoerspiel (ext.) bleibt gesperrt, Grund im Tooltip: Matrix nur TAELLA, 510 baut das Hoerspiel als Overlay fuer die App, 650 „Hoerspiel entfaellt
   vorerst“ -> keine Export-Fassung; dazu Verwertungsrechte je Plattform (bisher Gemini, kuenftig Fish/QWEN) offen.
+NACHTRAG (CK): Zielsprachen in 095 waehlbar (Haken ueber der Tabelle): Deutsch, Englisch (nicht bei Ausgangssprache EN), Franzoesisch,
+  Spanisch, Italienisch. Start = Wunsch 090 + bestellte Sprachen. Neue Sprache -> eigene Spalte, Text TAELLA vorbelegt (empfohlen);
+  Abwahl fragt nach und bestellt alle Formate der Sprache ab. Uebersetzung je Sprache in „Grundaufbereitung“. Test Smoke: +fr, -de, gueltig.
 
 ## AP Hook als Produkt – CODE ERLEDIGT 27.11.2026 (Entscheidung CK; Sicherung archive/2026-11-27_095_hook/)
 ENTSCHIEDEN (CK): Hook = „Teaser vor dem Trailer“ fuer das Durchblaettern = Koeder-Block des Klappentexts (600, woertliches Werkzitat)
