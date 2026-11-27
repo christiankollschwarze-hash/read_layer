@@ -12,6 +12,8 @@ NACHTRAG (CK): Sound-Carpet aus 095 entfernt (kein Schalter, Bestellung immer oh
 NACHTRAG (CK): Zielsprachen in 095 waehlbar (Haken ueber der Tabelle): Deutsch, Englisch (nicht bei Ausgangssprache EN), Franzoesisch,
   Spanisch, Italienisch. Start = Wunsch 090 + bestellte Sprachen. Neue Sprache -> eigene Spalte, Text TAELLA vorbelegt (empfohlen);
   Abwahl fragt nach und bestellt alle Formate der Sprache ab. Uebersetzung je Sprache in „Grundaufbereitung“. Test Smoke: +fr, -de, gueltig.
+  OFFEN (CK, spaeter): pruefen, ob die Pipeline fuer fr/es/it (und de als Ausgangssprache) Sprachcodes durchgaengig konsistent produziert
+  (bisher praktisch nur en<->de gelaufen) – Stages 300–340, 400–650, 700/710, Stimmen/Casting, App-Manifest.
 
 ## AP Hook als Produkt – CODE ERLEDIGT 27.11.2026 (Entscheidung CK; Sicherung archive/2026-11-27_095_hook/)
 ENTSCHIEDEN (CK): Hook = „Teaser vor dem Trailer“ fuer das Durchblaettern = Koeder-Block des Klappentexts (600, woertliches Werkzitat)
