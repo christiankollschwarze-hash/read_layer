@@ -1360,8 +1360,20 @@ MON["095"]={
     return out;},
   erlaubt(inhalt,stufe){const m=M.daten.matrix.find(x=>x.inhalt==inhalt&&x.stufe==(stufe||null));return m?m.kanaele:[];},
   S(lg){return this.E[lg]=this.E[lg]||this.leerS();},
-  sprachen(d){const q=d.quellsprache,z=[...d.wunsch,...Object.keys(this.E||{}).filter(lg=>this.produkteIn(lg))].filter((x,i,a)=>x&&x!=q&&a.indexOf(x)==i);
-    if(!z.length)z.push(q=="en"?"de":"en");return [q,...z];},
+  // Zielsprachen wählbar (CK 27.11.2026): Reihenfolge Deutsch, Englisch, Französisch, Spanisch, Italienisch; Ausgangssprache nie Ziel
+  ZIELE:["de","en","fr","es","it"],Z:null,
+  zieleStart(d){const q=d.quellsprache,z=[...d.wunsch,...Object.keys(this.E||{}).filter(lg=>this.produkteIn(lg))];
+    if(!z.filter(x=>x!=q).length&&d.abgeleitet)z.push(q=="en"?"de":"en");
+    return this.zielAuswahl(d).filter(lg=>z.includes(lg));},
+  zielAuswahl(d){const q=d.quellsprache;return [...this.ZIELE,...(d.sprachen||[]).filter(x=>!this.ZIELE.includes(x))].filter(lg=>lg!=q&&(d.sprachen||[]).includes(lg));},
+  sprachen(d){if(!this.Z)this.Z=this.zieleStart(d);return [d.quellsprache,...this.zielAuswahl(d).filter(lg=>this.Z.includes(lg))];},
+  zielSchalten(lg){const an=this.Z.includes(lg);
+    if(an){if(this.produkteIn(lg)&&!confirm(`Alle Formate für ${this.sn(lg)} abbestellen?`)){this.zeichnen();return;}
+      this.Z=this.Z.filter(x=>x!=lg);delete this.E[lg];}
+    else{this.Z.push(lg);const e=this.S(lg);if(!e.text.includes("taella"))e.text.push("taella");}   // empfohlen: Text in der App
+    this.zeichnen();},
+  zielWahl(d){return `<div class="akt" style="margin-bottom:10px"><span><b>Zielsprachen</b></span>${this.zielAuswahl(d).map(lg=>{const an=this.Z.includes(lg);
+      return `<label class="klein" style="margin-right:12px"><input type="checkbox" ${an?"checked":""} onchange="MON['095'].zielSchalten('${lg}')"> ${esc(this.sn(lg))}</label>`;}).join("")}</div>`;},
   produkteIn(lg){const e=this.E[lg];return !!e&&(e.text.length||(e.hb.stufe&&e.hb.kan.length)||e.hs.stufe||e.hook);},
   sn(lg){return (M.daten.sprachnamen||{})[lg]||lg;},
   an(id,lg){const e=this.S(lg);switch(id){
@@ -1392,7 +1404,7 @@ MON["095"]={
   eur(usd){const k=M.daten.eur_je_usd;if(usd==null||!k)return "–";const x=usd*k;
     return x>0&&x<0.005?"< 0,01":x.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2});},
   tabelle(d){
-    const L=this.sprachen(d),k=this.kosten(),intern=this.intern(),sp=1+2*L.length;
+    const L=this.sprachen(d),k=this.kosten(),intern=this.intern(),sp=1+2*L.length,wahl=this.zielWahl(d);
     const zelle=(z,lg)=>{const s=this.sperre(z.id,lg),an=this.an(z.id,lg),fest=["teaser","hsx"].includes(z.id)||(!!s&&!an),e=this.S(lg);
       const x="";   // Stufen-Auswahl und Sound-Carpet entfernt (CK 27.11.2026): Stufe folgt der Produktionslinie;
                     // Sound-Carpet bleibt draußen, bis er entwickelt und kalkuliert ist
@@ -1401,7 +1413,7 @@ MON["095"]={
       return `<td><button class="pkt ${an?"an":""}" ${fest?"disabled":""} title="${esc(tip)}" aria-label="${esc(z.n+" "+this.sn(lg)+": "+tip)}" onclick="MON['095'].schalten('${z.id}','${lg}')"></button>${x}</td><td class="eur">${kv}</td>`;};
     const zeile=z=>`<tr><td><b>${esc(z.n)}</b>${this.empfohlen(z.id)?' <span class="klein">empfohlen</span>':""}${z.t?`<br><span class="klein">${esc(z.t)}</span>`:""}</td>${L.map(lg=>zelle(z,lg)).join("")}</tr>`;
     const gruppe=(g,t)=>`<tr class="gr"><td colspan="${sp}"><b>${g}</b> <span class="klein">${t}</span></td></tr>`+this.ZEILEN.filter(z=>z.g==(g=="Intern"?"i":"e")).map(zeile).join("");
-    return `<table class="kapt t095">
+    return wahl+`<table class="kapt t095">
       <tr><th rowspan="2">Format</th>${L.map((lg,i)=>`<th colspan="2">${i?"Zielsprache":"Ausgangssprache"} (${esc(this.sn(lg))})</th>`).join("")}</tr>
       <tr>${L.map(()=>`<th>Auftrag</th><th class="eur">Kosten €*</th>`).join("")}</tr>
       ${gruppe("Intern","(TÆLLA App)")}${gruppe("Extern","(Vertrieb außerhalb der TÆLLA App)")}
@@ -1411,7 +1423,7 @@ MON["095"]={
      ${k?"":`<div class="klein err">${this.V&&this.V.fehler&&this.V.fehler.length?"Kosten erst nach gültiger Bestellung.":d.eur_je_usd?"Zeichenzahl unbekannt – keine Kostenschätzung möglich.":"Wechselkurs fehlt (config ANGEBOT_EUR_JE_USD)."}</div>`}`;
   },
   html(d){
-    if(!this.E){this.E=this.vonProdukten(d.produkte);if(d.abgeleitet)this.empfehlen(d);}
+    if(!this.E){this.E=this.vonProdukten(d.produkte);this.Z=null;if(d.abgeleitet)this.empfehlen(d);}
     const ei=d.eignung,farbe={geeignet:"frei",bedingt:"mensch",ungeeignet:"stopp",unbekannt:""}[ei.urteil],intern=this.intern();
     return `<div class="box"><div class="kopf095">
       <span><b>WERK</b></span><span><b>${esc(d.titel)}</b></span>
@@ -1427,7 +1439,7 @@ MON["095"]={
       ${intern?`<div class="klein">Messung am Rohtext (wörtliche Rede, wiederkehrende Sprecher, Bühnenform), 0 $. Empfehlung, keine Sperre: Hörspiel trotz „ungeeignet“ geht, wird dann im Popup eigens bestätigt.</div>`:""}</div>
     <div class="box"><h2>Abschluss</h2>
      <div class="akt"><button class="haupt" onclick="MON['095'].popup()">Speichern / Freigeben</button>
-      <button onclick="MON['095'].E=MON['095'].vonProdukten(M.daten.produkte);MON['095'].neuZeichnen()">Änderungen verwerfen</button>
+      <button onclick="MON['095'].E=null;MON['095'].neuZeichnen()">Änderungen verwerfen</button>
       ${intern?`<button onclick="MON['095'].ableiten()">Default aus Wunsch (090) ableiten</button>`:""}</div>
      <div class="klein">„Speichern / Freigeben“ zeigt zuerst die geschätzten Kosten zur Bestätigung.${intern?" Fertige Stages bleiben frei; neu bestellte kommen als offen dazu, abbestellte entfallen.":""}</div></div>`;
   },
