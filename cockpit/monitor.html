@@ -1400,9 +1400,13 @@ MON["095"]={
       const m=k.match(/^(.*)_([a-z]{2})$/),z=m&&this.POSTEN[m[1]];
       if(z){const id=z.find(i=>this.an(i,m[2]));if(id){add(K,id+"/"+m[2],v);continue;}}
       add(G,m?m[2]:q,v);}
-    return {K,G,summe:a.summe};},
+    // Summe = Summe der angezeigten (auf Cent gerundeten) €-Zellen, damit die Spalte aufgeht (CK 27.11.2026)
+    const r=usd=>Math.round(usd*(M.daten.eur_je_usd||0)*100)/100;
+    const summeEur=[...Object.values(K),...Object.values(G)].reduce((s,v)=>s+r(v),0);
+    return {K,G,summe:a.summe,summeEur:M.daten.eur_je_usd?Math.round(summeEur*100)/100:null};},
   eur(usd){const k=M.daten.eur_je_usd;if(usd==null||!k)return "–";const x=usd*k;
-    return x>0&&x<0.005?"< 0,01":x.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2});},
+    return x>0&&x<0.005?"< 0,01":this.fmt(Math.round(x*100)/100);},
+  fmt(x){return x==null?"–":x.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2});},
   tabelle(d){
     const L=this.sprachen(d),k=this.kosten(),intern=this.intern(),sp=1+2*L.length,wahl=this.zielWahl(d);
     const zelle=(z,lg)=>{const s=this.sperre(z.id,lg),an=this.an(z.id,lg),fest=["teaser","hsx"].includes(z.id)||(!!s&&!an),e=this.S(lg);
@@ -1418,7 +1422,7 @@ MON["095"]={
       <tr>${L.map(()=>`<th>Auftrag</th><th class="eur">Kosten €*</th>`).join("")}</tr>
       ${gruppe("Intern","(TÆLLA App)")}${gruppe("Extern","(Vertrieb außerhalb der TÆLLA App)")}
       <tr class="gr"><td><b>Grundaufbereitung</b><br><span class="klein">Analyse, Klappentext, Cover${L.length>1?"; Übersetzung":""}</span></td>${L.map(lg=>`<td></td><td class="eur">${k?this.eur(k.G[lg]||0):"–"}</td>`).join("")}</tr>
-      <tr class="summe"><td>Summe geschätzt</td><td colspan="${sp-1}" class="eur">${k?"ca. "+this.eur(k.summe)+" €":"–"}</td></tr></table>
+      <tr class="summe"><td>Summe geschätzt</td><td colspan="${sp-1}" class="eur">${k?"ca. "+this.fmt(k.summeEur)+" €":"–"}</td></tr></table>
      <div class="klein">*Kosten geschätzt. Kostenfreigabe wird in der Produktion nur abgefragt, wenn o. g. Werte 20 % überschreiten.</div>
      ${k?"":`<div class="klein err">${this.V&&this.V.fehler&&this.V.fehler.length?"Kosten erst nach gültiger Bestellung.":d.eur_je_usd?"Zeichenzahl unbekannt – keine Kostenschätzung möglich.":"Wechselkurs fehlt (config ANGEBOT_EUR_JE_USD)."}</div>`}`;
   },
@@ -1488,7 +1492,7 @@ MON["095"]={
     const pr=this.produkte();if(!pr.length){alert("Bitte mindestens ein Format bestellen.");return;}
     const V=this.V;if(!V){alert("Kosten werden noch berechnet – bitte einen Moment warten.");this.vorschau();return;}
     if(V.fehler&&V.fehler.length){alert("Die Bestellung enthält noch ungültige Kombinationen:\n"+V.fehler.join("\n"));return;}
-    const d=M.daten,k=this.kosten(),sum=k?this.eur(k.summe):"–",intern=this.intern();
+    const d=M.daten,k=this.kosten(),sum=k?this.fmt(k.summeEur):"–",intern=this.intern();
     const hs=pr.some(p=>p.inhalt=="hoerspiel");
     const m=document.createElement("div");m.className="modal095";m.id="modal095";
     m.innerHTML=`<div class="karte" role="dialog" aria-modal="true" aria-labelledby="t095"><h2 id="t095">Bestellung bestätigen</h2>
