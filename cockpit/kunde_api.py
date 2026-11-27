@@ -16,7 +16,7 @@ from pipeline import bestellung, s080_mandant  # noqa: E402
 
 SPRACHEN = {"de": "Deutsch", "en": "Englisch", "es": "Spanisch", "fr": "Französisch", "it": "Italienisch",
             "zh": "Chinesisch", "nl": "Niederländisch", "pt": "Portugiesisch", "pl": "Polnisch"}
-INHALTE = {"text": "E-Book / Lesefassung", "hoerbuch": "Hörbuch", "hoerspiel": "Hörspiel"}
+INHALTE = {"text": "E-Book / Lesefassung", "hoerbuch": "Hörbuch", "hoerspiel": "Hörspiel", "hook": "Hook (Kurz-Teaser)"}
 STUFEN = {"basic": "Standard", "premium": "Premium", "drama": "Inszeniert"}
 ROLLEN = {"verlag": "Verlag", "autor": "Autor/in"}
 

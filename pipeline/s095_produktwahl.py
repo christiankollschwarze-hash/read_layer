@@ -28,11 +28,11 @@ STAGE = "095"
 
 
 def produkt_parsen(t):
-    """'de:hoerbuch:basic:taella,epub:+sound_carpet' -> Produkt-Dict (Text ohne Stufe: 'de:text:taella')."""
+    """'de:hoerbuch:basic:taella,epub:+sound_carpet' -> Produkt-Dict (Text/Hook ohne Stufe: 'de:text:taella')."""
     teile = [x.strip() for x in t.split(":") if x.strip()]
     zus = [x[1:] for x in teile if x.startswith("+")]
     teile = [x for x in teile if not x.startswith("+")]
-    if len(teile) == 3 and teile[1] == "text":
+    if len(teile) == 3 and teile[1] in bestellung.OHNE_STUFE:
         lg, inh, kan = teile
         st = None
     elif len(teile) == 4:

@@ -5,7 +5,7 @@ Wirkungsweise: Modus aus Quellprofil: *Uebernehmen* = Klappentext aus 150 (book.
               *Erzeugen* = Metadaten aus raw_modernized.txt (Anfang + Mitte) und Bloecke Einordnung/Autor in allen
               Sprachen (Autor-Block nur aus author.json). In beiden Modi Metadaten aus dem Text (Genre aus fester
               Liste -> Gruppe fuer 640, Ton, Hauptfiguren, hauptfigur_geschlecht, Essenz, Koeder-Passage).
-              Koeder (Erzeugen) = Passage des Werks: Ausgangssprache aus dem Werktext, Zielsprachen = dieselben
+              Koeder (Erzeugen; Uebernehmen nur bei bestelltem Hook) = Passage des Werks: Ausgangssprache aus dem Werktext, Zielsprachen = dieselben
               Knoten aus 330 (nie frei uebersetzt). Vermerke "Sanft modernisierte Fassung" (fassung modernisiert)
               und "Teil X von Y" (teil/teile_gesamt) als feste Saetze je Sprache. Markup wird entfernt.
               Eingangs-Hash: unveraenderte Eingaenge -> kein LLM-Aufruf (0 $).
@@ -363,6 +363,12 @@ def koeder_aus_knoten(zitat, kn, src, langs):
             [tid for tid, _ in treffer])
 
 
+def koeder_an(modus, b):
+    """Koeder-Block bauen? Erzeugen immer; Uebernehmen nur, wenn ein Hook bestellt ist (Hook = Koeder, 27.11.2026).
+    Die Passage (meta.leseprobe_zitat) liefert meta_erzeugen in beiden Modi – kein zusaetzlicher LLM-Aufruf."""
+    return modus == "erzeugen" or bool(b.produkte_fuer(inhalt="hook"))
+
+
 def zusammensetzen(werk, roh, modus, langs, kn, body, b, ents, autor, vermerke_an=True):
     src = langs[0]
     meta = dict(roh.get("meta") or {})
@@ -379,7 +385,7 @@ def zusammensetzen(werk, roh, modus, langs, kn, body, b, ents, autor, vermerke_a
     for blk, lst in (roh.get("bloecke") or {}).items():
         blurb[blk] = [{lg: KP.markup_weg(str((s or {}).get(lg) or "")) for lg in langs} for s in lst]
     meta["koeder_ids"] = []
-    if modus == "erzeugen":
+    if koeder_an(modus, b):
         z = meta.get("leseprobe_zitat") or ""
         k, ids = koeder_aus_knoten(z, kn, src, langs) if kn else (None, None)
         if k:
@@ -412,7 +418,7 @@ def befunde(meta, blurb, vermerke, modus, langs, body, kn, b, autor, autor_pflic
     f = {"leer": [], "sprache": [], "kopie": [], "lizenz": [], "markup": [], "koeder": [], "vermerk": [],
          "laenge": {}, "autor_jahre": [], "autor_namen": [], "edition": []}
     pflicht = ("koeder", "einordnung") + (("autor",) if autor_pflicht else ()) if modus == "erzeugen" \
-        else ("einordnung",)
+        else ("einordnung",) + (("koeder",) if koeder_an(modus, b) else ())
     for blk in pflicht:
         if not blurb.get(blk):
             f["leer"].append((blk, None, "*", f"Block {blk} leer"))
@@ -444,7 +450,7 @@ def befunde(meta, blurb, vermerke, modus, langs, body, kn, b, autor, autor_pflic
         if w:
             f["lizenz"].append(("meta", None, src, f"meta.{fld}: Lizenztext '{w}'"))
     # Koeder woertlich: Ausgangssprache im Werktext 190, Zielsprachen im Werktext 330
-    if modus == "erzeugen" and blurb.get("koeder"):
+    if koeder_an(modus, b) and blurb.get("koeder"):
         texte = {src: body or ""}
         for lg in langs[1:]:
             texte[lg] = " ".join(str(e.get(lg) or "") for _, e in (kn or []))
@@ -666,7 +672,7 @@ def run(werk, wer=None, modus=None, modell=None, neu=False, koeder=None, genre=N
                   text=f"{lg}: Lizenz-/Gutenbergtext = 0" + (f" – {je('lizenz')[0][3]}" if je("lizenz") else ""))
         g.pflicht(f"markup_{lg}", not je("markup"), wert=len(je("markup")), bei_fehler="mensch",
                   text=f"{lg}: Markup-Reste = 0" + (f" – {je('markup')[0][3]}" if je("markup") else ""))
-        if modus == "erzeugen":
+        if koeder_an(modus, b):
             g.pflicht(f"koeder_{lg}", not je("koeder"), bei_fehler="mensch", ruecksprung="600" if lg == src else "310",
                       text=f"{lg}: Koeder woertlich im Werktext ({'190' if lg == src else '330'})")
         g.pflicht(f"vermerke_{lg}", not je("vermerk"), bei_fehler="mensch",

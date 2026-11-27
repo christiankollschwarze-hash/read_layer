@@ -1,5 +1,20 @@
 # PROJEKTSTAND — Read Layer
 
+## AP Hook als Produkt – CODE ERLEDIGT 27.11.2026 (Entscheidung CK; Sicherung archive/2026-11-27_095_hook/)
+ENTSCHIEDEN (CK): Hook = „Teaser vor dem Trailer“ fuer das Durchblaettern = Koeder-Block des Klappentexts (600, woertliches Werkzitat)
+  + dessen Saetze aus dem Teaser-Audio (640). Kein neuer LLM-/TTS-Aufwand; bei uebernommenem Klappentext (EPUB/Verlag) wird der Koeder trotzdem gebaut.
+bestellung: INHALTE + "hook", OHNE_STUFE ("text","hook"), MATRIX ("hook", None) -> ("taella",). s095 --produkt de:hook:taella. Angebot unveraendert (inkl.).
+kette: keine Aenderung noetig (TAELLA-Produkt -> 600/640 laufen ohnehin).
+s600: koeder_an(modus, b): Erzeugen immer, Uebernehmen nur bei bestelltem Hook -> Koeder aus meta.leseprobe_zitat (+ 330-Knoten), Pflichtblock
+  und Woertlich-Pruefung wie im Erzeugen-Modus. Folge: Teaser solcher Werke beginnt dann mit dem Koeder (Block im Audio-Manifest markiert).
+s700: Produkt hook = Klappentext + Teaser + hook_<lg> (Koeder in 600 vorhanden, alle Koeder-Saetze im Teaser-Audio). s710: Manifest je Sprache
+  Feld "hook" {snippets [id, text, dauer, datei teaser/<lg>/audio/…], dauer} nur bei lieferbarem Hook. kunde_api: Name „Hook (Kurz-Teaser)“.
+Monitor 095: Hook-Zeile schaltbar (Kosten „inkl.“), Teaser gilt auch mit Hook als an.
+TEST: test_bestellung/kette/s095/s600/s710/kunde/cockpit_werk gruen; test_s700 2 Fehler schon vorher (Import tests.test_s615/650, fremdes Paket).
+  Smoke (Probe, nichts geschrieben): 600 Uebernehmen + Hook -> Koeder en/de, keine Befunde; 700 meldet ohne neuen 600-Lauf „Koeder fehlt“ (richtig).
+OFFEN: (1) App muss manifest.hook lesen (Frontend). (2) Hook auf Bestandswerken: nach Bestellung 600 + 640 neu (640 vertont nur neue Koeder-Saetze).
+  (3) Kurs 0,86 €/$ weiter offen.
+
 ## AP Stage-Feintuning 095 Produktwahl – ERLEDIGT 27.11.2026 (Skript CK docs/Stage95 Skript.docx; Sicherung archive/2026-11-27_095/)
 IST VORHER: Gate-Kopf mit „095 neu pruefen“ + mitlaufenden 080/090, Kasten „Naechster Schritt“, Box „1 Anzeigen“ (Werk-Zeile Quelle/Sprache/
   Fassung/Mandant), Hoerspiel-Empfehlung, Bestellmatrix je Sprache (Text-Kanaele, Hoerbuch-Stufe+Kanaele, Hoerspiel-Stufe), Vorschau Kette/Angebot $,
@@ -18,7 +33,7 @@ werk_api._m095_daten: + titel, quelle_text, mandant_text (Somnio -> „Somnio Pu
 config.ANGEBOT_EUR_JE_USD = 0,86 (aus Vertrieb/Pricing-Simulator). Kosten je Zelle = Posten aus s095.angebot (Selbstkosten $) x Kurs.
 TEST Smoke u-smoketest-the-mirror-sisters (Server-Kopie Port 8767): Tabelle, Kostensumme = Zellsumme, EPUB3-Sperre, Hoerspiel-Ergaenzung,
   Popup Nein/Ja; Ja -> 095 frei, Sprung 150; Bestellinhalt unveraendert (nur Reihenfolge nach Sprache). Keine Konsolenfehler. 0 $.
-OFFEN (CK): (1) Kurs 0,86 €/$ bestaetigen. (2) Hook: kein Produkt/keine Stage -> Zeile gesperrt, Kosten „–“. Teaser: kein eigenes Produkt,
+OFFEN (CK): (1) Kurs 0,86 €/$ bestaetigen. (2) Hook: siehe AP Hook als Produkt. Teaser: kein eigenes Produkt,
   kommt mit TAELLA (640) -> gesperrt, „inkl.“. Hoerspiel (ext.): Matrix erlaubt nur TAELLA -> gesperrt. (3) Gate-Kopf zeigt fuer verlag weiter den
   Pipeline-Grund „~x $ Selbstkosten“ (Kunden nutzen /kunde). (4) Laufender Cockpit-Server 8765 braucht Neustart fuer werk_api-Aenderung.
 

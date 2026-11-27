@@ -1341,19 +1341,20 @@ MON["095"]={
   E:null,V:null,tm:null,naechster:true,
   ZEILEN:[
     {g:"i",id:"text",n:"Text"},{g:"i",id:"hb",n:"Hörbuch"},{g:"i",id:"hs",n:"Hörspiel"},
-    {g:"i",id:"hook",n:"Hook",t:"noch nicht bestellbar"},{g:"i",id:"teaser",n:"Teaser",t:"automatisch mit der TÆLLA App"},
+    {g:"i",id:"hook",n:"Hook",t:"Köder-Zitat aus dem Teaser (Kurz-Teaser)"},{g:"i",id:"teaser",n:"Teaser",t:"automatisch mit der TÆLLA App"},
     {g:"e",id:"epub",n:"EPUB"},{g:"e",id:"epub3",n:"EPUB3",t:"mit Hörbuch-Audio"},{g:"e",id:"ab",n:"Audio-Book"},
     {g:"e",id:"hsx",n:"Hörspiel (ext.)",t:"nur in der TÆLLA App"}],
   HBK:{hb:"taella",epub3:"epub",ab:"extern"},
   // Kostenposten aus P.angebot -> erste bestellte Zeile der Liste (sonst Grundpaket)
   POSTEN:{anker:["text","hb","hs"],wortzeiten:["hb","hs"],hoerbuch_basic:["hb","epub3","ab","hs"],hoerbuch_premium:["hb","ab","hs"],hoerspiel:["hs"]},
   intern(){return M.rolle!="verlag";},
-  leerS(){return {text:[],hb:{stufe:"",kan:[]},hs:{stufe:"",beta:false}};},
+  leerS(){return {text:[],hb:{stufe:"",kan:[]},hs:{stufe:"",beta:false},hook:false};},
   vonProdukten(pr){const E={};for(const p of pr){const e=E[p.sprache]=E[p.sprache]||this.leerS();
-      if(p.inhalt=="text")e.text=[...p.kanaele];else if(p.inhalt=="hoerbuch")e.hb={stufe:p.stufe,kan:[...p.kanaele]};else e.hs={stufe:p.stufe,beta:(p.zusatz||[]).includes("sound_carpet")};}
+      if(p.inhalt=="text")e.text=[...p.kanaele];else if(p.inhalt=="hook")e.hook=true;else if(p.inhalt=="hoerbuch")e.hb={stufe:p.stufe,kan:[...p.kanaele]};else e.hs={stufe:p.stufe,beta:(p.zusatz||[]).includes("sound_carpet")};}
     return E;},
   produkte(){const out=[];for(const [lg,e] of Object.entries(this.E)){
       if(e.text.length)out.push({sprache:lg,inhalt:"text",stufe:null,kanaele:e.text,zusatz:[]});
+      if(e.hook)out.push({sprache:lg,inhalt:"hook",stufe:null,kanaele:["taella"],zusatz:[]});
       if(e.hb.stufe&&e.hb.kan.length)out.push({sprache:lg,inhalt:"hoerbuch",stufe:e.hb.stufe,kanaele:e.hb.kan,zusatz:[]});
       if(e.hs.stufe)out.push({sprache:lg,inhalt:"hoerspiel",stufe:e.hs.stufe,kanaele:["taella"],zusatz:e.hs.beta?["sound_carpet"]:[]});}
     return out;},
@@ -1361,17 +1362,17 @@ MON["095"]={
   S(lg){return this.E[lg]=this.E[lg]||this.leerS();},
   sprachen(d){const q=d.quellsprache,z=[...d.wunsch,...Object.keys(this.E||{}).filter(lg=>this.produkteIn(lg))].filter((x,i,a)=>x&&x!=q&&a.indexOf(x)==i);
     if(!z.length)z.push(q=="en"?"de":"en");return [q,...z];},
-  produkteIn(lg){const e=this.E[lg];return !!e&&(e.text.length||(e.hb.stufe&&e.hb.kan.length)||e.hs.stufe);},
+  produkteIn(lg){const e=this.E[lg];return !!e&&(e.text.length||(e.hb.stufe&&e.hb.kan.length)||e.hs.stufe||e.hook);},
   sn(lg){return (M.daten.sprachnamen||{})[lg]||lg;},
   an(id,lg){const e=this.S(lg);switch(id){
     case "text":return e.text.includes("taella");case "epub":return e.text.includes("epub");
     case "hb":case "epub3":case "ab":return !!e.hb.stufe&&e.hb.kan.includes(this.HBK[id]);
-    case "hs":return !!e.hs.stufe;
-    case "teaser":return e.text.includes("taella")||(!!e.hb.stufe&&e.hb.kan.includes("taella"))||!!e.hs.stufe;
+    case "hs":return !!e.hs.stufe;case "hook":return !!e.hook;
+    case "teaser":return e.text.includes("taella")||(!!e.hb.stufe&&e.hb.kan.includes("taella"))||!!e.hs.stufe||!!e.hook;
     default:return false;}},
   // Sperre aus der Gültigkeitsmatrix (leer = schaltbar)
   sperre(id,lg){const e=this.S(lg);
-    if(id=="hook")return "Hook ist noch kein bestellbares Produkt";
+    if(id=="hook"&&!this.erlaubt("hook",null).includes("taella"))return "Hook nicht in der Gültigkeitsmatrix";
     if(id=="teaser")return "Teaser kommt automatisch mit jedem Produkt in der TÆLLA App";
     if(id=="hsx")return "Hörspiel gibt es nur in der TÆLLA App";
     if(id=="text"&&!this.erlaubt("text",null).includes("taella"))return "nicht erlaubt";
@@ -1394,13 +1395,13 @@ MON["095"]={
     return `<select title="Stufe" onchange="MON['095'].stufe('${lg}','${art}',this.value)">${l.map(s=>`<option ${akt==s?"selected":""}>${s}</option>`).join("")}</select>`;},
   tabelle(d){
     const L=this.sprachen(d),k=this.kosten(),intern=this.intern(),sp=1+2*L.length;
-    const zelle=(z,lg)=>{const s=this.sperre(z.id,lg),an=this.an(z.id,lg),fest=["hook","teaser","hsx"].includes(z.id)||(!!s&&!an),e=this.S(lg);
+    const zelle=(z,lg)=>{const s=this.sperre(z.id,lg),an=this.an(z.id,lg),fest=["teaser","hsx"].includes(z.id)||(!!s&&!an),e=this.S(lg);
       let x="";
       if(an&&z.id=="hb")x=this.stufeWahl(lg,"hb");
       if(an&&z.id=="hs"){x=this.stufeWahl(lg,"hs");
         if(intern)x+=`<label class="klein"><input type="checkbox" ${e.hs.beta?"checked":""} onchange="MON['095'].E['${lg}'].hs.beta=this.checked;MON['095'].vorschau()"> Sound-Carpet <span class="z mensch">BETA</span></label>`;}
       const tip=s||(an?"bestellt – Klick: abbestellen":"nicht bestellt – Klick: bestellen");
-      const kv=!an?"":z.id=="teaser"?"inkl.":k?(k.K[z.id+"/"+lg]!=null?this.eur(k.K[z.id+"/"+lg]):"inkl."):"–";
+      const kv=!an?"":["teaser","hook"].includes(z.id)?"inkl.":k?(k.K[z.id+"/"+lg]!=null?this.eur(k.K[z.id+"/"+lg]):"inkl."):"–";
       return `<td><button class="pkt ${an?"an":""}" ${fest?"disabled":""} title="${esc(tip)}" aria-label="${esc(z.n+" "+this.sn(lg)+": "+tip)}" onclick="MON['095'].schalten('${z.id}','${lg}')"></button>${x}</td><td class="eur">${kv}</td>`;};
     const zeile=z=>`<tr><td><b>${esc(z.n)}</b>${this.empfohlen(z.id)?' <span class="klein">empfohlen</span>':""}${z.t?`<br><span class="klein">${esc(z.t)}</span>`:""}</td>${L.map(lg=>zelle(z,lg)).join("")}</tr>`;
     const gruppe=(g,t)=>`<tr class="gr"><td colspan="${sp}"><b>${g}</b> <span class="klein">${t}</span></td></tr>`+this.ZEILEN.filter(z=>z.g==(g=="Intern"?"i":"e")).map(zeile).join("");
@@ -1441,7 +1442,8 @@ MON["095"]={
   zeichnen(){const t=$("tab095");if(t)t.innerHTML=this.tabelle(M.daten);this.vorschau();},
   schalten(id,lg){const e=this.S(lg),an=this.an(id,lg),s=this.sperre(id,lg);
     if(!an&&s){alert(s);return;}
-    if(id=="text"||id=="epub"){const k=id=="text"?"taella":"epub";e.text=an?e.text.filter(x=>x!=k):[...e.text,k];}
+    if(id=="hook")e.hook=!an;
+    else if(id=="text"||id=="epub"){const k=id=="text"?"taella":"epub";e.text=an?e.text.filter(x=>x!=k):[...e.text,k];}
     else if(this.HBK[id]){const k=this.HBK[id];
       if(an){e.hb.kan=e.hb.kan.filter(x=>x!=k);if(!e.hb.kan.length)e.hb.stufe="";}
       else{if(!e.hb.stufe){e.hb.stufe="basic";e.hb.kan=[];}e.hb.kan.push(k);}}
@@ -1475,7 +1477,7 @@ MON["095"]={
   // ---- Popup: Kosten bestätigen -> speichern, 095 prüfen, freigeben, nächste Stage
   beschreibung(){const out=[];
     for(const lg of Object.keys(this.E)){const n=[];
-      for(const z of this.ZEILEN){if(z.id=="hook"||!this.an(z.id,lg))continue;
+      for(const z of this.ZEILEN){if(!this.an(z.id,lg))continue;
         const e=this.S(lg),st=z.id=="hb"||z.id=="ab"||z.id=="epub3"?` (Stufe ${e.hb.stufe})`:z.id=="hs"?` (Stufe ${e.hs.stufe}${e.hs.beta?", Sound-Carpet BETA":""})`:"";
         n.push(z.n+(z.g=="i"&&z.id!="teaser"?" in der TÆLLA App":"")+st);}
       if(n.length)out.push(`<li><b>${esc(this.sn(lg))}:</b> ${n.map(esc).join(", ")}</li>`);}

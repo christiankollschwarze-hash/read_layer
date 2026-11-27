@@ -40,7 +40,8 @@ import sys
 from config import config
 from pipeline.manifest import json_atomar
 
-INHALTE = ("text", "hoerbuch", "hoerspiel")
+INHALTE = ("text", "hoerbuch", "hoerspiel", "hook")
+OHNE_STUFE = ("text", "hook")   # Hook (27.11.2026): Koeder-Block des Klappentexts (600) + Koeder-Saetze des Teasers (640)
 STUFEN = ("basic", "premium", "drama")
 KANAELE = ("taella", "epub", "extern")
 ZUSAETZE = ("sound_carpet",)
@@ -53,6 +54,7 @@ TEXT_EINGANG = ("gutenberg", "user_txt")   # Rohtext raw.txt -> 100/110/120 (use
 # Gueltigkeitsmatrix (Katalog Produktmodell 095): (inhalt, stufe) -> erlaubte Kanaele
 MATRIX = {
     ("text", None): ("taella", "epub"),
+    ("hook", None): ("taella",),
     ("hoerbuch", "basic"): ("taella", "epub", "extern"),
     ("hoerbuch", "premium"): ("taella", "extern"),   # Extern nur Plattformen mit Gemini-Audio (Gate 700/710)
     ("hoerspiel", "premium"): ("taella",),
@@ -95,7 +97,7 @@ def produkt_norm(p):
     inhalt = (p.get("inhalt") or "").strip().lower()
     stufe = p.get("stufe")
     stufe = (stufe or "").strip().lower() or None
-    if inhalt == "text":
+    if inhalt in OHNE_STUFE:
         stufe = None
     kan = p.get("kanaele", p.get("kanal")) or []
     if isinstance(kan, str):
@@ -115,7 +117,7 @@ def produkt_fehler(p, quellsprache=None):
     if p["inhalt"] not in INHALTE:
         f.append(f"Inhalt {p['inhalt']!r} unbekannt")
         return f
-    if p["inhalt"] != "text" and p["stufe"] not in STUFEN:
+    if p["inhalt"] not in OHNE_STUFE and p["stufe"] not in STUFEN:
         f.append(f"Stufe {p['stufe']!r} unbekannt fuer {p['inhalt']}")
         return f
     erlaubt = MATRIX.get((p["inhalt"], p["stufe"]))

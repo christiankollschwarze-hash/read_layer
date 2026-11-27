@@ -2153,7 +2153,7 @@ def _m095_argv(book_id, e, wer):
         raise ValueError("; ".join(r["fehler"]))
     for p in pr:
         p = bestellung.produkt_norm(p)
-        t = f"{p['sprache']}:{p['inhalt']}" + (f":{p['stufe']}" if p["inhalt"] != "text" else "") + ":" + ",".join(p["kanaele"])
+        t = f"{p['sprache']}:{p['inhalt']}" + (f":{p['stufe']}" if p["inhalt"] not in bestellung.OHNE_STUFE else "") + ":" + ",".join(p["kanaele"])
         t += "".join(f":+{z}" for z in p["zusatz"])
         a.append(f"--produkt={t}")
     return a

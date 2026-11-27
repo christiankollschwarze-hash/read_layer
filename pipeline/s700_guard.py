@@ -370,6 +370,24 @@ class Pruefer:
         self._status_hash(a, h)
         return self._gate(a, [("600", None), ("410", None)])
 
+    # Hook (27.11.2026) = Koeder-Block aus 600 + dessen Saetze im Teaser 640 (Audio-Manifest block "koeder")
+    def hook(self, lg):
+        return self.pruefe(("640", lg, "hook"), self._hook, lg)
+
+    def _hook(self, lg):
+        a = self._art("640", f"hook_{lg}", scope=lg, datei=f"fassungen/{lg}/blurb/audio/manifest.json")
+        k = [s for s in ((self._lade("600_klappentext") or {}).get("blurb") or {}).get("koeder") or []
+             if str((s or {}).get(lg) or "").strip()]
+        if not k:
+            a["befunde"].append(f"Koeder {lg} fehlt im Klappentext (600)")
+            a["ruecksprung"] = "600"
+        mf = _json(os.path.join(config.book_dir(self.werk), "fassungen", lg, "blurb", "audio", "manifest.json")) or {}
+        sn = [x for x in mf.get("snippets") or [] if x.get("block") == "koeder"]
+        if k and len(sn) < len(k):
+            a["befunde"].append(f"Hook-Audio {lg}: {len(sn)}/{len(k)} Koeder-Saetze im Teaser")
+        a["hash"] = manifest.hash_obj([(x.get("id"), x.get("file"), x.get("text")) for x in sn])
+        return self._gate(a, [("600", None)])
+
     def epub(self, lg, var):
         return self.pruefe(("620", lg, var), self._epub620, lg, var)
 
@@ -448,6 +466,8 @@ def artefakte(pr, p, kanal):
     """Pflicht-Artefakte eines Produkts in einem Kanal -> Liste von Pruefergebnissen."""
     lg, inh, stufe = p["sprache"], p["inhalt"], p["stufe"]
     b = pr.b
+    if inh == "hook":                       # Hook: nur Klappentext + Teaser + Koeder-Saetze, kein Lesetext/Anker
+        return [pr.klappentext(lg), pr.teaser(lg), pr.hook(lg)]
     out = [pr.text(lg)]
     ziel = lg != b.quellsprache
     if kanal == "taella":

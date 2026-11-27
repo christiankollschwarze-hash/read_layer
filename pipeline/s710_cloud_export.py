@@ -590,6 +590,17 @@ def paket(D, lg, inhalte, werk_id, bitrate, titel, autor):
             teaser.append(rel)
     if not teaser:
         P.befunde.append(("teaser", f"Teaser {lg} fehlt (fassungen/{lg}/blurb/)", "640"))
+    # Hook (27.11.2026): Koeder-Saetze des Teasers als eigenes Produkt (App: beim Durchblaettern statt ganzem Teaser)
+    hook = None
+    if "hook" in inhalte:
+        mf = _json(os.path.join(tdir, "audio", "manifest.json"), {}) or {}
+        sn = [{"id": x.get("id"), "text": x.get("text"), "dauer": x.get("dauer"),
+               "datei": f"teaser/{lg}/audio/{x.get('file')}"}
+              for x in mf.get("snippets") or [] if x.get("block") == "koeder" and x.get("file")]
+        if sn:
+            hook = {"snippets": sn, "dauer": round(sum(x["dauer"] or 0 for x in sn), 2)}
+        else:
+            P.befunde.append(("hook", f"Hook {lg}: keine Koeder-Saetze im Teaser (fassungen/{lg}/blurb/audio)", "640"))
 
     n_audio = sum(1 for s in saetze if s["audio_path"])
     m = {"schema": APP_SCHEMA, "werk_id": werk_id, "book_slug": werk, "sprache": lg,
@@ -608,6 +619,7 @@ def paket(D, lg, inhalte, werk_id, bitrate, titel, autor):
                      "wordtimes": f"wordtimes_{lg}.json" if hb else None,
                      "wordtimes_hoerspiel": f"wordtimes_{lg}_hoerspiel.json" if hs else None,
                      "teaser": f"teaser/{lg}/" if teaser else None},
+         "hook": hook,
          "text_quelle": D.text_quelle,
          "saetze": saetze}
     P.json(f"manifest_{lg}.json", m)
