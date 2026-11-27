@@ -1343,7 +1343,7 @@ MON["095"]={
     {g:"i",id:"text",n:"Text"},{g:"i",id:"hb",n:"Hörbuch"},{g:"i",id:"hs",n:"Hörspiel"},
     {g:"i",id:"hook",n:"Hook",t:"Köder-Zitat aus dem Teaser (Kurz-Teaser)"},{g:"i",id:"teaser",n:"Teaser",t:"automatisch mit der TÆLLA App"},
     {g:"e",id:"epub",n:"EPUB"},{g:"e",id:"epub3",n:"EPUB3",t:"mit Hörbuch-Audio"},{g:"e",id:"ab",n:"Audio-Book"},
-    {g:"e",id:"hsx",n:"Hörspiel (ext.)",t:"nur in der TÆLLA App"}],
+    {g:"e",id:"hsx",n:"Hörspiel (ext.)",t:"noch nicht verfügbar"}],
   HBK:{hb:"taella",epub3:"epub",ab:"extern"},
   // Kostenposten aus P.angebot -> erste bestellte Zeile der Liste (sonst Grundpaket)
   POSTEN:{anker:["text","hb","hs"],wortzeiten:["hb","hs"],hoerbuch_basic:["hb","epub3","ab","hs"],hoerbuch_premium:["hb","ab","hs"],hoerspiel:["hs"]},
@@ -1356,7 +1356,7 @@ MON["095"]={
       if(e.text.length)out.push({sprache:lg,inhalt:"text",stufe:null,kanaele:e.text,zusatz:[]});
       if(e.hook)out.push({sprache:lg,inhalt:"hook",stufe:null,kanaele:["taella"],zusatz:[]});
       if(e.hb.stufe&&e.hb.kan.length)out.push({sprache:lg,inhalt:"hoerbuch",stufe:e.hb.stufe,kanaele:e.hb.kan,zusatz:[]});
-      if(e.hs.stufe)out.push({sprache:lg,inhalt:"hoerspiel",stufe:e.hs.stufe,kanaele:["taella"],zusatz:e.hs.beta?["sound_carpet"]:[]});}
+      if(e.hs.stufe)out.push({sprache:lg,inhalt:"hoerspiel",stufe:e.hs.stufe,kanaele:["taella"],zusatz:[]});}   // Sound-Carpet nie bestellen (CK 27.11.2026)
     return out;},
   erlaubt(inhalt,stufe){const m=M.daten.matrix.find(x=>x.inhalt==inhalt&&x.stufe==(stufe||null));return m?m.kanaele:[];},
   S(lg){return this.E[lg]=this.E[lg]||this.leerS();},
@@ -1374,7 +1374,7 @@ MON["095"]={
   sperre(id,lg){const e=this.S(lg);
     if(id=="hook"&&!this.erlaubt("hook",null).includes("taella"))return "Hook nicht in der Gültigkeitsmatrix";
     if(id=="teaser")return "Teaser kommt automatisch mit jedem Produkt in der TÆLLA App";
-    if(id=="hsx")return "Hörspiel gibt es nur in der TÆLLA App";
+    if(id=="hsx")return "Hörspiel für externe Plattformen gibt es noch nicht: Es wird bisher nur in der TÆLLA App aus Erzählerspur und Figurenstimmen zusammengesetzt; eine Export-Fassung baut die Pipeline noch nicht";
     if(id=="text"&&!this.erlaubt("text",null).includes("taella"))return "nicht erlaubt";
     if(id=="epub"&&!this.erlaubt("text",null).includes("epub"))return "nicht erlaubt";
     if(this.HBK[id]){const st=e.hb.stufe||"basic";if(!this.erlaubt("hoerbuch",st).includes(this.HBK[id]))return `${id=="epub3"?"EPUB3":"Dieser Kanal"} ist mit der Hörbuch-Stimme dieses Werks (${st}) nicht möglich`;}
@@ -1394,10 +1394,8 @@ MON["095"]={
   tabelle(d){
     const L=this.sprachen(d),k=this.kosten(),intern=this.intern(),sp=1+2*L.length;
     const zelle=(z,lg)=>{const s=this.sperre(z.id,lg),an=this.an(z.id,lg),fest=["teaser","hsx"].includes(z.id)||(!!s&&!an),e=this.S(lg);
-      let x="";
-      // Stufen-Auswahl entfernt (CK 27.11.2026): Stufe folgt der Produktionslinie, nicht der Bestellung
-      if(an&&z.id=="hs"){
-        if(intern)x+=`<label class="klein"><input type="checkbox" ${e.hs.beta?"checked":""} onchange="MON['095'].E['${lg}'].hs.beta=this.checked;MON['095'].vorschau()"> Sound-Carpet <span class="z mensch">BETA</span></label>`;}
+      const x="";   // Stufen-Auswahl und Sound-Carpet entfernt (CK 27.11.2026): Stufe folgt der Produktionslinie;
+                    // Sound-Carpet bleibt draußen, bis er entwickelt und kalkuliert ist
       const tip=s||(an?"bestellt – Klick: abbestellen":"nicht bestellt – Klick: bestellen");
       const kv=!an?"":["teaser","hook"].includes(z.id)?"inkl.":k?(k.K[z.id+"/"+lg]!=null?this.eur(k.K[z.id+"/"+lg]):"inkl."):"–";
       return `<td><button class="pkt ${an?"an":""}" ${fest?"disabled":""} title="${esc(tip)}" aria-label="${esc(z.n+" "+this.sn(lg)+": "+tip)}" onclick="MON['095'].schalten('${z.id}','${lg}')"></button>${x}</td><td class="eur">${kv}</td>`;};
@@ -1470,7 +1468,7 @@ MON["095"]={
   beschreibung(){const out=[];
     for(const lg of Object.keys(this.E)){const n=[];
       for(const z of this.ZEILEN){if(!this.an(z.id,lg))continue;
-        const e=this.S(lg),st=z.id=="hs"&&e.hs.beta?" (Sound-Carpet BETA)":"";
+        const st="";
         n.push(z.n+(z.g=="i"&&z.id!="teaser"?" in der TÆLLA App":"")+st);}
       if(n.length)out.push(`<li><b>${esc(this.sn(lg))}:</b> ${n.map(esc).join(", ")}</li>`);}
     return out.join("");},
@@ -1479,7 +1477,7 @@ MON["095"]={
     const V=this.V;if(!V){alert("Kosten werden noch berechnet – bitte einen Moment warten.");this.vorschau();return;}
     if(V.fehler&&V.fehler.length){alert("Die Bestellung enthält noch ungültige Kombinationen:\n"+V.fehler.join("\n"));return;}
     const d=M.daten,k=this.kosten(),sum=k?this.eur(k.summe):"–",intern=this.intern();
-    const hs=pr.some(p=>p.inhalt=="hoerspiel"),beta=pr.some(p=>(p.zusatz||[]).length);
+    const hs=pr.some(p=>p.inhalt=="hoerspiel");
     const m=document.createElement("div");m.className="modal095";m.id="modal095";
     m.innerHTML=`<div class="karte" role="dialog" aria-modal="true" aria-labelledby="t095"><h2 id="t095">Bestellung bestätigen</h2>
       <p>Du bestellst für <b>${esc(d.titel)}</b>:</p><ul>${this.beschreibung()}</ul>
@@ -1487,7 +1485,6 @@ MON["095"]={
       <p class="gross">Geschätzte Kosten: <b>${k?"ca. "+sum+" €":"noch nicht berechenbar"}</b></p>
       <p class="klein">Das ist eine Schätzung. Liegen die tatsächlichen Kosten in der Produktion mehr als 20 % darüber, fragen wir noch einmal nach – sonst läuft alles ohne weitere Rückfrage.</p>
       ${hs&&d.eignung.urteil=="ungeeignet"?`<p class="err">Achtung: Laut Empfehlung eignet sich das Werk kaum für ein Hörspiel. Mit „Ja“ bestellst du es trotzdem.</p>`:""}
-      ${beta?`<p class="klein">Sound-Carpet ist eine BETA-Funktion.</p>`:""}
       ${intern&&V.angebot?`<p class="klein">Intern: Selbstkosten-Schätzung ${V.angebot.summe.toFixed(2)} $ (Kurs ${d.eur_je_usd} €/$). Nach der Freigabe legt 095 fest, welche Arbeitsschritte laufen.</p>`:""}
       <p>Möchtest du die Bestellung so freigeben?</p>
       <div class="akt"><button class="haupt" id="ok095">Ja, Kosten bestätigen und freigeben</button><button id="nein095">Nein, nachbessern</button></div>

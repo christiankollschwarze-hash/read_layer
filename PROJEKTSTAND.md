@@ -6,6 +6,9 @@ ENTSCHIEDEN (CK): Stufen-Schalter Hoerbuch basic/premium und Hoerspiel premium/d
   neue Hoerbuch-Bestellung = basic, Hoerspiel = Stufe aus Eignung, sonst premium; bestehende Bestellungen behalten ihre Stufe.
   Popup und Hinweise ohne Stufenangabe; Sound-Carpet BETA bleibt (intern). Monitor-Test Smoke: keine Auswahlfelder, Bestellung gueltig.
 OFFEN: Standardstufe Hoerspiel auf die neue Linie (Fish Drama 3 / QWEN + Chatterbox-VC) umstellen, sobald diese steht.
+NACHTRAG (CK): Sound-Carpet aus 095 entfernt (kein Schalter, Bestellung immer ohne Zusatz), bis entwickelt und kalkuliert; kein Werk hatte ihn bestellt.
+  Hoerspiel (ext.) bleibt gesperrt, Grund im Tooltip: Matrix nur TAELLA, 510 baut das Hoerspiel als Overlay fuer die App, 650 „Hoerspiel entfaellt
+  vorerst“ -> keine Export-Fassung; dazu Verwertungsrechte je Plattform (bisher Gemini, kuenftig Fish/QWEN) offen.
 
 ## AP Hook als Produkt – CODE ERLEDIGT 27.11.2026 (Entscheidung CK; Sicherung archive/2026-11-27_095_hook/)
 ENTSCHIEDEN (CK): Hook = „Teaser vor dem Trailer“ fuer das Durchblaettern = Koeder-Block des Klappentexts (600, woertliches Werkzitat)
