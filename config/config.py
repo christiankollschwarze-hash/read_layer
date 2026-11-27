@@ -273,19 +273,28 @@ MODAL_L4_USD_H = 0.80   # Modal L4 inkl. CPU/RAM-Anteil, $/h (Messung 16.10.) ->
 MODAL_A10G_USD_H = 1.10  # Modal A10G (Listenpreis ~1,10 $/h, Schaetzung; Fish-VC 510)
 MODAL_T4_USD_H = 0.59   # Modal T4 (Pruefaligner 345, bisher PREIS_T4_S 0.000164 $/s)
 # Stueckpreise USD je Aufruf (usage_log.log_stueck). None = Preis unbekannt, nur Anzahl gezaehlt.
-# Kostenangebot 095 (Selbstkosten-Schaetzung, USD je 100.000 Zeichen Werktext). Mediane aus kosten.jsonl
-# (01.11.2026, ~35 Werke) bzw. ERKENNTNIS_chatterbox_optimiert / KALKULATION_tts_basis. Gemini-TTS ab 2027 x2.
+# Kostenangebot 095 (Selbstkosten-Schaetzung, USD je 100.000 Zeichen Werktext). Text: Mediane aus kosten.jsonl
+# (01.11.2026, ~35 Werke). Audio (27.11.2026, CK): Produktionslinie Modal = Fish Drama 3 selbst gehostet,
+# nur Rechenzeit; gemessen an Monte Cristo 1-1 (382.130 Zeichen, 15 Kapitel, ohne Nachbesserungen).
+# Eine Erzaehlerspur je Sprache – Hoerbuch und Hoerspiel teilen sie (CK); Hoerspiel = Zuschlag.
 ANGEBOT_USD_100K = {
     "grund": 0.18,              # 200 Tagger + 210 Profil + 600 Klappentext + 610 Cover
     "modernisierung": 0.07,     # 120 (nur fassung modernisiert)
     "uebersetzung": 1.55,       # je Zielsprache: 300 + 310 + 330
     "anker": 0.11,              # je TAELLA-Zielsprache: 340
-    "hoerbuch_basic": 0.50,     # je Audiosprache: Chatterbox Modal L4 Batch 8 (~0,24 $ / 50.000 Zeichen)
-    "hoerbuch_premium": 1.50,   # je Audiosprache: Gemini-TTS (Stand 2026)
-    "hoerspiel_zuschlag": 0.80, # je Hoerspiel-Sprache: Figuren-Takes 510 + 420
-    "wortzeiten": 0.05,         # je TAELLA-Audiosprache: 530/520
+    "vertonung": 0.25,          # je Audiosprache: 500 Fish Drama 3, Modal H100 (MC 0,962 $)
+    "caster": 0.03,             # je Audiosprache: 410 Stimmenwahl (MC 0,112 $)
+    "pruefung": 0.35,           # je Audiosprache: 520 Whisper-Pruefung + Lautheit, Modal L4 (MC 1,325 $)
+    "wortzeiten": 0.075,        # je TAELLA-Audiosprache: 530 Forced Alignment (MC 0,287 $)
+    "vc": 0.17,                 # je Hoerspiel-Sprache: 510 Chatterbox-VC bei VC_REDE_REF Rede-Anteil (MC 0,640 $)
+    "trennung": 0.065,          # je Hoerspiel-Sprache: 540 Trennung (MC 0,243 $)
+    "regie": 0.33,              # je Hoerspiel-Sprache: 420 Sprecherzuordnung + 430 Fish-Regie (MC 1,269 $)
+    "hoerbuch_basic": 0.50,     # nur s500_vertonung_gemini (Altlinie Gemini-TTS)
+    "hoerbuch_premium": 1.50,   # nur s500_vertonung_gemini (Altlinie Gemini-TTS)
 }
-ANGEBOT_GEMINI_FAKTOR_AB = ("2027-01-01", 2.0)
+ANGEBOT_VC_REDE_REF = 0.26        # Rede-Anteil Monte Cristo 1-1; VC skaliert linear mit dem Rede-Anteil des Werks
+ANGEBOT_QWEN_USD_FIGUR = 0.02     # QWEN-Stimmdesign je neue Figur (~4 Kandidaten + Referenz, Modal)
+ANGEBOT_FIGUREN_STANDARD = 8      # Figurenzahl, wenn die Hoerspiel-Eignung keine liefert
 ANGEBOT_EUR_JE_USD = 0.86   # Anzeige Monitor 095 in € (Wert aus Vertrieb/Pricing-Simulator; von CK bestaetigt 27.11.2026)
 STUECKPREISE = {
     "gemini-voice-design": None,   # Voice Design (Stimme anlegen); Muster-TTS laeuft ueber gemini-3.8-flash-tts

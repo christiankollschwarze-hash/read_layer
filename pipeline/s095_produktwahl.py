@@ -8,7 +8,9 @@ Gate:         mind. 1 Produkt; nur gueltige Kombinationen (Matrix) -> sonst Stop
 Hoerspiel-Eignung (13.11.2026): Empfehlung aus pipeline/hoerspiel_eignung (Rede-Anteil, Sprecher, Buehnenform,
               0 $); Metrik hoerspiel_eignung. Hoerspiel bestellt, Urteil ungeeignet -> Mensch (bewusst bestaetigen).
 Default:      ohne produkte: Text TAELLA in Quellsprache + Zielsprachen (wunsch aus 090, sonst en<->de).
-Kosten:       0 $ (kein LLM). Kostenangebot = Selbstkosten-Schaetzung aus config.ANGEBOT_USD_100K.
+Kosten:       0 $ (kein LLM). Kostenangebot = Selbstkosten-Schaetzung aus config.ANGEBOT_USD_100K
+              (Audio-Linie Modal/Fish Drama 3, eine Erzaehlerspur je Sprache; Hoerspiel-Zuschlag nach
+              Rede-Anteil und Figurenzahl der Eignung, CK 27.11.2026).
 Regler:       --produkt SPRACHE:INHALT[:STUFE]:KANAL[,KANAL][:+ZUSATZ]  (mehrfach; ersetzt die Bestellung)
               --default (Bestellung aus Wunsch neu ableiten)
 Aufruf:
@@ -16,7 +18,6 @@ Aufruf:
 Exit: 0 auto, 2 Stopp, 3 Mensch.
 """
 import argparse
-import datetime
 import os
 import sys
 
@@ -70,13 +71,25 @@ def zeichen(werk):
     return int(u) if u else None
 
 
-def angebot(b, z, heute=None):
-    """Selbstkosten-Schaetzung USD je Posten aus Bestellung und Zeichenzahl (None, wenn Zeichen fehlen)."""
+AUDIO = ("hoerbuch", "hoerspiel")
+
+
+def hoerspiel_basis(eig):
+    """(Rede-Anteil, Figurenzahl) aus der Hoerspiel-Eignung; fehlende Werte -> Referenz aus config."""
+    w = (eig or {}).get("werte") or {}
+    rede = w.get("rede_anteil")
+    fig = max(w.get("n_sprecher") or 0, w.get("buehne_rollen") or 0, w.get("figuren_210") or 0)
+    return (rede if rede is not None else getattr(config, "ANGEBOT_VC_REDE_REF", 0.26),
+            fig or getattr(config, "ANGEBOT_FIGUREN_STANDARD", 8))
+
+
+def angebot(b, z, eig=None):
+    """Selbstkosten-Schaetzung USD je Posten aus Bestellung und Zeichenzahl (None, wenn Zeichen fehlen).
+    Audio-Linie Modal (CK 27.11.2026): je Audiosprache EINE Erzaehlerspur (500 Fish + 410 + 520), egal ob
+    Hoerbuch, Hoerspiel oder beides; Hoerspiel = Zuschlag 510 VC (nach Rede-Anteil) + 540 + 420/430 + QWEN je Figur."""
     if not z:
         return None
     s = getattr(config, "ANGEBOT_USD_100K", {})
-    ab, fak = getattr(config, "ANGEBOT_GEMINI_FAKTOR_AB", ("2027-01-01", 2.0))
-    gem = fak if (heute or datetime.date.today().isoformat()) >= ab else 1.0
     e = z / 100000
     pos = {"grund": s.get("grund", 0) * e}
     if b.fassung == "modernisiert":
@@ -85,15 +98,20 @@ def angebot(b, z, heute=None):
         pos[f"uebersetzung_{lg}"] = s.get("uebersetzung", 0) * e
         if b.hat(sprache=lg, kanal="taella"):
             pos[f"anker_{lg}"] = s.get("anker", 0) * e
+    if eig is None and any(p["inhalt"] == "hoerspiel" for p in b.produkte):
+        eig = hoerspiel_eignung.fuer_werk(b.ordner)
+    rede, fig = hoerspiel_basis(eig)
     for p in b.produkte:
         lg = p["sprache"]
-        if p["inhalt"] == "hoerbuch":
-            k = "hoerbuch_basic" if p["stufe"] == "basic" else "hoerbuch_premium"
-            pos[f"{k}_{lg}"] = s.get(k, 0) * e * (gem if k == "hoerbuch_premium" else 1)
-        elif p["inhalt"] == "hoerspiel":
-            pos[f"hoerspiel_{lg}"] = s.get("hoerspiel_zuschlag", 0) * e * gem
-        if p["inhalt"] != "text" and "taella" in p["kanaele"]:
+        if p["inhalt"] not in AUDIO:
+            continue
+        pos[f"vertonung_{lg}"] = (s.get("vertonung", 0) + s.get("caster", 0) + s.get("pruefung", 0)) * e
+        if "taella" in p["kanaele"]:
             pos[f"wortzeiten_{lg}"] = s.get("wortzeiten", 0) * e
+        if p["inhalt"] == "hoerspiel":
+            vc = s.get("vc", 0) * rede / getattr(config, "ANGEBOT_VC_REDE_REF", 0.26)
+            pos[f"hoerspiel_{lg}"] = ((vc + s.get("trennung", 0) + s.get("regie", 0)) * e
+                                      + getattr(config, "ANGEBOT_QWEN_USD_FIGUR", 0.02) * fig)
     pos = {k: round(v, 2) for k, v in pos.items()}
     pos["summe"] = round(sum(pos.values()), 2)
     return pos
@@ -140,12 +158,12 @@ def run(werk, wer=None, produkte=None, default=False):
     g.metrik("beta", len(beta))
     g.metrik("mandant", probe.mandant)
     z = zeichen(werk)
-    ang = angebot(probe, z)
+    eig = hoerspiel_eignung.fuer_werk(b.ordner)
+    ang = angebot(probe, z, eig)
     g.metrik("zeichen", z)
     g.metrik("angebot_usd", ang)
     if not fehler:
         g.metrik("bestellung_hash", bestell_hash(probe))
-    eig = hoerspiel_eignung.fuer_werk(b.ordner)
     g.metrik("hoerspiel_eignung", {"urteil": eig["urteil"], "stufe": eig["stufe"], "gruende": eig["gruende"]})
     hs = [p for p in probe.produkte if p["inhalt"] == "hoerspiel"]
     gr = []

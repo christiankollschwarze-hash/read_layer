@@ -1346,7 +1346,7 @@ MON["095"]={
     {g:"e",id:"hsx",n:"Hörspiel (ext.)",t:"noch nicht verfügbar"}],
   HBK:{hb:"taella",epub3:"epub",ab:"extern"},
   // Kostenposten aus P.angebot -> erste bestellte Zeile der Liste (sonst Grundpaket)
-  POSTEN:{anker:["text","hb","hs"],wortzeiten:["hb","hs"],hoerbuch_basic:["hb","epub3","ab","hs"],hoerbuch_premium:["hb","ab","hs"],hoerspiel:["hs"]},
+  POSTEN:{anker:["text","hb","hs"],wortzeiten:["hb","hs"],vertonung:["hb","epub3","ab","hs"],hoerspiel:["hs"]},
   intern(){return M.rolle!="verlag";},
   leerS(){return {text:[],hb:{stufe:"",kan:[]},hs:{stufe:"",beta:false},hook:false};},
   vonProdukten(pr){const E={};for(const p of pr){const e=E[p.sprache]=E[p.sprache]||this.leerS();

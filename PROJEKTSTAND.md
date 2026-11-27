@@ -1,5 +1,22 @@
 # PROJEKTSTAND — Read Layer
 
+## Kostenmodell 095 auf Modal-Linie – ERLEDIGT 27.11.2026 (CK; Sicherung archive/2026-11-27_095_kosten/)
+- Grundlage: CK – Audio laeuft auf Modal (Fish Drama 3 selbst gehostet, nur Rechenzeit); Messung Monte Cristo 1-1
+  (382.130 Zeichen, 15 Kap.): 500 0,962 $ + 510 VC 0,640 $ = 1,60 $ (CK-Zahl bestaetigt); 410 0,112; 420+430 1,269;
+  520 1,325; 530 0,287; 540 0,243 $. Fish-API-Nachbesserungen (1,16 $) nicht eingerechnet.
+- config.ANGEBOT_USD_100K neu je 100.000 Zeichen: vertonung 0,25 · caster 0,03 · pruefung 0,35 · wortzeiten 0,075 ·
+  vc 0,17 (bei ANGEBOT_VC_REDE_REF 26 % Rede) · trennung 0,065 · regie 0,33; ANGEBOT_QWEN_USD_FIGUR 0,02;
+  ANGEBOT_FIGUREN_STANDARD 8. Gemini-Faktor 2027 entfaellt (ANGEBOT_GEMINI_FAKTOR_AB geloescht);
+  hoerbuch_basic/premium bleiben nur fuer s500_vertonung_gemini.
+- s095.angebot(b, z, eig=None): je Audiosprache EINE Erzaehlerspur vertonung_<lg> (500+410+520) – Hoerbuch und Hoerspiel
+  teilen sie (CK: „dieselbe Spur“), die ergaenzte Premium-Spur zaehlt nicht doppelt; wortzeiten_<lg> bei TAELLA;
+  hoerspiel_<lg> = VC x Rede-Anteil/0,26 + 540 + 420/430 + QWEN x Figuren (Werte aus hoerspiel_eignung).
+- Monitor 095: Posten vertonung statt hoerbuch_basic/premium. Probe MC-Groesse: Spur 2,41 $ (gemessen 2,40),
+  Hoerspiel-Zuschlag 2,40 $ (gemessen 2,39). Tests test_s095 (11), test_bestellung, test_kette, test_cockpit_werk,
+  test_s300, test_s115 gruen; Browsercheck Smoke-Werk ok.
+- OFFEN: VC gemessen ≈0,67x Vertonung (CK-Faustregel 1x bei 25 % Rede) – mit naechstem Hoerspiel-Lauf nachmessen.
+  Figurenzahl aus der Eignung zaehlt alle Sprecher; Archivstimmen (keine neuen QWEN-Kosten) nicht abgezogen.
+
 ## 095 ohne Stufen-Auswahl – ERLEDIGT 27.11.2026 (CK)
 ENTSCHIEDEN (CK): Stufen-Schalter Hoerbuch basic/premium und Hoerspiel premium/drama aus Monitor 095 entfernt – Stufe folgt der Produktionslinie
   (Fish Audio Drama 3 entwickeln; Hoerspiel mit QWEN-Stimmen ueber Chatterbox-VC), nicht der Bestellung. Datenmodell unveraendert:

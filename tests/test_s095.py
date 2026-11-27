@@ -74,9 +74,23 @@ class T(unittest.TestCase):
         self.buch(produkte=[{"sprache": "de", "inhalt": "hoerbuch", "stufe": "premium", "kanaele": ["taella"]}])
         from pipeline import bestellung
         b = bestellung.lesen(W)
-        a26 = P.angebot(b, 100000, heute="2026-12-31")
-        a27 = P.angebot(b, 100000, heute="2027-01-01")
-        self.assertAlmostEqual(a27["hoerbuch_premium_de"], 2 * a26["hoerbuch_premium_de"])
+        a = P.angebot(b, 100000)
+        self.assertAlmostEqual(a["vertonung_de"], 0.63)      # 500 + 410 + 520 je 100.000 Zeichen
+        self.assertAlmostEqual(a["wortzeiten_de"], 0.07)     # 0,075 gerundet (Banker's rounding)
+        self.assertNotIn("hoerspiel_de", a)
+
+    def test_angebot_hoerspiel_teilt_erzaehlerspur(self):
+        """Hoerspiel + Hoerbuch derselben Sprache: Erzaehlerspur nur einmal; Zuschlag nach Rede und Figuren."""
+        self.buch(produkte=[{"sprache": "de", "inhalt": "hoerbuch", "stufe": "basic", "kanaele": ["taella"]},
+                            {"sprache": "de", "inhalt": "hoerspiel", "stufe": "premium", "kanaele": ["taella"]}])
+        from pipeline import bestellung
+        b = bestellung.lesen(W)
+        nur_hb = P.angebot(bestellung.Bestellung(dict(b.roh, produkte=b.produkte[:1]), b.ordner), 100000)
+        eig = {"werte": {"rede_anteil": 0.52, "n_sprecher": 5, "buehne_rollen": 0, "figuren_210": 10}}
+        a = P.angebot(b, 100000, eig)
+        self.assertEqual(a["vertonung_de"], nur_hb["vertonung_de"])
+        self.assertEqual([k for k in a if k.startswith("vertonung")], ["vertonung_de"])
+        self.assertAlmostEqual(a["hoerspiel_de"], round(0.34 + 0.065 + 0.33 + 10 * 0.02, 2))  # VC x2 bei 52 % Rede
 
     def test_veraltet_nach_aenderung(self):
         self.buch()
