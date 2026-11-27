@@ -53,7 +53,15 @@ details.ausnahme{margin-top:10px}
 .zw.hla{outline:2px solid var(--ink)}.zw.hlp{box-shadow:inset 0 0 0 2px var(--s-mensch);border-bottom:2px dashed var(--s-mensch)}
 .l340 .qw{cursor:default;margin-left:6px}
 .qw.hla{background:color-mix(in srgb,var(--s-frei) 35%,transparent);outline:2px solid var(--s-frei)}
-.t095 td{padding:6px 8px;vertical-align:top}.t095 select{margin-right:6px}
+.t095 td{padding:6px 8px;vertical-align:middle}.t095 select{margin:0 6px;font-size:12px}
+.t095 th{text-align:left}.t095 td.eur,.t095 th.eur{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.t095 tr.gr td{background:var(--tint);padding-top:8px}.t095 tr.summe td{border-top:2px solid var(--ink);font-weight:600}
+.pkt{width:18px;height:18px;min-width:18px;padding:0;border-radius:50%;border:2px solid var(--ink-3);background:transparent;cursor:pointer;vertical-align:middle}
+.pkt.an{background:var(--s-frei);border-color:var(--s-frei)}.pkt:disabled{cursor:not-allowed;opacity:.45}
+.kopf095{display:grid;grid-template-columns:150px 1fr;gap:4px 12px}.kopf095 b{letter-spacing:.04em}
+.modal095{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+.modal095 .karte{background:var(--paper);color:var(--ink);border-radius:var(--r-s);max-width:560px;width:100%;padding:20px 22px;box-shadow:0 10px 40px rgba(0,0,0,.3);max-height:90vh;overflow:auto}
+.modal095 .gross{font-size:18px;margin:12px 0}
 .b400{display:grid;grid-template-columns:110px 1fr 1fr 190px;gap:6px 12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px;line-height:1.45}
 .b400.kopf{font-weight:600;font-size:12px;color:var(--ink-3)}.b400.geaendert{background:color-mix(in srgb,var(--s-mensch) 7%,transparent)}
 .b400 .neu{cursor:text}.b400 .neu:hover{background:var(--tint)}.b400 textarea{width:100%;min-height:70px}
@@ -117,7 +125,7 @@ async function laden(){
   if(d.fehler){$("gate").innerHTML=`<span class="err">${esc(d.fehler)}</span>`;return;}
   M=d;$("zurueck").href="/werk#"+encodeURIComponent(d.book_id);
   $("kopfwerk").innerHTML=`<b>${esc(d.titel)}</b> <span class="klein">${esc(d.book_id)}</span>`;
-  $("kette").innerHTML=d.kette.map(k=>k.nachbar
+  $("kette").innerHTML=d.kette.filter(k=>!(d.stage.stage=="095"&&k.nachbar=="095"&&!["stopp","mensch"].includes(k.zustand))).map(k=>k.nachbar
    ?`<a class="mit ${esc(k.zustand)} ${k.stage==d.stage.stage?"akt":""}" title="${esc(k.name)}: ${esc(k.zustand)} – läuft mit ${esc(k.nachbar)}" href="#${esc(d.book_id)}/${k.nachbar}">${k.stage}</a>`
    :`<a class="${esc(k.zustand)} ${k.stage==d.stage.stage?"akt":""} ${k.veraltet?"veraltet":""}" title="${esc(k.name)}: ${esc(k.zustand)}${k.veraltet?" – veraltet, neu laufen lassen":""}" href="#${esc(d.book_id)}/${k.stage}">${k.stage}${k.veraltet?" ↻":""}</a>`).join("");
   document.title=`${d.stage.stage} ${d.stage.name} – ${d.book_id}`;
@@ -151,7 +159,7 @@ function gateZeigen(){
   h+=mitHtml(s);
   const kn=[];
   if(r.lauf.ok){
-    kn.push(`<button onclick="pruefen()">${s.stage} neu prüfen</button>`);
+    kn.push(`<button onclick="pruefen()">${s.stage=="095"?"Produktwahl Erstprüfung":s.stage+" neu prüfen"}</button>`);
     for(const z of rs)if(z.ziel&&z.ziel!=s.stage)kn.push(`<button onclick="laufLos('ab','${esc(z.ziel)}')">Rücksprung ${esc(z.ziel)}${z.scope?" ("+esc(z.scope)+")":""}</button>`);
   }
   h+=kn.length?`<div class="akt">${kn.join("")}</div>`:"";
@@ -161,7 +169,8 @@ function gateZeigen(){
 }
 // Nachbar-Stages (21.11.2026): laufen mit dieser Stage, Befunde und Rücksprung erscheinen hier
 function mitHtml(s){
-  return (M.mitlaeufer||[]).map(m=>{
+  // 095 (Stage-Feintuning 27.11.2026): mitlaufende 080/090 für den Kurator ausblenden – nur wenn sie anhalten, sichtbar
+  return (M.mitlaeufer||[]).filter(m=>s.stage!="095"||["stopp","mensch"].includes(m.zustand)).map(m=>{
     const halt=["stopp","mensch"].includes(m.zustand),rs=m.ruecksprung_ziele||[];
     let h=`<div class="mitl ${halt?"halt":""}">↳ <b>${m.stage} ${esc(m.name)}</b> ${zb(m.zustand)} <span class="klein">läuft automatisch mit ${s.stage}</span>`;
     if(halt){
@@ -1325,9 +1334,22 @@ MON["340"]={
     speichern(e).then(ok=>{if(ok&&!trocken){this.E=this.leer();this.sel=null;}});
   }
 };
+// Stage-Feintuning 095 (27.11.2026, Skript CK „Stage95“): Bestell-Maske. Kopfblock Werk/Quelle/Ausgangssprache/Mandant,
+// Formattabelle intern/extern mit Auftrag (Punkt an/aus) und Kosten € je Sprache, Speichern/Freigeben nur über Kosten-Popup.
+// Datenmodell je Sprache (text/hb/hs) und Gültigkeitsmatrix (bestellung.MATRIX) unverändert; Kosten aus P.angebot (/teil).
 MON["095"]={
-  E:null,V:null,tm:null,
-  vonProdukten(pr){const E={};for(const p of pr){const e=E[p.sprache]=E[p.sprache]||{text:[],hb:{stufe:"",kan:[]},hs:{stufe:"",beta:false}};
+  E:null,V:null,tm:null,naechster:true,
+  ZEILEN:[
+    {g:"i",id:"text",n:"Text"},{g:"i",id:"hb",n:"Hörbuch"},{g:"i",id:"hs",n:"Hörspiel"},
+    {g:"i",id:"hook",n:"Hook",t:"noch nicht bestellbar"},{g:"i",id:"teaser",n:"Teaser",t:"automatisch mit der TÆLLA App"},
+    {g:"e",id:"epub",n:"EPUB"},{g:"e",id:"epub3",n:"EPUB3",t:"mit Hörbuch-Audio"},{g:"e",id:"ab",n:"Audio-Book"},
+    {g:"e",id:"hsx",n:"Hörspiel (ext.)",t:"nur in der TÆLLA App"}],
+  HBK:{hb:"taella",epub3:"epub",ab:"extern"},
+  // Kostenposten aus P.angebot -> erste bestellte Zeile der Liste (sonst Grundpaket)
+  POSTEN:{anker:["text","hb","hs"],wortzeiten:["hb","hs"],hoerbuch_basic:["hb","epub3","ab","hs"],hoerbuch_premium:["hb","ab","hs"],hoerspiel:["hs"]},
+  intern(){return M.rolle!="verlag";},
+  leerS(){return {text:[],hb:{stufe:"",kan:[]},hs:{stufe:"",beta:false}};},
+  vonProdukten(pr){const E={};for(const p of pr){const e=E[p.sprache]=E[p.sprache]||this.leerS();
       if(p.inhalt=="text")e.text=[...p.kanaele];else if(p.inhalt=="hoerbuch")e.hb={stufe:p.stufe,kan:[...p.kanaele]};else e.hs={stufe:p.stufe,beta:(p.zusatz||[]).includes("sound_carpet")};}
     return E;},
   produkte(){const out=[];for(const [lg,e] of Object.entries(this.E)){
@@ -1336,60 +1358,170 @@ MON["095"]={
       if(e.hs.stufe)out.push({sprache:lg,inhalt:"hoerspiel",stufe:e.hs.stufe,kanaele:["taella"],zusatz:e.hs.beta?["sound_carpet"]:[]});}
     return out;},
   erlaubt(inhalt,stufe){const m=M.daten.matrix.find(x=>x.inhalt==inhalt&&x.stufe==(stufe||null));return m?m.kanaele:[];},
+  S(lg){return this.E[lg]=this.E[lg]||this.leerS();},
+  sprachen(d){const q=d.quellsprache,z=[...d.wunsch,...Object.keys(this.E||{}).filter(lg=>this.produkteIn(lg))].filter((x,i,a)=>x&&x!=q&&a.indexOf(x)==i);
+    if(!z.length)z.push(q=="en"?"de":"en");return [q,...z];},
+  produkteIn(lg){const e=this.E[lg];return !!e&&(e.text.length||(e.hb.stufe&&e.hb.kan.length)||e.hs.stufe);},
+  sn(lg){return (M.daten.sprachnamen||{})[lg]||lg;},
+  an(id,lg){const e=this.S(lg);switch(id){
+    case "text":return e.text.includes("taella");case "epub":return e.text.includes("epub");
+    case "hb":case "epub3":case "ab":return !!e.hb.stufe&&e.hb.kan.includes(this.HBK[id]);
+    case "hs":return !!e.hs.stufe;
+    case "teaser":return e.text.includes("taella")||(!!e.hb.stufe&&e.hb.kan.includes("taella"))||!!e.hs.stufe;
+    default:return false;}},
+  // Sperre aus der Gültigkeitsmatrix (leer = schaltbar)
+  sperre(id,lg){const e=this.S(lg);
+    if(id=="hook")return "Hook ist noch kein bestellbares Produkt";
+    if(id=="teaser")return "Teaser kommt automatisch mit jedem Produkt in der TÆLLA App";
+    if(id=="hsx")return "Hörspiel gibt es nur in der TÆLLA App";
+    if(id=="text"&&!this.erlaubt("text",null).includes("taella"))return "nicht erlaubt";
+    if(id=="epub"&&!this.erlaubt("text",null).includes("epub"))return "nicht erlaubt";
+    if(this.HBK[id]){const st=e.hb.stufe||"basic";if(!this.erlaubt("hoerbuch",st).includes(this.HBK[id]))return `${id=="epub3"?"EPUB3":"Dieser Kanal"} geht mit Hörbuch nur in Stufe basic (gewählt: ${st})`;}
+    return "";},
+  empfehlen(d){for(const lg of this.sprachen(d)){const e=this.S(lg);if(!e.text.includes("taella"))e.text.push("taella");
+      if(d.eignung.urteil=="geeignet"&&!e.hs.stufe)e.hs.stufe=["premium","drama"].includes(d.eignung.stufe)?d.eignung.stufe:"premium";}},
+  empfohlen(id){return id=="text"||(id=="hs"&&M.daten.eignung.urteil=="geeignet");},
+  kosten(){const V=this.V,a=V&&!(V.fehler&&V.fehler.length)?V.angebot:null;if(!a)return null;
+    const K={},G={},add=(o,k,v)=>o[k]=(o[k]||0)+v,q=M.daten.quellsprache;
+    for(const [k,v] of Object.entries(a)){if(k=="summe")continue;
+      const m=k.match(/^(.*)_([a-z]{2})$/),z=m&&this.POSTEN[m[1]];
+      if(z){const id=z.find(i=>this.an(i,m[2]));if(id){add(K,id+"/"+m[2],v);continue;}}
+      add(G,m?m[2]:q,v);}
+    return {K,G,summe:a.summe};},
+  eur(usd){const k=M.daten.eur_je_usd;if(usd==null||!k)return "–";const x=usd*k;
+    return x>0&&x<0.005?"< 0,01":x.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2});},
+  stufeWahl(lg,art){const e=this.S(lg),akt=art=="hb"?e.hb.stufe:e.hs.stufe,l=art=="hb"?["basic","premium"]:["premium","drama"];
+    return `<select title="Stufe" onchange="MON['095'].stufe('${lg}','${art}',this.value)">${l.map(s=>`<option ${akt==s?"selected":""}>${s}</option>`).join("")}</select>`;},
+  tabelle(d){
+    const L=this.sprachen(d),k=this.kosten(),intern=this.intern(),sp=1+2*L.length;
+    const zelle=(z,lg)=>{const s=this.sperre(z.id,lg),an=this.an(z.id,lg),fest=["hook","teaser","hsx"].includes(z.id)||(!!s&&!an),e=this.S(lg);
+      let x="";
+      if(an&&z.id=="hb")x=this.stufeWahl(lg,"hb");
+      if(an&&z.id=="hs"){x=this.stufeWahl(lg,"hs");
+        if(intern)x+=`<label class="klein"><input type="checkbox" ${e.hs.beta?"checked":""} onchange="MON['095'].E['${lg}'].hs.beta=this.checked;MON['095'].vorschau()"> Sound-Carpet <span class="z mensch">BETA</span></label>`;}
+      const tip=s||(an?"bestellt – Klick: abbestellen":"nicht bestellt – Klick: bestellen");
+      const kv=!an?"":z.id=="teaser"?"inkl.":k?(k.K[z.id+"/"+lg]!=null?this.eur(k.K[z.id+"/"+lg]):"inkl."):"–";
+      return `<td><button class="pkt ${an?"an":""}" ${fest?"disabled":""} title="${esc(tip)}" aria-label="${esc(z.n+" "+this.sn(lg)+": "+tip)}" onclick="MON['095'].schalten('${z.id}','${lg}')"></button>${x}</td><td class="eur">${kv}</td>`;};
+    const zeile=z=>`<tr><td><b>${esc(z.n)}</b>${this.empfohlen(z.id)?' <span class="klein">empfohlen</span>':""}${z.t?`<br><span class="klein">${esc(z.t)}</span>`:""}</td>${L.map(lg=>zelle(z,lg)).join("")}</tr>`;
+    const gruppe=(g,t)=>`<tr class="gr"><td colspan="${sp}"><b>${g}</b> <span class="klein">${t}</span></td></tr>`+this.ZEILEN.filter(z=>z.g==(g=="Intern"?"i":"e")).map(zeile).join("");
+    return `<table class="kapt t095">
+      <tr><th rowspan="2">Format</th>${L.map((lg,i)=>`<th colspan="2">${i?"Zielsprache":"Ausgangssprache"} (${esc(this.sn(lg))})</th>`).join("")}</tr>
+      <tr>${L.map(()=>`<th>Auftrag</th><th class="eur">Kosten €*</th>`).join("")}</tr>
+      ${gruppe("Intern","(TÆLLA App)")}${gruppe("Extern","(Vertrieb außerhalb der TÆLLA App)")}
+      <tr class="gr"><td><b>Grundaufbereitung</b><br><span class="klein">Analyse, Klappentext, Cover${L.length>1?"; Übersetzung":""}</span></td>${L.map(lg=>`<td></td><td class="eur">${k?this.eur(k.G[lg]||0):"–"}</td>`).join("")}</tr>
+      <tr class="summe"><td>Summe geschätzt</td><td colspan="${sp-1}" class="eur">${k?"ca. "+this.eur(k.summe)+" €":"–"}</td></tr></table>
+     <div class="klein">*Kosten geschätzt. Kostenfreigabe wird in der Produktion nur abgefragt, wenn o. g. Werte 20 % überschreiten.</div>
+     ${k?"":`<div class="klein err">${this.V&&this.V.fehler&&this.V.fehler.length?"Kosten erst nach gültiger Bestellung.":d.eur_je_usd?"Zeichenzahl unbekannt – keine Kostenschätzung möglich.":"Wechselkurs fehlt (config ANGEBOT_EUR_JE_USD)."}</div>`}`;
+  },
   html(d){
-    if(!this.E)this.E=this.vonProdukten(d.produkte);
-    const ei=d.eignung,farbe={geeignet:"frei",bedingt:"mensch",ungeeignet:"stopp",unbekannt:""}[ei.urteil];
-    const KN={taella:"TÆLLA",epub:"ePub",extern:"extern"};
-    const zeile=lg=>{const e=this.E[lg]||{text:[],hb:{stufe:"",kan:[]},hs:{stufe:"",beta:false}};this.E[lg]=e;
-      const kb=(art,k,an,dis)=>`<label class="klein"><input type="checkbox" ${an?"checked":""} ${dis?"disabled":""} onchange="MON['095'].kan('${lg}','${art}','${k}',this.checked)"> ${KN[k]}</label>`;
-      const hbK=e.hb.stufe?this.erlaubt("hoerbuch",e.hb.stufe).map(k=>kb("hb",k,e.hb.kan.includes(k))).join(" "):"";
-      return `<tr><td><b>${esc(lg)}</b>${lg==d.quellsprache?' <span class="klein">Quelle</span>':""}${d.wunsch.includes(lg)?' <span class="klein">Wunsch</span>':""}</td>
-        <td>${this.erlaubt("text",null).map(k=>kb("text",k,e.text.includes(k))).join(" ")}</td>
-        <td><select onchange="MON['095'].stufe('${lg}','hb',this.value)"><option value="">–</option>${["basic","premium"].map(s=>`<option ${e.hb.stufe==s?"selected":""}>${s}</option>`).join("")}</select> ${hbK}</td>
-        <td><select onchange="MON['095'].stufe('${lg}','hs',this.value)"><option value="">–</option>${["premium","drama"].map(s=>`<option ${e.hs.stufe==s?"selected":""}>${s}</option>`).join("")}</select>
-          ${e.hs.stufe?`<span class="klein">TÆLLA</span> <label class="klein"><input type="checkbox" ${e.hs.beta?"checked":""} onchange="MON['095'].E['${lg}'].hs.beta=this.checked;MON['095'].vorschau()"> Sound-Carpet <span class="z mensch">BETA</span></label>`:""}</td></tr>`;};
-    return `<div class="box"><h2>1 Anzeigen</h2><div class="feld">
-      <span>Werk</span><span>Quelle ${esc(d.quelle||"–")} · Ausgangssprache ${esc(d.quellsprache||"–")} · Fassung ${esc(d.fassung||"–")} · Mandant ${esc(d.mandant||"–")} (${esc(d.mandant_art||"")})${d.wunsch.length?` · Wunsch-Zielsprachen aus 090: ${esc(d.wunsch.join(", "))}`:""}${d.abgeleitet?' · <span class="z mensch">Bestellung noch abgeleitet (Default)</span>':""}</span></div></div>
+    if(!this.E){this.E=this.vonProdukten(d.produkte);if(d.abgeleitet)this.empfehlen(d);}
+    const ei=d.eignung,farbe={geeignet:"frei",bedingt:"mensch",ungeeignet:"stopp",unbekannt:""}[ei.urteil],intern=this.intern();
+    return `<div class="box"><div class="kopf095">
+      <span><b>WERK</b></span><span><b>${esc(d.titel)}</b></span>
+      <span>Quelle</span><span>${esc(d.quelle_text)}</span>
+      <span>Ausgangssprache</span><span>${esc(this.sn(d.quellsprache))}</span>
+      <span>Mandant</span><span>${esc(d.mandant_text)}</span></div></div>
+    <div class="box"><h2>Formate</h2>
+     <div id="tab095">${this.tabelle(d)}</div>
+     <div id="vs095" class="klein" style="margin-top:8px"></div></div>
     <div class="box"><h2>Empfehlung Hörspiel</h2><div class="feld">
       <span>Urteil</span><span><span class="z ${farbe}">${esc(ei.urteil)}</span>${ei.stufe?` · empfohlene Stufe <b>${esc(ei.stufe)}</b>`:""}</span>
-      <span>Gründe</span><span class="klein">${ei.gruende.map(esc).join("<br>")}</span></div>
-      <div class="klein">Messung am Rohtext (wörtliche Rede, wiederkehrende Sprecher, Bühnenform), 0 $. Empfehlung, keine Sperre: Hörspiel trotz „ungeeignet“ geht, 095 fragt dann nach (Mensch).</div></div>
-    <div class="box"><h2>2 Bearbeiten · Bestellmatrix</h2>
-     <table class="kapt t095"><tr><th>Sprache</th><th>Text</th><th>Hörbuch</th><th>Hörspiel</th></tr>${d.sprachen.map(zeile).join("")}</table>
-     <div class="klein">Hörspiel braucht die Hörbuch-Erzählerspur premium derselben Sprache – 095 ergänzt sie automatisch. Hörbuch premium nur TÆLLA/extern, Hörspiel nur TÆLLA.</div>
-     <h3>Vorschau</h3><div id="vs095" class="klein">…</div></div>
-    <div class="box"><h2>3 Speichern · 4 Freigeben</h2>
-     <div class="akt"><button class="haupt" onclick="MON['095'].los(false)">Bestellung übernehmen und 095 neu prüfen</button>
-      <button onclick="MON['095'].los(true)">Default aus Wunsch (090) ableiten</button>
-      <button onclick="MON['095'].E=MON['095'].vonProdukten(M.daten.produkte);MON['095'].neuZeichnen()">Änderungen verwerfen</button></div>
-     <div class="klein">Fertige Stages bleiben frei; neu bestellte kommen als offen dazu, abbestellte entfallen. Somnio → auto; User/Verlag, BETA oder Hörspiel trotz „ungeeignet“ → Mensch.</div></div>`;
+      ${intern?`<span>Gründe</span><span class="klein">${ei.gruende.map(esc).join("<br>")}</span>`:""}</div>
+      ${intern?`<div class="klein">Messung am Rohtext (wörtliche Rede, wiederkehrende Sprecher, Bühnenform), 0 $. Empfehlung, keine Sperre: Hörspiel trotz „ungeeignet“ geht, wird dann im Popup eigens bestätigt.</div>`:""}</div>
+    <div class="box"><h2>Abschluss</h2>
+     <div class="akt"><button class="haupt" onclick="MON['095'].popup()">Speichern / Freigeben</button>
+      <button onclick="MON['095'].E=MON['095'].vonProdukten(M.daten.produkte);MON['095'].neuZeichnen()">Änderungen verwerfen</button>
+      ${intern?`<button onclick="MON['095'].ableiten()">Default aus Wunsch (090) ableiten</button>`:""}</div>
+     <div class="klein">„Speichern / Freigeben“ zeigt zuerst die geschätzten Kosten zur Bestätigung.${intern?" Fertige Stages bleiben frei; neu bestellte kommen als offen dazu, abbestellte entfallen.":""}</div></div>`;
   },
   danach(){this.vorschau();},
+  entscheidungText(){return "Die Bestellung wartet auf deine Bestätigung. Formate unten prüfen und mit „Speichern / Freigeben“ bestätigen – dort siehst du vorher die geschätzten Kosten.";},
+  freigeben(){this.popup();},
   neuZeichnen(){$("inhalt").innerHTML=this.html(M.daten);this.danach();},
-  kan(lg,art,k,an){const e=this.E[lg],l=art=="text"?e.text:e.hb.kan,i=l.indexOf(k);if(an&&i<0)l.push(k);if(!an&&i>=0)l.splice(i,1);this.vorschau();},
-  stufe(lg,art,s){const e=this.E[lg];
-    if(art=="hb"){e.hb.stufe=s;const ok=s?this.erlaubt("hoerbuch",s):[];e.hb.kan=e.hb.kan.filter(k=>ok.includes(k));if(s&&!e.hb.kan.length)e.hb.kan=["taella"];}
-    else{e.hs.stufe=s;if(!s)e.hs.beta=false;
-      if(s&&M.daten.eignung.urteil=="ungeeignet")alert("Hinweis: Das Werk ist laut Empfehlung für ein Hörspiel ungeeignet ("+M.daten.eignung.gruende.join("; ")+").");}
-    this.neuZeichnen();},
+  zeichnen(){const t=$("tab095");if(t)t.innerHTML=this.tabelle(M.daten);this.vorschau();},
+  schalten(id,lg){const e=this.S(lg),an=this.an(id,lg),s=this.sperre(id,lg);
+    if(!an&&s){alert(s);return;}
+    if(id=="text"||id=="epub"){const k=id=="text"?"taella":"epub";e.text=an?e.text.filter(x=>x!=k):[...e.text,k];}
+    else if(this.HBK[id]){const k=this.HBK[id];
+      if(an){e.hb.kan=e.hb.kan.filter(x=>x!=k);if(!e.hb.kan.length)e.hb.stufe="";}
+      else{if(!e.hb.stufe){e.hb.stufe="basic";e.hb.kan=[];}e.hb.kan.push(k);}}
+    else if(id=="hs"){
+      if(an){e.hs.stufe="";e.hs.beta=false;}
+      else{const ei=M.daten.eignung;e.hs.stufe=["premium","drama"].includes(ei.stufe)?ei.stufe:"premium";
+        if(ei.urteil=="ungeeignet")alert("Hinweis: Das Werk ist laut Empfehlung für ein Hörspiel ungeeignet ("+ei.gruende.join("; ")+").");}}
+    this.zeichnen();},
+  stufe(lg,art,s){const e=this.S(lg);
+    if(art=="hb"){const weg=e.hb.kan.filter(k=>!this.erlaubt("hoerbuch",s).includes(k));
+      if(weg.length&&!confirm(`Stufe ${s} gibt es nicht für ${weg.map(k=>({epub:"EPUB3",extern:"Audio-Book",taella:"TÆLLA App"})[k]).join(", ")} – diese(s) Format(e) abbestellen?`)){this.zeichnen();return;}
+      e.hb.stufe=s;e.hb.kan=e.hb.kan.filter(k=>!weg.includes(k));if(!e.hb.kan.length)e.hb.kan=[this.erlaubt("hoerbuch",s)[0]];}
+    else e.hs.stufe=s;
+    this.zeichnen();},
   vorschau(){clearTimeout(this.tm);this.tm=setTimeout(async()=>{
     const d=M.daten,pr=this.produkte(),el=$("vs095");if(!el)return;
-    if(!pr.length){el.innerHTML='<span class="err">Mindestens ein Produkt wählen.</span>';return;}
-    const r=await api(`/api/werk/${B()}/monitor/095/teil?produkte=${encodeURIComponent(JSON.stringify(pr))}`);this.V=r;
-    if(r.fehler&&!Array.isArray(r.fehler)){el.innerHTML=`<span class="err">${esc(r.fehler)}</span>`;return;}
-    if(r.fehler.length){el.innerHTML=`<span class="err">${r.fehler.map(esc).join("<br>")}</span>`;return;}
-    const alt=new Set(d.laeuft),neu=new Set(r.stages),nm=s=>`${s} ${esc(d.namen[s]||"")}`;
-    const dazu=r.stages.filter(s=>!alt.has(s)),weg=d.laeuft.filter(s=>!neu.has(s));
-    const a=r.angebot;
-    el.innerHTML=`<div class="feld"><span>Produkte</span><span>${r.produkte.map(p=>`${p.sprache}:${p.inhalt}${p.stufe?":"+p.stufe:""}:${p.kanaele.join(",")}${p.zusatz.length?" +"+p.zusatz.join(","):""}`).map(esc).join(" · ")}${r.ergaenzt.length?` <span class="z mensch">ergänzt: ${esc(r.ergaenzt.join(", "))}</span>`:""}</span>
-      <span>Kette</span><span>${r.stages.length} Stages${dazu.length?` · <b>neu:</b> ${dazu.map(nm).join(", ")}`:""}${weg.length?` · <b>entfällt:</b> ${weg.map(nm).join(", ")}`:""}${!dazu.length&&!weg.length?" · unverändert":""}</span>
-      <span>Angebot</span><span>${a?`Selbstkosten-Schätzung ~${a.summe.toFixed(2)} $ (${Object.entries(a).filter(([k])=>k!="summe").map(([k,v])=>esc(k)+" "+v.toFixed(2)).join(" · ")})`:"Zeichenzahl unbekannt – kein Angebot"}</span></div>`;
+    if(!pr.length){this.V=null;el.innerHTML='<span class="err">Mindestens ein Format bestellen.</span>';const t=$("tab095");if(t)t.innerHTML=this.tabelle(d);return;}
+    const r=await api(`/api/werk/${B()}/monitor/095/teil?produkte=${encodeURIComponent(JSON.stringify(pr))}`);
+    if(r.fehler&&!Array.isArray(r.fehler))r.fehler=[r.fehler];
+    this.V=r;const t=$("tab095");if(t)t.innerHTML=this.tabelle(d);
+    if(r.fehler.length){el.innerHTML=`<span class="err">Ungültige Kombination: ${r.fehler.map(esc).join("<br>")}</span>`;return;}
+    const h=[];
+    if(r.ergaenzt.length)h.push(`<span class="z mensch">automatisch ergänzt</span> Hörspiel braucht die Hörbuch-Erzählerspur (premium): ${esc(r.ergaenzt.join(", "))}`);
+    if(this.intern()){const alt=new Set(d.laeuft),neu=new Set(r.stages),nm=s=>`${s} ${esc(d.namen[s]||"")}`;
+      const dazu=r.stages.filter(s=>!alt.has(s)),weg=d.laeuft.filter(s=>!neu.has(s));
+      h.push(`Kette: ${r.stages.length} Stages${dazu.length?` · <b>neu:</b> ${dazu.map(nm).join(", ")}`:""}${weg.length?` · <b>entfällt:</b> ${weg.map(nm).join(", ")}`:""}${!dazu.length&&!weg.length?" · unverändert":""}`);
+      if(r.angebot)h.push(`Selbstkosten-Schätzung ${r.angebot.summe.toFixed(2)} $ × ${d.eur_je_usd} €/$`);}
+    el.innerHTML=h.join("<br>");
   },300);},
-  los(def){
-    if(def){if(!confirm("Bestellung aus dem Wunsch (090) neu ableiten?"))return;speichern({default:true}).then(ok=>{if(ok)this.E=null;});return;}
-    const pr=this.produkte();if(!pr.length){alert("Mindestens ein Produkt wählen.");return;}
-    if(this.V&&this.V.fehler&&this.V.fehler.length){alert(this.V.fehler.join("\n"));return;}
-    speichern({produkte:pr}).then(ok=>{if(ok)this.E=null;});
+  ableiten(){if(!confirm("Bestellung aus dem Wunsch (090) neu ableiten?"))return;speichern({default:true}).then(ok=>{if(ok)this.E=null;});},
+  // ---- Popup: Kosten bestätigen -> speichern, 095 prüfen, freigeben, nächste Stage
+  beschreibung(){const out=[];
+    for(const lg of Object.keys(this.E)){const n=[];
+      for(const z of this.ZEILEN){if(z.id=="hook"||!this.an(z.id,lg))continue;
+        const e=this.S(lg),st=z.id=="hb"||z.id=="ab"||z.id=="epub3"?` (Stufe ${e.hb.stufe})`:z.id=="hs"?` (Stufe ${e.hs.stufe}${e.hs.beta?", Sound-Carpet BETA":""})`:"";
+        n.push(z.n+(z.g=="i"&&z.id!="teaser"?" in der TÆLLA App":"")+st);}
+      if(n.length)out.push(`<li><b>${esc(this.sn(lg))}:</b> ${n.map(esc).join(", ")}</li>`);}
+    return out.join("");},
+  popup(){
+    const pr=this.produkte();if(!pr.length){alert("Bitte mindestens ein Format bestellen.");return;}
+    const V=this.V;if(!V){alert("Kosten werden noch berechnet – bitte einen Moment warten.");this.vorschau();return;}
+    if(V.fehler&&V.fehler.length){alert("Die Bestellung enthält noch ungültige Kombinationen:\n"+V.fehler.join("\n"));return;}
+    const d=M.daten,k=this.kosten(),sum=k?this.eur(k.summe):"–",intern=this.intern();
+    const hs=pr.some(p=>p.inhalt=="hoerspiel"),beta=pr.some(p=>(p.zusatz||[]).length);
+    const m=document.createElement("div");m.className="modal095";m.id="modal095";
+    m.innerHTML=`<div class="karte" role="dialog" aria-modal="true" aria-labelledby="t095"><h2 id="t095">Bestellung bestätigen</h2>
+      <p>Du bestellst für <b>${esc(d.titel)}</b>:</p><ul>${this.beschreibung()}</ul>
+      ${V.ergaenzt.length?`<p class="klein">Für das Hörspiel wird automatisch die Hörbuch-Erzählerspur (Stufe premium) mitbestellt.</p>`:""}
+      <p class="gross">Geschätzte Kosten: <b>${k?"ca. "+sum+" €":"noch nicht berechenbar"}</b></p>
+      <p class="klein">Das ist eine Schätzung. Liegen die tatsächlichen Kosten in der Produktion mehr als 20 % darüber, fragen wir noch einmal nach – sonst läuft alles ohne weitere Rückfrage.</p>
+      ${hs&&d.eignung.urteil=="ungeeignet"?`<p class="err">Achtung: Laut Empfehlung eignet sich das Werk kaum für ein Hörspiel. Mit „Ja“ bestellst du es trotzdem.</p>`:""}
+      ${beta?`<p class="klein">Sound-Carpet ist eine BETA-Funktion.</p>`:""}
+      ${intern&&V.angebot?`<p class="klein">Intern: Selbstkosten-Schätzung ${V.angebot.summe.toFixed(2)} $ (Kurs ${d.eur_je_usd} €/$). Nach der Freigabe legt 095 fest, welche Arbeitsschritte laufen.</p>`:""}
+      <p>Möchtest du die Bestellung so freigeben?</p>
+      <div class="akt"><button class="haupt" id="ok095">Ja, Kosten bestätigen und freigeben</button><button id="nein095">Nein, nachbessern</button></div>
+      <div id="st095" class="klein" style="margin-top:8px"></div></div>`;
+    document.body.appendChild(m);
+    $("ok095").onclick=()=>this.bestaetigen(sum);$("nein095").onclick=()=>this.schliessen();
+    m.onclick=ev=>{if(ev.target===m&&!$("ok095").disabled)this.schliessen();};
+    $("ok095").focus();},
+  schliessen(){const m=$("modal095");if(m)m.remove();},
+  async bestaetigen(sum){
+    const st=$("st095"),ok=$("ok095"),no=$("nein095"),msg=t=>st.innerHTML=t,frei=()=>{ok.disabled=no.disabled=false;};
+    ok.disabled=no.disabled=true;msg("Bestellung wird gespeichert …");
+    const wer=$("wer").value,r=await api(`/api/werk/${B()}/monitor/095`,{produkte:this.produkte(),wer});
+    if(!r.ok){msg(`<span class="err">${esc(r.fehler)}</span>`);frei();return;}
+    msg("Produktwahl wird geprüft …");
+    let l=r.lauf;for(let i=0;i<180&&l&&l.laeuft;i++){await new Promise(z=>setTimeout(z,1000));l=await api(`/api/werk/${B()}/lauf`);}
+    if(l&&l.laeuft){this.schliessen();laden();return;}
+    const d=await api(`/api/werk/${B()}/monitor/095?wer=${encodeURIComponent(wer)}`);
+    if(d.fehler){msg(`<span class="err">${esc(d.fehler)}</span>`);frei();return;}
+    const z=d.stage.zustand;
+    if(z=="stopp"){msg(`<span class="err">Die Bestellung wurde nicht angenommen: ${esc((d.stage.befunde||[]).join("; ")||"siehe Befunde")}</span>`);no.disabled=false;return;}
+    if(z=="mensch"){
+      if(!d.rechte.entscheiden.ok){msg("Gespeichert. Die Freigabe muss noch jemand mit Freigaberecht erteilen.");no.disabled=false;no.textContent="Schließen";no.onclick=()=>{this.schliessen();laden();};return;}
+      const e=await api(`/api/werk/${B()}/aktion`,{art:"entscheiden",stage:"095",nach:"frei",grund:`Bestellung und geschätzte Kosten (ca. ${sum} €) im Popup bestätigt`,wer});
+      if(!e.ok){msg(`<span class="err">${esc(e.fehler)}</span>`);frei();return;}}
+    this.schliessen();this.E=null;this.V=null;
+    const k=d.kette,i=k.findIndex(x=>x.stage=="095"),n=k.slice(i+1).find(x=>!x.nachbar);
+    if(n)location.hash=`${M.book_id}/${n.stage}`;else laden();
   }
 };
 MON["400"]={

@@ -1,5 +1,27 @@
 # PROJEKTSTAND — Read Layer
 
+## AP Stage-Feintuning 095 Produktwahl – ERLEDIGT 27.11.2026 (Skript CK docs/Stage95 Skript.docx; Sicherung archive/2026-11-27_095/)
+IST VORHER: Gate-Kopf mit „095 neu pruefen“ + mitlaufenden 080/090, Kasten „Naechster Schritt“, Box „1 Anzeigen“ (Werk-Zeile Quelle/Sprache/
+  Fassung/Mandant), Hoerspiel-Empfehlung, Bestellmatrix je Sprache (Text-Kanaele, Hoerbuch-Stufe+Kanaele, Hoerspiel-Stufe), Vorschau Kette/Angebot $,
+  Knoepfe „Bestellung uebernehmen und 095 neu pruefen“ / Default / Verwerfen; Freigabe getrennt im Gate-Kasten.
+NEU cockpit/monitor.html MON["095"] (nur 095): Kopfblock WERK/Quelle/Ausgangssprache/Mandant (keine Fassung); 080/090 in Kettenleiste und Gate-Kopf
+  ausgeblendet (nur sichtbar, wenn sie anhalten); Schalter „Produktwahl Erstpruefung“; kein „Naechster Schritt“ (naechster:true).
+  Formattabelle Intern (Text, Hoerbuch, Hoerspiel, Hook, Teaser) / Extern (EPUB, EPUB3, Audio-Book, Hoerspiel ext.) x Ausgangs-/Zielsprache(n),
+  Auftrag = Punkt an/aus, Kosten € je Zelle + Grundaufbereitung + Summe, Fussnote 20 %. Zuordnung aufs bestehende Produktmodell:
+  Text=text:taella, EPUB=text:epub, Hoerbuch=hoerbuch:taella, EPUB3=hoerbuch basic:epub (Media Overlay), Audio-Book=hoerbuch:extern, Hoerspiel=hoerspiel:taella.
+  Matrix-Sperren aus bestellung.MATRIX (EPUB3 nur basic; Stufenwechsel fragt Abbestellen nach); Hoerspiel ergaenzt Erzaehlerspur premium (wie bisher).
+  Empfohlen (bei abgeleiteter Bestellung an): Text alle Sprachen, Hoerspiel wenn Eignung „geeignet“.
+  „Speichern / Freigeben“ -> Popup (Laientext, Formate je Sprache, ca. € gesamt) -> Ja: speichern, 095 laeuft, bei „mensch“ entscheiden frei
+  (Grund „Bestellung und geschaetzte Kosten im Popup bestaetigt“), Sprung zur naechsten Stage; Nein: Popup zu, Bestellung bleibt bearbeitbar.
+  Gate-„Freigeben“ in 095 laeuft ebenfalls ueber das Popup (mon.freigeben). Rolle verlag: ohne Gruende/Kette/Selbstkosten/BETA/Default-Knopf.
+werk_api._m095_daten: + titel, quelle_text, mandant_text (Somnio -> „Somnio Publishing (PD Eigenproduktion)“), sprachnamen, eur_je_usd.
+config.ANGEBOT_EUR_JE_USD = 0,86 (aus Vertrieb/Pricing-Simulator). Kosten je Zelle = Posten aus s095.angebot (Selbstkosten $) x Kurs.
+TEST Smoke u-smoketest-the-mirror-sisters (Server-Kopie Port 8767): Tabelle, Kostensumme = Zellsumme, EPUB3-Sperre, Hoerspiel-Ergaenzung,
+  Popup Nein/Ja; Ja -> 095 frei, Sprung 150; Bestellinhalt unveraendert (nur Reihenfolge nach Sprache). Keine Konsolenfehler. 0 $.
+OFFEN (CK): (1) Kurs 0,86 €/$ bestaetigen. (2) Hook: kein Produkt/keine Stage -> Zeile gesperrt, Kosten „–“. Teaser: kein eigenes Produkt,
+  kommt mit TAELLA (640) -> gesperrt, „inkl.“. Hoerspiel (ext.): Matrix erlaubt nur TAELLA -> gesperrt. (3) Gate-Kopf zeigt fuer verlag weiter den
+  Pipeline-Grund „~x $ Selbstkosten“ (Kunden nutzen /kunde). (4) Laufender Cockpit-Server 8765 braucht Neustart fuer werk_api-Aenderung.
+
 ## AP Segment-Lautheit 520 – CODE ERLEDIGT 27.11.2026, Hoertest CK offen (Regler aus, Endfassungen unveraendert)
 ANLASS (CK): woertliche Rede teils leiser als der Erzaehler. MESSUNG Monte Cristo DE (LUFS, Segmente >= 3 s): Hoerbuch unauffaellig (Figuren +0,8 LU),
   Hoerspiel: Mercedes 38 %, Danglars 32 %, Caderousse 29 %, Fernand 29 % der Segmente > 3 LU unter dem Erzaehler. Ursache: s511.montage gleicht Figuren nur

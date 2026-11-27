@@ -2107,7 +2107,25 @@ def _m095_daten(book_id):
     w = werk(book_id)
     eig = H.fuer_werk(b.ordner)
     jetzt = _m095_probe(book_id, b.produkte)
-    return {"quellsprache": b.quellsprache, "mandant": b.mandant, "mandant_art": b.mandant_art,
+    # Kopfblock Stage-Feintuning 095 (27.11.2026): Klartext fuer Werk/Quelle/Ausgangssprache/Mandant
+    qn = {"gutenberg": "Gutenberg", "user_txt": "eigene Textdatei", "user_epub": "eigenes EPUB",
+          "verlag_epub": "Verlags-EPUB", "fremd_audio": "fremdes Hörbuch"}
+    sn = {"en": "Englisch", "de": "Deutsch", "es": "Spanisch", "fr": "Französisch", "it": "Italienisch"}
+    m = b.mandant or ""
+    if m == "somnio":
+        mtext = "Somnio Publishing (PD Eigenproduktion)"
+    elif m.startswith("verlag:"):
+        imp = ((s080_mandant.register().get("mandanten") or {}).get(m) or {}).get("imprint")
+        mtext = f"{imp or m[7:]} (Verlagswerk)"
+    elif m.startswith("user:"):
+        mtext = f"{roh.get('owner_name') or m[5:]} (Nutzerwerk)"
+    else:
+        mtext = m or "–"
+    return {"titel": roh.get("titel_original") or roh.get("titel") or book_id,
+            "quelle_text": qn.get(roh.get("quelle"), roh.get("quelle") or "–"),
+            "sprachnamen": sn, "mandant_text": mtext,
+            "eur_je_usd": getattr(config, "ANGEBOT_EUR_JE_USD", None),
+            "quellsprache": b.quellsprache, "mandant": b.mandant, "mandant_art": b.mandant_art,
             "quelle": roh.get("quelle"), "fassung": b.fassung, "wunsch": (roh.get("wunsch") or {}).get("zielsprachen") or [],
             "abgeleitet": "produkte" in b.abgeleitet, "sprachen": list(bestellung.sprachliste()),
             "matrix": [{"inhalt": i, "stufe": s, "kanaele": list(k)} for (i, s), k in bestellung.MATRIX.items()],
