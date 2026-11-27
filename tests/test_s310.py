@@ -220,6 +220,25 @@ class T310(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.lauf(nur_lang="es")
 
+    def test_einheitlichkeit_werkweit(self):
+        kap = {"c001": [(f"c001_{i:05d}_s", f"Il va a l'ile d'Elbe {i}.", "s") for i in range(6)]
+                       + [("c001_00010_s", "Le procureur du roi parle.", "s"),
+                          ("c001_00011_s", "Le substitut du procureur du roi parle.", "s")]}
+        de = ["Er fährt zur ile d'Elbe."] * 3 + ["Er fährt zur Insel Elba."] * 3
+        content = {t: {"type": "s", "fr": q, "de": z} for (t, q, _y), z in zip(kap["c001"], de)}
+        content["c001_00010_s"] = {"type": "s", "fr": "x", "de": "Der Kronanwalt spricht."}
+        content["c001_00011_s"] = {"type": "s", "fr": "x", "de": "Der Staatsanwalt spricht."}
+        profil = {"untranslated": {"ile d'Elbe": {"meaning": "Elba"}},
+                  "glossary": {"procureur du roi": {"de": "Kronanwalt"},
+                               "substitut du procureur du roi": {"de": "Staatsanwalt"}}}
+        eh = P.einheitlichkeit(kap, content, profil, "de")
+        self.assertEqual([(x["begriff"], x["treffer"], x["abweichend"]) for x in eh["uneinheitlich"]],
+                         [("ile d'Elbe", 3, 3)])                 # laengerer Begriff zaehlt nicht mit
+        for t in list(content)[:6]:
+            content[t]["de"] = "Er fährt zur Insel Elba."
+        eh = P.einheitlichkeit(kap, content, profil, "de")
+        self.assertEqual((eh["uneinheitlich"], [x["begriff"] for x in eh["anders"]]), ([], ["ile d'Elbe"]))
+
     def test_monitor_310(self):
         from cockpit import werk_api as W
         kopie = Q["c001_00003_s"][1]

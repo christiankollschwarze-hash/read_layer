@@ -1,0 +1,8 @@
+{"zeit": "2026-11-26 10:53:25", "art": "kandidaten", "paket": "probe_v1", "gpu": "L40S", "gpu_wall_s": 0.0, "lokal_wall_s": 55.7, "usd_h": 1.95, "usd": 0.0, "clips": 6, "rc": 1}
+{"zeit": "2026-11-26 10:54:01", "art": "kandidaten", "paket": "probe_v1", "gpu": "L40S", "gpu_wall_s": 0.0, "lokal_wall_s": 14.0, "usd_h": 1.95, "usd": 0.0, "clips": 6, "rc": 1}
+{"zeit": "2026-11-26 10:59:36", "art": "kandidaten", "paket": "probe_v1", "gpu": "L40S", "gpu_wall_s": 144.4, "lokal_wall_s": 323.1, "usd_h": 1.95, "usd": 0.0786, "clips": 6, "rc": 0}
+{"zeit": "2026-11-26 11:02:42", "art": "xl", "paket": "probe_v1", "gpu": "L40S", "gpu_wall_s": 122.8, "lokal_wall_s": 164.6, "usd_h": 1.95, "usd": 0.0667, "clips": 3, "rc": 0}
+{"zeit": "2026-11-26 11:05:26", "art": "kandidaten", "paket": "probe_v2", "gpu": "L40S", "gpu_wall_s": 42.5, "lokal_wall_s": 84.8, "usd_h": 1.95, "usd": 0.0232, "clips": 4, "rc": 0}
+{"zeit": "2026-11-26 11:07:04", "art": "referenzen", "paket": "probe_v2", "gpu": "L40S", "gpu_wall_s": 56.7, "lokal_wall_s": 97.9, "usd_h": 1.95, "usd": 0.0309, "clips": 4, "rc": 0}
+{"zeit": "2026-11-26 11:49:35", "art": "kandidaten", "paket": "matrix_v1", "gpu": "L40S", "gpu_wall_s": 1803.9, "lokal_wall_s": 2521.0, "usd_h": 1.95, "usd": 0.9911, "clips": 216, "rc": 0}
+{"zeit": "2026-11-26 13:09:13", "art": "referenzen", "paket": "matrix_v1", "gpu": "A10G", "gpu_wall_s": 332.7, "lokal_wall_s": 503.0, "usd_h": 1.1, "usd": 0.1036, "clips": 59, "rc": 0}

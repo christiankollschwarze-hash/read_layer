@@ -1,0 +1,1507 @@
+{
+ "design": [
+  {
+   "key": "m_jung_warm__s11_de",
+   "instruct": "A young man of about twenty, medium-high pitch. Warm, fatherly and reassuring, a gentle smile in the voice; a soft chuckle never far from his words. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "m_jung_warm__s22_de",
+   "instruct": "A young man of about twenty, medium-high pitch. Warm, fatherly and reassuring, a gentle smile in the voice; a soft chuckle never far from his words. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "m_jung_warm__s33_de",
+   "instruct": "A young man of about twenty, medium-high pitch. Warm, fatherly and reassuring, a gentle smile in the voice; a soft chuckle never far from his words. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "m_jung_kuehl__s11_de",
+   "instruct": "A young man of about twenty, medium-high pitch. Cool, authoritative, precise and controlled, little visible emotion; clipped, short phrasing. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "m_jung_kuehl__s22_de",
+   "instruct": "A young man of about twenty, medium-high pitch. Cool, authoritative, precise and controlled, little visible emotion; clipped, short phrasing. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "m_jung_kuehl__s33_de",
+   "instruct": "A young man of about twenty, medium-high pitch. Cool, authoritative, precise and controlled, little visible emotion; clipped, short phrasing. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "m_jung_verschmitzt__s11_de",
+   "instruct": "A young man of about twenty, medium-high pitch. Mischievous and ironic, a playful undertone as if holding back a joke; an audible grin and quick tempo. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "m_jung_verschmitzt__s22_de",
+   "instruct": "A young man of about twenty, medium-high pitch. Mischievous and ironic, a playful undertone as if holding back a joke; an audible grin and quick tempo. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "m_jung_verschmitzt__s33_de",
+   "instruct": "A young man of about twenty, medium-high pitch. Mischievous and ironic, a playful undertone as if holding back a joke; an audible grin and quick tempo. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "m_jung_nervoes__s11_de",
+   "instruct": "A young man of about twenty, medium-high pitch. Nervous and hurried, slightly breathless, speaking quickly; occasionally tripping over words. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "m_jung_nervoes__s22_de",
+   "instruct": "A young man of about twenty, medium-high pitch. Nervous and hurried, slightly breathless, speaking quickly; occasionally tripping over words. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "m_jung_nervoes__s33_de",
+   "instruct": "A young man of about twenty, medium-high pitch. Nervous and hurried, slightly breathless, speaking quickly; occasionally tripping over words. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "m_jung_rau__s11_de",
+   "instruct": "A young man of about twenty, medium-high pitch. Rough and gravelly, slightly cracked and worn; smoky and slightly hoarse. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "m_jung_rau__s22_de",
+   "instruct": "A young man of about twenty, medium-high pitch. Rough and gravelly, slightly cracked and worn; smoky and slightly hoarse. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "m_jung_rau__s33_de",
+   "instruct": "A young man of about twenty, medium-high pitch. Rough and gravelly, slightly cracked and worn; smoky and slightly hoarse. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "m_jung_weich__s11_de",
+   "instruct": "A young man of about twenty, medium-high pitch. Soft and dreamy, gentle and airy, unhurried; speaking softly, almost whispering. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "m_jung_weich__s22_de",
+   "instruct": "A young man of about twenty, medium-high pitch. Soft and dreamy, gentle and airy, unhurried; speaking softly, almost whispering. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "m_jung_weich__s33_de",
+   "instruct": "A young man of about twenty, medium-high pitch. Soft and dreamy, gentle and airy, unhurried; speaking softly, almost whispering. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "m_jungerw_warm__s11_de",
+   "instruct": "A man of about thirty, medium pitch. Warm, fatherly and reassuring, a gentle smile in the voice; a calm pace with round, full vowels. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "m_jungerw_warm__s22_de",
+   "instruct": "A man of about thirty, medium pitch. Warm, fatherly and reassuring, a gentle smile in the voice; a calm pace with round, full vowels. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "m_jungerw_warm__s33_de",
+   "instruct": "A man of about thirty, medium pitch. Warm, fatherly and reassuring, a gentle smile in the voice; a calm pace with round, full vowels. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "m_jungerw_kuehl__s11_de",
+   "instruct": "A man of about thirty, medium pitch. Cool, authoritative, precise and controlled, little visible emotion; very crisp consonants. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "m_jungerw_kuehl__s22_de",
+   "instruct": "A man of about thirty, medium pitch. Cool, authoritative, precise and controlled, little visible emotion; very crisp consonants. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "m_jungerw_kuehl__s33_de",
+   "instruct": "A man of about thirty, medium pitch. Cool, authoritative, precise and controlled, little visible emotion; very crisp consonants. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "m_jungerw_verschmitzt__s11_de",
+   "instruct": "A man of about thirty, medium pitch. Mischievous and ironic, a playful undertone as if holding back a joke; playfully lifts at the end of phrases. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "m_jungerw_verschmitzt__s22_de",
+   "instruct": "A man of about thirty, medium pitch. Mischievous and ironic, a playful undertone as if holding back a joke; playfully lifts at the end of phrases. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "m_jungerw_verschmitzt__s33_de",
+   "instruct": "A man of about thirty, medium pitch. Mischievous and ironic, a playful undertone as if holding back a joke; playfully lifts at the end of phrases. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "m_jungerw_nervoes__s11_de",
+   "instruct": "A man of about thirty, medium pitch. Nervous and hurried, slightly breathless, speaking quickly; high tension, shallow breathing. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "m_jungerw_nervoes__s22_de",
+   "instruct": "A man of about thirty, medium pitch. Nervous and hurried, slightly breathless, speaking quickly; high tension, shallow breathing. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "m_jungerw_nervoes__s33_de",
+   "instruct": "A man of about thirty, medium pitch. Nervous and hurried, slightly breathless, speaking quickly; high tension, shallow breathing. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "m_jungerw_rau__s11_de",
+   "instruct": "A man of about thirty, medium pitch. Rough and gravelly, slightly cracked and worn; throaty, a little street-wise. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "m_jungerw_rau__s22_de",
+   "instruct": "A man of about thirty, medium pitch. Rough and gravelly, slightly cracked and worn; throaty, a little street-wise. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "m_jungerw_rau__s33_de",
+   "instruct": "A man of about thirty, medium pitch. Rough and gravelly, slightly cracked and worn; throaty, a little street-wise. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "m_jungerw_weich__s11_de",
+   "instruct": "A man of about thirty, medium pitch. Soft and dreamy, gentle and airy, unhurried; melodic, sing-song phrasing. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "m_jungerw_weich__s22_de",
+   "instruct": "A man of about thirty, medium pitch. Soft and dreamy, gentle and airy, unhurried; melodic, sing-song phrasing. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "m_jungerw_weich__s33_de",
+   "instruct": "A man of about thirty, medium pitch. Soft and dreamy, gentle and airy, unhurried; melodic, sing-song phrasing. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "m_mittel_warm__s11_de",
+   "instruct": "A man in his early forties, medium-low pitch. Warm, fatherly and reassuring, a gentle smile in the voice; rich chest resonance. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "m_mittel_warm__s22_de",
+   "instruct": "A man in his early forties, medium-low pitch. Warm, fatherly and reassuring, a gentle smile in the voice; rich chest resonance. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "m_mittel_warm__s33_de",
+   "instruct": "A man in his early forties, medium-low pitch. Warm, fatherly and reassuring, a gentle smile in the voice; rich chest resonance. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "m_mittel_kuehl__s11_de",
+   "instruct": "A man in his early forties, medium-low pitch. Cool, authoritative, precise and controlled, little visible emotion; an even, almost monotonous flow. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "m_mittel_kuehl__s22_de",
+   "instruct": "A man in his early forties, medium-low pitch. Cool, authoritative, precise and controlled, little visible emotion; an even, almost monotonous flow. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "m_mittel_kuehl__s33_de",
+   "instruct": "A man in his early forties, medium-low pitch. Cool, authoritative, precise and controlled, little visible emotion; an even, almost monotonous flow. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "m_mittel_verschmitzt__s11_de",
+   "instruct": "A man in his early forties, medium-low pitch. Mischievous and ironic, a playful undertone as if holding back a joke; slightly husky, laughter in the tone. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "m_mittel_verschmitzt__s22_de",
+   "instruct": "A man in his early forties, medium-low pitch. Mischievous and ironic, a playful undertone as if holding back a joke; slightly husky, laughter in the tone. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "m_mittel_verschmitzt__s33_de",
+   "instruct": "A man in his early forties, medium-low pitch. Mischievous and ironic, a playful undertone as if holding back a joke; slightly husky, laughter in the tone. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "m_mittel_nervoes__s11_de",
+   "instruct": "A man in his early forties, medium-low pitch. Nervous and hurried, slightly breathless, speaking quickly; a habit of clearing his throat. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "m_mittel_nervoes__s22_de",
+   "instruct": "A man in his early forties, medium-low pitch. Nervous and hurried, slightly breathless, speaking quickly; a habit of clearing his throat. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "m_mittel_nervoes__s33_de",
+   "instruct": "A man in his early forties, medium-low pitch. Nervous and hurried, slightly breathless, speaking quickly; a habit of clearing his throat. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "m_mittel_rau__s11_de",
+   "instruct": "A man in his early forties, medium-low pitch. Rough and gravelly, slightly cracked and worn; a smoky depth. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "m_mittel_rau__s22_de",
+   "instruct": "A man in his early forties, medium-low pitch. Rough and gravelly, slightly cracked and worn; a smoky depth. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "m_mittel_rau__s33_de",
+   "instruct": "A man in his early forties, medium-low pitch. Rough and gravelly, slightly cracked and worn; a smoky depth. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "m_mittel_weich__s11_de",
+   "instruct": "A man in his early forties, medium-low pitch. Soft and dreamy, gentle and airy, unhurried; velvety and slow. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "m_mittel_weich__s22_de",
+   "instruct": "A man in his early forties, medium-low pitch. Soft and dreamy, gentle and airy, unhurried; velvety and slow. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "m_mittel_weich__s33_de",
+   "instruct": "A man in his early forties, medium-low pitch. Soft and dreamy, gentle and airy, unhurried; velvety and slow. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "m_reif_warm__s11_de",
+   "instruct": "A man in his late fifties, low pitch. Warm, fatherly and reassuring, a gentle smile in the voice; a slight, comfortable northern colouring. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "m_reif_warm__s22_de",
+   "instruct": "A man in his late fifties, low pitch. Warm, fatherly and reassuring, a gentle smile in the voice; a slight, comfortable northern colouring. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "m_reif_warm__s33_de",
+   "instruct": "A man in his late fifties, low pitch. Warm, fatherly and reassuring, a gentle smile in the voice; a slight, comfortable northern colouring. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "m_reif_kuehl__s11_de",
+   "instruct": "A man in his late fifties, low pitch. Cool, authoritative, precise and controlled, little visible emotion; dry and slightly nasal. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "m_reif_kuehl__s22_de",
+   "instruct": "A man in his late fifties, low pitch. Cool, authoritative, precise and controlled, little visible emotion; dry and slightly nasal. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "m_reif_kuehl__s33_de",
+   "instruct": "A man in his late fifties, low pitch. Cool, authoritative, precise and controlled, little visible emotion; dry and slightly nasal. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "m_reif_verschmitzt__s11_de",
+   "instruct": "A man in his late fifties, low pitch. Mischievous and ironic, a playful undertone as if holding back a joke; drawn-out punchlines. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "m_reif_verschmitzt__s22_de",
+   "instruct": "A man in his late fifties, low pitch. Mischievous and ironic, a playful undertone as if holding back a joke; drawn-out punchlines. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "m_reif_verschmitzt__s33_de",
+   "instruct": "A man in his late fifties, low pitch. Mischievous and ironic, a playful undertone as if holding back a joke; drawn-out punchlines. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "m_reif_nervoes__s11_de",
+   "instruct": "A man in his late fifties, low pitch. Nervous and hurried, slightly breathless, speaking quickly; voice cracking slightly upwards. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "m_reif_nervoes__s22_de",
+   "instruct": "A man in his late fifties, low pitch. Nervous and hurried, slightly breathless, speaking quickly; voice cracking slightly upwards. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "m_reif_nervoes__s33_de",
+   "instruct": "A man in his late fifties, low pitch. Nervous and hurried, slightly breathless, speaking quickly; voice cracking slightly upwards. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "m_reif_rau__s11_de",
+   "instruct": "A man in his late fifties, low pitch. Rough and gravelly, slightly cracked and worn; a strong, weathered sailor's voice. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "m_reif_rau__s22_de",
+   "instruct": "A man in his late fifties, low pitch. Rough and gravelly, slightly cracked and worn; a strong, weathered sailor's voice. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "m_reif_rau__s33_de",
+   "instruct": "A man in his late fifties, low pitch. Rough and gravelly, slightly cracked and worn; a strong, weathered sailor's voice. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "m_reif_weich__s11_de",
+   "instruct": "A man in his late fifties, low pitch. Soft and dreamy, gentle and airy, unhurried; thoughtful, pausing before important words. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "m_reif_weich__s22_de",
+   "instruct": "A man in his late fifties, low pitch. Soft and dreamy, gentle and airy, unhurried; thoughtful, pausing before important words. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "m_reif_weich__s33_de",
+   "instruct": "A man in his late fifties, low pitch. Soft and dreamy, gentle and airy, unhurried; thoughtful, pausing before important words. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "m_alt_warm__s11_de",
+   "instruct": "An old man in his mid-seventies, low pitch, thinned by age. Warm, fatherly and reassuring, a gentle smile in the voice; deliberate, with small breathing pauses. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "m_alt_warm__s22_de",
+   "instruct": "An old man in his mid-seventies, low pitch, thinned by age. Warm, fatherly and reassuring, a gentle smile in the voice; deliberate, with small breathing pauses. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "m_alt_warm__s33_de",
+   "instruct": "An old man in his mid-seventies, low pitch, thinned by age. Warm, fatherly and reassuring, a gentle smile in the voice; deliberate, with small breathing pauses. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "m_alt_kuehl__s11_de",
+   "instruct": "An old man in his mid-seventies, low pitch, thinned by age. Cool, authoritative, precise and controlled, little visible emotion; slow and cutting. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "m_alt_kuehl__s22_de",
+   "instruct": "An old man in his mid-seventies, low pitch, thinned by age. Cool, authoritative, precise and controlled, little visible emotion; slow and cutting. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "m_alt_kuehl__s33_de",
+   "instruct": "An old man in his mid-seventies, low pitch, thinned by age. Cool, authoritative, precise and controlled, little visible emotion; slow and cutting. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "m_alt_verschmitzt__s11_de",
+   "instruct": "An old man in his mid-seventies, low pitch, thinned by age. Mischievous and ironic, a playful undertone as if holding back a joke; an occasional giggle. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "m_alt_verschmitzt__s22_de",
+   "instruct": "An old man in his mid-seventies, low pitch, thinned by age. Mischievous and ironic, a playful undertone as if holding back a joke; an occasional giggle. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "m_alt_verschmitzt__s33_de",
+   "instruct": "An old man in his mid-seventies, low pitch, thinned by age. Mischievous and ironic, a playful undertone as if holding back a joke; an occasional giggle. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "m_alt_nervoes__s11_de",
+   "instruct": "An old man in his mid-seventies, low pitch, thinned by age. Nervous and hurried, slightly breathless, speaking quickly; shaky and hasty. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "m_alt_nervoes__s22_de",
+   "instruct": "An old man in his mid-seventies, low pitch, thinned by age. Nervous and hurried, slightly breathless, speaking quickly; shaky and hasty. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "m_alt_nervoes__s33_de",
+   "instruct": "An old man in his mid-seventies, low pitch, thinned by age. Nervous and hurried, slightly breathless, speaking quickly; shaky and hasty. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "m_alt_rau__s11_de",
+   "instruct": "An old man in his mid-seventies, low pitch, thinned by age. Rough and gravelly, slightly cracked and worn; brittle, with breath in the voice. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "m_alt_rau__s22_de",
+   "instruct": "An old man in his mid-seventies, low pitch, thinned by age. Rough and gravelly, slightly cracked and worn; brittle, with breath in the voice. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "m_alt_rau__s33_de",
+   "instruct": "An old man in his mid-seventies, low pitch, thinned by age. Rough and gravelly, slightly cracked and worn; brittle, with breath in the voice. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "m_alt_weich__s11_de",
+   "instruct": "An old man in his mid-seventies, low pitch, thinned by age. Soft and dreamy, gentle and airy, unhurried; gentle and a little absent-minded. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "m_alt_weich__s22_de",
+   "instruct": "An old man in his mid-seventies, low pitch, thinned by age. Soft and dreamy, gentle and airy, unhurried; gentle and a little absent-minded. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "m_alt_weich__s33_de",
+   "instruct": "An old man in his mid-seventies, low pitch, thinned by age. Soft and dreamy, gentle and airy, unhurried; gentle and a little absent-minded. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "w_jung_warm__s11_de",
+   "instruct": "A young woman of about twenty, bright, medium-high pitch. Warm, motherly and reassuring, a gentle smile in the voice; bright and hearty, laughing lightly. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "w_jung_warm__s22_de",
+   "instruct": "A young woman of about twenty, bright, medium-high pitch. Warm, motherly and reassuring, a gentle smile in the voice; bright and hearty, laughing lightly. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "w_jung_warm__s33_de",
+   "instruct": "A young woman of about twenty, bright, medium-high pitch. Warm, motherly and reassuring, a gentle smile in the voice; bright and hearty, laughing lightly. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "w_jung_kuehl__s11_de",
+   "instruct": "A young woman of about twenty, bright, medium-high pitch. Cool, authoritative, precise and controlled, little visible emotion; brief and precise. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "w_jung_kuehl__s22_de",
+   "instruct": "A young woman of about twenty, bright, medium-high pitch. Cool, authoritative, precise and controlled, little visible emotion; brief and precise. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "w_jung_kuehl__s33_de",
+   "instruct": "A young woman of about twenty, bright, medium-high pitch. Cool, authoritative, precise and controlled, little visible emotion; brief and precise. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "w_jung_verschmitzt__s11_de",
+   "instruct": "A young woman of about twenty, bright, medium-high pitch. Mischievous and ironic, a playful undertone as if holding back a joke; giggly and quick. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "w_jung_verschmitzt__s22_de",
+   "instruct": "A young woman of about twenty, bright, medium-high pitch. Mischievous and ironic, a playful undertone as if holding back a joke; giggly and quick. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "w_jung_verschmitzt__s33_de",
+   "instruct": "A young woman of about twenty, bright, medium-high pitch. Mischievous and ironic, a playful undertone as if holding back a joke; giggly and quick. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "w_jung_nervoes__s11_de",
+   "instruct": "A young woman of about twenty, bright, medium-high pitch. Nervous and hurried, slightly breathless, speaking quickly; fast and breathless. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "w_jung_nervoes__s22_de",
+   "instruct": "A young woman of about twenty, bright, medium-high pitch. Nervous and hurried, slightly breathless, speaking quickly; fast and breathless. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "w_jung_nervoes__s33_de",
+   "instruct": "A young woman of about twenty, bright, medium-high pitch. Nervous and hurried, slightly breathless, speaking quickly; fast and breathless. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "w_jung_rau__s11_de",
+   "instruct": "A young woman of about twenty, bright, medium-high pitch. Rough and husky, slightly cracked and worn; hoarse and slightly smoky. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "w_jung_rau__s22_de",
+   "instruct": "A young woman of about twenty, bright, medium-high pitch. Rough and husky, slightly cracked and worn; hoarse and slightly smoky. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "w_jung_rau__s33_de",
+   "instruct": "A young woman of about twenty, bright, medium-high pitch. Rough and husky, slightly cracked and worn; hoarse and slightly smoky. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "w_jung_weich__s11_de",
+   "instruct": "A young woman of about twenty, bright, medium-high pitch. Soft and dreamy, gentle and airy, unhurried; breathy and very gentle. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "w_jung_weich__s22_de",
+   "instruct": "A young woman of about twenty, bright, medium-high pitch. Soft and dreamy, gentle and airy, unhurried; breathy and very gentle. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "w_jung_weich__s33_de",
+   "instruct": "A young woman of about twenty, bright, medium-high pitch. Soft and dreamy, gentle and airy, unhurried; breathy and very gentle. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "w_jungerw_warm__s11_de",
+   "instruct": "A woman of about thirty, medium pitch. Warm, motherly and reassuring, a gentle smile in the voice; clear and friendly, moderate pace. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "w_jungerw_warm__s22_de",
+   "instruct": "A woman of about thirty, medium pitch. Warm, motherly and reassuring, a gentle smile in the voice; clear and friendly, moderate pace. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "w_jungerw_warm__s33_de",
+   "instruct": "A woman of about thirty, medium pitch. Warm, motherly and reassuring, a gentle smile in the voice; clear and friendly, moderate pace. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "w_jungerw_kuehl__s11_de",
+   "instruct": "A woman of about thirty, medium pitch. Cool, authoritative, precise and controlled, little visible emotion; very clear articulation. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "w_jungerw_kuehl__s22_de",
+   "instruct": "A woman of about thirty, medium pitch. Cool, authoritative, precise and controlled, little visible emotion; very clear articulation. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "w_jungerw_kuehl__s33_de",
+   "instruct": "A woman of about thirty, medium pitch. Cool, authoritative, precise and controlled, little visible emotion; very clear articulation. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "w_jungerw_verschmitzt__s11_de",
+   "instruct": "A woman of about thirty, medium pitch. Mischievous and ironic, a playful undertone as if holding back a joke; with a wink, sing-song phrase endings. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "w_jungerw_verschmitzt__s22_de",
+   "instruct": "A woman of about thirty, medium pitch. Mischievous and ironic, a playful undertone as if holding back a joke; with a wink, sing-song phrase endings. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "w_jungerw_verschmitzt__s33_de",
+   "instruct": "A woman of about thirty, medium pitch. Mischievous and ironic, a playful undertone as if holding back a joke; with a wink, sing-song phrase endings. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "w_jungerw_nervoes__s11_de",
+   "instruct": "A woman of about thirty, medium pitch. Nervous and hurried, slightly breathless, speaking quickly; high tension, broken-off phrases. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "w_jungerw_nervoes__s22_de",
+   "instruct": "A woman of about thirty, medium pitch. Nervous and hurried, slightly breathless, speaking quickly; high tension, broken-off phrases. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "w_jungerw_nervoes__s33_de",
+   "instruct": "A woman of about thirty, medium pitch. Nervous and hurried, slightly breathless, speaking quickly; high tension, broken-off phrases. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "w_jungerw_rau__s11_de",
+   "instruct": "A woman of about thirty, medium pitch. Rough and husky, slightly cracked and worn; throaty, low for her age. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "w_jungerw_rau__s22_de",
+   "instruct": "A woman of about thirty, medium pitch. Rough and husky, slightly cracked and worn; throaty, low for her age. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "w_jungerw_rau__s33_de",
+   "instruct": "A woman of about thirty, medium pitch. Rough and husky, slightly cracked and worn; throaty, low for her age. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "w_jungerw_weich__s11_de",
+   "instruct": "A woman of about thirty, medium pitch. Soft and dreamy, gentle and airy, unhurried; melodic and dreamy. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "w_jungerw_weich__s22_de",
+   "instruct": "A woman of about thirty, medium pitch. Soft and dreamy, gentle and airy, unhurried; melodic and dreamy. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "w_jungerw_weich__s33_de",
+   "instruct": "A woman of about thirty, medium pitch. Soft and dreamy, gentle and airy, unhurried; melodic and dreamy. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "w_mittel_warm__s11_de",
+   "instruct": "A woman in her early forties, medium-low pitch. Warm, motherly and reassuring, a gentle smile in the voice; a full, round alto. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "w_mittel_warm__s22_de",
+   "instruct": "A woman in her early forties, medium-low pitch. Warm, motherly and reassuring, a gentle smile in the voice; a full, round alto. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "w_mittel_warm__s33_de",
+   "instruct": "A woman in her early forties, medium-low pitch. Warm, motherly and reassuring, a gentle smile in the voice; a full, round alto. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "w_mittel_kuehl__s11_de",
+   "instruct": "A woman in her early forties, medium-low pitch. Cool, authoritative, precise and controlled, little visible emotion; low, controlled, little melody. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "w_mittel_kuehl__s22_de",
+   "instruct": "A woman in her early forties, medium-low pitch. Cool, authoritative, precise and controlled, little visible emotion; low, controlled, little melody. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "w_mittel_kuehl__s33_de",
+   "instruct": "A woman in her early forties, medium-low pitch. Cool, authoritative, precise and controlled, little visible emotion; low, controlled, little melody. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "w_mittel_verschmitzt__s11_de",
+   "instruct": "A woman in her early forties, medium-low pitch. Mischievous and ironic, a playful undertone as if holding back a joke; smoky and ironic. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "w_mittel_verschmitzt__s22_de",
+   "instruct": "A woman in her early forties, medium-low pitch. Mischievous and ironic, a playful undertone as if holding back a joke; smoky and ironic. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "w_mittel_verschmitzt__s33_de",
+   "instruct": "A woman in her early forties, medium-low pitch. Mischievous and ironic, a playful undertone as if holding back a joke; smoky and ironic. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "w_mittel_nervoes__s11_de",
+   "instruct": "A woman in her early forties, medium-low pitch. Nervous and hurried, slightly breathless, speaking quickly; a nervous little cough, hesitating. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "w_mittel_nervoes__s22_de",
+   "instruct": "A woman in her early forties, medium-low pitch. Nervous and hurried, slightly breathless, speaking quickly; a nervous little cough, hesitating. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "w_mittel_nervoes__s33_de",
+   "instruct": "A woman in her early forties, medium-low pitch. Nervous and hurried, slightly breathless, speaking quickly; a nervous little cough, hesitating. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "w_mittel_rau__s11_de",
+   "instruct": "A woman in her early forties, medium-low pitch. Rough and husky, slightly cracked and worn; a smoky late-night voice. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "w_mittel_rau__s22_de",
+   "instruct": "A woman in her early forties, medium-low pitch. Rough and husky, slightly cracked and worn; a smoky late-night voice. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "w_mittel_rau__s33_de",
+   "instruct": "A woman in her early forties, medium-low pitch. Rough and husky, slightly cracked and worn; a smoky late-night voice. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "w_mittel_weich__s11_de",
+   "instruct": "A woman in her early forties, medium-low pitch. Soft and dreamy, gentle and airy, unhurried; velvety and calm, warm timbre. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "w_mittel_weich__s22_de",
+   "instruct": "A woman in her early forties, medium-low pitch. Soft and dreamy, gentle and airy, unhurried; velvety and calm, warm timbre. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "w_mittel_weich__s33_de",
+   "instruct": "A woman in her early forties, medium-low pitch. Soft and dreamy, gentle and airy, unhurried; velvety and calm, warm timbre. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "w_reif_warm__s11_de",
+   "instruct": "A woman in her late fifties, low, mature pitch. Warm, motherly and reassuring, a gentle smile in the voice; a slight, cosy southern colouring. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "w_reif_warm__s22_de",
+   "instruct": "A woman in her late fifties, low, mature pitch. Warm, motherly and reassuring, a gentle smile in the voice; a slight, cosy southern colouring. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "w_reif_warm__s33_de",
+   "instruct": "A woman in her late fifties, low, mature pitch. Warm, motherly and reassuring, a gentle smile in the voice; a slight, cosy southern colouring. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "w_reif_kuehl__s11_de",
+   "instruct": "A woman in her late fifties, low, mature pitch. Cool, authoritative, precise and controlled, little visible emotion; dry and distant. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "w_reif_kuehl__s22_de",
+   "instruct": "A woman in her late fifties, low, mature pitch. Cool, authoritative, precise and controlled, little visible emotion; dry and distant. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "w_reif_kuehl__s33_de",
+   "instruct": "A woman in her late fifties, low, mature pitch. Cool, authoritative, precise and controlled, little visible emotion; dry and distant. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "w_reif_verschmitzt__s11_de",
+   "instruct": "A woman in her late fifties, low, mature pitch. Mischievous and ironic, a playful undertone as if holding back a joke; dry humour with drawn-out vowels. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "w_reif_verschmitzt__s22_de",
+   "instruct": "A woman in her late fifties, low, mature pitch. Mischievous and ironic, a playful undertone as if holding back a joke; dry humour with drawn-out vowels. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "w_reif_verschmitzt__s33_de",
+   "instruct": "A woman in her late fifties, low, mature pitch. Mischievous and ironic, a playful undertone as if holding back a joke; dry humour with drawn-out vowels. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "w_reif_nervoes__s11_de",
+   "instruct": "A woman in her late fifties, low, mature pitch. Nervous and hurried, slightly breathless, speaking quickly; slightly shrill when agitated. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "w_reif_nervoes__s22_de",
+   "instruct": "A woman in her late fifties, low, mature pitch. Nervous and hurried, slightly breathless, speaking quickly; slightly shrill when agitated. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "w_reif_nervoes__s33_de",
+   "instruct": "A woman in her late fifties, low, mature pitch. Nervous and hurried, slightly breathless, speaking quickly; slightly shrill when agitated. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "w_reif_rau__s11_de",
+   "instruct": "A woman in her late fifties, low, mature pitch. Rough and husky, slightly cracked and worn; rough and strong, like a market trader. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "w_reif_rau__s22_de",
+   "instruct": "A woman in her late fifties, low, mature pitch. Rough and husky, slightly cracked and worn; rough and strong, like a market trader. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "w_reif_rau__s33_de",
+   "instruct": "A woman in her late fifties, low, mature pitch. Rough and husky, slightly cracked and worn; rough and strong, like a market trader. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "w_reif_weich__s11_de",
+   "instruct": "A woman in her late fifties, low, mature pitch. Soft and dreamy, gentle and airy, unhurried; quiet and reflective. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "w_reif_weich__s22_de",
+   "instruct": "A woman in her late fifties, low, mature pitch. Soft and dreamy, gentle and airy, unhurried; quiet and reflective. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "w_reif_weich__s33_de",
+   "instruct": "A woman in her late fifties, low, mature pitch. Soft and dreamy, gentle and airy, unhurried; quiet and reflective. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "w_alt_warm__s11_de",
+   "instruct": "An old woman in her mid-seventies, medium pitch, thinned and slightly wavering with age. Warm, motherly and reassuring, a gentle smile in the voice; grandmotherly and deliberate. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "w_alt_warm__s22_de",
+   "instruct": "An old woman in her mid-seventies, medium pitch, thinned and slightly wavering with age. Warm, motherly and reassuring, a gentle smile in the voice; grandmotherly and deliberate. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "w_alt_warm__s33_de",
+   "instruct": "An old woman in her mid-seventies, medium pitch, thinned and slightly wavering with age. Warm, motherly and reassuring, a gentle smile in the voice; grandmotherly and deliberate. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "w_alt_kuehl__s11_de",
+   "instruct": "An old woman in her mid-seventies, medium pitch, thinned and slightly wavering with age. Cool, authoritative, precise and controlled, little visible emotion; stern and slow, every word placed. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "w_alt_kuehl__s22_de",
+   "instruct": "An old woman in her mid-seventies, medium pitch, thinned and slightly wavering with age. Cool, authoritative, precise and controlled, little visible emotion; stern and slow, every word placed. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "w_alt_kuehl__s33_de",
+   "instruct": "An old woman in her mid-seventies, medium pitch, thinned and slightly wavering with age. Cool, authoritative, precise and controlled, little visible emotion; stern and slow, every word placed. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "w_alt_verschmitzt__s11_de",
+   "instruct": "An old woman in her mid-seventies, medium pitch, thinned and slightly wavering with age. Mischievous and ironic, a playful undertone as if holding back a joke; impish, with a quiet laugh. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "w_alt_verschmitzt__s22_de",
+   "instruct": "An old woman in her mid-seventies, medium pitch, thinned and slightly wavering with age. Mischievous and ironic, a playful undertone as if holding back a joke; impish, with a quiet laugh. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "w_alt_verschmitzt__s33_de",
+   "instruct": "An old woman in her mid-seventies, medium pitch, thinned and slightly wavering with age. Mischievous and ironic, a playful undertone as if holding back a joke; impish, with a quiet laugh. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "w_alt_nervoes__s11_de",
+   "instruct": "An old woman in her mid-seventies, medium pitch, thinned and slightly wavering with age. Nervous and hurried, slightly breathless, speaking quickly; shaky, hasty half-whisper. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "w_alt_nervoes__s22_de",
+   "instruct": "An old woman in her mid-seventies, medium pitch, thinned and slightly wavering with age. Nervous and hurried, slightly breathless, speaking quickly; shaky, hasty half-whisper. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "w_alt_nervoes__s33_de",
+   "instruct": "An old woman in her mid-seventies, medium pitch, thinned and slightly wavering with age. Nervous and hurried, slightly breathless, speaking quickly; shaky, hasty half-whisper. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "w_alt_rau__s11_de",
+   "instruct": "An old woman in her mid-seventies, medium pitch, thinned and slightly wavering with age. Rough and husky, slightly cracked and worn; brittle and tremulous. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "w_alt_rau__s22_de",
+   "instruct": "An old woman in her mid-seventies, medium pitch, thinned and slightly wavering with age. Rough and husky, slightly cracked and worn; brittle and tremulous. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "w_alt_rau__s33_de",
+   "instruct": "An old woman in her mid-seventies, medium pitch, thinned and slightly wavering with age. Rough and husky, slightly cracked and worn; brittle and tremulous. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "w_alt_weich__s11_de",
+   "instruct": "An old woman in her mid-seventies, medium pitch, thinned and slightly wavering with age. Soft and dreamy, gentle and airy, unhurried; gentle, like telling a fairy tale. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "w_alt_weich__s22_de",
+   "instruct": "An old woman in her mid-seventies, medium pitch, thinned and slightly wavering with age. Soft and dreamy, gentle and airy, unhurried; gentle, like telling a fairy tale. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "w_alt_weich__s33_de",
+   "instruct": "An old woman in her mid-seventies, medium pitch, thinned and slightly wavering with age. Soft and dreamy, gentle and airy, unhurried; gentle, like telling a fairy tale. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "k_j_klein_neugierig__s11_de",
+   "instruct": "The voice of a little boy of about six, curious and excited, high bright voice. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "k_j_klein_neugierig__s22_de",
+   "instruct": "The voice of a little boy of about six, curious and excited, high bright voice. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "k_j_klein_neugierig__s33_de",
+   "instruct": "The voice of a little boy of about six, curious and excited, high bright voice. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "k_j_klein_frech__s11_de",
+   "instruct": "The voice of a cheeky little boy of about seven, quick and playful, high voice. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "k_j_klein_frech__s22_de",
+   "instruct": "The voice of a cheeky little boy of about seven, quick and playful, high voice. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "k_j_klein_frech__s33_de",
+   "instruct": "The voice of a cheeky little boy of about seven, quick and playful, high voice. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "k_j_gross_ernst__s11_de",
+   "instruct": "The voice of a serious boy of about eleven, thoughtful, clear unbroken voice. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "k_j_gross_ernst__s22_de",
+   "instruct": "The voice of a serious boy of about eleven, thoughtful, clear unbroken voice. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "k_j_gross_ernst__s33_de",
+   "instruct": "The voice of a serious boy of about eleven, thoughtful, clear unbroken voice. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "k_j_gross_aufgeweckt__s11_de",
+   "instruct": "The voice of a lively boy of about ten, energetic and cheerful. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "k_j_gross_aufgeweckt__s22_de",
+   "instruct": "The voice of a lively boy of about ten, energetic and cheerful. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "k_j_gross_aufgeweckt__s33_de",
+   "instruct": "The voice of a lively boy of about ten, energetic and cheerful. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "k_j_gross_schuechtern__s11_de",
+   "instruct": "The voice of a shy boy of about twelve, quiet and hesitant, voice not yet broken. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "k_j_gross_schuechtern__s22_de",
+   "instruct": "The voice of a shy boy of about twelve, quiet and hesitant, voice not yet broken. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "k_j_gross_schuechtern__s33_de",
+   "instruct": "The voice of a shy boy of about twelve, quiet and hesitant, voice not yet broken. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "k_m_klein_froehlich__s11_de",
+   "instruct": "The voice of a happy little girl of about six, bright and bubbly, high voice. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "k_m_klein_froehlich__s22_de",
+   "instruct": "The voice of a happy little girl of about six, bright and bubbly, high voice. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "k_m_klein_froehlich__s33_de",
+   "instruct": "The voice of a happy little girl of about six, bright and bubbly, high voice. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "k_m_klein_vertraeumt__s11_de",
+   "instruct": "The voice of a dreamy little girl of about seven, soft and wondering. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "k_m_klein_vertraeumt__s22_de",
+   "instruct": "The voice of a dreamy little girl of about seven, soft and wondering. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "k_m_klein_vertraeumt__s33_de",
+   "instruct": "The voice of a dreamy little girl of about seven, soft and wondering. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "k_m_gross_klug__s11_de",
+   "instruct": "The voice of a clever girl of about eleven, articulate and confident. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "k_m_gross_klug__s22_de",
+   "instruct": "The voice of a clever girl of about eleven, articulate and confident. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "k_m_gross_klug__s33_de",
+   "instruct": "The voice of a clever girl of about eleven, articulate and confident. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "k_m_gross_frech__s11_de",
+   "instruct": "The voice of a sassy girl of about twelve, quick-witted and teasing. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "k_m_gross_frech__s22_de",
+   "instruct": "The voice of a sassy girl of about twelve, quick-witted and teasing. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "k_m_gross_frech__s33_de",
+   "instruct": "The voice of a sassy girl of about twelve, quick-witted and teasing. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  },
+  {
+   "key": "k_m_gross_aengstlich__s11_de",
+   "instruct": "The voice of a timid girl of about ten, anxious and soft-spoken. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  },
+  {
+   "key": "k_m_gross_aengstlich__s22_de",
+   "instruct": "The voice of a timid girl of about ten, anxious and soft-spoken. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 22
+  },
+  {
+   "key": "k_m_gross_aengstlich__s33_de",
+   "instruct": "The voice of a timid girl of about ten, anxious and soft-spoken. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 33
+  }
+ ],
+ "ableiten": [
+  {
+   "key": "k_m_klein_abgeleitet__s11_de",
+   "halbtoene": 5.0,
+   "ref": "w_jung_weich__s11_de"
+  },
+  {
+   "key": "k_m_klein_abgeleitet__s22_de",
+   "halbtoene": 5.0,
+   "ref": "w_jung_weich__s22_de"
+  },
+  {
+   "key": "k_m_klein_abgeleitet__s33_de",
+   "halbtoene": 5.0,
+   "ref": "w_jung_weich__s33_de"
+  },
+  {
+   "key": "k_j_gross_abgeleitet__s11_de",
+   "halbtoene": 3.0,
+   "ref": "w_jung_verschmitzt__s11_de"
+  },
+  {
+   "key": "k_j_gross_abgeleitet__s22_de",
+   "halbtoene": 3.0,
+   "ref": "w_jung_verschmitzt__s22_de"
+  },
+  {
+   "key": "k_j_gross_abgeleitet__s33_de",
+   "halbtoene": 3.0,
+   "ref": "w_jung_verschmitzt__s33_de"
+  }
+ ],
+ "embed": true
+}

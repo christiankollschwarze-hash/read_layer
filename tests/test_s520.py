@@ -178,6 +178,21 @@ class T520(unittest.TestCase):
             x[int(2.5 * sr):int(2.7 * sr)] = 0.01 * rng.standard_normal(int(0.2 * sr))
         return x
 
+    def test_aussprache_varianten(self):
+        beg = P.begriffe_aussprache({"meta": {"profile": {
+            "characters": {"Dantès": {"de": "Dantès"}, "Mercédès": {"de": "Mercedes"}},
+            "untranslated": {"Porto-Ferrajo": {}}}}}, "de", lambda t: t.replace("Porto-Ferrajo", "Porto-Ferrajo"))
+        self.assertEqual(set(beg), {"Dantès", "Mercedes", "Porto-Ferrajo"})
+        soll = "Er war in Porto-Ferrajo bei Dantès."
+        asr = ["Er war in Porto Ferraio bei Dantes."] * 3 + ["Er war in Porto Ferracho bei Dantès."] * 2             + ["Er war in Portoferraio bei Dantess."]                 # Worttrennung/1 Buchstabe = gleiche Form
+        s = {f"c001_{i:05d}_s": (soll, a) for i, a in enumerate(asr)}
+        av = P.aussprache_varianten(s, beg)
+        self.assertEqual([(x["begriff"], x["formen"]) for x in av],
+                         [("Porto-Ferrajo", {"portoferraio": 4, "portoferracho": 2})])
+        s["c001_00009_s"] = (soll, "Er war in Porto Ferracho bei Dantes.")
+        del s["c001_00003_s"], s["c001_00004_s"]                       # Ferracho nur noch 1x = Einzelfall
+        self.assertEqual(P.aussprache_varianten(s, beg), [])
+
     def test_schneiden_raender(self):
         x = self.satz(auslaut=False, atmer=False, anlaut=False)
         y, r = P.schneiden(x, (1.0, 2.0), 0.05, 0.12, 1.0)

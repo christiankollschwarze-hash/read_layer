@@ -254,6 +254,38 @@ def pruefe_satz(q, z, typ, src, lg, aus, laenge=LAENGE):
     return b
 
 
+EINHEIT_MIN = 2     # je Form mindestens so oft, damit "uneinheitlich" (sonst Einzelfall)
+ANDERS_MIN = 3      # Begriff so oft durchgehend anders als im Profil -> Hinweis
+
+
+def einheitlichkeit(kap, content, profil, lg):
+    """Werkweit je Begriff (Glossar, Unuebersetzt, Figuren): in wie vielen Saetzen steht die erwartete Form, in wie
+    vielen nicht (27.11.2026, CK: "île d'Elbe" 13x so, 14x "Insel Elba" -> satzweise nicht als Widerspruch erkennbar).
+    -> {"uneinheitlich": [...], "anders": [...]} je {begriff, soll, treffer, abweichend, ids}."""
+    liste = [(t, q) for l in kap.values() for t, q, _y in l
+             if isinstance(content.get(t), dict) and not content[t].get("sprache_satz")
+             and isinstance(content[t].get(lg), str)]
+    aus = s300.profil_ausschnitt(profil, " ".join(q for _t, q in liste), lg)
+    paare = s300.erwartet(aus)
+    out = {"uneinheitlich": [], "anders": []}
+    for k, v in paare:
+        ja, nein = 0, []
+        laenger = [x for x, _v in paare if x != k and k.lower() in x.lower()]   # procureur du roi < substitut du ...
+        for t, q in liste:
+            ql = q.lower()
+            if s300._kommt_vor(k, ql) and not any(s300._kommt_vor(x, ql) for x in laenger):
+                if s300._gefunden(v, content[t][lg].lower()):
+                    ja += 1
+                else:
+                    nein.append(t)
+        e = {"begriff": k, "soll": v, "treffer": ja, "abweichend": len(nein), "ids": nein[:8]}
+        if ja >= EINHEIT_MIN and len(nein) >= EINHEIT_MIN:
+            out["uneinheitlich"].append(e)
+        elif not ja and len(nein) >= ANDERS_MIN:
+            out["anders"].append(e)
+    return out
+
+
 def profil_ausschnitt_satz(aus, q):
     """Kapitel-Ausschnitt auf die im Satz vorkommenden Eintraege einschraenken."""
     qk = q.lower()
@@ -703,6 +735,16 @@ def run(werk, wer=None, modell=None, batch=None, kapitel=None, saetze_neu=None, 
         g.pruefe(f"glossar_{lg}", 1 - len(l) / n >= GLOSSAR_MIN, wert=round(1 - len(l) / n, 4), schwelle=f">= {GLOSSAR_MIN}",
                  bei_fehler="mensch", ruecksprung="210",
                  text=f"{lg}: Glossar/Namen eingehalten {1 - len(l) / n:.1%}" + (f" {[x['id'] for x in l[:5]]}" if l else ""))
+        eh = einheitlichkeit(kap, data["content"], profil, lg)
+        u_ = eh["uneinheitlich"]
+        g.pruefe(f"einheitlich_{lg}", not u_, wert=len(u_), schwelle="je Begriff eine Form", bei_fehler="mensch",
+                 ruecksprung="210", text=f"{lg}: Begriffe uneinheitlich {len(u_)}" + (
+                     " " + "; ".join(f"{x['begriff']}: {x['treffer']}x '{x['soll']}', {x['abweichend']}x anders"
+                                     for x in u_[:5]) + " -> Glossar in 210 festlegen" if u_ else ""))
+        a_ = eh["anders"]
+        g.hinweis(f"profil_anders_{lg}", not a_, wert=len(a_), text=f"{lg}: durchgehend anders als Profil {len(a_)}" + (
+            " " + "; ".join(f"{x['begriff']} ({x['abweichend']}x nicht '{x['soll']}')" for x in a_[:5]) if a_ else ""))
+        g.metrik(f"einheitlichkeit_{lg}", eh)
         pruef[lg] = bf
         g.metrik(f"befunde_{lg}", len(bf))
     g.mock(0 if mock.aktiv() else n_mock, ruecksprung="310")

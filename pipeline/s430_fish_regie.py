@@ -167,9 +167,22 @@ def text_markieren(text, m, wr):
     return text
 
 
+_KLAMMER_GANZ = re.compile(r"^\s*\((.*)\)\s*$", re.S)
+_KLAMMER = re.compile(r"\s*\(([^()]*)\)")
+
+
+def klammern_weg(t):
+    """Runde Klammern sind bei Fish Effekt-Tags ("(laughing)") – im Sprechtext durch Gedankenstriche ersetzen
+    (26.11.2026: "(Dantès machte eine Bewegung.)" wurde als Geraeusch vertont)."""
+    m = _KLAMMER_GANZ.match(t)
+    if m and "(" not in m.group(1):
+        return m.group(1).strip()
+    return _KLAMMER.sub(lambda x: " – " + x.group(1).strip() + " –", t).replace("– ,", "–,").replace("– .", ".")
+
+
 def fish_text(bt):
     """Beitrag -> Text fuer Fish (Anweisung + markierter Text)."""
-    t = bt.get("text_fish") or bt["text"]
+    t = klammern_weg(bt.get("text_fish") or bt["text"])
     return f"{bt['anweisung']} {t}".strip() if bt.get("anweisung") else t
 
 

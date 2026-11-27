@@ -79,10 +79,11 @@ def speichern(reg: dict) -> None:
 
 
 def verfuegbar(reg: dict, rolle_typ: str = None) -> list:
-    """Freigegebene + Kandidaten-Stimmen (abgelehnte nie)."""
+    """Freigegebene + Kandidaten-Stimmen (abgelehnte nie). casting == "hoertest" (Qwen-Matrix 26.11.: Merkmale nur
+    Geschlecht + Stimmlage) -> nie automatisch besetzen, nur per Hoertest."""
     out = []
     for name, s in reg.items():
-        if s.get("status") == "abgelehnt":
+        if s.get("status") == "abgelehnt" or s.get("casting") == "hoertest":
             continue
         if rolle_typ and s.get("rolle_typ") not in (rolle_typ, "beides"):
             continue

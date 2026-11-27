@@ -1,0 +1,6 @@
+{"art": "vc", "clips": 108, "wall_s": 190.3, "usd": 0.0581, "bericht": ["Jobs: 108 | Audio gesamt 767 s | VC 97 s (RTF 0.13) | TTS 0 s (RTF 0.00) | GPU NVIDIA A10G"], "zeit": "2026-11-26 16:06:21"}
+{"art": "erzaehler_fish_api", "clips": 8, "zeichen": 472, "usd": 0.0576, "zeit": "2026-11-26 16:07:35"}
+{"art": "vc", "clips": 120, "wall_s": 160.4, "usd": 0.0869, "bericht": ["Jobs: 120 | Audio gesamt 856 s | VC 58 s (RTF 0.07) | TTS 0 s (RTF 0.00) | GPU NVIDIA L40S"], "zeit": "2026-11-26 16:18:00"}
+{"art": "erzaehler_fish_api", "clips": 8, "zeichen": 472, "usd": 0.0, "zeit": "2026-11-26 16:18:02"}
+{"art": "kapitel_erzaehler_fish_api", "stimme": "w_tief_02", "clips": 269, "usd": 0.3592, "zeit": "2026-11-26 16:29:01"}
+{"art": "kapitel_vc", "clips": 147, "wall_s": 208.8, "rc": 0, "usd": 0.0638, "bericht": ["Jobs: 147 | Audio gesamt 587 s | VC 114 s (RTF 0.19) | TTS 0 s (RTF 0.00) | GPU NVIDIA A10G"], "zeit": "2026-11-26 16:32:32"}

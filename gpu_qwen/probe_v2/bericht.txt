@@ -1,0 +1,11 @@
+GPU NVIDIA L40S, 46068 MiB
+OFFEN design 0 klon 2 ableiten 0
+LADEN base 11.0 s
+KLON-STAPEL 8
+CLIPS 2 fehler 0
+AUDIO 39.7 s
+GEN 44.7 s RTF 1.127 (Stapel 8)
+WALL 56.7 s
+ECAPA 2 neu, 4.0 s (CPU)
+LOKAL_WALL 64.9 s
+GEHOLT 4/4

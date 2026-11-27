@@ -218,9 +218,10 @@ def log(model, provider, usage, extra=None):
         book, stage, zus = _kontext(task=(extra or {}).get("task"))
         if not book:
             return
-        if provider in ("deepseek", "openrouter"):
+        if provider in ("deepseek", "openrouter", "mistral"):
             t_in = usage.get("prompt_tokens", 0) or 0
-            t_cache = usage.get("prompt_cache_hit_tokens", 0) or 0
+            t_cache = (usage.get("prompt_cache_hit_tokens", 0)
+                       or (usage.get("prompt_tokens_details") or {}).get("cached_tokens", 0) or 0)
             t_out = usage.get("completion_tokens", 0) or 0
         else:  # gemini
             t_in = usage.get("promptTokenCount", 0) or 0

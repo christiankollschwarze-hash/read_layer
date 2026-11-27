@@ -1,0 +1,36 @@
+{
+ "klon": [
+  {
+   "key": "m_reif_kuehl__s11_en",
+   "ref": "m_reif_kuehl__s11_de",
+   "ref_text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "text": "The North Wind and the Sun. The North Wind and the Sun disputed which was the more powerful, and agreed that he should be declared the victor who could first strip a wayfaring man of his clothes. Persuasion is better than Force. Who would have thought that the gentle Sun could win such a contest? What a warm and wonderful day it turned out to be!",
+   "language": "English",
+   "seed": 11
+  },
+  {
+   "key": "w_mittel_warm__s11_en",
+   "ref": "w_mittel_warm__s11_de",
+   "ref_text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "text": "The North Wind and the Sun. The North Wind and the Sun disputed which was the more powerful, and agreed that he should be declared the victor who could first strip a wayfaring man of his clothes. Persuasion is better than Force. Who would have thought that the gentle Sun could win such a contest? What a warm and wonderful day it turned out to be!",
+   "language": "English",
+   "seed": 11
+  },
+  {
+   "key": "w_jung_weich__s11_en",
+   "ref": "w_jung_weich__s11_de",
+   "ref_text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "text": "The North Wind and the Sun. The North Wind and the Sun disputed which was the more powerful, and agreed that he should be declared the victor who could first strip a wayfaring man of his clothes. Persuasion is better than Force. Who would have thought that the gentle Sun could win such a contest? What a warm and wonderful day it turned out to be!",
+   "language": "English",
+   "seed": 11
+  }
+ ],
+ "ableiten": [
+  {
+   "key": "k_m_klein_abgeleitet__s11_en",
+   "halbtoene": 5.0,
+   "ref": "w_jung_weich__s11_en"
+  }
+ ],
+ "embed": true
+}

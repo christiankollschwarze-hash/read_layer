@@ -215,6 +215,31 @@ def _live_response(task: str, prompt: str, **kwargs) -> str:
         content = js["choices"][0]["message"]["content"]
         return (content or "").strip()
 
+    # --- Mistral (26.11.2026, EU-Variante D: Regie & Co; Modellname "mistral-..." bzw. "magistral-...") ---
+    if model.startswith(("mistral-", "magistral-", "ministral-")):
+        if not getattr(config, "MISTRAL_API_KEY", ""):
+            raise EnvironmentError("MISTRAL_API_KEY fehlt (.env).")
+        resp = _post_robust(
+            "https://api.mistral.ai/v1/chat/completions", anbieter="mistral",
+            headers={"Authorization": f"Bearer {config.MISTRAL_API_KEY}", "Content-Type": "application/json"},
+            json={
+                "model": model,
+                "messages": [{"role": "user", "content": prompt}],
+                "temperature": kwargs.get("temperature", 0.1),
+                "max_tokens": min(kwargs.get("max_tokens", 8192), getattr(config, "MISTRAL_MAX_OUT", 32000)),
+            },
+        )
+        resp.raise_for_status()
+        js = resp.json()
+        from pipeline import usage_log
+        usage_log.log(model, "mistral", js.get("usage"), {"task": task})
+        if isinstance(kwargs.get("info"), dict):
+            kwargs["info"]["finish_reason"] = js["choices"][0].get("finish_reason")
+        content = js["choices"][0]["message"]["content"]
+        if isinstance(content, list):                 # Mistral liefert teils Bloecke (text/thinking)
+            content = "".join(b.get("text", "") for b in content if isinstance(b, dict) and b.get("type") == "text")
+        return (content or "").strip()
+
     # --- Gemini ---
     if model.startswith("gemini"):
         if not config.GEMINI_API_KEY:

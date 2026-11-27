@@ -374,7 +374,7 @@ def kapitel_gate(g, werk, kap, ref, herkunft):
 def _call_model(prompt, modell=None, temperatur=TEMPERATUR):
     from pipeline import api_layer
     if "modernizer" not in config.MODELS:
-        config.MODELS["modernizer"] = config.MODELS.get("translator", "deepseek-v4-pro")
+        config.MODELS["modernizer"] = config.MODELS.get("translator", "deepseek-flash")
     return api_layer.call_model("modernizer", prompt, temperature=temperatur, modell=modell or None)
 
 
@@ -501,7 +501,7 @@ def lizenz_pruefen(g, kap_neu):
 # ------------------------------------------------------------ Lauf
 def _param(staerke, modell, temperatur, stueck):
     if "modernizer" not in config.MODELS:
-        config.MODELS["modernizer"] = config.MODELS.get("translator", "deepseek-v4-pro")
+        config.MODELS["modernizer"] = config.MODELS.get("translator", "deepseek-flash")
     return {"staerke": staerke or "sanft", "modell": modell or config.MODELS["modernizer"],
             "temperatur": TEMPERATUR if temperatur is None else temperatur,
             "stueck": stueck or STUECK, "prompt_v": PROMPT_V}

@@ -1,0 +1,1182 @@
+{
+ "werk": "alice-s-adventures-in-wonderland",
+ "lang": "de",
+ "jobs": [
+  {
+   "id": "t0002",
+   "tag": "t0002",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Sehr unbequem für das Murmelthier,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0004",
+   "tag": "t0004",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„nur, da es schläft, macht es sich vermutlich nichts daraus.“",
+   "lang": "de"
+  },
+  {
+   "id": "t0006",
+   "tag": "t0006",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Kein Platz! Kein Platz!“",
+   "lang": "de"
+  },
+  {
+   "id": "t0008",
+   "tag": "t0008",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Es ist Platz genug da!“",
+   "lang": "de"
+  },
+  {
+   "id": "t0010",
+   "tag": "t0010",
+   "figur": "March Hare",
+   "stimme": "m_hoch_01",
+   "text": "„Nimm etwas Wein,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0013",
+   "tag": "t0013",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Ich sehe keinen Wein,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0015",
+   "tag": "t0015",
+   "figur": "March Hare",
+   "stimme": "m_hoch_01",
+   "text": "„Es ist keiner da,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0017",
+   "tag": "t0017",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Dann war es nicht sehr höflich von dir, ihn anzubieten,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0019",
+   "tag": "t0019",
+   "figur": "March Hare",
+   "stimme": "m_hoch_01",
+   "text": "„Es war nicht sehr höflich von dir, dich ohne Einladung zu setzen,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0021",
+   "tag": "t0021",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Ich wußte nicht, daß es dein Tisch ist,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0023",
+   "tag": "t0023",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„er ist für viel mehr als drei gedeckt.“",
+   "lang": "de"
+  },
+  {
+   "id": "t0024",
+   "tag": "t0024",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Dein Haar muß geschnitten werden,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0026",
+   "tag": "t0026",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Du solltest lernen, keine persönlichen Bemerkungen zu machen,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0028",
+   "tag": "t0028",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„das ist sehr unhöflich.“",
+   "lang": "de"
+  },
+  {
+   "id": "t0030",
+   "tag": "t0030",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Warum ist ein Rabe wie ein Schreibtisch?“",
+   "lang": "de"
+  },
+  {
+   "id": "t0031",
+   "tag": "t0031",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Nun, jetzt wird’s lustig!“",
+   "lang": "de"
+  },
+  {
+   "id": "t0033",
+   "tag": "t0033",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Es ist gut, daß sie anfangen, Räthsel aufzugeben. – Ich glaube, das kann ich rathen,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0035",
+   "tag": "t0035",
+   "figur": "March Hare",
+   "stimme": "m_hoch_01",
+   "text": "„Meinst du, daß du die Antwort darauf herausfinden kannst?“",
+   "lang": "de"
+  },
+  {
+   "id": "t0037",
+   "tag": "t0037",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Ganz genau,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0039",
+   "tag": "t0039",
+   "figur": "March Hare",
+   "stimme": "m_hoch_01",
+   "text": "„Dann solltest du sagen, was du meinst,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0041",
+   "tag": "t0041",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Das thue ich,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0043",
+   "tag": "t0043",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„wenigstens – wenigstens meine ich, was ich sage – das ist doch dasselbe, weißt du.“",
+   "lang": "de"
+  },
+  {
+   "id": "t0044",
+   "tag": "t0044",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Ganz und gar nicht dasselbe!“",
+   "lang": "de"
+  },
+  {
+   "id": "t0046",
+   "tag": "t0046",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Du könntest ebenso gut sagen: ‚Ich sehe, was ich esse‘ ist dasselbe wie ‚Ich esse, was ich sehe‘!“",
+   "lang": "de"
+  },
+  {
+   "id": "t0047",
+   "tag": "t0047",
+   "figur": "March Hare",
+   "stimme": "m_hoch_01",
+   "text": "„Du könntest ebenso gut sagen,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0049",
+   "tag": "t0049",
+   "figur": "March Hare",
+   "stimme": "m_hoch_01",
+   "text": "„‚Ich mag, was ich bekomme‘ ist dasselbe wie ‚Ich bekomme, was ich mag‘!“",
+   "lang": "de"
+  },
+  {
+   "id": "t0050",
+   "tag": "t0050",
+   "figur": "Dormouse",
+   "stimme": "m_tief_01",
+   "text": "„Du könntest ebenso gut sagen,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0052",
+   "tag": "t0052",
+   "figur": "Dormouse",
+   "stimme": "m_tief_01",
+   "text": "„‚Ich athme, wenn ich schlafe‘ ist dasselbe wie ‚Ich schlafe, wenn ich athme‘!“",
+   "lang": "de"
+  },
+  {
+   "id": "t0053",
+   "tag": "t0053",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Bei dir ist es allerdings dasselbe,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0056",
+   "tag": "t0056",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Den wievielten haben wir im Monat?“",
+   "lang": "de"
+  },
+  {
+   "id": "t0059",
+   "tag": "t0059",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Den vierten.“",
+   "lang": "de"
+  },
+  {
+   "id": "t0060",
+   "tag": "t0060",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Zwei Tage falsch!“",
+   "lang": "de"
+  },
+  {
+   "id": "t0062",
+   "tag": "t0062",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Ich habe dir ja gesagt, Butter bekäme dem Uhrwerk nicht!“",
+   "lang": "de"
+  },
+  {
+   "id": "t0064",
+   "tag": "t0064",
+   "figur": "March Hare",
+   "stimme": "m_hoch_01",
+   "text": "„Es war die beste Butter,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0066",
+   "tag": "t0066",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Ja, aber es müssen auch Brotkrumen hineingekommen sein,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0068",
+   "tag": "t0068",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Du hättest sie nicht mit dem Brodmesser hineinthun sollen.“",
+   "lang": "de"
+  },
+  {
+   "id": "t0070",
+   "tag": "t0070",
+   "figur": "March Hare",
+   "stimme": "m_hoch_01",
+   "text": "„Es war die beste Butter, weißt du.“",
+   "lang": "de"
+  },
+  {
+   "id": "t0072",
+   "tag": "t0072",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Was für eine komische Uhr!“",
+   "lang": "de"
+  },
+  {
+   "id": "t0074",
+   "tag": "t0074",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Sie zeigt den Tag des Monats an, und sie zeigt nicht an, wie spät es ist!“",
+   "lang": "de"
+  },
+  {
+   "id": "t0075",
+   "tag": "t0075",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Warum sollte sie?“",
+   "lang": "de"
+  },
+  {
+   "id": "t0077",
+   "tag": "t0077",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Zeigt deine Uhr an, welches Jahr es ist?“",
+   "lang": "de"
+  },
+  {
+   "id": "t0078",
+   "tag": "t0078",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Natürlich nicht,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0080",
+   "tag": "t0080",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„aber das kommt daher, daß es so lange hintereinander dasselbe Jahr bleibt.“",
+   "lang": "de"
+  },
+  {
+   "id": "t0081",
+   "tag": "t0081",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Was bei meiner gerade auch der Fall ist,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0084",
+   "tag": "t0084",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Ich verstehe dich nicht ganz,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0086",
+   "tag": "t0086",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Das Murmelthier schläft wieder,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0089",
+   "tag": "t0089",
+   "figur": "Dormouse",
+   "stimme": "m_tief_01",
+   "text": "„Natürlich, natürlich; gerade was ich selbst bemerken wollte.“",
+   "lang": "de"
+  },
+  {
+   "id": "t0090",
+   "tag": "t0090",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Hast du das Räthsel schon errathen?“",
+   "lang": "de"
+  },
+  {
+   "id": "t0092",
+   "tag": "t0092",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Nein, ich gebe es auf,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0094",
+   "tag": "t0094",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„was ist die Antwort?“",
+   "lang": "de"
+  },
+  {
+   "id": "t0095",
+   "tag": "t0095",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Ich habe nicht die geringste Ahnung,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0097",
+   "tag": "t0097",
+   "figur": "March Hare",
+   "stimme": "m_hoch_01",
+   "text": "„Ich auch nicht,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0100",
+   "tag": "t0100",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Ich denke, ihr könntet etwas Besseres mit der Zeit anfangen,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0102",
+   "tag": "t0102",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„als sie mit Räthseln zu vergeuden, die keine Antwort haben.“",
+   "lang": "de"
+  },
+  {
+   "id": "t0103",
+   "tag": "t0103",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Wenn du die Zeit so gut kenntest wie ich,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0105",
+   "tag": "t0105",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„würdest du nicht davon reden, sie zu vergeuden. Es ist Er.“",
+   "lang": "de"
+  },
+  {
+   "id": "t0106",
+   "tag": "t0106",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Ich weiß nicht, was du meinst,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0108",
+   "tag": "t0108",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Natürlich weißt du das nicht!“",
+   "lang": "de"
+  },
+  {
+   "id": "t0110",
+   "tag": "t0110",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Ich wette, du hast nie auch nur mit der Zeit gesprochen!“",
+   "lang": "de"
+  },
+  {
+   "id": "t0111",
+   "tag": "t0111",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Vielleicht nicht,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0113",
+   "tag": "t0113",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„aber ich weiß, daß ich beim Musiklernen die Zeit schlagen muß.“",
+   "lang": "de"
+  },
+  {
+   "id": "t0114",
+   "tag": "t0114",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Ah! das erklärt es,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0116",
+   "tag": "t0116",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Er will nicht geschlagen werden. Wenn du nur gut mit ihm stündest, würde er mit der Uhr fast alles thun, was du wolltest. Zum Beispiel, nimm an, es wäre neun Uhr morgens, gerade Zeit, mit den Lektionen anzufangen: du brauchtest der Zeit nur einen Wink zu geben, und im Nu dreht sich die Uhr! Halb zwei, Zeit zum Essen!“",
+   "lang": "de"
+  },
+  {
+   "id": "t0117",
+   "tag": "t0117",
+   "figur": "March Hare",
+   "stimme": "m_hoch_01",
+   "text": "„Ich wollte nur, es wäre so,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0119",
+   "tag": "t0119",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Das wäre freilich großartig,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0121",
+   "tag": "t0121",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„aber dann – ich hätte noch keinen Hunger, weißt du.“",
+   "lang": "de"
+  },
+  {
+   "id": "t0122",
+   "tag": "t0122",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Anfangs vielleicht nicht,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0124",
+   "tag": "t0124",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„aber du könntest es auf halb zwei halten, so lange du wolltest.“",
+   "lang": "de"
+  },
+  {
+   "id": "t0125",
+   "tag": "t0125",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Macht ihr es so?“",
+   "lang": "de"
+  },
+  {
+   "id": "t0128",
+   "tag": "t0128",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Ich nicht!“",
+   "lang": "de"
+  },
+  {
+   "id": "t0130",
+   "tag": "t0130",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Wir haben uns letzten März gezankt – gerade bevor er verrückt wurde, weißt du –“",
+   "lang": "de"
+  },
+  {
+   "id": "t0132",
+   "tag": "t0132",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„– es war bei dem großen Concert, das die Herz-Königin gab, und ich mußte singen ‚Funkle, funkle, kleine Fledermaus!\nAch, was treibst du wohl hier aus!‘ Du kennst das Lied vielleicht?“",
+   "lang": "de"
+  },
+  {
+   "id": "t0133",
+   "tag": "t0133",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Ich habe so etwas gehört,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0135",
+   "tag": "t0135",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Es geht weiter, weißt du,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0137",
+   "tag": "t0137",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„so: ‚Hoch über uns die Welt du fliegst,\nWie ein Theebrett, das am Himmel liegt.\nFunkle, funkle –‘",
+   "lang": "de"
+  },
+  {
+   "id": "t0139",
+   "tag": "t0139",
+   "figur": "Dormouse",
+   "stimme": "m_tief_01",
+   "text": "„Funkle, funkle, funkle, funkle –“",
+   "lang": "de"
+  },
+  {
+   "id": "t0141",
+   "tag": "t0141",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Nun, ich hatte kaum den ersten Vers beendet,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0143",
+   "tag": "t0143",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„als die Königin aufsprang und brüllte: ‚Er mordet die Zeit! Herunter mit seinem Kopf!‘“",
+   "lang": "de"
+  },
+  {
+   "id": "t0144",
+   "tag": "t0144",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Wie schrecklich grausam!“",
+   "lang": "de"
+  },
+  {
+   "id": "t0146",
+   "tag": "t0146",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Und seitdem,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0148",
+   "tag": "t0148",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„thut er nichts von dem, was ich verlange! Es ist jetzt immer sechs Uhr.“",
+   "lang": "de"
+  },
+  {
+   "id": "t0150",
+   "tag": "t0150",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Ist das der Grund, warum hier so viele Theesachen herumstehen?“",
+   "lang": "de"
+  },
+  {
+   "id": "t0152",
+   "tag": "t0152",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Ja, das ist es,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0154",
+   "tag": "t0154",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„es ist immer Theestunde, und wir haben keine Zeit, das Geschirr zwischendurch zu spülen.“",
+   "lang": "de"
+  },
+  {
+   "id": "t0155",
+   "tag": "t0155",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Dann rückt ihr wohl immer weiter, nehme ich an?“",
+   "lang": "de"
+  },
+  {
+   "id": "t0157",
+   "tag": "t0157",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Ganz recht,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0159",
+   "tag": "t0159",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„wenn die Sachen verbraucht sind.“",
+   "lang": "de"
+  },
+  {
+   "id": "t0160",
+   "tag": "t0160",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Aber was geschieht, wenn ihr wieder an den Anfang kommt?“",
+   "lang": "de"
+  },
+  {
+   "id": "t0162",
+   "tag": "t0162",
+   "figur": "March Hare",
+   "stimme": "m_hoch_01",
+   "text": "„Wir wollen das Thema wechseln,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0164",
+   "tag": "t0164",
+   "figur": "March Hare",
+   "stimme": "m_hoch_01",
+   "text": "„Ich werde dessen müde. Ich schlage vor, die junge Dame erzählt uns eine Geschichte.“",
+   "lang": "de"
+  },
+  {
+   "id": "t0165",
+   "tag": "t0165",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Ich fürchte, ich weiß keine,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0167",
+   "tag": "t0167",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Dann soll das Murmelthier!“",
+   "lang": "de"
+  },
+  {
+   "id": "t0169",
+   "tag": "t0169",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Wach auf, Murmelthier!“",
+   "lang": "de"
+  },
+  {
+   "id": "t0172",
+   "tag": "t0172",
+   "figur": "Dormouse",
+   "stimme": "m_tief_01",
+   "text": "„Ich habe nicht geschlafen,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0174",
+   "tag": "t0174",
+   "figur": "Dormouse",
+   "stimme": "m_tief_01",
+   "text": "„Ich habe jedes Wort gehört, das ihr Kerle gesagt habt.“",
+   "lang": "de"
+  },
+  {
+   "id": "t0175",
+   "tag": "t0175",
+   "figur": "March Hare",
+   "stimme": "m_hoch_01",
+   "text": "„Erzähle uns eine Geschichte!“",
+   "lang": "de"
+  },
+  {
+   "id": "t0177",
+   "tag": "t0177",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Ja, bitte, thu es!“",
+   "lang": "de"
+  },
+  {
+   "id": "t0179",
+   "tag": "t0179",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Und beeile dich,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0181",
+   "tag": "t0181",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„sonst schläfst du wieder ein, bevor du fertig bist.“",
+   "lang": "de"
+  },
+  {
+   "id": "t0182",
+   "tag": "t0182",
+   "figur": "Dormouse",
+   "stimme": "m_tief_01",
+   "text": "„Es waren einmal drei kleine Schwestern,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0184",
+   "tag": "t0184",
+   "figur": "Dormouse",
+   "stimme": "m_tief_01",
+   "text": "„und sie hießen Elsie, Lacie und Tillie; und sie lebten auf dem Grunde eines Brunnens—“",
+   "lang": "de"
+  },
+  {
+   "id": "t0185",
+   "tag": "t0185",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Wovon lebten sie?“",
+   "lang": "de"
+  },
+  {
+   "id": "t0187",
+   "tag": "t0187",
+   "figur": "Dormouse",
+   "stimme": "m_tief_01",
+   "text": "„Sie lebten von Sirup,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0189",
+   "tag": "t0189",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Das hätten sie nicht gekonnt, weißt du,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0191",
+   "tag": "t0191",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Sie wären krank geworden.“",
+   "lang": "de"
+  },
+  {
+   "id": "t0192",
+   "tag": "t0192",
+   "figur": "Dormouse",
+   "stimme": "m_tief_01",
+   "text": "„Das wurden sie auch,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0194",
+   "tag": "t0194",
+   "figur": "Dormouse",
+   "stimme": "m_tief_01",
+   "text": "„Sehr krank.“",
+   "lang": "de"
+  },
+  {
+   "id": "t0196",
+   "tag": "t0196",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Aber warum lebten sie auf dem Grunde eines Brunnens?“",
+   "lang": "de"
+  },
+  {
+   "id": "t0197",
+   "tag": "t0197",
+   "figur": "March Hare",
+   "stimme": "m_hoch_01",
+   "text": "„Nimm noch etwas Thee,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0199",
+   "tag": "t0199",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Ich habe noch gar nichts gehabt,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0201",
+   "tag": "t0201",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„also kann ich nicht noch mehr nehmen.“",
+   "lang": "de"
+  },
+  {
+   "id": "t0202",
+   "tag": "t0202",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Du meinst, du kannst nicht weniger nehmen,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0204",
+   "tag": "t0204",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Es ist sehr leicht, mehr als nichts zu nehmen.“",
+   "lang": "de"
+  },
+  {
+   "id": "t0205",
+   "tag": "t0205",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Niemand hat dich um deine Meinung gefragt,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0207",
+   "tag": "t0207",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Wer macht jetzt persönliche Bemerkungen?“",
+   "lang": "de"
+  },
+  {
+   "id": "t0210",
+   "tag": "t0210",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Warum lebten sie auf dem Grunde eines Brunnens?“",
+   "lang": "de"
+  },
+  {
+   "id": "t0212",
+   "tag": "t0212",
+   "figur": "Dormouse",
+   "stimme": "m_tief_01",
+   "text": "„Es war ein Sirup-Brunnen.“",
+   "lang": "de"
+  },
+  {
+   "id": "t0213",
+   "tag": "t0213",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„So etwas giebt es nicht!“",
+   "lang": "de"
+  },
+  {
+   "id": "t0215",
+   "tag": "t0215",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Pst! pst!“",
+   "lang": "de"
+  },
+  {
+   "id": "t0217",
+   "tag": "t0217",
+   "figur": "Dormouse",
+   "stimme": "m_tief_01",
+   "text": "„Wenn du nicht höflich sein kannst, solltest du die Geschichte lieber selbst zu Ende erzählen.“",
+   "lang": "de"
+  },
+  {
+   "id": "t0218",
+   "tag": "t0218",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Nein, bitte, erzähle weiter!“",
+   "lang": "de"
+  },
+  {
+   "id": "t0220",
+   "tag": "t0220",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Ich will nicht wieder unterbrechen. Es mag wohl einen geben.“",
+   "lang": "de"
+  },
+  {
+   "id": "t0221",
+   "tag": "t0221",
+   "figur": "Dormouse",
+   "stimme": "m_tief_01",
+   "text": "„Einen, allerdings!“",
+   "lang": "de"
+  },
+  {
+   "id": "t0223",
+   "tag": "t0223",
+   "figur": "Dormouse",
+   "stimme": "m_tief_01",
+   "text": "„Und so lernten diese drei kleinen Schwestern – zeichnen, weißt du –“",
+   "lang": "de"
+  },
+  {
+   "id": "t0224",
+   "tag": "t0224",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Was zeichneten sie?“",
+   "lang": "de"
+  },
+  {
+   "id": "t0226",
+   "tag": "t0226",
+   "figur": "Dormouse",
+   "stimme": "m_tief_01",
+   "text": "„Sirup,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0228",
+   "tag": "t0228",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Ich will eine saubere Tasse,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0230",
+   "tag": "t0230",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Laßt uns alle einen Platz weiterrücken.“",
+   "lang": "de"
+  },
+  {
+   "id": "t0233",
+   "tag": "t0233",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Aber ich verstehe nicht. Woher holten sie den Sirup?“",
+   "lang": "de"
+  },
+  {
+   "id": "t0234",
+   "tag": "t0234",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Du kannst Wasser aus einem Wasser-Brunnen holen,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0236",
+   "tag": "t0236",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„also solltest du wohl auch Sirup aus einem Sirup-Brunnen holen können – wie, Dummkopf?“",
+   "lang": "de"
+  },
+  {
+   "id": "t0237",
+   "tag": "t0237",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Aber sie waren doch in dem Brunnen,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0239",
+   "tag": "t0239",
+   "figur": "Dormouse",
+   "stimme": "m_tief_01",
+   "text": "„Natürlich waren sie das,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0241",
+   "tag": "t0241",
+   "figur": "Dormouse",
+   "stimme": "m_tief_01",
+   "text": "„– ganz drin.“",
+   "lang": "de"
+  },
+  {
+   "id": "t0243",
+   "tag": "t0243",
+   "figur": "Dormouse",
+   "stimme": "m_tief_01",
+   "text": "„Sie lernten zeichnen,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0245",
+   "tag": "t0245",
+   "figur": "Dormouse",
+   "stimme": "m_tief_01",
+   "text": "„und sie zeichneten alle möglichen Dinge – alles, was mit einem M anfängt –“",
+   "lang": "de"
+  },
+  {
+   "id": "t0246",
+   "tag": "t0246",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Warum mit einem M?“",
+   "lang": "de"
+  },
+  {
+   "id": "t0248",
+   "tag": "t0248",
+   "figur": "March Hare",
+   "stimme": "m_hoch_01",
+   "text": "„Warum nicht?“",
+   "lang": "de"
+  },
+  {
+   "id": "t0252",
+   "tag": "t0252",
+   "figur": "Dormouse",
+   "stimme": "m_tief_01",
+   "text": "„– was mit einem M anfängt, wie Mausefallen und der Mond und memory und muchness – du weißt, man sagt, Dinge seien ‚viel von einer muchness‘ – hast du je so etwas wie eine Zeichnung von einer muchness gesehen?“",
+   "lang": "de"
+  },
+  {
+   "id": "t0253",
+   "tag": "t0253",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Wirklich, da du mich jetzt fragst,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0255",
+   "tag": "t0255",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„ich glaube nicht –“",
+   "lang": "de"
+  },
+  {
+   "id": "t0256",
+   "tag": "t0256",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Dann solltest du nicht reden,“",
+   "lang": "de"
+  },
+  {
+   "id": "t0259",
+   "tag": "t0259",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Jedenfalls gehe ich nie wieder dorthin!“",
+   "lang": "de"
+  },
+  {
+   "id": "t0261",
+   "tag": "t0261",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Es ist die dümmste Theegesellschaft, auf der ich je in meinem ganzen Leben war!“",
+   "lang": "de"
+  },
+  {
+   "id": "t0263",
+   "tag": "t0263",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Das ist sehr sonderbar!“",
+   "lang": "de"
+  },
+  {
+   "id": "t0265",
+   "tag": "t0265",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Aber heute ist alles sonderbar. Ich glaube, ich kann ebenso gut gleich hineingehen.“",
+   "lang": "de"
+  },
+  {
+   "id": "t0268",
+   "tag": "t0268",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Nun, diesmal will ich es besser machen,“",
+   "lang": "de"
+  }
+ ]
+}

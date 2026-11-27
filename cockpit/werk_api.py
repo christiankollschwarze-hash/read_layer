@@ -1611,10 +1611,13 @@ def _m210_daten(book_id):
             "style": prof.get("style") or {}, "voice_note_fest": roh.get("voice_note_fest"),
             "figuren": figuren, "figur_min": P.FIGUR_MIN, "glossar": glossar,
             "untranslated": prof.get("untranslated") or {}, "idioms": prof.get("idioms") or {},
+            "untranslated_herkunft": {k: herkunft(k, roh.get("unuebersetzt_fest") or {}, "untranslated")
+                                      for k in (prof.get("untranslated") or {})},
             "grenzen": grenzen, "standard_grenzen": P.GRENZEN,
             "anzahl": {k: len(prof.get(k) or {}) for k in P.GRENZEN}, "voll": pr.get("voll") or {},
             "fest_entfernt": {"figuren": [k for k, v in ff.items() if v is None],
-                              "glossar": [k for k, v in gf.items() if v is None]},
+                              "glossar": [k for k, v in gf.items() if v is None],
+                              "unuebersetzt": [k for k, v in (roh.get("unuebersetzt_fest") or {}).items() if v is None]},
             "reihe": reihe, "teil": teil, "reihe_erbe": roh.get("reihe_erbe", True) is not False,
             "varianten": pr.get("varianten") or [], "neue_figuren": pr.get("neue_figuren") or [],
             "hoerspiel": bool(b.produkte_fuer(inhalt="hoerspiel"))}
@@ -1652,7 +1655,8 @@ def _m210_argv(book_id, e, wer):
                 if not __import__("re").fullmatch(r"[A-Za-z_][\w-]*", f):
                     raise ValueError(f"Feld {f!r} ungueltig")
                 a.append(f"{opt}={name}:{f}={sauber(w, name + ' ' + f)}")
-    for art, opt in (("figur_weg", "--figur-weg"), ("glossar_weg", "--glossar-weg")):
+    for art, opt in (("figur_weg", "--figur-weg"), ("glossar_weg", "--glossar-weg"),
+                     ("unuebersetzt_weg", "--unuebersetzt-weg")):
         for name in e.get(art) or []:
             a.append(f"{opt}={sauber(name, 'Name')}")
     if e.get("voice_note") is not None:
@@ -2858,8 +2862,14 @@ def _m500_daten(book_id):
         def zeile(x, art):
             e = eint.get(x["id"]) or {}
             st_ = ((sprech.get(x["id"]) or {}).get(lg)) or x.get("text") or ""
+            usd, blk = P.kosten(e.get("engine") or "gemini", len(st_)), None
+            if e.get("engine") == "fish" and e.get("block"):  # Fish vertont den ganzen Block (26.11.2026)
+                from pipeline import fish_motor
+                blk = e["block"]
+                by = (man.get(f"{lg}/_fish/{blk}") or {}).get("bytes") or len(st_.encode("utf-8"))
+                usd = round(by / 1e6 * float(getattr(config, "FISH_USD_JE_MIO_BYTES", 15.0)), 6)
             return dict(x, art=art, audio=rel(e.get("datei") or x.get("datei")), engine=e.get("engine"),
-                        sprechtext=st_, usd_neu=P.kosten(e.get("engine") or "gemini", len(st_)))
+                        sprechtext=st_, usd_neu=usd, block=blk)
         liste = ([zeile(x, "auffaellig") for x in p.get("auffaellig") or []]
                  + [zeile(x, "leer") for x in p.get("leer") or []]
                  + [zeile(x, "angenommen") for x in p.get("angenommen") or []])
@@ -3446,9 +3456,15 @@ def _m520_daten(book_id):
     quellen = {"hoerbuch": (_m200_lesen(book_id, "500_vertonung.json") or {}).get("eintraege") or {},
                "hoerspiel": (_m200_lesen(book_id, "510_overlay.json") or {}).get("eintraege") or {}}
     m500 = _m200_lesen(book_id, "500_vertonung.json") or {}
+    try:
+        from pipeline import s400_regie as R4
+        korr_sp = R4.korrekturen_lesen(book_id).get("sprechtext") or {}
+    except Exception:
+        korr_sp = {}
     out = {}
     for lg, sps in spuren.items():
         man = _m200_lesen(book_id, f"520_pruefung_{lg}.json") or {}
+        ov_lg = korr_sp.get(lg) or {}
         eint, kmeta = man.get("eintraege") or {}, (man.get("meta") or {}).get("kapitel") or {}
         try:
             tempo = P.tempo_fuer(rg, lg, type("M", (), {"meta": m500.get("meta") or {}})())
@@ -3465,7 +3481,8 @@ def _m520_daten(book_id):
                 r = dict(x) if isinstance(x, dict) else {"id": t}
                 r.update(art=art, audio=_m5x_rel(ordner, e.get("datei")), roh=_m5x_rel(ordner, q.get("datei")),
                          dauer=e.get("dauer"), rand=e.get("rand"), sprache=e.get("sprache") or r.get("sprache"),
-                         nachvertont=(h.get("nachvertont") or {}).get(f"{spur}/{t}", 0))
+                         nachvertont=(h.get("nachvertont") or {}).get(f"{spur}/{t}", 0),
+                         override=(ov_lg.get(t) or {}).get("text"))
                 r.pop("datei", None)
                 return r
             liste = ([zeile(x, "gekippt") for x in h.get("gekippt") or []]
@@ -3488,7 +3505,11 @@ def _m520_daten(book_id):
                 "fehlt": js.get("fehlt"), "fa_offen": js.get("fa_offen"), "tempo": js.get("tempo", tempo),
                 "endfassung": len(ein), "rand_max": max([max(x["rand"]) for x in ein if x.get("rand")] or [0.0]),
                 "dauer_min": round(sum(float(x.get("dauer") or 0) for x in ein) / 60, 1), "stufen": st,
-                "liste": liste, "kapitel": kap}
+                "liste": liste, "kapitel": kap,
+                "aussprache": [dict(x, beispiele={f: [{"id": t, "audio": _m5x_rel(ordner, (eint.get(f"{spur}/{t}") or {})
+                                                                                    .get("datei"))} for t in ids[:2]]
+                                                  for f, ids in (x.get("ids") or {}).items()})
+                               for x in h.get("aussprache") or []]}
     return {"plan_fehler": fehler, "spuren": out,
             "regler": {k: rg[k] for k, *_ in M520_REGLER} | {"tempo": rg.get("tempo") or {},
                                                              "nachvertonen": bool(rg["nachvertonen"])},
@@ -3529,7 +3550,28 @@ def _m520_argv(book_id, e, wer):
         if e.get("trocken"):
             raise ValueError("Annehmen wird sofort geschrieben – Probe ohne Annehmen")
         a += [f"--annehmen={tid_ok(t)}" for t in an] + [f"--grund={grund}"]
-    a += [f"--satz={tid_ok(t)}" for t in e.get("satz") or []]
+    ov = {str(k): " ".join(str(v).split()) for k, v in (e.get("sprechtext") or {}).items()}
+    if ov and not (lg and spur):
+        raise ValueError("Sprechtext-Override braucht Sprache und Spur")
+    if ov and e.get("trocken"):
+        raise ValueError("Sprechtext-Override vertont neu (kostet) – Probe ohne Override")
+    vor = []
+    if ov:
+        a4 = [PY, "-m", "pipeline.s400_regie", book_id, "--wer", wer, f"--lang={lg}"]
+        for t, x in ov.items():
+            if not _re.fullmatch(r"c\d+_\d+_[a-z]+", tid_ok(t)):
+                raise ValueError(f"Knoten-ID {t!r} ungueltig (Ansagen sind nicht editierbar)")
+            if not x or "\n" in x:
+                raise ValueError(f"{t}: Sprechtext leer (- = zuruecksetzen)")
+            a4.append(f"--sprechtext={t}={x}")
+        q = P.QUELLE[spur]
+        mod = "pipeline.s500_vertonung_gemini" if q == "500" else "pipeline.s510_hoerspiel_hybrid"
+        neu = list(ov)                                  # auch "-" (zuruecksetzen) vertont neu
+        frei = min(5.0, max(0.5, 0.15 * len(neu)))     # Fish vertont ganze Bloecke; Klick auf Uebernehmen = Freigabe
+        vor = [a4] + ([[PY, "-m", mod, book_id, "--wer", wer, f"--lang={lg}", f"--kosten-freigeben={lg}={frei:g}"]
+                       + [f"--satz={t}" for t in neu]]
+                      if neu else [])
+    a += [f"--satz={tid_ok(t)}" for t in dict.fromkeys(list(e.get("satz") or []) + list(ov))]
     for k, v in (e.get("tempo") or {}).items():
         if k not in sp:
             raise ValueError(f"Tempo: Sprache {k!r} nicht bestellt")
@@ -3542,7 +3584,7 @@ def _m520_argv(book_id, e, wer):
         a.append(f"--nachvertonen={'an' if e['nachvertonen'] else 'aus'}")
     if e.get("trocken"):
         a.append("--trocken")
-    return a
+    return vor + [a] if vor else a
 
 
 MONITOR_DATEN["520"] = _m520_daten

@@ -221,17 +221,19 @@ def eigene_rechte(book_id):
 # Welches Modell fuer welche Aufgabe. Austauschbar ohne Code-Aenderung.
 # CK 12.10.2026: Gemini nur noch fuer Bild und TTS (inkl. Voice Design); alle Textaufgaben auf DeepSeek.
 DEEPSEEK_MAX_OUT = 64000   # Obergrenze max_tokens fuer DeepSeek (17.10.2026: 16000 schnitt das Profil von Peter Pan ab; v4 erlaubt bis 384k)
+# CK 26.11.2026: alle DeepSeek-Textaufgaben auf "deepseek-flash" (= V4.1-Flash-1017, Preisliste 26.11.: 0,30/0,006/1,20 $,
+# Nebenzeit halb). Alt: v4-pro fuer profiler/pretranslator/translator/caster/modernizer. "deepseek-v4-flash" ist abgekuendigt.
 MODELS = {
-    "tagger":        "deepseek-v4-flash",      # Stage 50: Segmentierung (12.10.2026, vorher gemini-2.5-flash-lite)
-    "profiler":      "deepseek-v4-pro",        # Stage 51: Buch-Profil (12.10.2026, vorher gemini-2.5-pro)
-    "pretranslator": "deepseek-v4-pro",        # Stage 02: Kontext-Vooruebersetzung
-    "translator":    "deepseek-v4-pro",        # Stage 03: Satzgenaue Uebersetzung
-    "backtranslator": "deepseek-v4-flash",     # Stage 330: Rueckuebersetzung (02.11.2026, vorher translator = pro; CK)
-    "validator":     "deepseek-v4-flash",      # Stage 55: Pruefung (12.10.2026, vorher gemini-2.5-flash = Kostenfalle durch Denk-Token)
-    "ssml":          "deepseek-v4-flash",      # Stage 56: Audio-Regie (12.10.2026, vorher gemini-2.5-flash)
+    "tagger":        "deepseek-flash",      # Stage 50: Segmentierung (12.10.2026, vorher gemini-2.5-flash-lite)
+    "profiler":      "deepseek-flash",       # Stage 51: Buch-Profil (12.10.2026, vorher gemini-2.5-pro)
+    "pretranslator": "deepseek-flash",       # Stage 02: Kontext-Vooruebersetzung
+    "translator":    "deepseek-flash",       # Stage 03: Satzgenaue Uebersetzung
+    "backtranslator": "deepseek-flash",     # Stage 330: Rueckuebersetzung (02.11.2026, vorher translator = pro; CK)
+    "validator":     "deepseek-flash",      # Stage 55: Pruefung (12.10.2026, vorher gemini-2.5-flash = Kostenfalle durch Denk-Token)
+    "ssml":          "deepseek-flash",      # Stage 56: Audio-Regie (12.10.2026, vorher gemini-2.5-flash)
     "tts":           "gemini-3.8-flash-tts",   # Stage 40/58: Sprachsynthese (08.10.2026, vorher gemini-2.5-pro-tts)
                                                # Alternative billiger: "gemini-3.8-flash-lite-tts"
-    "aligner":       "deepseek-v4-flash",      # Stage 54a: Wort/Phrasen-Alignment (reasoning-frei, robustes JSON)
+    "aligner":       "deepseek-flash",      # Stage 54a: Wort/Phrasen-Alignment (reasoning-frei, robustes JSON)
 }
 
 # TTS-Backend (pipeline/tts_client.py):
@@ -306,6 +308,8 @@ MODAL_H100_USD_H = 3.95          # Modal-Listenpreis (Schaetzung)
 MODAL_L40S_USD_H = 1.95          # Modal-Listenpreis (Schaetzung)
 PREISE = {
     "deepseek-v4-pro":       {"in": 1.32, "cache": 0.044, "out": 3.96},
+    "mistral-large-2512":    {"in": 0.50, "cache": 0.05, "out": 1.50},   # Mistral Large 3, Listenpreis 26.11.2026 (Cache-Rabatt Annahme)
+    "mistral-small-latest":  {"in": 0.15, "cache": 0.015, "out": 0.60},
     "deepseek-v4-flash":     {"in": 0.30, "cache": 0.006, "out": 1.20},
     "deepseek-flash":        {"in": 0.30, "cache": 0.006, "out": 1.20},
     "gemini-2.5-pro":        {"in": 1.25, "out": 10.00,
@@ -438,7 +442,8 @@ RUN_MODE = "live"
 # API-Keys werden NUR im live-Modus gelesen (aus Umgebungsvariablen / .env)
 DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "").strip()
 GEMINI_API_KEY   = os.environ.get("GEMINI_API_KEY", "").strip()
-OPENROUTER_API_KEY = (os.environ.get("OPENROUTER_API_KEY") or os.environ.get("open_router") or "").strip()   # Modelltests: MODELS-Eintrag "or/<anbieter>/<modell>"
+MISTRAL_API_KEY = (os.environ.get("MISTRAL_API_KEY") or "").strip()   # EU-Variante D (26.11.2026)
+OPENROUTER_API_KEY = (os.environ.get("OPENROUTER_API_KEY") or os.environ.get("OPEN_ROUTER_API_KEY") or os.environ.get("open_router") or "").strip()   # Modelltests: MODELS-Eintrag "or/<anbieter>/<modell>"
 FAL_KEY          = (os.environ.get("FAL_KEY") or os.environ.get("FAL.AI_API_KEY") or "").strip()
 GCS_BUCKET       = os.environ.get("GCS_BUCKET", "readlayer-taella-content").strip()
 # Stage 710 Auslieferung (AP 710a, 03.11.2026): Standardziel gcs | lokal[:PFAD]; lokal = public/ der TAELLA-App
@@ -540,7 +545,7 @@ GRENZEN = {
     "modal":      {"gleichzeitig": 10, "ttl_s": 6 * 3600},
     # DeepSeek: Konto-Grenze 500 (v4-pro) / 2.500 (v4-flash) gleichzeitig, kein Aufpreis.
     # Standard 12 Spuren ueber alles, regelbar. Angeschlossen: api_layer (jeder DeepSeek-Aufruf).
-    "deepseek":   {"gleichzeitig": 12, "ttl_s": 900, "konto": {"deepseek-v4-pro": 500, "deepseek-v4-flash": 2500}},
+    "deepseek":   {"gleichzeitig": 12, "ttl_s": 900, "konto": {"deepseek-v4-pro": 500, "deepseek-v4-flash": 2500, "deepseek-flash": 2500}},
     # Gemini 3.8 Flash TTS, Tier 2 (AI Studio 22.11.2026): 1.000 RPM, 100K TPM, 10.000 RPD.
     # Ziel 500 RPM (Puffer). Angeschlossen: tts_client._gemini_call.
     "gemini_tts": {"rpm_ziel": 500, "rpm": 1000, "rpd": 10000},
@@ -553,3 +558,17 @@ SPUREN = {               # Abweichungen je Stage (Jobs gleichzeitig; Anbietergre
     "650": max(1, (os.cpu_count() or 4) - 1),   # ffmpeg je Kapitel, CPU-Kerne
     "520": max(1, (os.cpu_count() or 4) - 1),   # Schnitt/Tempo (ffmpeg je Satz)/Lautheit je Kapitel, CPU-Kerne
 }
+
+# Kostenfreigabe 500/503/510/511 AUS (CK 26.11.2026: "Wand komplett rausnehmen").
+# Schaetzungen unter diesem Betrag laufen ohne Freigabe; Rueckbau auf 0.01 = Freigabe wieder an.
+KOSTEN_KLEINBETRAG_USD = 1e9
+
+# Segment-Lautheit Stage 520 (pipeline/lautheit.py, AP Lautheit 27.11.2026; Regler pruefung_regler segment_lautheit).
+# Offset in dB auf das Segmentziel (-19 LUFS) je Sprechanweisung aus 430 (moment.vortrag / moment.nonverbal);
+# Werk ueberschreibt per book.json lautheit_offsets {"vortrag": {"fluestern": -4}}.
+LAUTHEIT_OFFSETS = {"vortrag": {"fluestern": -3.0, "leise": -1.5, "normal": 0.0},
+                    "nonverbal": {"seufzen": -1.5, "gaehnen": -1.5}}
+LAUTHEIT_KALIB_STD = 2.5   # LUFS - aktiver RMS (dB) fuer Kurzsegmente < 3 s ohne Kapitelwert (gemessen Monte Cristo DE, Median 2,54)
+# Kapitel-Mastering: leichte Kompression am festen Arbeitspunkt (Kapitel vorher auf vor_lufs), ffmpeg acompressor (RMS)
+LAUTHEIT_KOMPRESSOR = {"an": True, "vor_lufs": -23.0, "schwelle_db": -20.0, "ratio": 2.0, "attack_ms": 10.0,
+                       "release_ms": 200.0}

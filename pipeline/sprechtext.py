@@ -202,6 +202,27 @@ def _r_kursiv(sp, lg, typ):
 _KOPF = re.compile(r"(?:^\s*|[:–—]\s*)([IVXLCDM]+)(?![\w])")      # Anfang oder nach ":"/"–"/"—"
 
 
+_ALLEIN = re.compile(r"^\s*([IVXLCDMivxlcdm]+)\s*[.:]?\s*$")
+
+
+def _r_roem_allein(sp, lg, typ):
+    """Zeile nur aus roemischer Zahl, auch gemischte Schreibung ("Vii", "xi") – Kapitelnummern (26.11.2026)."""
+    if typ not in ("h", "s"):
+        return sp
+
+    def f(m):
+        roh = m.group(1)
+        tok = roh.upper()
+        if roh != tok and set(tok) - set("IVX"):
+            return None                                 # "Mix", "Dix", "Ci": Woerter, keine Ziffern
+        if not ist_roemisch(tok) or (typ != "h" and tok == "I"):
+            return None
+        n = roemisch_zu_int(tok)
+        w = zahlwort(n, lg) if 0 < n <= 3999 else None
+        return [(m.start(1), m.end(1), _gross(w))] if w else None
+    return sp.sub(_ALLEIN, f)
+
+
 def _r_ueberschrift(sp, lg, typ):
     if typ != "h":
         return sp
@@ -663,7 +684,7 @@ def abk_lesetext(s, lg="en", tab=None, auslassen=(), hand=None):
     return "".join(out), stellen, offen_
 
 
-STANDARD = (_r_kursiv, _r_ueberschrift, _r_roem_paragraf, _r_roem_zitat, _r_abk, _r_schluessel, _r_roem_ordinal,
+STANDARD = (_r_kursiv, _r_roem_allein, _r_ueberschrift, _r_roem_paragraf, _r_roem_zitat, _r_abk, _r_schluessel, _r_roem_ordinal,
             _r_herrscher, _r_de,
             _r_spanne)
 
@@ -831,6 +852,10 @@ def protokoll(lese, sprech, abb):
 def roemisch_offen(s, ueberschrift_=False):
     """Unaufgeloeste roemische Zahlen: Ueberschrift jede (ausser Pronomen I), Fliesstext ab zwei Zeichen."""
     out = []
+    m0 = _ALLEIN.match(s or "")
+    if m0 and m0.group(1) != m0.group(1).upper() and not set(m0.group(1).upper()) - set("IVX") \
+            and ist_roemisch(m0.group(1).upper()) and len(m0.group(1)) >= 2:
+        return [m0.group(1)]
     for m in _ROEM_TOKEN.finditer(s or ""):
         tok = m.group(1)
         if not ist_roemisch(tok):

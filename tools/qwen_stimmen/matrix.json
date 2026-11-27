@@ -1,0 +1,1737 @@
+{
+ "stand": "2026-11-26",
+ "stimmen": [
+  {
+   "id": "m_jung_warm",
+   "geschlecht": "m",
+   "alter": "jung",
+   "charakter": "warm",
+   "beschreibung_de": "Mann, jung (18-25), warm / väterlich-mütterlich; lacht leise mit",
+   "instruct": "A young man of about twenty, medium-high pitch. Warm, fatherly and reassuring, a gentle smile in the voice; a soft chuckle never far from his words. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "m",
+    "alter": "jung",
+    "tonlage": "mittel",
+    "klangfarbe": [
+     "warm",
+     "samtig"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "guetig",
+     "ruhig"
+    ],
+    "sicherheit": "fest",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "m_jung_kuehl",
+   "geschlecht": "m",
+   "alter": "jung",
+   "charakter": "kuehl",
+   "beschreibung_de": "Mann, jung (18-25), kühl / autoritär; knapp, abgehackte Sätze",
+   "instruct": "A young man of about twenty, medium-high pitch. Cool, authoritative, precise and controlled, little visible emotion; clipped, short phrasing. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "m",
+    "alter": "jung",
+    "tonlage": "mittel",
+    "klangfarbe": [
+     "kuehl",
+     "klar"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "streng"
+    ],
+    "sicherheit": "fest",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "m_jung_verschmitzt",
+   "geschlecht": "m",
+   "alter": "jung",
+   "charakter": "verschmitzt",
+   "beschreibung_de": "Mann, jung (18-25), verschmitzt / ironisch; Grinsen hörbar, schnelles Tempo",
+   "instruct": "A young man of about twenty, medium-high pitch. Mischievous and ironic, a playful undertone as if holding back a joke; an audible grin and quick tempo. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "m",
+    "alter": "jung",
+    "tonlage": "mittel",
+    "klangfarbe": [
+     "hell"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "verschmitzt"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "m_jung_nervoes",
+   "geschlecht": "m",
+   "alter": "jung",
+   "charakter": "nervoes",
+   "beschreibung_de": "Mann, jung (18-25), nervös / gehetzt; stolpert gelegentlich über Wörter",
+   "instruct": "A young man of about twenty, medium-high pitch. Nervous and hurried, slightly breathless, speaking quickly; occasionally tripping over words. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "m",
+    "alter": "jung",
+    "tonlage": "mittel",
+    "klangfarbe": [
+     "duenn"
+    ],
+    "tempo": "schnell",
+    "temperament": [
+     "nervoes",
+     "aengstlich"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "m_jung_rau",
+   "geschlecht": "m",
+   "alter": "jung",
+   "charakter": "rau",
+   "beschreibung_de": "Mann, jung (18-25), rau / brüchig; rauchig, leicht heiser",
+   "instruct": "A young man of about twenty, medium-high pitch. Rough and gravelly, slightly cracked and worn; smoky and slightly hoarse. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "m",
+    "alter": "jung",
+    "tonlage": "mittel",
+    "klangfarbe": [
+     "rau",
+     "bruechig"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "ruhig"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "m_jung_weich",
+   "geschlecht": "m",
+   "alter": "jung",
+   "charakter": "weich",
+   "beschreibung_de": "Mann, jung (18-25), weich / verträumt; leises Sprechen, fast flüsternd",
+   "instruct": "A young man of about twenty, medium-high pitch. Soft and dreamy, gentle and airy, unhurried; speaking softly, almost whispering. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "m",
+    "alter": "jung",
+    "tonlage": "mittel",
+    "klangfarbe": [
+     "samtig",
+     "hell"
+    ],
+    "tempo": "langsam",
+    "temperament": [
+     "ruhig",
+     "melancholisch"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "m_jungerw_warm",
+   "geschlecht": "m",
+   "alter": "jungerw",
+   "charakter": "warm",
+   "beschreibung_de": "Mann, jung-erwachsen (25-35), warm / väterlich-mütterlich; ruhiges Tempo, runde Vokale",
+   "instruct": "A man of about thirty, medium pitch. Warm, fatherly and reassuring, a gentle smile in the voice; a calm pace with round, full vowels. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": true,
+   "merkmale": {
+    "geschlecht": "m",
+    "alter": "jung",
+    "tonlage": "mittel",
+    "klangfarbe": [
+     "warm",
+     "samtig"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "guetig",
+     "ruhig"
+    ],
+    "sicherheit": "fest",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "m_jungerw_kuehl",
+   "geschlecht": "m",
+   "alter": "jungerw",
+   "charakter": "kuehl",
+   "beschreibung_de": "Mann, jung-erwachsen (25-35), kühl / autoritär; sehr deutliche Konsonanten",
+   "instruct": "A man of about thirty, medium pitch. Cool, authoritative, precise and controlled, little visible emotion; very crisp consonants. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "m",
+    "alter": "jung",
+    "tonlage": "mittel",
+    "klangfarbe": [
+     "kuehl",
+     "klar"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "streng"
+    ],
+    "sicherheit": "fest",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "m_jungerw_verschmitzt",
+   "geschlecht": "m",
+   "alter": "jungerw",
+   "charakter": "verschmitzt",
+   "beschreibung_de": "Mann, jung-erwachsen (25-35), verschmitzt / ironisch; hebt am Satzende spielerisch an",
+   "instruct": "A man of about thirty, medium pitch. Mischievous and ironic, a playful undertone as if holding back a joke; playfully lifts at the end of phrases. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "m",
+    "alter": "jung",
+    "tonlage": "mittel",
+    "klangfarbe": [
+     "hell"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "verschmitzt"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "m_jungerw_nervoes",
+   "geschlecht": "m",
+   "alter": "jungerw",
+   "charakter": "nervoes",
+   "beschreibung_de": "Mann, jung-erwachsen (25-35), nervös / gehetzt; hohe Spannung, flache Atmung",
+   "instruct": "A man of about thirty, medium pitch. Nervous and hurried, slightly breathless, speaking quickly; high tension, shallow breathing. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "m",
+    "alter": "jung",
+    "tonlage": "mittel",
+    "klangfarbe": [
+     "duenn"
+    ],
+    "tempo": "schnell",
+    "temperament": [
+     "nervoes",
+     "aengstlich"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "m_jungerw_rau",
+   "geschlecht": "m",
+   "alter": "jungerw",
+   "charakter": "rau",
+   "beschreibung_de": "Mann, jung-erwachsen (25-35), rau / brüchig; kehlig, etwas Straßenton",
+   "instruct": "A man of about thirty, medium pitch. Rough and gravelly, slightly cracked and worn; throaty, a little street-wise. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "m",
+    "alter": "jung",
+    "tonlage": "mittel",
+    "klangfarbe": [
+     "rau",
+     "bruechig"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "ruhig"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "m_jungerw_weich",
+   "geschlecht": "m",
+   "alter": "jungerw",
+   "charakter": "weich",
+   "beschreibung_de": "Mann, jung-erwachsen (25-35), weich / verträumt; melodisch, singende Satzbögen",
+   "instruct": "A man of about thirty, medium pitch. Soft and dreamy, gentle and airy, unhurried; melodic, sing-song phrasing. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": true,
+   "merkmale": {
+    "geschlecht": "m",
+    "alter": "jung",
+    "tonlage": "mittel",
+    "klangfarbe": [
+     "samtig",
+     "hell"
+    ],
+    "tempo": "langsam",
+    "temperament": [
+     "ruhig",
+     "melancholisch"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "m_mittel_warm",
+   "geschlecht": "m",
+   "alter": "mittel",
+   "charakter": "warm",
+   "beschreibung_de": "Mann, mittel (35-50), warm / väterlich-mütterlich; tiefe Brustresonanz",
+   "instruct": "A man in his early forties, medium-low pitch. Warm, fatherly and reassuring, a gentle smile in the voice; rich chest resonance. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": true,
+   "merkmale": {
+    "geschlecht": "m",
+    "alter": "mittel",
+    "tonlage": "mittel",
+    "klangfarbe": [
+     "warm",
+     "samtig"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "guetig",
+     "ruhig"
+    ],
+    "sicherheit": "fest",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "m_mittel_kuehl",
+   "geschlecht": "m",
+   "alter": "mittel",
+   "charakter": "kuehl",
+   "beschreibung_de": "Mann, mittel (35-50), kühl / autoritär; gleichmäßiger, fast monotoner Fluss",
+   "instruct": "A man in his early forties, medium-low pitch. Cool, authoritative, precise and controlled, little visible emotion; an even, almost monotonous flow. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": true,
+   "merkmale": {
+    "geschlecht": "m",
+    "alter": "mittel",
+    "tonlage": "mittel",
+    "klangfarbe": [
+     "kuehl",
+     "klar"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "streng"
+    ],
+    "sicherheit": "fest",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "m_mittel_verschmitzt",
+   "geschlecht": "m",
+   "alter": "mittel",
+   "charakter": "verschmitzt",
+   "beschreibung_de": "Mann, mittel (35-50), verschmitzt / ironisch; leicht heiser, Lachen im Ton",
+   "instruct": "A man in his early forties, medium-low pitch. Mischievous and ironic, a playful undertone as if holding back a joke; slightly husky, laughter in the tone. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "m",
+    "alter": "mittel",
+    "tonlage": "mittel",
+    "klangfarbe": [
+     "hell"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "verschmitzt"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "m_mittel_nervoes",
+   "geschlecht": "m",
+   "alter": "mittel",
+   "charakter": "nervoes",
+   "beschreibung_de": "Mann, mittel (35-50), nervös / gehetzt; räuspert sich",
+   "instruct": "A man in his early forties, medium-low pitch. Nervous and hurried, slightly breathless, speaking quickly; a habit of clearing his throat. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "m",
+    "alter": "mittel",
+    "tonlage": "mittel",
+    "klangfarbe": [
+     "duenn"
+    ],
+    "tempo": "schnell",
+    "temperament": [
+     "nervoes",
+     "aengstlich"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "m_mittel_rau",
+   "geschlecht": "m",
+   "alter": "mittel",
+   "charakter": "rau",
+   "beschreibung_de": "Mann, mittel (35-50), rau / brüchig; verrauchte Tiefe",
+   "instruct": "A man in his early forties, medium-low pitch. Rough and gravelly, slightly cracked and worn; a smoky depth. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "m",
+    "alter": "mittel",
+    "tonlage": "mittel",
+    "klangfarbe": [
+     "rau",
+     "bruechig"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "ruhig"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "m_mittel_weich",
+   "geschlecht": "m",
+   "alter": "mittel",
+   "charakter": "weich",
+   "beschreibung_de": "Mann, mittel (35-50), weich / verträumt; samtig, langsam",
+   "instruct": "A man in his early forties, medium-low pitch. Soft and dreamy, gentle and airy, unhurried; velvety and slow. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": true,
+   "merkmale": {
+    "geschlecht": "m",
+    "alter": "mittel",
+    "tonlage": "mittel",
+    "klangfarbe": [
+     "samtig",
+     "hell"
+    ],
+    "tempo": "langsam",
+    "temperament": [
+     "ruhig",
+     "melancholisch"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "m_reif_warm",
+   "geschlecht": "m",
+   "alter": "reif",
+   "charakter": "warm",
+   "beschreibung_de": "Mann, reif (50-65), warm / väterlich-mütterlich; leicht nordische Färbung, gemütlich",
+   "instruct": "A man in his late fifties, low pitch. Warm, fatherly and reassuring, a gentle smile in the voice; a slight, comfortable northern colouring. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": true,
+   "merkmale": {
+    "geschlecht": "m",
+    "alter": "alt",
+    "tonlage": "tief",
+    "klangfarbe": [
+     "warm",
+     "samtig"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "guetig",
+     "ruhig"
+    ],
+    "sicherheit": "fest",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "m_reif_kuehl",
+   "geschlecht": "m",
+   "alter": "reif",
+   "charakter": "kuehl",
+   "beschreibung_de": "Mann, reif (50-65), kühl / autoritär; trocken, leicht nasal",
+   "instruct": "A man in his late fifties, low pitch. Cool, authoritative, precise and controlled, little visible emotion; dry and slightly nasal. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": true,
+   "merkmale": {
+    "geschlecht": "m",
+    "alter": "alt",
+    "tonlage": "tief",
+    "klangfarbe": [
+     "kuehl",
+     "klar"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "streng"
+    ],
+    "sicherheit": "fest",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "m_reif_verschmitzt",
+   "geschlecht": "m",
+   "alter": "reif",
+   "charakter": "verschmitzt",
+   "beschreibung_de": "Mann, reif (50-65), verschmitzt / ironisch; gedehnte Pointen",
+   "instruct": "A man in his late fifties, low pitch. Mischievous and ironic, a playful undertone as if holding back a joke; drawn-out punchlines. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "m",
+    "alter": "alt",
+    "tonlage": "tief",
+    "klangfarbe": [
+     "hell"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "verschmitzt"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "m_reif_nervoes",
+   "geschlecht": "m",
+   "alter": "reif",
+   "charakter": "nervoes",
+   "beschreibung_de": "Mann, reif (50-65), nervös / gehetzt; Stimme bricht leicht nach oben",
+   "instruct": "A man in his late fifties, low pitch. Nervous and hurried, slightly breathless, speaking quickly; voice cracking slightly upwards. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "m",
+    "alter": "alt",
+    "tonlage": "tief",
+    "klangfarbe": [
+     "duenn"
+    ],
+    "tempo": "schnell",
+    "temperament": [
+     "nervoes",
+     "aengstlich"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "m_reif_rau",
+   "geschlecht": "m",
+   "alter": "reif",
+   "charakter": "rau",
+   "beschreibung_de": "Mann, reif (50-65), rau / brüchig; Seemannsstimme, kräftig",
+   "instruct": "A man in his late fifties, low pitch. Rough and gravelly, slightly cracked and worn; a strong, weathered sailor's voice. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "m",
+    "alter": "alt",
+    "tonlage": "tief",
+    "klangfarbe": [
+     "rau",
+     "bruechig"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "ruhig"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "m_reif_weich",
+   "geschlecht": "m",
+   "alter": "reif",
+   "charakter": "weich",
+   "beschreibung_de": "Mann, reif (50-65), weich / verträumt; nachdenklich, Pausen vor wichtigen Wörtern",
+   "instruct": "A man in his late fifties, low pitch. Soft and dreamy, gentle and airy, unhurried; thoughtful, pausing before important words. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": true,
+   "merkmale": {
+    "geschlecht": "m",
+    "alter": "alt",
+    "tonlage": "tief",
+    "klangfarbe": [
+     "samtig",
+     "hell"
+    ],
+    "tempo": "langsam",
+    "temperament": [
+     "ruhig",
+     "melancholisch"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "m_alt_warm",
+   "geschlecht": "m",
+   "alter": "alt",
+   "charakter": "warm",
+   "beschreibung_de": "Mann, alt (65+), warm / väterlich-mütterlich; bedächtig, kleine Atempausen",
+   "instruct": "An old man in his mid-seventies, low pitch, thinned by age. Warm, fatherly and reassuring, a gentle smile in the voice; deliberate, with small breathing pauses. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": true,
+   "merkmale": {
+    "geschlecht": "m",
+    "alter": "greis",
+    "tonlage": "tief",
+    "klangfarbe": [
+     "warm",
+     "samtig"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "guetig",
+     "ruhig"
+    ],
+    "sicherheit": "fest",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "m_alt_kuehl",
+   "geschlecht": "m",
+   "alter": "alt",
+   "charakter": "kuehl",
+   "beschreibung_de": "Mann, alt (65+), kühl / autoritär; langsam, schneidend",
+   "instruct": "An old man in his mid-seventies, low pitch, thinned by age. Cool, authoritative, precise and controlled, little visible emotion; slow and cutting. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "m",
+    "alter": "greis",
+    "tonlage": "tief",
+    "klangfarbe": [
+     "kuehl",
+     "klar"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "streng"
+    ],
+    "sicherheit": "fest",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "m_alt_verschmitzt",
+   "geschlecht": "m",
+   "alter": "alt",
+   "charakter": "verschmitzt",
+   "beschreibung_de": "Mann, alt (65+), verschmitzt / ironisch; kichert gelegentlich",
+   "instruct": "An old man in his mid-seventies, low pitch, thinned by age. Mischievous and ironic, a playful undertone as if holding back a joke; an occasional giggle. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "m",
+    "alter": "greis",
+    "tonlage": "tief",
+    "klangfarbe": [
+     "hell"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "verschmitzt"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "m_alt_nervoes",
+   "geschlecht": "m",
+   "alter": "alt",
+   "charakter": "nervoes",
+   "beschreibung_de": "Mann, alt (65+), nervös / gehetzt; zittrig, hastig",
+   "instruct": "An old man in his mid-seventies, low pitch, thinned by age. Nervous and hurried, slightly breathless, speaking quickly; shaky and hasty. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "m",
+    "alter": "greis",
+    "tonlage": "tief",
+    "klangfarbe": [
+     "duenn"
+    ],
+    "tempo": "schnell",
+    "temperament": [
+     "nervoes",
+     "aengstlich"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "m_alt_rau",
+   "geschlecht": "m",
+   "alter": "alt",
+   "charakter": "rau",
+   "beschreibung_de": "Mann, alt (65+), rau / brüchig; brüchig, mit Luft in der Stimme",
+   "instruct": "An old man in his mid-seventies, low pitch, thinned by age. Rough and gravelly, slightly cracked and worn; brittle, with breath in the voice. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "m",
+    "alter": "greis",
+    "tonlage": "tief",
+    "klangfarbe": [
+     "rau",
+     "bruechig"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "ruhig"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "m_alt_weich",
+   "geschlecht": "m",
+   "alter": "alt",
+   "charakter": "weich",
+   "beschreibung_de": "Mann, alt (65+), weich / verträumt; sanft, etwas verträumt abwesend",
+   "instruct": "An old man in his mid-seventies, low pitch, thinned by age. Soft and dreamy, gentle and airy, unhurried; gentle and a little absent-minded. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "m",
+    "alter": "greis",
+    "tonlage": "tief",
+    "klangfarbe": [
+     "samtig",
+     "hell"
+    ],
+    "tempo": "langsam",
+    "temperament": [
+     "ruhig",
+     "melancholisch"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "w_jung_warm",
+   "geschlecht": "w",
+   "alter": "jung",
+   "charakter": "warm",
+   "beschreibung_de": "Frau, jung (18-25), warm / väterlich-mütterlich; hell und herzlich, lacht leicht",
+   "instruct": "A young woman of about twenty, bright, medium-high pitch. Warm, motherly and reassuring, a gentle smile in the voice; bright and hearty, laughing lightly. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "w",
+    "alter": "jung",
+    "tonlage": "hoch",
+    "klangfarbe": [
+     "warm",
+     "samtig"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "guetig",
+     "ruhig"
+    ],
+    "sicherheit": "fest",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "w_jung_kuehl",
+   "geschlecht": "w",
+   "alter": "jung",
+   "charakter": "kuehl",
+   "beschreibung_de": "Frau, jung (18-25), kühl / autoritär; knapp und präzise",
+   "instruct": "A young woman of about twenty, bright, medium-high pitch. Cool, authoritative, precise and controlled, little visible emotion; brief and precise. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "w",
+    "alter": "jung",
+    "tonlage": "hoch",
+    "klangfarbe": [
+     "kuehl",
+     "klar"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "streng"
+    ],
+    "sicherheit": "fest",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "w_jung_verschmitzt",
+   "geschlecht": "w",
+   "alter": "jung",
+   "charakter": "verschmitzt",
+   "beschreibung_de": "Frau, jung (18-25), verschmitzt / ironisch; kichernd, schnell",
+   "instruct": "A young woman of about twenty, bright, medium-high pitch. Mischievous and ironic, a playful undertone as if holding back a joke; giggly and quick. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "w",
+    "alter": "jung",
+    "tonlage": "hoch",
+    "klangfarbe": [
+     "hell"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "verschmitzt"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "w_jung_nervoes",
+   "geschlecht": "w",
+   "alter": "jung",
+   "charakter": "nervoes",
+   "beschreibung_de": "Frau, jung (18-25), nervös / gehetzt; schnell, atemlos",
+   "instruct": "A young woman of about twenty, bright, medium-high pitch. Nervous and hurried, slightly breathless, speaking quickly; fast and breathless. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "w",
+    "alter": "jung",
+    "tonlage": "hoch",
+    "klangfarbe": [
+     "duenn"
+    ],
+    "tempo": "schnell",
+    "temperament": [
+     "nervoes",
+     "aengstlich"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "w_jung_rau",
+   "geschlecht": "w",
+   "alter": "jung",
+   "charakter": "rau",
+   "beschreibung_de": "Frau, jung (18-25), rau / brüchig; heiser, leicht rauchig",
+   "instruct": "A young woman of about twenty, bright, medium-high pitch. Rough and husky, slightly cracked and worn; hoarse and slightly smoky. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "w",
+    "alter": "jung",
+    "tonlage": "hoch",
+    "klangfarbe": [
+     "rau",
+     "bruechig"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "ruhig"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "w_jung_weich",
+   "geschlecht": "w",
+   "alter": "jung",
+   "charakter": "weich",
+   "beschreibung_de": "Frau, jung (18-25), weich / verträumt; hauchig, sehr sanft",
+   "instruct": "A young woman of about twenty, bright, medium-high pitch. Soft and dreamy, gentle and airy, unhurried; breathy and very gentle. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "w",
+    "alter": "jung",
+    "tonlage": "hoch",
+    "klangfarbe": [
+     "samtig",
+     "hell"
+    ],
+    "tempo": "langsam",
+    "temperament": [
+     "ruhig",
+     "melancholisch"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "w_jungerw_warm",
+   "geschlecht": "w",
+   "alter": "jungerw",
+   "charakter": "warm",
+   "beschreibung_de": "Frau, jung-erwachsen (25-35), warm / väterlich-mütterlich; klar, freundlich, mittleres Tempo",
+   "instruct": "A woman of about thirty, medium pitch. Warm, motherly and reassuring, a gentle smile in the voice; clear and friendly, moderate pace. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": true,
+   "merkmale": {
+    "geschlecht": "w",
+    "alter": "jung",
+    "tonlage": "mittel",
+    "klangfarbe": [
+     "warm",
+     "samtig"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "guetig",
+     "ruhig"
+    ],
+    "sicherheit": "fest",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "w_jungerw_kuehl",
+   "geschlecht": "w",
+   "alter": "jungerw",
+   "charakter": "kuehl",
+   "beschreibung_de": "Frau, jung-erwachsen (25-35), kühl / autoritär; sehr klare Artikulation",
+   "instruct": "A woman of about thirty, medium pitch. Cool, authoritative, precise and controlled, little visible emotion; very clear articulation. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "w",
+    "alter": "jung",
+    "tonlage": "mittel",
+    "klangfarbe": [
+     "kuehl",
+     "klar"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "streng"
+    ],
+    "sicherheit": "fest",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "w_jungerw_verschmitzt",
+   "geschlecht": "w",
+   "alter": "jungerw",
+   "charakter": "verschmitzt",
+   "beschreibung_de": "Frau, jung-erwachsen (25-35), verschmitzt / ironisch; augenzwinkernd, singt die Satzenden",
+   "instruct": "A woman of about thirty, medium pitch. Mischievous and ironic, a playful undertone as if holding back a joke; with a wink, sing-song phrase endings. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "w",
+    "alter": "jung",
+    "tonlage": "mittel",
+    "klangfarbe": [
+     "hell"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "verschmitzt"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "w_jungerw_nervoes",
+   "geschlecht": "w",
+   "alter": "jungerw",
+   "charakter": "nervoes",
+   "beschreibung_de": "Frau, jung-erwachsen (25-35), nervös / gehetzt; hohe Spannung, abgebrochene Sätze",
+   "instruct": "A woman of about thirty, medium pitch. Nervous and hurried, slightly breathless, speaking quickly; high tension, broken-off phrases. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "w",
+    "alter": "jung",
+    "tonlage": "mittel",
+    "klangfarbe": [
+     "duenn"
+    ],
+    "tempo": "schnell",
+    "temperament": [
+     "nervoes",
+     "aengstlich"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "w_jungerw_rau",
+   "geschlecht": "w",
+   "alter": "jungerw",
+   "charakter": "rau",
+   "beschreibung_de": "Frau, jung-erwachsen (25-35), rau / brüchig; kehlig, tief für ihr Alter",
+   "instruct": "A woman of about thirty, medium pitch. Rough and husky, slightly cracked and worn; throaty, low for her age. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "w",
+    "alter": "jung",
+    "tonlage": "mittel",
+    "klangfarbe": [
+     "rau",
+     "bruechig"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "ruhig"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "w_jungerw_weich",
+   "geschlecht": "w",
+   "alter": "jungerw",
+   "charakter": "weich",
+   "beschreibung_de": "Frau, jung-erwachsen (25-35), weich / verträumt; melodisch, träumerisch",
+   "instruct": "A woman of about thirty, medium pitch. Soft and dreamy, gentle and airy, unhurried; melodic and dreamy. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": true,
+   "merkmale": {
+    "geschlecht": "w",
+    "alter": "jung",
+    "tonlage": "mittel",
+    "klangfarbe": [
+     "samtig",
+     "hell"
+    ],
+    "tempo": "langsam",
+    "temperament": [
+     "ruhig",
+     "melancholisch"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "w_mittel_warm",
+   "geschlecht": "w",
+   "alter": "mittel",
+   "charakter": "warm",
+   "beschreibung_de": "Frau, mittel (35-50), warm / väterlich-mütterlich; volle, runde Altstimme",
+   "instruct": "A woman in her early forties, medium-low pitch. Warm, motherly and reassuring, a gentle smile in the voice; a full, round alto. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": true,
+   "merkmale": {
+    "geschlecht": "w",
+    "alter": "mittel",
+    "tonlage": "mittel",
+    "klangfarbe": [
+     "warm",
+     "samtig"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "guetig",
+     "ruhig"
+    ],
+    "sicherheit": "fest",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "w_mittel_kuehl",
+   "geschlecht": "w",
+   "alter": "mittel",
+   "charakter": "kuehl",
+   "beschreibung_de": "Frau, mittel (35-50), kühl / autoritär; tief, kontrolliert, wenig Melodie",
+   "instruct": "A woman in her early forties, medium-low pitch. Cool, authoritative, precise and controlled, little visible emotion; low, controlled, little melody. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": true,
+   "merkmale": {
+    "geschlecht": "w",
+    "alter": "mittel",
+    "tonlage": "mittel",
+    "klangfarbe": [
+     "kuehl",
+     "klar"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "streng"
+    ],
+    "sicherheit": "fest",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "w_mittel_verschmitzt",
+   "geschlecht": "w",
+   "alter": "mittel",
+   "charakter": "verschmitzt",
+   "beschreibung_de": "Frau, mittel (35-50), verschmitzt / ironisch; rauchig-ironisch",
+   "instruct": "A woman in her early forties, medium-low pitch. Mischievous and ironic, a playful undertone as if holding back a joke; smoky and ironic. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "w",
+    "alter": "mittel",
+    "tonlage": "mittel",
+    "klangfarbe": [
+     "hell"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "verschmitzt"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "w_mittel_nervoes",
+   "geschlecht": "w",
+   "alter": "mittel",
+   "charakter": "nervoes",
+   "beschreibung_de": "Frau, mittel (35-50), nervös / gehetzt; hüstelt, zögert",
+   "instruct": "A woman in her early forties, medium-low pitch. Nervous and hurried, slightly breathless, speaking quickly; a nervous little cough, hesitating. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "w",
+    "alter": "mittel",
+    "tonlage": "mittel",
+    "klangfarbe": [
+     "duenn"
+    ],
+    "tempo": "schnell",
+    "temperament": [
+     "nervoes",
+     "aengstlich"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "w_mittel_rau",
+   "geschlecht": "w",
+   "alter": "mittel",
+   "charakter": "rau",
+   "beschreibung_de": "Frau, mittel (35-50), rau / brüchig; verrauchte Barstimme",
+   "instruct": "A woman in her early forties, medium-low pitch. Rough and husky, slightly cracked and worn; a smoky late-night voice. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "w",
+    "alter": "mittel",
+    "tonlage": "mittel",
+    "klangfarbe": [
+     "rau",
+     "bruechig"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "ruhig"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "w_mittel_weich",
+   "geschlecht": "w",
+   "alter": "mittel",
+   "charakter": "weich",
+   "beschreibung_de": "Frau, mittel (35-50), weich / verträumt; samtig, ruhig, warm timbriert",
+   "instruct": "A woman in her early forties, medium-low pitch. Soft and dreamy, gentle and airy, unhurried; velvety and calm, warm timbre. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": true,
+   "merkmale": {
+    "geschlecht": "w",
+    "alter": "mittel",
+    "tonlage": "mittel",
+    "klangfarbe": [
+     "samtig",
+     "hell"
+    ],
+    "tempo": "langsam",
+    "temperament": [
+     "ruhig",
+     "melancholisch"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "w_reif_warm",
+   "geschlecht": "w",
+   "alter": "reif",
+   "charakter": "warm",
+   "beschreibung_de": "Frau, reif (50-65), warm / väterlich-mütterlich; leicht süddeutsche Färbung, gemütlich",
+   "instruct": "A woman in her late fifties, low, mature pitch. Warm, motherly and reassuring, a gentle smile in the voice; a slight, cosy southern colouring. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": true,
+   "merkmale": {
+    "geschlecht": "w",
+    "alter": "alt",
+    "tonlage": "tief",
+    "klangfarbe": [
+     "warm",
+     "samtig"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "guetig",
+     "ruhig"
+    ],
+    "sicherheit": "fest",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "w_reif_kuehl",
+   "geschlecht": "w",
+   "alter": "reif",
+   "charakter": "kuehl",
+   "beschreibung_de": "Frau, reif (50-65), kühl / autoritär; trocken, distanziert",
+   "instruct": "A woman in her late fifties, low, mature pitch. Cool, authoritative, precise and controlled, little visible emotion; dry and distant. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": true,
+   "merkmale": {
+    "geschlecht": "w",
+    "alter": "alt",
+    "tonlage": "tief",
+    "klangfarbe": [
+     "kuehl",
+     "klar"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "streng"
+    ],
+    "sicherheit": "fest",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "w_reif_verschmitzt",
+   "geschlecht": "w",
+   "alter": "reif",
+   "charakter": "verschmitzt",
+   "beschreibung_de": "Frau, reif (50-65), verschmitzt / ironisch; trockener Humor, gedehnte Vokale",
+   "instruct": "A woman in her late fifties, low, mature pitch. Mischievous and ironic, a playful undertone as if holding back a joke; dry humour with drawn-out vowels. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "w",
+    "alter": "alt",
+    "tonlage": "tief",
+    "klangfarbe": [
+     "hell"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "verschmitzt"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "w_reif_nervoes",
+   "geschlecht": "w",
+   "alter": "reif",
+   "charakter": "nervoes",
+   "beschreibung_de": "Frau, reif (50-65), nervös / gehetzt; leicht schrill bei Aufregung",
+   "instruct": "A woman in her late fifties, low, mature pitch. Nervous and hurried, slightly breathless, speaking quickly; slightly shrill when agitated. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "w",
+    "alter": "alt",
+    "tonlage": "tief",
+    "klangfarbe": [
+     "duenn"
+    ],
+    "tempo": "schnell",
+    "temperament": [
+     "nervoes",
+     "aengstlich"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "w_reif_rau",
+   "geschlecht": "w",
+   "alter": "reif",
+   "charakter": "rau",
+   "beschreibung_de": "Frau, reif (50-65), rau / brüchig; rau und kräftig, Marktfrau",
+   "instruct": "A woman in her late fifties, low, mature pitch. Rough and husky, slightly cracked and worn; rough and strong, like a market trader. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "w",
+    "alter": "alt",
+    "tonlage": "tief",
+    "klangfarbe": [
+     "rau",
+     "bruechig"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "ruhig"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "w_reif_weich",
+   "geschlecht": "w",
+   "alter": "reif",
+   "charakter": "weich",
+   "beschreibung_de": "Frau, reif (50-65), weich / verträumt; leise, nachdenklich",
+   "instruct": "A woman in her late fifties, low, mature pitch. Soft and dreamy, gentle and airy, unhurried; quiet and reflective. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": true,
+   "merkmale": {
+    "geschlecht": "w",
+    "alter": "alt",
+    "tonlage": "tief",
+    "klangfarbe": [
+     "samtig",
+     "hell"
+    ],
+    "tempo": "langsam",
+    "temperament": [
+     "ruhig",
+     "melancholisch"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "w_alt_warm",
+   "geschlecht": "w",
+   "alter": "alt",
+   "charakter": "warm",
+   "beschreibung_de": "Frau, alt (65+), warm / väterlich-mütterlich; großmütterlich, bedächtig",
+   "instruct": "An old woman in her mid-seventies, medium pitch, thinned and slightly wavering with age. Warm, motherly and reassuring, a gentle smile in the voice; grandmotherly and deliberate. Steady and pleasant enough to narrate long passages. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": true,
+   "merkmale": {
+    "geschlecht": "w",
+    "alter": "greis",
+    "tonlage": "mittel",
+    "klangfarbe": [
+     "warm",
+     "samtig"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "guetig",
+     "ruhig"
+    ],
+    "sicherheit": "fest",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "w_alt_kuehl",
+   "geschlecht": "w",
+   "alter": "alt",
+   "charakter": "kuehl",
+   "beschreibung_de": "Frau, alt (65+), kühl / autoritär; streng, langsam, jedes Wort gesetzt",
+   "instruct": "An old woman in her mid-seventies, medium pitch, thinned and slightly wavering with age. Cool, authoritative, precise and controlled, little visible emotion; stern and slow, every word placed. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "w",
+    "alter": "greis",
+    "tonlage": "mittel",
+    "klangfarbe": [
+     "kuehl",
+     "klar"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "streng"
+    ],
+    "sicherheit": "fest",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "w_alt_verschmitzt",
+   "geschlecht": "w",
+   "alter": "alt",
+   "charakter": "verschmitzt",
+   "beschreibung_de": "Frau, alt (65+), verschmitzt / ironisch; spitzbübisch, leises Lachen",
+   "instruct": "An old woman in her mid-seventies, medium pitch, thinned and slightly wavering with age. Mischievous and ironic, a playful undertone as if holding back a joke; impish, with a quiet laugh. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "w",
+    "alter": "greis",
+    "tonlage": "mittel",
+    "klangfarbe": [
+     "hell"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "verschmitzt"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "w_alt_nervoes",
+   "geschlecht": "w",
+   "alter": "alt",
+   "charakter": "nervoes",
+   "beschreibung_de": "Frau, alt (65+), nervös / gehetzt; zittrig, flüsternd-hastig",
+   "instruct": "An old woman in her mid-seventies, medium pitch, thinned and slightly wavering with age. Nervous and hurried, slightly breathless, speaking quickly; shaky, hasty half-whisper. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "w",
+    "alter": "greis",
+    "tonlage": "mittel",
+    "klangfarbe": [
+     "duenn"
+    ],
+    "tempo": "schnell",
+    "temperament": [
+     "nervoes",
+     "aengstlich"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "w_alt_rau",
+   "geschlecht": "w",
+   "alter": "alt",
+   "charakter": "rau",
+   "beschreibung_de": "Frau, alt (65+), rau / brüchig; brüchig, zittrig",
+   "instruct": "An old woman in her mid-seventies, medium pitch, thinned and slightly wavering with age. Rough and husky, slightly cracked and worn; brittle and tremulous. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "w",
+    "alter": "greis",
+    "tonlage": "mittel",
+    "klangfarbe": [
+     "rau",
+     "bruechig"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "ruhig"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "w_alt_weich",
+   "geschlecht": "w",
+   "alter": "alt",
+   "charakter": "weich",
+   "beschreibung_de": "Frau, alt (65+), weich / verträumt; sanft, märchenhaft erzählend",
+   "instruct": "An old woman in her mid-seventies, medium pitch, thinned and slightly wavering with age. Soft and dreamy, gentle and airy, unhurried; gentle, like telling a fairy tale. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "erzaehler": false,
+   "merkmale": {
+    "geschlecht": "w",
+    "alter": "greis",
+    "tonlage": "mittel",
+    "klangfarbe": [
+     "samtig",
+     "hell"
+    ],
+    "tempo": "langsam",
+    "temperament": [
+     "ruhig",
+     "melancholisch"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "k_j_klein_neugierig",
+   "geschlecht": "m",
+   "alter": "kind",
+   "charakter": "neugierig",
+   "beschreibung_de": "Kind: Junge 5-8, neugierig",
+   "erzaehler": false,
+   "instruct": "The voice of a little boy of about six, curious and excited, high bright voice. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "merkmale": {
+    "geschlecht": "m",
+    "alter": "kind",
+    "tonlage": "hoch",
+    "klangfarbe": [
+     "hell"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "neugierig"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "k_j_klein_frech",
+   "geschlecht": "m",
+   "alter": "kind",
+   "charakter": "frech",
+   "beschreibung_de": "Kind: Junge 5-8, frech",
+   "erzaehler": false,
+   "instruct": "The voice of a cheeky little boy of about seven, quick and playful, high voice. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "merkmale": {
+    "geschlecht": "m",
+    "alter": "kind",
+    "tonlage": "hoch",
+    "klangfarbe": [
+     "hell"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "verschmitzt",
+     "albern"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "k_j_gross_ernst",
+   "geschlecht": "m",
+   "alter": "kind",
+   "charakter": "ernst",
+   "beschreibung_de": "Kind: Junge 9-13, ernst",
+   "erzaehler": false,
+   "instruct": "The voice of a serious boy of about eleven, thoughtful, clear unbroken voice. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "merkmale": {
+    "geschlecht": "m",
+    "alter": "kind",
+    "tonlage": "hoch",
+    "klangfarbe": [
+     "hell"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "ruhig"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "k_j_gross_aufgeweckt",
+   "geschlecht": "m",
+   "alter": "kind",
+   "charakter": "aufgeweckt",
+   "beschreibung_de": "Kind: Junge 9-13, aufgeweckt",
+   "erzaehler": false,
+   "instruct": "The voice of a lively boy of about ten, energetic and cheerful. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "merkmale": {
+    "geschlecht": "m",
+    "alter": "kind",
+    "tonlage": "hoch",
+    "klangfarbe": [
+     "hell"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "froehlich"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "k_j_gross_schuechtern",
+   "geschlecht": "m",
+   "alter": "kind",
+   "charakter": "schuechtern",
+   "beschreibung_de": "Kind: Junge 9-13, schüchtern",
+   "erzaehler": false,
+   "instruct": "The voice of a shy boy of about twelve, quiet and hesitant, voice not yet broken. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "merkmale": {
+    "geschlecht": "m",
+    "alter": "kind",
+    "tonlage": "mittel",
+    "klangfarbe": [
+     "hell"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "aengstlich"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "k_m_klein_froehlich",
+   "geschlecht": "w",
+   "alter": "kind",
+   "charakter": "froehlich",
+   "beschreibung_de": "Kind: Mädchen 5-8, fröhlich",
+   "erzaehler": false,
+   "instruct": "The voice of a happy little girl of about six, bright and bubbly, high voice. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "merkmale": {
+    "geschlecht": "w",
+    "alter": "kind",
+    "tonlage": "hoch",
+    "klangfarbe": [
+     "hell"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "froehlich"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "k_m_klein_vertraeumt",
+   "geschlecht": "w",
+   "alter": "kind",
+   "charakter": "vertraeumt",
+   "beschreibung_de": "Kind: Mädchen 5-8, verträumt",
+   "erzaehler": false,
+   "instruct": "The voice of a dreamy little girl of about seven, soft and wondering. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "merkmale": {
+    "geschlecht": "w",
+    "alter": "kind",
+    "tonlage": "hoch",
+    "klangfarbe": [
+     "hell"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "neugierig",
+     "ruhig"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "k_m_gross_klug",
+   "geschlecht": "w",
+   "alter": "kind",
+   "charakter": "klug",
+   "beschreibung_de": "Kind: Mädchen 9-13, klug",
+   "erzaehler": false,
+   "instruct": "The voice of a clever girl of about eleven, articulate and confident. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "merkmale": {
+    "geschlecht": "w",
+    "alter": "kind",
+    "tonlage": "hoch",
+    "klangfarbe": [
+     "hell"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "neugierig"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "k_m_gross_frech",
+   "geschlecht": "w",
+   "alter": "kind",
+   "charakter": "frech",
+   "beschreibung_de": "Kind: Mädchen 9-13, frech",
+   "erzaehler": false,
+   "instruct": "The voice of a sassy girl of about twelve, quick-witted and teasing. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "merkmale": {
+    "geschlecht": "w",
+    "alter": "kind",
+    "tonlage": "hoch",
+    "klangfarbe": [
+     "hell"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "verschmitzt"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "k_m_gross_aengstlich",
+   "geschlecht": "w",
+   "alter": "kind",
+   "charakter": "aengstlich",
+   "beschreibung_de": "Kind: Mädchen 9-13, ängstlich",
+   "erzaehler": false,
+   "instruct": "The voice of a timid girl of about ten, anxious and soft-spoken. A real child's voice, not an adult imitating a child. Natural audiobook voice, believable, never cartoonish. Clean dry studio recording, close microphone, no reverb, no background noise, no music. An original voice, not imitating any real or famous person.",
+   "merkmale": {
+    "geschlecht": "w",
+    "alter": "kind",
+    "tonlage": "hoch",
+    "klangfarbe": [
+     "hell"
+    ],
+    "tempo": "mittel",
+    "temperament": [
+     "aengstlich"
+    ],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "k_m_klein_abgeleitet",
+   "geschlecht": "w",
+   "alter": "kind",
+   "charakter": "abgeleitet",
+   "beschreibung_de": "Kind: Mädchen 5-8, abgeleitet aus w_jung_weich (+5 HT)",
+   "erzaehler": false,
+   "abgeleitet": {
+    "quelle": "w_jung_weich",
+    "halbtoene": 5.0
+   },
+   "instruct": "",
+   "merkmale": {
+    "geschlecht": "w",
+    "alter": "kind",
+    "tonlage": "hoch",
+    "klangfarbe": [
+     "hell"
+    ],
+    "tempo": "mittel",
+    "temperament": [],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  },
+  {
+   "id": "k_j_gross_abgeleitet",
+   "geschlecht": "m",
+   "alter": "kind",
+   "charakter": "abgeleitet",
+   "beschreibung_de": "Kind: Junge 9-13, abgeleitet aus w_jung_verschmitzt (+3 HT)",
+   "erzaehler": false,
+   "abgeleitet": {
+    "quelle": "w_jung_verschmitzt",
+    "halbtoene": 3.0
+   },
+   "instruct": "",
+   "merkmale": {
+    "geschlecht": "m",
+    "alter": "kind",
+    "tonlage": "hoch",
+    "klangfarbe": [
+     "hell"
+    ],
+    "tempo": "mittel",
+    "temperament": [],
+    "sicherheit": "neutral",
+    "akzent": ""
+   }
+  }
+ ]
+}

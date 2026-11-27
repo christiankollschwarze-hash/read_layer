@@ -93,5 +93,10 @@
   "teil_von": "le-comte-de-monte-cristo-1",
   "kapitel_von": 16,
   "kapitel_bis": 33,
-  "teil_titel": null
+  "teil_titel": null,
+  "glossar_fest": {
+    "île d'Elbe": {
+      "de": "Insel Elba"
+    }
+  }
 }

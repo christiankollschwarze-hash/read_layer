@@ -1,5 +1,76 @@
 # PROJEKTSTAND — Read Layer
 
+## AP Segment-Lautheit 520 – CODE ERLEDIGT 27.11.2026, Hoertest CK offen (Regler aus, Endfassungen unveraendert)
+ANLASS (CK): woertliche Rede teils leiser als der Erzaehler. MESSUNG Monte Cristo DE (LUFS, Segmente >= 3 s): Hoerbuch unauffaellig (Figuren +0,8 LU),
+  Hoerspiel: Mercedes 38 %, Danglars 32 %, Caderousse 29 %, Fernand 29 % der Segmente > 3 LU unter dem Erzaehler. Ursache: s511.montage gleicht Figuren nur
+  im selben Satz per RMS an den Erzaehler an (reine Figurensaetze gar nicht), 520 normiert nur ganze Kapitel.
+NEU pipeline/lautheit.py: Segmente (Spannen 500, Hoerspiel rekonstruiert aus 500 + 510 schnitt.q) vor dem Zusammenfuegen auf -19 LUFS (pyloudnorm);
+  < 3 s per aktivem RMS + Kalibrierung (Median LUFS-RMS je Figur/Kapitel, sonst config.LAUTHEIT_KALIB_STD 2,5); Gain +-10 dB, 20-ms-Rampen;
+  Offsets je 430-Anweisung config.LAUTHEIT_OFFSETS (fluestern -3, leise -1,5, seufzen/gaehnen -1,5; book.json lautheit_offsets).
+  Kapitel-Mastering: acompressor 2:1 ab -20 dBFS bei -23-LUFS-Arbeitspunkt, Lautheit aufs Kapitelziel, True-Peak-Limiter (4x ueberabgetastet,
+  nachgeregelt gegen ffmpeg ebur128) -3 dBTP.
+s520: Regler segment_lautheit (Standard AUS = bisheriger Weg bitgleich, Kapitel-Hash unveraendert), segment_lufs -19, segment_kurz_s 3,
+  segment_gain_max 10, master an|aus; an -> peak_max hoechstens -3. Report work/520_lautheit_<lg>_<spur>.csv, meta.kapitel segment/master.
+  begrenzen(spitzen=…), schneiden(mit_start=True) rueckwaertskompatibel. Tests: tests/test_lautheit.py 10 gruen, test_s520 + test_s510 52 gruen.
+A/B OHNE NEURENDERN: tools/lautheit_test.py <werk> --kapitel c002,c003,c004 -> work/_520_lautheit_test/de/ (<kap>_vorher/_nachher.wav in App-Reihenfolge,
+  lautheit_<spur>.csv, hoerliste.md). Endfassungen/Manifeste/status unberuehrt, 0 $. Ergebnis Hoerspiel c002–c004: Figurensegmente > 3 LU unter Erzaehler
+  vorher 3–50 % je Figur -> nachher 0–4 %; Kapitel -19,0 LUFS, True Peak <= -3 dBTP.
+OFFEN (CK): (1) c002–c004 vorher/nachher hoeren (Naehte, Fluestern/Leise, Kompression) (2) bei Freigabe: py -3.11 -m pipeline.s520_audio_pruefung
+  le-comte-de-monte-cristo-1-1 --segment-lautheit an --lufs -19  (Whisper Modal fuer geaenderte Dateien; danach 530 neu, 710 neu exportieren).
+  Sicherung archive/2026-11-27_lautheit/.
+
+## AP Qwen-Stimmdesign – 59 STIMMEN IM ARCHIV 26.11.2026, Casting per Hoertest offen (Prompt PROMPT_qwen_stimmdesign.md)
+UPDATE 26.11. nachmittags: CK-Auswahl stimmen_archiv/"auswahl QWEN.json" (59: 30 m, 24 w, 5 k; Rest wegen engl. Faerbung/Betonung verworfen).
+  ENTSCHIEDEN (CK): Stimmen treffen Matrix-Charakter nicht immer -> Ablage NUR nach Geschlecht + Stimmlage, Casting nur im Hoertest.
+  Name <g>_<lage>_<nr> (m: tief < 95 Hz <= mittel <= 125 Hz < hoch; w: 190/240 Hz), Kinder k_01..k_05 ohne Lage; Nr aufsteigend nach F0 (DE-Clip).
+  Ergebnis: m_tief 7, m_mittel 17, m_hoch 6, w_tief 4, w_mittel 15, w_hoch 5, k 5. Zuordnung Matrix-ID+Seed -> Name: tools/qwen_stimmen/zuordnung.json.
+  EN-Referenzen per Base-Klon aus DE: 59/59, A10G 333 s, 0,10 $. ECAPA DE<->EN meist 0,6–0,88; AUSREISSER k_03 0,08 (EN-Klon andere Person?) und w_hoch_04 0,47 -> anhoeren.
+  Steckbrief: merkmale nur geschlecht + tonlage (Kinder + alter kind), casting "hoertest", herkunft_prompt (nur Nachweis), herkunft_matrix, stimmlage, grundton_hz/_en_hz,
+  sichtbarkeit katalog, rechte, speaker_embedding de/en, referenz_weg. stimmen.json 40 -> 99, alte 40 unveraendert.
+  pipeline/voice_registry.verfuegbar: casting == "hoertest" wird von 410 NIE automatisch besetzt (test_s410 16 gruen). Sicherung archive/2026-11-26_qwen/.
+  Kosten AP gesamt: Probe 0,19 + Kandidaten 0,99 + EN-Klone 0,10 = 1,28 $.
+  HOERTEST ALICE KAP. 7 BEREIT (26.11. 16:08): NEU tools/alice_hoertest.py (bauen | vc | erzaehler | seite | alle, --kandidaten "Fig=s1,s2;...").
+    Figuren: je 4 laengste Quellzeilen (3–15 s) aus gpu_overlay/alice_c007_fish_de/src (Fish-Erzaehler mit Regie) -> Chatterbox-VC je Kandidat,
+    Paket gpu_overlay/alice_c007_hoertest_de, 108 Clips, A10G, 0,06 $. Kandidaten nur nach Geschlecht+Lage: Alice k_03–05 + w_hoch_01–05,
+    Hutmacher m_mittel_02/05/08/11/14/17, Maerzhase m_hoch_01–06 (Lagen bewusst getrennt), Haselmaus m_tief_01–07.
+    Erzaehler: Absatz Kap. 7 (472 Zeichen) ueber Fish API mit Qwen-Klon als Referenz: w_tief_01–04, w_mittel_02/07, m_tief_04, m_mittel_08 (8 neue private Fish-Stimmen
+    im Register stimmen_archiv/_fish/fish_ids.json), 0,06 $. Vergleich: "quelle", "bisher" (Gemini-Ziel / grossmutter_a).
+    Seite tools/alice_hoertest/hoertest.html -> casting_auswahl.json {Figur: Stimme}. Kosten tools/alice_hoertest/kosten_log.jsonl.
+    fish_motor.fish_id: Transkript beim Anlegen aus steckbrief referenzen[lg].text (Qwen-Clips = Nordwind-AUSZUG), sonst wie bisher ganzer Nordwind. test_fish gruen.
+    Abbruch 1. Lauf: Rechner schlief -> Modal-App gestoppt (APP_STATE_STOPPED), Client hing; Neustart mit Wachhalten.
+    HINWEIS Tests: site-packages enthaelt ein fremdes Paket "tests" -> "py -m unittest tests.test_fish" findet die Projekttests nicht (test_s410 laeuft aus tests/).
+  CK-WAHL 26.11. (tools/alice_hoertest/"casting_auswahl alice.json"): Erzaehler w_tief_02, Alice w_hoch_02, Hutmacher m_mittel_04, Maerzhase m_hoch_01, Haselmaus m_tief_01.
+  KAP. 7 KOMPLETT NEU (alice_hoertest.py kapitel <auswahl>): Fish API alle 269 Beitraege in w_tief_02 (Figuren mit Regie, wie ERZ_ALLE) 0,36 $ -> VC 147 Figurenbeitraege
+    (gpu_overlay/alice_c007_qwen_de, A10G) 0,06 $ -> tools/alice_hoertest/de/fish_erz_vc_qwen_c007_de.wav (22:32; alt 19:59). Vergleich + Zeitmarken: tools/alice_hoertest/hoervergleich_kap7.md.
+    Alte Dateien unangetastet. Zweck des Tests = Eignung der Qwen-Stimmen als VC-Ziel (kein Umbesetzen von Alice, casting.json bleibt).
+    CK-URTEIL 26.11.: "nicht perfekt, aber sehr gut fuer den ersten Schuss" -> Qwen-Designstimmen als Chatterbox-VC-Ziel und Fish-Referenz tauglich.
+  ERLEDIGT-ALT: CK hoert + waehlt -> Kapitel 7 komplett mit neuer Besetzung (Figuren: VC aller 147 Zeilen; Erzaehler neu ueber Fish ~0,5 $, falls nicht grossmutter_a)
+    -> Hoervergleich zu tools/fish_test/de/fish_erz_vc_c007_de.wav. Cockpit-Casting fuer casting=hoertest pruefen.
+STAND VORMITTAG (Kandidaten):
+Ersatz Gemini Voice Design (Lizenz: keine Nutzung fuer konkurrierende Modelle) durch Qwen3-TTS 1.7B VoiceDesign + Base (Apache-2.0). Nur neue Dateien, nichts Bestehendes geaendert.
+NEU gpu_qwen/qwen_modal.py (App readlayer-qwen-stimmen, Volume readlayer-qwen /out/<paket>/ = Resume, GPU L40S|A10G): Funktion erzeugen(jobs) mit design (VoiceDesign, Stapel 8),
+  klon (Base, Stapel 8, Rueckfall einzeln), ableiten (Tonhoehe+Formanten, Kinder aus Frauenstimme); embeddings() = ECAPA (speechbrain, wie 540) auf CPU. Pegel -16,5 dBFS wie Fish.
+  Cockpit spaeter: modal deploy + Function.from_name("readlayer-qwen-stimmen","erzeugen") (Aufgabe 6, gleiche Funktion).
+NEU tools/qwen_stimmen.py: matrix | kandidaten | katalog | referenzen | uebernehmen | xl; Matrix tools/qwen_stimmen/matrix.json = 72 Stimmen:
+  30 m + 30 w (Alter jung/jungerw/mittel/reif/alt x Charakter warm/kuehl/verschmitzt/nervoes/rau/weich, je eigene Eigenheit), 10 Kinder direkt + 2 abgeleitet; 18 Erzaehler markiert.
+  IDs m_<alter>_<charakter>, w_…, k_<j|m>_<klein|gross>_<art>; Beschreibung DE + EN-Instruct (Studio trocken, "keine reale Person").
+BEFUND Probe 26.11. (probe_v1): dieselbe Beschreibung je Sprache getrennt designt = andere Person (ECAPA DE<->EN 0,27). Base-Klon aus DE-Clip: EN 0,64 / ZH 0,83 / DE-Kontrolle 0,95.
+  -> ENTSCHEIDUNG Ablauf: Designstimme NUR in DE (Anker), weitere Sprachen per Base-Klon aus dem gewaehlten DE-Clip (Befehl referenzen). Akzent im EN-Klon nur per Gehoer pruefbar.
+LAUF matrix_v1: 70 Stimmen x Seeds 11/22/33 DE (Nordwind-Auszug, 20–37 s, Median 27 s) + 6 abgeleitet = 216 Clips, 0 Fehler, 96 min Audio, RTF 0,31, 30 min L40S, 0,99 $ (Modal-Anzeige 1,07 $ inkl. ECAPA-CPU).
+  Probelaeufe 0,19 $. Kostenlog tools/qwen_stimmen/kosten_log.jsonl.
+  F0-Mediane (Hz): m jung 138 / jungerw 116 / mittel 105 / reif 109 / alt 107; w jung 291 (hoch!) / jungerw 226 / mittel 208 / reif 211 / alt 217; Kinder ~290.
+  Abstand (ECAPA naechste andere Stimme): Erwachsene 9/171 > 0,85 (meist w_jung_* untereinander); Kinder untereinander 0,89–0,93 = kaum unterscheidbar, Jungen ~ Maedchen.
+OFFEN (CK): (1) tools/qwen_stimmen/hoerkatalog.html hoeren, je Stimme Seed waehlen, auswahl.json exportieren
+  (2) py -3.11 tools/qwen_stimmen.py referenzen auswahl.json --paket matrix_v1   (EN-Klon, ~0,35 $; --sprachen en,zh fuer ZH)
+  (3) py -3.11 tools/qwen_stimmen.py uebernehmen auswahl.json --paket matrix_v1  -> stimmen_archiv/<id>/ klon_de/en.wav + steckbrief + stimmen.json
+  Steckbrief-Felder neu: sichtbarkeit (katalog | exklusiv:<mandant>; NICHT status, das bleibt Lebenszyklus kandidat/freigegeben/abgelehnt – 410/540/voice_registry filtern darauf),
+  herkunft (design|sprecher), herkunftsvermerk, rechte {inhaber, laufzeit, werke, sprachen, territorien}, mandant, speaker_embedding je Sprache, aehnlichkeit, referenz_weg, seed.
+  Kinder: direkte Beschreibung klingt laut ECAPA sehr gleich -> Hoervergleich direkt vs. abgeleitet (k_m_klein_abgeleitet, k_j_gross_abgeleitet), ggf. Beschreibungen schaerfen.
+  w_jung_* liegen hoch (F0 ~290 Hz) – beim Hoeren pruefen, ggf. "medium pitch" statt "bright, medium-high".
+  Fluester-Satz nicht im Referenz-Clip (VoiceDesign kann nicht satzweise wechseln; Fluestern ueber Fish-Tags bei der Vertonung).
+NOCH NICHT GEMACHT: Aufgabe 5 (Casting Alice auf Matrix umbesetzen + Kap.-7-Hoervergleich, nach Uebernahme), Cockpit "Neue Stimme erzeugen" + Hoerkatalog im Casting,
+  Exklusiv-/Sprecherklon-Wege (Rechtenachweis, Einwilligung, Aehnlichkeitsschwelle), Gemini-Stimmen aus alten Beschreibungen neu erzeugen.
+
 ## AP Fish Drama 3 auf Modal – CODE ERLEDIGT 25.11.2026, Modal-Lauf + Abnahme offen (Prompt claude/PROMPT_fish_modal_hosting.md)
 Sicherung: archive/2026-11-25_fish_modal/ (s500, s503, fish_motor, fish_probe, config, werk_api, monitor.html, run.py, PROJEKTSTAND); Vor-Paket committet e3cc2f1.
 Quellen Gewichte (gelesen 25.11.): HF fishaudio/drama-3 (35B MoE, 3B aktiv, FP8-Experten + BF16, Fish Audio Community License), Inferenz fish-speech
@@ -1448,3 +1519,39 @@ Sicherung: archive/2026-10-29_62/ (PROJEKTSTAND, hybrid_einbau.py, tts_client.py
 - Details: Projekt-Doc claude/STAND_fish_test_2026-11-24.md; Ordner tools/fish_test/
 - Offen: start_alice_fish_vc.bat (GPU-Fallback L4/A10G/L40S) -> python tools/fish_test/vc_montage.py -> de/fish_erz_vc_c007_de.wav
 - Fish-Key nach Tests rotieren.
+
+## 26.11.2026 – Modellwahl EU/Verlagsmodus: Entscheidung D (CK)
+- **Regie & Co** (200, 210, 410, 420, 430, 600, Validator 330, 340, 345) → **Mistral Large 3** (Mistral-API, FR).
+- **Übersetzung** (120, 300, 310, 330) → **DeepSeek V4.1 Flash bei OVHcloud** (FR, MIT-Gewichte, EU-Server).
+- Ziel: Kunden offene Gewichte anbieten, keine US-/China-Server. Kostenschätzung 2,05 $/Werk (Listenpreis, heute 3,98 $; real heute ~2 $ durch DeepSeek-Nebenzeit).
+- Tests Kapitel 1 Baskerville (tools/test_qwen_uebersetzung.py, Ergebnisse in Claude outputs/qwen_test/): DS V4.1 Flash bestes Ergebnis (0 Fehler, 0,0067 $); Qwen 3.5 397B und Ling 3.1 Flash schwächer; Mistral Large 3 noch ohne vollständigen Lauf.
+- Offen: Mistral-Konto meldet „tier_not_allowed“ (Large) bzw. „billing_no_api_budget_configured“ → API-Plan in console.mistral.ai aktivieren; OVHcloud-AI-Endpoints-Konto anlegen; dann Qualitätstest Regie (420/430) mit Mistral Large 3 und Umsetzung Schalter modus in book.json.
+- Mistral bietet kein DeepSeek an (API: invalid model).
+- Quellen: computeprices.com (DS V4.1 Flash Anbieterpreise), mistral.ai/pricing, OpenRouter-Modellliste, Benchmark: Claude outputs/qwen_test/BENCHMARK_kosten_mistral_deepseek_2026-11-26.md
+- 26.11. Nachtrag: Mistral-API eingerichtet. Übersetzungstest Kapitel 1 Baskerville direkt über Mistral (mistral-large-2512 = Large 3, ohne Denkmodus; mistral-large-latest = Large 4 mit Denk-Token, nicht nutzen): 150/150 Sätze, 0 Fehler, korrekte Anführungszeichen, neue Rechtschreibung, 0,017 $/Kapitel. Qualität mindestens gleichauf mit DS V4.1 Flash (DS: „Dear, dear“ → „Teuer, teuer“). → Empfehlung: Szenario C (alles Mistral), OVHcloud vorerst nicht nötig. Entscheidung CK offen.
+- api_layer: Mistral-Zweig (Modellname mistral-*/magistral-*/ministral-*), config MISTRAL_API_KEY + PREISE mistral-large-2512/-small-latest, usage_log liest Mistral-Cache-Token. Mistral-Konto anfangs mit niedrigem Ratenlimit (HTTP 429) → max. 3 gleichzeitige Anfragen. Regie-Test 420: tools/test_regie_mistral.py (schreibt nicht in work/), Referenzwerk the-happy-prince-and-other-tales (Casting Schema 2), noch nicht gelaufen.
+- 26.11. Regie-Test 420 (tools/test_regie_mistral.py, the-happy-prince c001 de, 80 Kandidatensätze): Mistral Large 3 nur 64 % gleich mit Produktion (DeepSeek V4 Pro); 14× anderer Sprecher, 5× andere Segmentierung, 4 Rückfälle, 27 Aufrufe statt 2 (Teil-Antworten nicht rekonstruierbar). Typisch: Nebenfiguren (Stadträte, Waisenkinder, Mathematiklehrer) → Erzähler, teils falsche Figur. → Regie mit Large 3 so nicht tauglich; nächster Kandidat Mistral Medium 3.5. Mistral-Konto: 15 Anfragen/min, 400k Token/min → für Produktion höhere Stufe nötig. Ergebnis: Claude outputs/regie_test/the-happy-prince-and-other-tales_c001_de.json
+- 26.11. Regie-Test 420 mit DeepSeek V4.1 Flash (OpenRouter, gleiche 80 Sätze): Sprecher in allen Sätzen mit Rede identisch zur Produktion (V4 Pro); 22 Abweichungen nur formal (reine Erzählsätze als „Erzaehler“ ausgegeben statt weggelassen), 3 Rückfälle, 7 Aufrufe, 19 s. → V4.1 Flash ersetzt V4 Pro in der Regie ohne Qualitätsverlust. Hinweis: .env-Eintrag open_router (Zeile 14) ist ungültig (401), config liest ihn vor OPEN_ROUTER_API_KEY → bereinigen.
+- 26.11. UMSTELLUNG (CK): config.MODELS alle DeepSeek-Textaufgaben → "deepseek-flash" (= V4.1-Flash-1017). Betrifft profiler, pretranslator, translator, caster (→ 410/420/430/600/210), modernizer (s120 Rückfallwert), tagger, backtranslator, validator, ssml, aligner. Preis laut DeepSeek-Preisliste 26.11.: 0,006 Cache / 0,30 In / 1,20 Out $/Mio., Nebenzeit halb (Hauptzeit Mo–Fr 01–04 + 06–10 UTC = 02–05 + 07–11 MEZ). "deepseek-v4-flash" ist abgekündigt (läuft schon auf V4.1 Flash). GRENZEN konto + deepseek-flash 2500. Rauchtest api_layer ok. Erwartung: ~1,60 $/Werk Listenpreis (vorher 3,98 $), real ~0,80 $. config: OPEN_ROUTER_API_KEY wird jetzt gelesen. Quelle: https://api-docs.deepseek.com/quick_start/pricing/
+
+- 2026-11-26 18:50 AP EU-VERLAGSMODUS Schritt 1+2 (Startprompt claude/PROMPT_eu_variante.md, Stand Update 17:00: Uebersetzung Mistral, Regie & Co DS V4.1 Flash @ OVHcloud).
+  KARTIERUNG IM CODE VERIFIZIERT – zusaetzlich zur Vorab-Tabelle gefunden (Daten verlassen das Haus):
+    (a) tts_client._fal_call: Gemini-TTS-Ueberlauf ueber fal.ai (US) bei backend "fal" oder _overflow_active -> im Verlagsmodus hart sperren.
+    (b) voice_registry.py: POST generativelanguage.googleapis.com/v1beta/voices (410 Voice Design, AI Studio) -> im Verlagsmodus durch Qwen3-TTS VoiceDesign (gpu_qwen/qwen_modal.py, Apache-2.0, Design-Prompt je Zielsprache, Test 26.11. ok) ersetzen; qwen_modal.py hat noch KEIN region= -> region="eu" setzen. Gemini-Voice-Design dann ganz aus (auch Lizenzthema).
+    (c) fish_motor (430 Momente-LLM laeuft ueber api_layer "caster"; 503/511 TTS + Stimmregistrierung ueber api.fish.audio) -> sperren, bis Fish selbst gehostet auf Modal region="eu".
+    (d) s610_cover + tts_client INTERACTIONS_URL: AI Studio (generativelanguage), nicht Vertex.
+    (e) s110_wikidata: nur Autor-/Titelname, nur PD-Pfad (gutenberg/user_txt) -> unkritisch; Verlagspfad 095->150->115->120.
+    (f) api_layer Mistral-Zweig nutzt api.mistral.ai -> fuer Verlagsmodus api.eu.mistral.ai (EU-Regionalinferenz) setzen.
+    (g) OpenRouter nur ueber Modellpraefix "or/" (in MODELS nicht genutzt) -> im Verlagsmodus sperren.
+    Modal: 340 Pruefaligner, 500/640 Chatterbox, 510/520 Wortzeiten, 530/640 Whisper, 540 Messung, 511 VC. 710 GCS europe-west3.
+  RECHTSLAGE:
+    Mistral: DPA (legal.mistral.ai, 12.03.2026); API-Daten standardmaessig kein Training (Opt-out im Admin pruefen); Standard 30 Tage Abuse-Log; ZDR fuer Pay-as-you-go auf Antrag beim Support; EU-Verarbeitung ueber api.eu.mistral.ai; Unterauftragnehmer trust.mistral.ai.
+    OVHcloud AI Endpoints: EU-Hosting, kein Training, ZDR ("nur Abrechnungsdaten"), ISO 27001/SOC 2/HDS; Vertrag = AI-Endpoints-Bedingungen + Public Cloud Special Conditions; 400 Anfragen/min je Projekt und Modell.
+    Google/ElevenLabs/Modal: wie Recherche 23.11.
+  HINWEIS: Mistral-Uebersetzungstest Kap. 1 Baskerville ist schon gelaufen (150/150, 0 Fehler, 0,017 $) und DS V4.1 Flash Regie-Test 420 ebenfalls (Sprecher identisch) -> Qualitaetsfragen 310/420 im Kern beantwortet; offen 330/340 Gate-Quote mit Mistral, 430 mit DS Flash @ OVH, TTS Vertex vs. AI Studio.
+  NAECHSTE SCHRITTE CK: Mistral ZDR beantragen + Training-Opt-out pruefen; OVHcloud-AI-Endpoints-Konto (Public-Cloud-Projekt); dann Schritt 3 Kosten + Schritt 5 Schalter.
+  QUELLEN: https://docs.mistral.ai/admin/monitor-comply/zero-data-retention · https://docs.mistral.ai/studio/regional-inference · https://legal.mistral.ai/terms/data-processing-addendum · https://www.ovhcloud.com/en/public-cloud/ai-endpoints · https://docs.ovhcloud.com/en/guides/public-cloud/ai-machine-learning/ai-endpoints-capabilities
+- 2026-11-26 18:53 ENTSCHEIDUNG CK: Modal OHNE festen Standort (kein region="eu", kein Aufschlag x1,15), bis ein Verlagskunde es fordert. PD-Produktionen (SOMNIO) brauchen es nicht. Gilt fuer alle Modal-Funktionen (Qwen, Chatterbox, Fish, Whisper, FA). Qwen-Gewichte liegen bereits im Modal-Volume readlayer-qwen (/vol/hf). Spaeter: region nur im Modus verlag setzen.
+- 2026-11-26 18:55 GRUNDSATZ CK: Selbst gehostete offene Gewichte (Qwen, Chatterbox, Whisper, FA, ggf. Fish) bleiben auch im Standardmodus erste Wahl – kein Nachteil heute, und der Verlagsmodus (Ausweichen vor US-Zugriff/China) wird dann nur noch ein Schalter: Region setzen bzw. Anbieter wechseln, kein Modelltausch.
+- 2026-11-26 18:57 ENTSCHEIDUNG CK Cover: Im Verlagsmodus ist 610 (Gemini-Bild) AUS; der Verlag liefert sein vorhandenes Cover, 615 setzt nur Titel/Format. Kein selbst gehostetes Bildmodell (keine Kernkompetenz). Bleibende Ersatz-Bausteine Verlagsmodus damit nur noch: Gemini-TTS und Fish-API.
+- 2026-11-26 18:58 VORGEMERKT (CK: Monitor-UX einzeln abarbeiten, je eigenes AP) – Verlagsmodus-Bezug: (1) Modus-Kennzeichen im Werkskopf/Kettenleiste; (2) Freigabe Gemini-TTS (Wer/Wann, Hinweistext) vor 500/510/640; (3) Cover-Upload statt 610 im Monitor 615; (4) Protokoll gesperrter Aufrufe (api_layer-Sperre) sichtbar; (5) Voice Design 410 ueber Qwen statt Gemini.

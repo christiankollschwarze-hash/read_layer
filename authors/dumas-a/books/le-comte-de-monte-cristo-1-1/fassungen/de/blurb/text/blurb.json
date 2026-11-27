@@ -1,0 +1,47 @@
+{
+  "lang": "de",
+  "snippets": [
+    {
+      "id": "koeder_01",
+      "block": "koeder",
+      "index": 1,
+      "text": "Am 24. Februar 1815 meldete der Ausguck von Notre-Dame de la Garde den Dreimaster Pharaon, der aus Smyrna, Triest und Neapel kam."
+    },
+    {
+      "id": "koeder_02",
+      "block": "koeder",
+      "index": 2,
+      "text": "Wie gewöhnlich lief sofort ein Küstenlotse aus dem Hafen aus, passierte das château d'If und ging längsseits des Schiffes zwischen dem Kap Morgion und der Insel Rion."
+    },
+    {
+      "id": "einordnung_01",
+      "block": "einordnung",
+      "index": 1,
+      "text": "Dieser spannende Abenteuerroman verbindet Drama und Ironie, vom Hafen von Marseille bis zu den Salons der Tuilerien."
+    },
+    {
+      "id": "einordnung_02",
+      "block": "einordnung",
+      "index": 2,
+      "text": "Die Handlung entfaltet sich 1815 zwischen Schiffen, Hofintrigen und der Insel Elbe."
+    },
+    {
+      "id": "einordnung_03",
+      "block": "einordnung",
+      "index": 3,
+      "text": "Eine spannungsgeladene, dramatische Stimmung, getragen von markanten Figuren und großem Erzählatem."
+    },
+    {
+      "id": "autor_01",
+      "block": "autor",
+      "index": 1,
+      "text": "Alexandre Dumas wurde in Paris geboren und starb dort."
+    },
+    {
+      "id": "autor_02",
+      "block": "autor",
+      "index": 2,
+      "text": "Sein bekanntestes Werk ist La Dame aux camélias."
+    }
+  ]
+}

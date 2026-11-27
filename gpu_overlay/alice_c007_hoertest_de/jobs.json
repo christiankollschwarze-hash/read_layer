@@ -1,0 +1,966 @@
+{
+ "werk": "alice-s-adventures-in-wonderland",
+ "lang": "de",
+ "jobs": [
+  {
+   "id": "k_03__t0265",
+   "tag": "t0265",
+   "figur": "Alice",
+   "stimme": "k_03",
+   "text": "„Aber heute ist alles sonderbar. Ich glaube, ich kann ebenso gut gleich hineingehen.“",
+   "lang": "de"
+  },
+  {
+   "id": "k_03__t0043",
+   "tag": "t0043",
+   "figur": "Alice",
+   "stimme": "k_03",
+   "text": "„wenigstens – wenigstens meine ich, was ich sage – das ist doch dasselbe, weißt du.“",
+   "lang": "de"
+  },
+  {
+   "id": "k_03__t0074",
+   "tag": "t0074",
+   "figur": "Alice",
+   "stimme": "k_03",
+   "text": "„Sie zeigt den Tag des Monats an, und sie zeigt nicht an, wie spät es ist!“",
+   "lang": "de"
+  },
+  {
+   "id": "k_03__t0033",
+   "tag": "t0033",
+   "figur": "Alice",
+   "stimme": "k_03",
+   "text": "„Es ist gut, daß sie anfangen, Räthsel aufzugeben. – Ich glaube, das kann ich rathen,“",
+   "lang": "de"
+  },
+  {
+   "id": "k_04__t0265",
+   "tag": "t0265",
+   "figur": "Alice",
+   "stimme": "k_04",
+   "text": "„Aber heute ist alles sonderbar. Ich glaube, ich kann ebenso gut gleich hineingehen.“",
+   "lang": "de"
+  },
+  {
+   "id": "k_04__t0043",
+   "tag": "t0043",
+   "figur": "Alice",
+   "stimme": "k_04",
+   "text": "„wenigstens – wenigstens meine ich, was ich sage – das ist doch dasselbe, weißt du.“",
+   "lang": "de"
+  },
+  {
+   "id": "k_04__t0074",
+   "tag": "t0074",
+   "figur": "Alice",
+   "stimme": "k_04",
+   "text": "„Sie zeigt den Tag des Monats an, und sie zeigt nicht an, wie spät es ist!“",
+   "lang": "de"
+  },
+  {
+   "id": "k_04__t0033",
+   "tag": "t0033",
+   "figur": "Alice",
+   "stimme": "k_04",
+   "text": "„Es ist gut, daß sie anfangen, Räthsel aufzugeben. – Ich glaube, das kann ich rathen,“",
+   "lang": "de"
+  },
+  {
+   "id": "k_05__t0265",
+   "tag": "t0265",
+   "figur": "Alice",
+   "stimme": "k_05",
+   "text": "„Aber heute ist alles sonderbar. Ich glaube, ich kann ebenso gut gleich hineingehen.“",
+   "lang": "de"
+  },
+  {
+   "id": "k_05__t0043",
+   "tag": "t0043",
+   "figur": "Alice",
+   "stimme": "k_05",
+   "text": "„wenigstens – wenigstens meine ich, was ich sage – das ist doch dasselbe, weißt du.“",
+   "lang": "de"
+  },
+  {
+   "id": "k_05__t0074",
+   "tag": "t0074",
+   "figur": "Alice",
+   "stimme": "k_05",
+   "text": "„Sie zeigt den Tag des Monats an, und sie zeigt nicht an, wie spät es ist!“",
+   "lang": "de"
+  },
+  {
+   "id": "k_05__t0033",
+   "tag": "t0033",
+   "figur": "Alice",
+   "stimme": "k_05",
+   "text": "„Es ist gut, daß sie anfangen, Räthsel aufzugeben. – Ich glaube, das kann ich rathen,“",
+   "lang": "de"
+  },
+  {
+   "id": "w_hoch_01__t0265",
+   "tag": "t0265",
+   "figur": "Alice",
+   "stimme": "w_hoch_01",
+   "text": "„Aber heute ist alles sonderbar. Ich glaube, ich kann ebenso gut gleich hineingehen.“",
+   "lang": "de"
+  },
+  {
+   "id": "w_hoch_01__t0043",
+   "tag": "t0043",
+   "figur": "Alice",
+   "stimme": "w_hoch_01",
+   "text": "„wenigstens – wenigstens meine ich, was ich sage – das ist doch dasselbe, weißt du.“",
+   "lang": "de"
+  },
+  {
+   "id": "w_hoch_01__t0074",
+   "tag": "t0074",
+   "figur": "Alice",
+   "stimme": "w_hoch_01",
+   "text": "„Sie zeigt den Tag des Monats an, und sie zeigt nicht an, wie spät es ist!“",
+   "lang": "de"
+  },
+  {
+   "id": "w_hoch_01__t0033",
+   "tag": "t0033",
+   "figur": "Alice",
+   "stimme": "w_hoch_01",
+   "text": "„Es ist gut, daß sie anfangen, Räthsel aufzugeben. – Ich glaube, das kann ich rathen,“",
+   "lang": "de"
+  },
+  {
+   "id": "w_hoch_02__t0265",
+   "tag": "t0265",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Aber heute ist alles sonderbar. Ich glaube, ich kann ebenso gut gleich hineingehen.“",
+   "lang": "de"
+  },
+  {
+   "id": "w_hoch_02__t0043",
+   "tag": "t0043",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„wenigstens – wenigstens meine ich, was ich sage – das ist doch dasselbe, weißt du.“",
+   "lang": "de"
+  },
+  {
+   "id": "w_hoch_02__t0074",
+   "tag": "t0074",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Sie zeigt den Tag des Monats an, und sie zeigt nicht an, wie spät es ist!“",
+   "lang": "de"
+  },
+  {
+   "id": "w_hoch_02__t0033",
+   "tag": "t0033",
+   "figur": "Alice",
+   "stimme": "w_hoch_02",
+   "text": "„Es ist gut, daß sie anfangen, Räthsel aufzugeben. – Ich glaube, das kann ich rathen,“",
+   "lang": "de"
+  },
+  {
+   "id": "w_hoch_03__t0265",
+   "tag": "t0265",
+   "figur": "Alice",
+   "stimme": "w_hoch_03",
+   "text": "„Aber heute ist alles sonderbar. Ich glaube, ich kann ebenso gut gleich hineingehen.“",
+   "lang": "de"
+  },
+  {
+   "id": "w_hoch_03__t0043",
+   "tag": "t0043",
+   "figur": "Alice",
+   "stimme": "w_hoch_03",
+   "text": "„wenigstens – wenigstens meine ich, was ich sage – das ist doch dasselbe, weißt du.“",
+   "lang": "de"
+  },
+  {
+   "id": "w_hoch_03__t0074",
+   "tag": "t0074",
+   "figur": "Alice",
+   "stimme": "w_hoch_03",
+   "text": "„Sie zeigt den Tag des Monats an, und sie zeigt nicht an, wie spät es ist!“",
+   "lang": "de"
+  },
+  {
+   "id": "w_hoch_03__t0033",
+   "tag": "t0033",
+   "figur": "Alice",
+   "stimme": "w_hoch_03",
+   "text": "„Es ist gut, daß sie anfangen, Räthsel aufzugeben. – Ich glaube, das kann ich rathen,“",
+   "lang": "de"
+  },
+  {
+   "id": "w_hoch_04__t0265",
+   "tag": "t0265",
+   "figur": "Alice",
+   "stimme": "w_hoch_04",
+   "text": "„Aber heute ist alles sonderbar. Ich glaube, ich kann ebenso gut gleich hineingehen.“",
+   "lang": "de"
+  },
+  {
+   "id": "w_hoch_04__t0043",
+   "tag": "t0043",
+   "figur": "Alice",
+   "stimme": "w_hoch_04",
+   "text": "„wenigstens – wenigstens meine ich, was ich sage – das ist doch dasselbe, weißt du.“",
+   "lang": "de"
+  },
+  {
+   "id": "w_hoch_04__t0074",
+   "tag": "t0074",
+   "figur": "Alice",
+   "stimme": "w_hoch_04",
+   "text": "„Sie zeigt den Tag des Monats an, und sie zeigt nicht an, wie spät es ist!“",
+   "lang": "de"
+  },
+  {
+   "id": "w_hoch_04__t0033",
+   "tag": "t0033",
+   "figur": "Alice",
+   "stimme": "w_hoch_04",
+   "text": "„Es ist gut, daß sie anfangen, Räthsel aufzugeben. – Ich glaube, das kann ich rathen,“",
+   "lang": "de"
+  },
+  {
+   "id": "w_hoch_05__t0265",
+   "tag": "t0265",
+   "figur": "Alice",
+   "stimme": "w_hoch_05",
+   "text": "„Aber heute ist alles sonderbar. Ich glaube, ich kann ebenso gut gleich hineingehen.“",
+   "lang": "de"
+  },
+  {
+   "id": "w_hoch_05__t0043",
+   "tag": "t0043",
+   "figur": "Alice",
+   "stimme": "w_hoch_05",
+   "text": "„wenigstens – wenigstens meine ich, was ich sage – das ist doch dasselbe, weißt du.“",
+   "lang": "de"
+  },
+  {
+   "id": "w_hoch_05__t0074",
+   "tag": "t0074",
+   "figur": "Alice",
+   "stimme": "w_hoch_05",
+   "text": "„Sie zeigt den Tag des Monats an, und sie zeigt nicht an, wie spät es ist!“",
+   "lang": "de"
+  },
+  {
+   "id": "w_hoch_05__t0033",
+   "tag": "t0033",
+   "figur": "Alice",
+   "stimme": "w_hoch_05",
+   "text": "„Es ist gut, daß sie anfangen, Räthsel aufzugeben. – Ich glaube, das kann ich rathen,“",
+   "lang": "de"
+  },
+  {
+   "id": "k_01__t0265",
+   "tag": "t0265",
+   "figur": "Alice",
+   "stimme": "k_01",
+   "text": "„Aber heute ist alles sonderbar. Ich glaube, ich kann ebenso gut gleich hineingehen.“",
+   "lang": "de"
+  },
+  {
+   "id": "k_01__t0043",
+   "tag": "t0043",
+   "figur": "Alice",
+   "stimme": "k_01",
+   "text": "„wenigstens – wenigstens meine ich, was ich sage – das ist doch dasselbe, weißt du.“",
+   "lang": "de"
+  },
+  {
+   "id": "k_01__t0074",
+   "tag": "t0074",
+   "figur": "Alice",
+   "stimme": "k_01",
+   "text": "„Sie zeigt den Tag des Monats an, und sie zeigt nicht an, wie spät es ist!“",
+   "lang": "de"
+  },
+  {
+   "id": "k_01__t0033",
+   "tag": "t0033",
+   "figur": "Alice",
+   "stimme": "k_01",
+   "text": "„Es ist gut, daß sie anfangen, Räthsel aufzugeben. – Ich glaube, das kann ich rathen,“",
+   "lang": "de"
+  },
+  {
+   "id": "m_mittel_02__t0137",
+   "tag": "t0137",
+   "figur": "Hatter",
+   "stimme": "m_mittel_02",
+   "text": "„so: ‚Hoch über uns die Welt du fliegst,\nWie ein Theebrett, das am Himmel liegt.\nFunkle, funkle –‘",
+   "lang": "de"
+  },
+  {
+   "id": "m_mittel_02__t0046",
+   "tag": "t0046",
+   "figur": "Hatter",
+   "stimme": "m_mittel_02",
+   "text": "„Du könntest ebenso gut sagen: ‚Ich sehe, was ich esse‘ ist dasselbe wie ‚Ich esse, was ich sehe‘!“",
+   "lang": "de"
+  },
+  {
+   "id": "m_mittel_02__t0143",
+   "tag": "t0143",
+   "figur": "Hatter",
+   "stimme": "m_mittel_02",
+   "text": "„als die Königin aufsprang und brüllte: ‚Er mordet die Zeit! Herunter mit seinem Kopf!‘“",
+   "lang": "de"
+  },
+  {
+   "id": "m_mittel_02__t0154",
+   "tag": "t0154",
+   "figur": "Hatter",
+   "stimme": "m_mittel_02",
+   "text": "„es ist immer Theestunde, und wir haben keine Zeit, das Geschirr zwischendurch zu spülen.“",
+   "lang": "de"
+  },
+  {
+   "id": "m_mittel_05__t0137",
+   "tag": "t0137",
+   "figur": "Hatter",
+   "stimme": "m_mittel_05",
+   "text": "„so: ‚Hoch über uns die Welt du fliegst,\nWie ein Theebrett, das am Himmel liegt.\nFunkle, funkle –‘",
+   "lang": "de"
+  },
+  {
+   "id": "m_mittel_05__t0046",
+   "tag": "t0046",
+   "figur": "Hatter",
+   "stimme": "m_mittel_05",
+   "text": "„Du könntest ebenso gut sagen: ‚Ich sehe, was ich esse‘ ist dasselbe wie ‚Ich esse, was ich sehe‘!“",
+   "lang": "de"
+  },
+  {
+   "id": "m_mittel_05__t0143",
+   "tag": "t0143",
+   "figur": "Hatter",
+   "stimme": "m_mittel_05",
+   "text": "„als die Königin aufsprang und brüllte: ‚Er mordet die Zeit! Herunter mit seinem Kopf!‘“",
+   "lang": "de"
+  },
+  {
+   "id": "m_mittel_05__t0154",
+   "tag": "t0154",
+   "figur": "Hatter",
+   "stimme": "m_mittel_05",
+   "text": "„es ist immer Theestunde, und wir haben keine Zeit, das Geschirr zwischendurch zu spülen.“",
+   "lang": "de"
+  },
+  {
+   "id": "m_mittel_08__t0137",
+   "tag": "t0137",
+   "figur": "Hatter",
+   "stimme": "m_mittel_08",
+   "text": "„so: ‚Hoch über uns die Welt du fliegst,\nWie ein Theebrett, das am Himmel liegt.\nFunkle, funkle –‘",
+   "lang": "de"
+  },
+  {
+   "id": "m_mittel_08__t0046",
+   "tag": "t0046",
+   "figur": "Hatter",
+   "stimme": "m_mittel_08",
+   "text": "„Du könntest ebenso gut sagen: ‚Ich sehe, was ich esse‘ ist dasselbe wie ‚Ich esse, was ich sehe‘!“",
+   "lang": "de"
+  },
+  {
+   "id": "m_mittel_08__t0143",
+   "tag": "t0143",
+   "figur": "Hatter",
+   "stimme": "m_mittel_08",
+   "text": "„als die Königin aufsprang und brüllte: ‚Er mordet die Zeit! Herunter mit seinem Kopf!‘“",
+   "lang": "de"
+  },
+  {
+   "id": "m_mittel_08__t0154",
+   "tag": "t0154",
+   "figur": "Hatter",
+   "stimme": "m_mittel_08",
+   "text": "„es ist immer Theestunde, und wir haben keine Zeit, das Geschirr zwischendurch zu spülen.“",
+   "lang": "de"
+  },
+  {
+   "id": "m_mittel_11__t0137",
+   "tag": "t0137",
+   "figur": "Hatter",
+   "stimme": "m_mittel_11",
+   "text": "„so: ‚Hoch über uns die Welt du fliegst,\nWie ein Theebrett, das am Himmel liegt.\nFunkle, funkle –‘",
+   "lang": "de"
+  },
+  {
+   "id": "m_mittel_11__t0046",
+   "tag": "t0046",
+   "figur": "Hatter",
+   "stimme": "m_mittel_11",
+   "text": "„Du könntest ebenso gut sagen: ‚Ich sehe, was ich esse‘ ist dasselbe wie ‚Ich esse, was ich sehe‘!“",
+   "lang": "de"
+  },
+  {
+   "id": "m_mittel_11__t0143",
+   "tag": "t0143",
+   "figur": "Hatter",
+   "stimme": "m_mittel_11",
+   "text": "„als die Königin aufsprang und brüllte: ‚Er mordet die Zeit! Herunter mit seinem Kopf!‘“",
+   "lang": "de"
+  },
+  {
+   "id": "m_mittel_11__t0154",
+   "tag": "t0154",
+   "figur": "Hatter",
+   "stimme": "m_mittel_11",
+   "text": "„es ist immer Theestunde, und wir haben keine Zeit, das Geschirr zwischendurch zu spülen.“",
+   "lang": "de"
+  },
+  {
+   "id": "m_mittel_14__t0137",
+   "tag": "t0137",
+   "figur": "Hatter",
+   "stimme": "m_mittel_14",
+   "text": "„so: ‚Hoch über uns die Welt du fliegst,\nWie ein Theebrett, das am Himmel liegt.\nFunkle, funkle –‘",
+   "lang": "de"
+  },
+  {
+   "id": "m_mittel_14__t0046",
+   "tag": "t0046",
+   "figur": "Hatter",
+   "stimme": "m_mittel_14",
+   "text": "„Du könntest ebenso gut sagen: ‚Ich sehe, was ich esse‘ ist dasselbe wie ‚Ich esse, was ich sehe‘!“",
+   "lang": "de"
+  },
+  {
+   "id": "m_mittel_14__t0143",
+   "tag": "t0143",
+   "figur": "Hatter",
+   "stimme": "m_mittel_14",
+   "text": "„als die Königin aufsprang und brüllte: ‚Er mordet die Zeit! Herunter mit seinem Kopf!‘“",
+   "lang": "de"
+  },
+  {
+   "id": "m_mittel_14__t0154",
+   "tag": "t0154",
+   "figur": "Hatter",
+   "stimme": "m_mittel_14",
+   "text": "„es ist immer Theestunde, und wir haben keine Zeit, das Geschirr zwischendurch zu spülen.“",
+   "lang": "de"
+  },
+  {
+   "id": "m_mittel_17__t0137",
+   "tag": "t0137",
+   "figur": "Hatter",
+   "stimme": "m_mittel_17",
+   "text": "„so: ‚Hoch über uns die Welt du fliegst,\nWie ein Theebrett, das am Himmel liegt.\nFunkle, funkle –‘",
+   "lang": "de"
+  },
+  {
+   "id": "m_mittel_17__t0046",
+   "tag": "t0046",
+   "figur": "Hatter",
+   "stimme": "m_mittel_17",
+   "text": "„Du könntest ebenso gut sagen: ‚Ich sehe, was ich esse‘ ist dasselbe wie ‚Ich esse, was ich sehe‘!“",
+   "lang": "de"
+  },
+  {
+   "id": "m_mittel_17__t0143",
+   "tag": "t0143",
+   "figur": "Hatter",
+   "stimme": "m_mittel_17",
+   "text": "„als die Königin aufsprang und brüllte: ‚Er mordet die Zeit! Herunter mit seinem Kopf!‘“",
+   "lang": "de"
+  },
+  {
+   "id": "m_mittel_17__t0154",
+   "tag": "t0154",
+   "figur": "Hatter",
+   "stimme": "m_mittel_17",
+   "text": "„es ist immer Theestunde, und wir haben keine Zeit, das Geschirr zwischendurch zu spülen.“",
+   "lang": "de"
+  },
+  {
+   "id": "m_mittel_03__t0137",
+   "tag": "t0137",
+   "figur": "Hatter",
+   "stimme": "m_mittel_03",
+   "text": "„so: ‚Hoch über uns die Welt du fliegst,\nWie ein Theebrett, das am Himmel liegt.\nFunkle, funkle –‘",
+   "lang": "de"
+  },
+  {
+   "id": "m_mittel_03__t0046",
+   "tag": "t0046",
+   "figur": "Hatter",
+   "stimme": "m_mittel_03",
+   "text": "„Du könntest ebenso gut sagen: ‚Ich sehe, was ich esse‘ ist dasselbe wie ‚Ich esse, was ich sehe‘!“",
+   "lang": "de"
+  },
+  {
+   "id": "m_mittel_03__t0143",
+   "tag": "t0143",
+   "figur": "Hatter",
+   "stimme": "m_mittel_03",
+   "text": "„als die Königin aufsprang und brüllte: ‚Er mordet die Zeit! Herunter mit seinem Kopf!‘“",
+   "lang": "de"
+  },
+  {
+   "id": "m_mittel_03__t0154",
+   "tag": "t0154",
+   "figur": "Hatter",
+   "stimme": "m_mittel_03",
+   "text": "„es ist immer Theestunde, und wir haben keine Zeit, das Geschirr zwischendurch zu spülen.“",
+   "lang": "de"
+  },
+  {
+   "id": "m_mittel_04__t0137",
+   "tag": "t0137",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„so: ‚Hoch über uns die Welt du fliegst,\nWie ein Theebrett, das am Himmel liegt.\nFunkle, funkle –‘",
+   "lang": "de"
+  },
+  {
+   "id": "m_mittel_04__t0046",
+   "tag": "t0046",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„Du könntest ebenso gut sagen: ‚Ich sehe, was ich esse‘ ist dasselbe wie ‚Ich esse, was ich sehe‘!“",
+   "lang": "de"
+  },
+  {
+   "id": "m_mittel_04__t0143",
+   "tag": "t0143",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„als die Königin aufsprang und brüllte: ‚Er mordet die Zeit! Herunter mit seinem Kopf!‘“",
+   "lang": "de"
+  },
+  {
+   "id": "m_mittel_04__t0154",
+   "tag": "t0154",
+   "figur": "Hatter",
+   "stimme": "m_mittel_04",
+   "text": "„es ist immer Theestunde, und wir haben keine Zeit, das Geschirr zwischendurch zu spülen.“",
+   "lang": "de"
+  },
+  {
+   "id": "m_hoch_01__t0164",
+   "tag": "t0164",
+   "figur": "March Hare",
+   "stimme": "m_hoch_01",
+   "text": "„Ich werde dessen müde. Ich schlage vor, die junge Dame erzählt uns eine Geschichte.“",
+   "lang": "de"
+  },
+  {
+   "id": "m_hoch_01__t0049",
+   "tag": "t0049",
+   "figur": "March Hare",
+   "stimme": "m_hoch_01",
+   "text": "„‚Ich mag, was ich bekomme‘ ist dasselbe wie ‚Ich bekomme, was ich mag‘!“",
+   "lang": "de"
+  },
+  {
+   "id": "m_hoch_01__t0019",
+   "tag": "t0019",
+   "figur": "March Hare",
+   "stimme": "m_hoch_01",
+   "text": "„Es war nicht sehr höflich von dir, dich ohne Einladung zu setzen,“",
+   "lang": "de"
+  },
+  {
+   "id": "m_hoch_01__t0035",
+   "tag": "t0035",
+   "figur": "March Hare",
+   "stimme": "m_hoch_01",
+   "text": "„Meinst du, daß du die Antwort darauf herausfinden kannst?“",
+   "lang": "de"
+  },
+  {
+   "id": "m_hoch_02__t0164",
+   "tag": "t0164",
+   "figur": "March Hare",
+   "stimme": "m_hoch_02",
+   "text": "„Ich werde dessen müde. Ich schlage vor, die junge Dame erzählt uns eine Geschichte.“",
+   "lang": "de"
+  },
+  {
+   "id": "m_hoch_02__t0049",
+   "tag": "t0049",
+   "figur": "March Hare",
+   "stimme": "m_hoch_02",
+   "text": "„‚Ich mag, was ich bekomme‘ ist dasselbe wie ‚Ich bekomme, was ich mag‘!“",
+   "lang": "de"
+  },
+  {
+   "id": "m_hoch_02__t0019",
+   "tag": "t0019",
+   "figur": "March Hare",
+   "stimme": "m_hoch_02",
+   "text": "„Es war nicht sehr höflich von dir, dich ohne Einladung zu setzen,“",
+   "lang": "de"
+  },
+  {
+   "id": "m_hoch_02__t0035",
+   "tag": "t0035",
+   "figur": "March Hare",
+   "stimme": "m_hoch_02",
+   "text": "„Meinst du, daß du die Antwort darauf herausfinden kannst?“",
+   "lang": "de"
+  },
+  {
+   "id": "m_hoch_03__t0164",
+   "tag": "t0164",
+   "figur": "March Hare",
+   "stimme": "m_hoch_03",
+   "text": "„Ich werde dessen müde. Ich schlage vor, die junge Dame erzählt uns eine Geschichte.“",
+   "lang": "de"
+  },
+  {
+   "id": "m_hoch_03__t0049",
+   "tag": "t0049",
+   "figur": "March Hare",
+   "stimme": "m_hoch_03",
+   "text": "„‚Ich mag, was ich bekomme‘ ist dasselbe wie ‚Ich bekomme, was ich mag‘!“",
+   "lang": "de"
+  },
+  {
+   "id": "m_hoch_03__t0019",
+   "tag": "t0019",
+   "figur": "March Hare",
+   "stimme": "m_hoch_03",
+   "text": "„Es war nicht sehr höflich von dir, dich ohne Einladung zu setzen,“",
+   "lang": "de"
+  },
+  {
+   "id": "m_hoch_03__t0035",
+   "tag": "t0035",
+   "figur": "March Hare",
+   "stimme": "m_hoch_03",
+   "text": "„Meinst du, daß du die Antwort darauf herausfinden kannst?“",
+   "lang": "de"
+  },
+  {
+   "id": "m_hoch_04__t0164",
+   "tag": "t0164",
+   "figur": "March Hare",
+   "stimme": "m_hoch_04",
+   "text": "„Ich werde dessen müde. Ich schlage vor, die junge Dame erzählt uns eine Geschichte.“",
+   "lang": "de"
+  },
+  {
+   "id": "m_hoch_04__t0049",
+   "tag": "t0049",
+   "figur": "March Hare",
+   "stimme": "m_hoch_04",
+   "text": "„‚Ich mag, was ich bekomme‘ ist dasselbe wie ‚Ich bekomme, was ich mag‘!“",
+   "lang": "de"
+  },
+  {
+   "id": "m_hoch_04__t0019",
+   "tag": "t0019",
+   "figur": "March Hare",
+   "stimme": "m_hoch_04",
+   "text": "„Es war nicht sehr höflich von dir, dich ohne Einladung zu setzen,“",
+   "lang": "de"
+  },
+  {
+   "id": "m_hoch_04__t0035",
+   "tag": "t0035",
+   "figur": "March Hare",
+   "stimme": "m_hoch_04",
+   "text": "„Meinst du, daß du die Antwort darauf herausfinden kannst?“",
+   "lang": "de"
+  },
+  {
+   "id": "m_hoch_05__t0164",
+   "tag": "t0164",
+   "figur": "March Hare",
+   "stimme": "m_hoch_05",
+   "text": "„Ich werde dessen müde. Ich schlage vor, die junge Dame erzählt uns eine Geschichte.“",
+   "lang": "de"
+  },
+  {
+   "id": "m_hoch_05__t0049",
+   "tag": "t0049",
+   "figur": "March Hare",
+   "stimme": "m_hoch_05",
+   "text": "„‚Ich mag, was ich bekomme‘ ist dasselbe wie ‚Ich bekomme, was ich mag‘!“",
+   "lang": "de"
+  },
+  {
+   "id": "m_hoch_05__t0019",
+   "tag": "t0019",
+   "figur": "March Hare",
+   "stimme": "m_hoch_05",
+   "text": "„Es war nicht sehr höflich von dir, dich ohne Einladung zu setzen,“",
+   "lang": "de"
+  },
+  {
+   "id": "m_hoch_05__t0035",
+   "tag": "t0035",
+   "figur": "March Hare",
+   "stimme": "m_hoch_05",
+   "text": "„Meinst du, daß du die Antwort darauf herausfinden kannst?“",
+   "lang": "de"
+  },
+  {
+   "id": "m_hoch_06__t0164",
+   "tag": "t0164",
+   "figur": "March Hare",
+   "stimme": "m_hoch_06",
+   "text": "„Ich werde dessen müde. Ich schlage vor, die junge Dame erzählt uns eine Geschichte.“",
+   "lang": "de"
+  },
+  {
+   "id": "m_hoch_06__t0049",
+   "tag": "t0049",
+   "figur": "March Hare",
+   "stimme": "m_hoch_06",
+   "text": "„‚Ich mag, was ich bekomme‘ ist dasselbe wie ‚Ich bekomme, was ich mag‘!“",
+   "lang": "de"
+  },
+  {
+   "id": "m_hoch_06__t0019",
+   "tag": "t0019",
+   "figur": "March Hare",
+   "stimme": "m_hoch_06",
+   "text": "„Es war nicht sehr höflich von dir, dich ohne Einladung zu setzen,“",
+   "lang": "de"
+  },
+  {
+   "id": "m_hoch_06__t0035",
+   "tag": "t0035",
+   "figur": "March Hare",
+   "stimme": "m_hoch_06",
+   "text": "„Meinst du, daß du die Antwort darauf herausfinden kannst?“",
+   "lang": "de"
+  },
+  {
+   "id": "m_tief_01__t0184",
+   "tag": "t0184",
+   "figur": "Dormouse",
+   "stimme": "m_tief_01",
+   "text": "„und sie hießen Elsie, Lacie und Tillie; und sie lebten auf dem Grunde eines Brunnens—“",
+   "lang": "de"
+  },
+  {
+   "id": "m_tief_01__t0052",
+   "tag": "t0052",
+   "figur": "Dormouse",
+   "stimme": "m_tief_01",
+   "text": "„‚Ich athme, wenn ich schlafe‘ ist dasselbe wie ‚Ich schlafe, wenn ich athme‘!“",
+   "lang": "de"
+  },
+  {
+   "id": "m_tief_01__t0245",
+   "tag": "t0245",
+   "figur": "Dormouse",
+   "stimme": "m_tief_01",
+   "text": "„und sie zeichneten alle möglichen Dinge – alles, was mit einem M anfängt –“",
+   "lang": "de"
+  },
+  {
+   "id": "m_tief_01__t0217",
+   "tag": "t0217",
+   "figur": "Dormouse",
+   "stimme": "m_tief_01",
+   "text": "„Wenn du nicht höflich sein kannst, solltest du die Geschichte lieber selbst zu Ende erzählen.“",
+   "lang": "de"
+  },
+  {
+   "id": "m_tief_02__t0184",
+   "tag": "t0184",
+   "figur": "Dormouse",
+   "stimme": "m_tief_02",
+   "text": "„und sie hießen Elsie, Lacie und Tillie; und sie lebten auf dem Grunde eines Brunnens—“",
+   "lang": "de"
+  },
+  {
+   "id": "m_tief_02__t0052",
+   "tag": "t0052",
+   "figur": "Dormouse",
+   "stimme": "m_tief_02",
+   "text": "„‚Ich athme, wenn ich schlafe‘ ist dasselbe wie ‚Ich schlafe, wenn ich athme‘!“",
+   "lang": "de"
+  },
+  {
+   "id": "m_tief_02__t0245",
+   "tag": "t0245",
+   "figur": "Dormouse",
+   "stimme": "m_tief_02",
+   "text": "„und sie zeichneten alle möglichen Dinge – alles, was mit einem M anfängt –“",
+   "lang": "de"
+  },
+  {
+   "id": "m_tief_02__t0217",
+   "tag": "t0217",
+   "figur": "Dormouse",
+   "stimme": "m_tief_02",
+   "text": "„Wenn du nicht höflich sein kannst, solltest du die Geschichte lieber selbst zu Ende erzählen.“",
+   "lang": "de"
+  },
+  {
+   "id": "m_tief_03__t0184",
+   "tag": "t0184",
+   "figur": "Dormouse",
+   "stimme": "m_tief_03",
+   "text": "„und sie hießen Elsie, Lacie und Tillie; und sie lebten auf dem Grunde eines Brunnens—“",
+   "lang": "de"
+  },
+  {
+   "id": "m_tief_03__t0052",
+   "tag": "t0052",
+   "figur": "Dormouse",
+   "stimme": "m_tief_03",
+   "text": "„‚Ich athme, wenn ich schlafe‘ ist dasselbe wie ‚Ich schlafe, wenn ich athme‘!“",
+   "lang": "de"
+  },
+  {
+   "id": "m_tief_03__t0245",
+   "tag": "t0245",
+   "figur": "Dormouse",
+   "stimme": "m_tief_03",
+   "text": "„und sie zeichneten alle möglichen Dinge – alles, was mit einem M anfängt –“",
+   "lang": "de"
+  },
+  {
+   "id": "m_tief_03__t0217",
+   "tag": "t0217",
+   "figur": "Dormouse",
+   "stimme": "m_tief_03",
+   "text": "„Wenn du nicht höflich sein kannst, solltest du die Geschichte lieber selbst zu Ende erzählen.“",
+   "lang": "de"
+  },
+  {
+   "id": "m_tief_04__t0184",
+   "tag": "t0184",
+   "figur": "Dormouse",
+   "stimme": "m_tief_04",
+   "text": "„und sie hießen Elsie, Lacie und Tillie; und sie lebten auf dem Grunde eines Brunnens—“",
+   "lang": "de"
+  },
+  {
+   "id": "m_tief_04__t0052",
+   "tag": "t0052",
+   "figur": "Dormouse",
+   "stimme": "m_tief_04",
+   "text": "„‚Ich athme, wenn ich schlafe‘ ist dasselbe wie ‚Ich schlafe, wenn ich athme‘!“",
+   "lang": "de"
+  },
+  {
+   "id": "m_tief_04__t0245",
+   "tag": "t0245",
+   "figur": "Dormouse",
+   "stimme": "m_tief_04",
+   "text": "„und sie zeichneten alle möglichen Dinge – alles, was mit einem M anfängt –“",
+   "lang": "de"
+  },
+  {
+   "id": "m_tief_04__t0217",
+   "tag": "t0217",
+   "figur": "Dormouse",
+   "stimme": "m_tief_04",
+   "text": "„Wenn du nicht höflich sein kannst, solltest du die Geschichte lieber selbst zu Ende erzählen.“",
+   "lang": "de"
+  },
+  {
+   "id": "m_tief_05__t0184",
+   "tag": "t0184",
+   "figur": "Dormouse",
+   "stimme": "m_tief_05",
+   "text": "„und sie hießen Elsie, Lacie und Tillie; und sie lebten auf dem Grunde eines Brunnens—“",
+   "lang": "de"
+  },
+  {
+   "id": "m_tief_05__t0052",
+   "tag": "t0052",
+   "figur": "Dormouse",
+   "stimme": "m_tief_05",
+   "text": "„‚Ich athme, wenn ich schlafe‘ ist dasselbe wie ‚Ich schlafe, wenn ich athme‘!“",
+   "lang": "de"
+  },
+  {
+   "id": "m_tief_05__t0245",
+   "tag": "t0245",
+   "figur": "Dormouse",
+   "stimme": "m_tief_05",
+   "text": "„und sie zeichneten alle möglichen Dinge – alles, was mit einem M anfängt –“",
+   "lang": "de"
+  },
+  {
+   "id": "m_tief_05__t0217",
+   "tag": "t0217",
+   "figur": "Dormouse",
+   "stimme": "m_tief_05",
+   "text": "„Wenn du nicht höflich sein kannst, solltest du die Geschichte lieber selbst zu Ende erzählen.“",
+   "lang": "de"
+  },
+  {
+   "id": "m_tief_06__t0184",
+   "tag": "t0184",
+   "figur": "Dormouse",
+   "stimme": "m_tief_06",
+   "text": "„und sie hießen Elsie, Lacie und Tillie; und sie lebten auf dem Grunde eines Brunnens—“",
+   "lang": "de"
+  },
+  {
+   "id": "m_tief_06__t0052",
+   "tag": "t0052",
+   "figur": "Dormouse",
+   "stimme": "m_tief_06",
+   "text": "„‚Ich athme, wenn ich schlafe‘ ist dasselbe wie ‚Ich schlafe, wenn ich athme‘!“",
+   "lang": "de"
+  },
+  {
+   "id": "m_tief_06__t0245",
+   "tag": "t0245",
+   "figur": "Dormouse",
+   "stimme": "m_tief_06",
+   "text": "„und sie zeichneten alle möglichen Dinge – alles, was mit einem M anfängt –“",
+   "lang": "de"
+  },
+  {
+   "id": "m_tief_06__t0217",
+   "tag": "t0217",
+   "figur": "Dormouse",
+   "stimme": "m_tief_06",
+   "text": "„Wenn du nicht höflich sein kannst, solltest du die Geschichte lieber selbst zu Ende erzählen.“",
+   "lang": "de"
+  },
+  {
+   "id": "m_tief_07__t0184",
+   "tag": "t0184",
+   "figur": "Dormouse",
+   "stimme": "m_tief_07",
+   "text": "„und sie hießen Elsie, Lacie und Tillie; und sie lebten auf dem Grunde eines Brunnens—“",
+   "lang": "de"
+  },
+  {
+   "id": "m_tief_07__t0052",
+   "tag": "t0052",
+   "figur": "Dormouse",
+   "stimme": "m_tief_07",
+   "text": "„‚Ich athme, wenn ich schlafe‘ ist dasselbe wie ‚Ich schlafe, wenn ich athme‘!“",
+   "lang": "de"
+  },
+  {
+   "id": "m_tief_07__t0245",
+   "tag": "t0245",
+   "figur": "Dormouse",
+   "stimme": "m_tief_07",
+   "text": "„und sie zeichneten alle möglichen Dinge – alles, was mit einem M anfängt –“",
+   "lang": "de"
+  },
+  {
+   "id": "m_tief_07__t0217",
+   "tag": "t0217",
+   "figur": "Dormouse",
+   "stimme": "m_tief_07",
+   "text": "„Wenn du nicht höflich sein kannst, solltest du die Geschichte lieber selbst zu Ende erzählen.“",
+   "lang": "de"
+  }
+ ]
+}

@@ -18,6 +18,7 @@ Gate:         5 Bereiche vorhanden, Glossar je bestellter Zielsprache (Stopp); A
 Kosten:       deepseek-v4-pro, ein Aufruf je Werk (nur bei geaendertem Eingang oder --neu).
 Regler:       --modell, --neu, --glossar BEGRIFF:lg=WERT[,lg=WERT], --glossar-weg BEGRIFF,
               --figur NAME:feld=WERT[,feld=WERT] (feld = Zielsprache, pronunciation, tts_<lg>), --figur-weg NAME,
+              --unuebersetzt-weg BEGRIFF (fester Glossar-Eintrag entfernt den Begriff ebenfalls aus Unuebersetztem),
               --voice-note TEXT, --grenze bereich=N (characters/untranslated/glossary/idioms), --ohne-reihe / --mit-reihe,
               --uebernehmen (vorhandene 210_profil.json als Rohergebnis, ohne LLM),
               --trocken (Probe am Bestand: nutzt vorhandene 210_profil.json, schreibt nichts, kein LLM).
@@ -127,6 +128,9 @@ Rules:
   untranslated max {grenzen['untranslated'] + 1}, glossary max {grenzen['glossary'] + 1} (only terms whose translation must stay
   consistent), idioms max {grenzen['idioms'] + 1}.
   Each key appears ONCE. Never repeat an entry, never list ordinary words. Stop when the limits are reached.
+- "untranslated" is ONLY for terms that stay in the source language in every target language. A place, institution or
+  historical name with an established form in a target language (e.g. French "île d'Elbe" -> German "Insel Elba",
+  "Naples" -> "Neapel") belongs in "glossary" with that form, never in "untranslated".
 - For idioms, prefer an idiomatic equivalent; if none exists, give a neutral paraphrase.
 - Decide per character whether the name is translated or kept; reflect that in the entry.
 
@@ -224,8 +228,12 @@ def _kappen(prof: dict, grenzen) -> tuple:
 # ============================================================
 
 def feste_eintraege(prof, roh):
-    """book.json: glossar_fest {begriff: {lg: wert} | null}, figuren_fest {name: {feld: wert} | null}, voice_note_fest."""
-    for feld, bereich in (("glossar_fest", "glossary"), ("figuren_fest", "characters")):
+    """book.json: glossar_fest {begriff: {lg: wert} | null}, figuren_fest {name: {feld: wert} | null},
+    unuebersetzt_fest {begriff: {meaning, pronunciation} | null}, voice_note_fest.
+    Fester Glossar-Eintrag schlaegt Unuebersetzt (27.11.2026, CK: "île d'Elbe" stand in untranslated -> Text
+    "auf der île d'Elbe", 310 meldete das richtige "Insel Elba" als Glossarfehler)."""
+    for feld, bereich in (("unuebersetzt_fest", "untranslated"), ("glossar_fest", "glossary"),
+                          ("figuren_fest", "characters")):
         for k, v in (roh.get(feld) or {}).items():
             ziel = prof.setdefault(bereich, {})
             if v is None:
@@ -234,6 +242,8 @@ def feste_eintraege(prof, roh):
                 ziel[k] = dict(ziel[k], **v)
             else:
                 ziel[k] = v
+                if bereich == "glossary" and isinstance(prof.get("untranslated"), dict):
+                    prof["untranslated"].pop(k, None)
     if roh.get("voice_note_fest"):
         prof.setdefault("style", {})["voice_note"] = roh["voice_note_fest"]
     return prof
@@ -249,6 +259,33 @@ def reihe_lesen(reihe):
         return None
     with open(p, encoding="utf-8") as f:
         return json.load(f)
+
+
+def reihe_aus_teil1(reihe, werk):
+    """Reihen-Profil fehlt, Teil 1 ist aber freigegeben (27.11.2026, CK: Monte Cristo Teil 1 ging ueber Mensch-Freigabe,
+    reihe_schreiben lief nur bei 'auto' -> Teil 2 ohne Reihen-Glossar). Teil 1 im selben Autorordner suchen,
+    210 frei -> Reihen-Profil aus dessen 210_profil.json anlegen. -> Reihen-Profil oder None."""
+    oben = os.path.dirname(config.book_dir(werk))
+    for name in sorted(os.listdir(oben)) if os.path.isdir(oben) else []:
+        try:
+            with open(os.path.join(oben, name, "book.json"), encoding="utf-8") as f:
+                bj = json.load(f)
+        except (OSError, ValueError):
+            continue
+        if bj.get("reihe") != reihe or int(bj.get("teil") or 0) != 1:
+            continue
+        st = (status.laden(name).get("stages") or {}).get(STAGE) or {}
+        if st.get("zustand") != "frei":
+            return None
+        try:
+            with open(config.work_path(name, "210_profil"), encoding="utf-8") as f:
+                prof1 = (json.load(f).get("meta") or {}).get("profile") or {}
+        except (OSError, ValueError):
+            return None
+        if prof1:
+            reihe_schreiben(reihe, prof1, 1, name)
+            return reihe_lesen(reihe)
+    return None
 
 
 def reihe_anwenden(prof, rp):
@@ -375,8 +412,12 @@ def _parse_kv(s):
 
 
 def regler_schreiben(werk, b, glossar=None, glossar_weg=None, figur=None, figur_weg=None, voice_note=None,
-                     reihe_erbe=None, grenze=None):
+                     reihe_erbe=None, grenze=None, unuebersetzt_weg=None):
     felder = {}
+    if unuebersetzt_weg:
+        u = dict(b.roh.get("unuebersetzt_fest") or {})
+        u.update({k.strip(): None for k in unuebersetzt_weg})
+        felder["unuebersetzt_fest"] = u
     if grenze:                  # Listengrenzen je Werk (CK 03.11.2026), bleiben fuer Folgelaeufe gesetzt
         falsch = [k for k in grenze if k not in GRENZEN]
         if falsch:
@@ -408,13 +449,13 @@ def regler_schreiben(werk, b, glossar=None, glossar_weg=None, figur=None, figur_
 
 
 def run(werk, wer=None, modell=None, neu=False, glossar=None, glossar_weg=None, figur=None, figur_weg=None,
-        voice_note=None, grenze=None, reihe_erbe=None, trocken=False, uebernehmen=False):
+        voice_note=None, grenze=None, reihe_erbe=None, trocken=False, uebernehmen=False, unuebersetzt_weg=None):
     wer = wer or "pipeline"
     g = gate.Gate(werk, STAGE, ruecksprung="210", wer=wer)
     d = status.laden(werk)
     if not trocken:
         regler_schreiben(werk, bestellung.lesen(werk), glossar, glossar_weg, figur, figur_weg, voice_note, reihe_erbe,
-                         grenze)
+                         grenze, unuebersetzt_weg)
     b = bestellung.lesen(werk)
     src = b.quellsprache or config.SOURCE_LANGUAGE
     ziele = [z for z in (b.zielsprachen or []) if z != src]
@@ -476,19 +517,19 @@ def run(werk, wer=None, modell=None, neu=False, glossar=None, glossar_weg=None, 
 
     prof = copy.deepcopy(roh) if isinstance(roh, dict) else {}
     prof, voll = _kappen(prof, grenzen)
-    prof = feste_eintraege(prof, b.roh)
 
-    # Reihen-Erbe
+    # Reihen-Erbe (feste Eintraege des Bandes danach: sie schlagen das Reihen-Profil)
     reihe, teil = b.roh.get("reihe"), int(b.roh.get("teil") or 0)
     erbe = bool(reihe) and b.roh.get("reihe_erbe", True) is not False
     neue_fig, varianten = [], []
     if erbe and teil >= 2:
-        rp = reihe_lesen(reihe)
+        rp = reihe_lesen(reihe) or (None if trocken else reihe_aus_teil1(reihe, werk))
         g.pflicht("reihe_profil", rp is not None, ruecksprung="210",
                   text=f"Reihen-Profil {reihe} vorhanden (aus Teil 1)" if rp else f"Reihen-Profil {reihe} fehlt -> Teil 1 zuerst")
         if rp:
             prof, neue_fig, varianten = reihe_anwenden(prof, rp)
             g.metrik("neue_figuren", len(neue_fig))
+    prof = feste_eintraege(prof, b.roh)
 
     # Pruefungen
     fehlt = [k for k in BEREICHE if not isinstance(prof.get(k), dict)]
@@ -575,6 +616,8 @@ def main(argv=None):
     ap.add_argument("--glossar-weg", action="append", metavar="BEGRIFF")
     ap.add_argument("--figur", action="append", metavar="NAME:feld=WERT", help="Figur fest setzen/korrigieren (figuren_fest)")
     ap.add_argument("--figur-weg", action="append", metavar="NAME")
+    ap.add_argument("--unuebersetzt-weg", action="append", metavar="BEGRIFF",
+                    help="Begriff aus Unuebersetztem entfernen (unuebersetzt_fest); ins Glossar: --glossar")
     ap.add_argument("--voice-note", help="voice_note fest ('' = wieder aus dem Profil)")
     ap.add_argument("--grenze", action="append", metavar="BEREICH=N", help="Listengrenze (characters/untranslated/glossary/idioms)")
     ap.add_argument("--ohne-reihe", action="store_true", help="Reihen-Erbe fuer diesen Teil abschalten")
@@ -586,7 +629,7 @@ def main(argv=None):
     erbe = False if a.ohne_reihe else (True if a.mit_reihe else None)
     try:
         g = run(a.werk, a.wer, a.modell, a.neu, a.glossar, a.glossar_weg, a.figur, a.figur_weg, a.voice_note,
-                grenze, erbe, a.trocken, a.uebernehmen)
+                grenze, erbe, a.trocken, a.uebernehmen, a.unuebersetzt_weg)
     except gate.GateHalt as e:
         print(e)
         return e.exit_code

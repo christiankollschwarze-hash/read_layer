@@ -199,6 +199,43 @@ class T210(unittest.TestCase):
         g = self.lauf("w-2", reihe_erbe=False)
         self.assertEqual(g.ergebnis["ergebnis"], "auto", g.bericht())
 
+    def test_glossar_fest_schlaegt_unuebersetzt_und_reihe(self):
+        # Teil 1 vererbt "Dauphin" als unuebersetzt; Teil 2 legt fest "Dauphin -> Kronprinz" -> nur noch Glossar
+        self.werk("w", reihe="r", teil=1, teile_gesamt=2)
+        self.lauf()
+        self.assertIn("Dauphin", P.reihe_lesen("r")["untranslated"])
+        self.werk("w-2", reihe="r", teil=2, teile_gesamt=2, glossar_fest={"Dauphin": {"de": "Kronprinz"},
+                                                                          "door": {"de": "Pforte"}})
+        self.lauf("w-2")
+        p = self.aus("w-2")["meta"]["profile"]
+        self.assertEqual((p["glossary"]["Dauphin"], p["glossary"]["door"]), ({"de": "Kronprinz"}, {"de": "Pforte"}))
+        self.assertNotIn("Dauphin", p["untranslated"])
+
+    def test_unuebersetzt_weg(self):
+        self.lauf(unuebersetzt_weg=["Dauphin"])
+        self.assertNotIn("Dauphin", self.aus()["meta"]["profile"]["untranslated"])
+        with open(os.path.join(self.dirs["w"], "book.json"), encoding="utf-8") as f:
+            self.assertEqual(json.load(f)["unuebersetzt_fest"], {"Dauphin": None})
+        self.lauf()                                       # bleibt fest
+        self.assertNotIn("Dauphin", self.aus()["meta"]["profile"]["untranslated"])
+
+    def test_prompt_regel_eingefuehrte_namen(self):
+        self.lauf()
+        self.assertIn("belongs in \"glossary\"", self.aufrufe[0])
+
+    def test_reihe_aus_freigegebenem_teil1(self):
+        # Teil 1 mit Hoerspiel -> Mensch, kein Reihen-Profil; nach Freigabe baut Teil 2 es aus Teil 1
+        hs = [{"sprache": "de", "inhalt": "hoerspiel", "stufe": "premium", "kanaele": ["taella"]}]
+        self.werk("w", reihe="r", teil=1, teile_gesamt=2, produkte=hs)
+        self.assertEqual(self.lauf().ergebnis["ergebnis"], "mensch")
+        self.assertIsNone(P.reihe_lesen("r"))
+        self.werk("w-2", reihe="r", teil=2, teile_gesamt=2)
+        self.assertEqual(self.lauf("w-2").ergebnis["ergebnis"], "stopp")       # Teil 1 noch nicht frei
+        S.entscheiden("w", "210", "frei", "CK", "Figuren ok")
+        g = self.lauf("w-2")
+        self.assertNotEqual(g.ergebnis["ergebnis"], "stopp", g.bericht())
+        self.assertEqual(P.reihe_lesen("r")["teile"][0], "w")
+
     def test_reihe_teil2_ohne_reihenprofil_stopp(self):
         self.werk("w-2", reihe="x", teil=2, teile_gesamt=2)
         self.assertEqual(self.lauf("w-2").ergebnis["ergebnis"], "stopp")

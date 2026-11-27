@@ -1,0 +1,29 @@
+{
+ "klon": [
+  {
+   "key": "m_mittel_warm__s11_xl_en",
+   "ref": "m_mittel_warm__s11_de",
+   "ref_text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "text": "The North Wind and the Sun. The North Wind and the Sun disputed which was the more powerful, and agreed that he should be declared the victor who could first strip a wayfaring man of his clothes. Persuasion is better than Force. Who would have thought that the gentle Sun could win such a contest? What a warm and wonderful day it turned out to be!",
+   "language": "English",
+   "seed": 11
+  },
+  {
+   "key": "m_mittel_warm__s11_xl_zh",
+   "ref": "m_mittel_warm__s11_de",
+   "ref_text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "text": "北风和太阳争论谁更有力量。谁会想到温和的太阳能赢得这样的比赛呢？最后，这是多么温暖美好的一天！",
+   "language": "Chinese",
+   "seed": 11
+  },
+  {
+   "key": "m_mittel_warm__s11_xl_de",
+   "ref": "m_mittel_warm__s11_de",
+   "ref_text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "text": "Der Nordwind und die Sonne. Der Nordwind und die Sonne stritten, wer von ihnen der Mächtigere sei, und einigten sich, dass derjenige zum Sieger erklärt werden solle, der zuerst einem Wanderer die Kleider ausziehen könne. Überzeugung ist besser als Gewalt. Wer hätte gedacht, dass die sanfte Sonne einen solchen Wettstreit gewinnen könnte? Was für ein warmer und wunderbarer Tag es am Ende wurde!",
+   "language": "German",
+   "seed": 11
+  }
+ ],
+ "embed": true
+}

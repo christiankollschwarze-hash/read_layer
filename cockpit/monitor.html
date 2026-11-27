@@ -901,7 +901,7 @@ MON["200"]={
 };
 MON["210"]={
   E:null,
-  leer(){return {figur:{},glossar:{},figur_weg:new Set(),glossar_weg:new Set(),grenze:{},voice:null,neu:false,reihe:null};},
+  leer(){return {figur:{},glossar:{},figur_weg:new Set(),glossar_weg:new Set(),unuebersetzt_weg:new Set(),grenze:{},voice:null,neu:false,reihe:null};},
   html(d){
     if(!this.E)this.E=this.leer();
     const E=this.E,ki=(M.stage.kosten||{}).usd,Z=d.ziele;
@@ -936,8 +936,16 @@ MON["210"]={
        <td>${her(g.herkunft)}</td><td><button title="entfernen" onclick="MON['210'].weg('glossar',${i})">×</button></td></tr>`).join("")}
      <tr><td><input id="gn210" placeholder="neuer Begriff"></td>${Z.map(z=>`<td><input id="gn210_${z}"></td>`).join("")}<td></td><td><button onclick="MON['210'].neuG()">+</button></td></tr></table>
      ${d.fest_entfernt.glossar.length?`<div class="klein">Fest entfernt: ${d.fest_entfernt.glossar.map(esc).join(", ")}</div>`:""}</div>
-    <div class="box"><details><summary><b>Unübersetztes (${Object.keys(d.untranslated).length}) · Redewendungen (${Object.keys(d.idioms).length})</b> <span class="klein">– nur Anzeige</span></summary>
-     <table class="t210">${Object.entries(d.untranslated).map(([k,v])=>`<tr><td>${esc(k)}</td><td class="klein">${esc(v.meaning||"")}</td><td class="klein">${esc(v.pronunciation||"")}</td></tr>`).join("")}</table>
+    <div class="box"><h2>Unübersetztes <span class="klein">(${Object.keys(d.untranslated).length}; bleibt in jeder Zielsprache im Original)</span></h2>
+     <div class="klein">Hat ein Begriff eine eingeführte Form in der Zielsprache (Ort, Institution, z. B. île d'Elbe → Insel Elba), Übersetzung eintragen und „→ Glossar“: dann gilt er fest als Glossar-Eintrag und fällt hier heraus.</div>
+     <table class="t210"><tr><th>Begriff</th><th>Bedeutung</th><th>Aussprache</th>${Z.map(z=>`<th>${z}</th>`).join("")}<th>Herkunft</th><th></th></tr>
+     ${Object.entries(d.untranslated).map(([k,v],i)=>{const g=E.glossar[k],w=E.unuebersetzt_weg.has(k);
+       return `<tr class="${w||g?"weg":""}"><td>${esc(k)}${g?' <span class="z frei">→ Glossar</span>':""}</td><td class="klein">${esc(v.meaning||"")}</td><td class="klein">${esc(v.pronunciation||"")}</td>
+       ${Z.map(z=>`<td><input id="un210_${i}_${z}" placeholder="Übersetzung" value="${esc((g||{})[z]??"")}"></td>`).join("")}
+       <td>${her((d.untranslated_herkunft||{})[k]||"llm")}</td>
+       <td style="white-space:nowrap"><button title="mit Übersetzung ins Glossar" onclick="MON['210'].insG(${i})">→ Glossar</button><button title="entfernen" onclick="MON['210'].unWeg(${i})">×</button></td></tr>`;}).join("")}</table>
+     ${d.fest_entfernt.unuebersetzt&&d.fest_entfernt.unuebersetzt.length?`<div class="klein">Fest entfernt: ${d.fest_entfernt.unuebersetzt.map(esc).join(", ")}</div>`:""}</div>
+    <div class="box"><details><summary><b>Redewendungen (${Object.keys(d.idioms).length})</b> <span class="klein">– nur Anzeige</span></summary>
      <table class="t210" style="margin-top:8px">${Object.entries(d.idioms).map(([k,v])=>`<tr><td>${esc(k)}</td><td class="klein">${esc(v.meaning||"")}</td><td class="klein">${Z.map(z=>esc(v[z]||"")).join(" · ")}</td></tr>`).join("")}</table></details></div>
     ${d.reihe?`<div class="box"><h2>Reihe ${esc(d.reihe)} · Teil ${d.teil}</h2>
      <label><input type="checkbox" ${d.reihe_erbe?"checked":""} onchange="MON['210'].E.reihe=this.checked?'mit':'ohne';MON['210'].zf()"> Reihen-Erbe übernehmen</label>
@@ -950,7 +958,7 @@ MON["210"]={
     <div class="box"><h2>3 Speichern · 4 Freigeben</h2>
      <div class="akt"><button class="haupt" onclick="MON['210'].los(false)">Übernehmen und 210 neu prüfen</button>
       <button onclick="MON['210'].los(true)">Probe (schreibt nichts, kein LLM)</button> <span id="zf210" class="klein"></span></div>
-     <div class="klein">Figuren-/Glossar-Korrekturen und voice_note werden fest in book.json gespeichert und kosten nichts. Rücksprung: Werk zu lang → 195; Figur durch Tagging zerschnitten → 200.</div></div>`;
+     <div class="klein">Figuren-/Glossar-/Unübersetzt-Korrekturen und voice_note werden fest in book.json gespeichert und kosten nichts. Rücksprung: Werk zu lang → 195; Figur durch Tagging zerschnitten → 200.</div></div>`;
   },
   danach(){this.zf();},
   gr(k,v){const d=M.daten;if(+v==d.grenzen[k])delete this.E.grenze[k];else this.E.grenze[k]=+v;this.zf();},
@@ -968,6 +976,13 @@ MON["210"]={
     for(const z of M.daten.ziele){const v=$("gn210_"+z).value.trim();if(v)e[z]=v;}
     if(Object.keys(e).length<M.daten.ziele.length){alert("Übersetzung je Zielsprache nötig.");return;}
     this.E.glossar[n]=e;$("gn210").value="";this.zf();alert("Begriff „"+n+"“ vorgemerkt.");},
+  insG(i){const k=Object.keys(M.daten.untranslated)[i];
+    if(this.E.glossar[k]){delete this.E.glossar[k];this.neuZeichnen();return;}
+    const e={};for(const z of M.daten.ziele){const v=$("un210_"+i+"_"+z).value.trim();if(v)e[z]=v;}
+    if(Object.keys(e).length<M.daten.ziele.length){alert("Übersetzung je Zielsprache nötig.");return;}
+    this.E.glossar[k]=e;this.E.unuebersetzt_weg.delete(k);this.neuZeichnen();},
+  unWeg(i){const k=Object.keys(M.daten.untranslated)[i],s=this.E.unuebersetzt_weg;
+    s.has(k)?s.delete(k):s.add(k);delete this.E.glossar[k];this.neuZeichnen();},
   dieselbe(a){this.E.figur_weg.add(a);this.neuZeichnen();},
   neuZeichnen(){$("inhalt").innerHTML=this.html(M.daten);this.danach();},
   async stellen(i){
@@ -979,6 +994,7 @@ MON["210"]={
   zf(){const E=this.E,t=[],n=o=>Object.keys(o).length;
     if(n(E.figur))t.push(n(E.figur)+" Figuren fest");if(E.figur_weg.size)t.push(E.figur_weg.size+" Figuren weg");
     if(n(E.glossar))t.push(n(E.glossar)+" Glossar fest");if(E.glossar_weg.size)t.push(E.glossar_weg.size+" Glossar weg");
+    if(E.unuebersetzt_weg.size)t.push(E.unuebersetzt_weg.size+" Unübersetztes weg");
     if(n(E.grenze))t.push("Grenzen geändert → Profil neu (kostet)");if(E.voice!==null)t.push("voice_note");if(E.neu)t.push("Profil neu (kostet)");if(E.reihe)t.push("Reihen-Erbe "+E.reihe);
     const el=$("zf210");if(el)el.textContent=t.join(" · ");},
   los(trocken){
@@ -988,6 +1004,7 @@ MON["210"]={
     if(Object.keys(E.glossar).length)e.glossar=E.glossar;
     if(E.figur_weg.size)e.figur_weg=[...E.figur_weg];
     if(E.glossar_weg.size)e.glossar_weg=[...E.glossar_weg];
+    if(E.unuebersetzt_weg.size)e.unuebersetzt_weg=[...E.unuebersetzt_weg];
     if(Object.keys(E.grenze).length)e.grenze=E.grenze;
     if(E.voice!==null&&E.voice!==(d.style.voice_note||""))e.voice_note=E.voice;
     if(E.reihe)e.reihe=E.reihe;
@@ -1961,7 +1978,7 @@ MON["500"]={
          <td><span class="z ${this.ART[x.art][0]}">${this.ART[x.art][1]}</span>${x.grund?`<br><span class="klein">${esc(x.grund)}</span>`:""}${x.wer?`<br><span class="klein">${esc(x.wer)} ${esc((x.wann||"").slice(0,16).replace("T"," "))}: ${esc(x.grund_annahme||"")}</span>`:""}</td>
          <td style="max-width:420px">${esc(x.sprechtext)}</td>
          <td>${this.probe(x.audio)}<br><span class="klein">${x.dauer!=null?(+x.dauer).toFixed(1)+" s":""}${x.versuche?" · "+x.versuche+" Versuche":""}</span></td>
-         <td class="klein"><label><input type="checkbox" ${n.has(x.id)?"checked":""} onchange="MON['500'].tg('neu','${x.id}',this.checked)"> neu vertonen (~${(+x.usd_neu).toFixed(3)} $)</label>
+         <td class="klein"><label><input type="checkbox" ${n.has(x.id)?"checked":""} onchange="MON['500'].tg('neu','${x.id}',this.checked)"> neu vertonen (~${(+x.usd_neu).toFixed(3)} $${x.block?" ganzer Abschnitt":""})</label>
           ${x.art=="auffaellig"?`<br><label><input type="checkbox" ${a.has(x.id)?"checked":""} onchange="MON['500'].tg('an','${x.id}',this.checked)"> annehmen</label>`:""}</td></tr>`).join("")}</table>`:'<div class="klein">keine Einträge</div>'}</div>`;}
     if(sp&&sp.bloecke&&sp.bloecke.length){const n=this.set(E.neu,this.lg);
       h+=`<div class="box"><h2>Blöcke ${esc(this.lg)} (Fish) <span class="klein">${sp.bloecke.length} Blöcke · je Block ein Aufruf in der Erzählerstimme, Schnitt an den Wort-Zeitmarken</span></h2>
@@ -2007,7 +2024,7 @@ MON["500"]={
     if(lgs.length>1){alert("Hörliste in mehreren Sprachen geändert: bitte je Sprache einzeln übernehmen.");return;}
     if(lgs.length){const lg=lgs[0];e.lang=lg;const n=[...(E.neu[lg]||[])],a=[...(E.an[lg]||[])];
       if(a.length){if(!E.grund.trim()){alert("Annehmen braucht einen Grund");return;}e.annehmen=a;e.grund=E.grund.trim();}
-      if(n.length){e.satz=n;const usd=d.sprachen[lg].hoerliste.filter(x=>n.includes(x.id)).reduce((s,x)=>s+(+x.usd_neu),0);
+      if(n.length){e.satz=n;const bl={};d.sprachen[lg].hoerliste.filter(x=>n.includes(x.id)).forEach(x=>bl[x.block||x.id]=+x.usd_neu);const usd=Object.values(bl).reduce((s,v)=>s+v,0);
         if(E.kf[lg]==null&&!(d.mandant=="somnio"&&usd<=(E.regler.budget??d.budget)))E.kf[lg]=Math.ceil(usd*150+1)/100;}}
     if(Object.keys(E.kf).length)e.kosten_freigeben=E.kf;Object.assign(e,E.regler);
     if(Object.keys(E.fw).length)e.fish_weg=E.fw;
@@ -2148,7 +2165,7 @@ MON["510"]={
       const n=[...(E.neu[lg]||[])],be=[...(E.beh[lg]||[])],ba=[...(E.bau[lg]||[])],G=E.gr[lg]||{};
       if(be.length)e.behalten=be;if(ba.length)e.bauen=ba;if(Object.keys(G).length)e.grenze=G;
       for(const [id,g] of Object.entries(G))if(g!="weg")for(const [k,v] of Object.entries(g))if(!(v[0]>=0&&v[1]>v[0])){alert(`Grenze ${id} Segment ${k}: Anfang < Ende nötig`);return;}
-      if(n.length){e.satz=n;const usd=d.sprachen[lg].hoerliste.filter(x=>n.includes(x.id)).reduce((s,x)=>s+(+x.usd_neu),0);
+      if(n.length){e.satz=n;const bl={};d.sprachen[lg].hoerliste.filter(x=>n.includes(x.id)).forEach(x=>bl[x.block||x.id]=+x.usd_neu);const usd=Object.values(bl).reduce((s,v)=>s+v,0);
         if(E.kf[lg]==null&&!(d.mandant=="somnio"&&usd<=(E.regler.budget??d.budget)))E.kf[lg]=Math.ceil(usd*150+1)/100;}}
     if(Object.keys(E.kf).length)e.kosten_freigeben=E.kf;Object.assign(e,E.regler);
     const K=Object.entries(E.ko||{});
@@ -2268,8 +2285,10 @@ MON["530"]={
 MON["520"]={
   E:null,sel:null,fa:"",
   ART:{gekippt:["stopp","gekippt"],verdacht:["mensch","Verdacht"],ohne_fa:["mensch","ohne FA-Ränder"],angenommen:["frei","angenommen"]},
-  leer(){return {satz:{},an:{},regler:{},tempo:{},nv:null,grund:""};},
+  leer(){return {satz:{},an:{},ov:{},regler:{},tempo:{},nv:null,grund:""};},
   set(o){return o[this.sel]=o[this.sel]||new Set();},
+  ovs(){return this.E.ov[this.sel]=this.E.ov[this.sel]||{};},
+  ovSet(id,v){const o=this.ovs();v=v.replace(/\s+/g," ").trim();if(v)o[id]=v;else delete o[id];this.zf();},
   pl(p){return p?`<audio controls preload="none" src="/datei?p=${encodeURIComponent(p)}" style="width:200px;height:30px"></audio>`:'<span class="klein">–</span>';},
   html(d){
     if(!this.E)this.E=this.leer();
@@ -2294,6 +2313,11 @@ MON["520"]={
         ${s.kapitel.map(k=>`<tr><td>${esc(k.kapitel)}</td><td>${k.saetze}</td><td>${k.lufs_vor}</td><td>${k.gain_db>0?"+":""}${k.gain_db} dB${k.begrenzt?' <span class="klein">begrenzt</span>':""}</td>
          <td class="${k.lufs_aus?"err":""}">${k.lufs}</td><td class="${k.spitze_aus?"err":""}">${k.peak} dBTP</td></tr>`).join("")}</table>
         <div class="klein">Ziel ${rg("lufs")} ± ${rg("lufs_tol")} LUFS, Spitze ≤ ${rg("peak_max")} dBTP.</div>`:'<div class="klein">Noch keine Endfassung.</div>'}</div>
+      ${(s.aussprache||[]).length?`<div class="box"><h2>Aussprache uneinheitlich ${esc(s.sprache)} · ${esc(s.spur)} <span class="klein">(${s.aussprache.length}; laut Whisper-Abschrift)</span></h2>
+       <table class="kapt"><tr><th>Begriff</th><th>Gehört als</th><th>Hörbeispiele</th></tr>
+       ${s.aussprache.map(x=>`<tr><td>${esc(x.begriff)}</td><td class="klein">${Object.entries(x.formen).slice(0,5).map(([f,n])=>esc(f)+" "+n+"×").join("<br>")}</td>
+        <td>${Object.entries(x.beispiele||{}).map(([f,b])=>`<div class="klein">${esc(f)}</div>${b.map(y=>this.pl(y.audio)).join(" ")}`).join("")}</td></tr>`).join("")}</table>
+       <div class="klein">Whisper schreibt fremde Namen nicht immer gleich: erst anhören. Klingt es wirklich verschieden → feste Lautschreibung im Aussprache-Lexikon (work/aussprache_${esc(s.sprache)}.json, Feld „fest“), dann betroffene Sätze in ${esc(s.quelle)} neu vertonen.</div></div>`:""}
       <div class="box"><h2>2 Handeln · Hörliste ${esc(s.sprache)} · ${esc(s.spur)} <span class="klein">(${l.length} von ${s.liste.length})</span></h2>
        <div class="akt">Art <select onchange="MON['520'].fa=this.value;MON['520'].neuZeichnen()"><option value="">alle</option>${Object.entries(this.ART).map(([k,v])=>`<option value="${k}" ${this.fa==k?"selected":""}>${v[1]}</option>`).join("")}</select>
         <span class="klein">„neu bauen“ schneidet und normiert den Satz neu (0 $, FA im Cent-Bereich). Klingt schon die Rohfassung falsch → in <a href="#${esc(M.book_id)}/${esc(s.quelle)}">${esc(s.quelle)}</a> neu vertonen. „annehmen“ braucht unten einen Grund und gilt, bis die Endfassung neu entsteht.</span></div>
@@ -2301,7 +2325,9 @@ MON["520"]={
         ${l.map(x=>{const sp=x.sprache||{};return `<tr class="${n.has(x.id)||a.has(x.id)?"sel":""}"><td class="klein">${esc(x.id)}</td>
          <td><span class="z ${this.ART[x.art][0]}">${this.ART[x.art][1]}</span><br><span class="klein">${sp.top?"Sprache "+esc(sp.top)+(sp.p!=null?" ("+Math.round(100*sp.p)+" %)":""):""}${sp.cer!=null?" · CER "+Math.round(100*sp.cer)+" %":""}${x.nachvertont?" · "+x.nachvertont+"× nachvertont":""}${x.rand?" · Rand "+x.rand.map(v=>(+v).toFixed(2)).join("/")+" s":""}</span>
           ${x.art=="angenommen"?`<br><span class="klein">${esc(x.wer||"")} ${esc((x.wann||"").slice(0,16).replace("T"," "))}: ${esc(x.grund||"")}</span>`:""}</td>
-         <td style="max-width:420px">${esc(x.text||"")}${sp.text?`<br><span class="klein">erkannt: ${esc(sp.text)}</span>`:""}</td>
+         <td style="max-width:420px">${esc(x.text||"")}${sp.text?`<br><span class="klein">erkannt: ${esc(sp.text)}</span>`:""}
+          ${/^c\d+_\d+_[a-z]+$/.test(x.id)?`<br><input type="text" size="28" placeholder="So soll es klingen (z. B. zwölf)" value="${esc(this.ovs()[x.id]??"")}" oninput="MON['520'].ovSet('${x.id}',this.value)">
+          ${x.override?`<br><span class="klein">Override aktiv: „${esc(x.override)}“ (– eintragen = zurücksetzen)</span>`:""}`:""}</td>
          <td>${this.pl(x.roh)}</td><td>${this.pl(x.audio)}<br><span class="klein">${x.dauer!=null?(+x.dauer).toFixed(1)+" s":""}</span></td>
          <td class="klein"><label><input type="checkbox" ${n.has(x.id)?"checked":""} onchange="MON['520'].tg('satz','${x.id}',this.checked)"> neu bauen</label>
           ${x.art!="angenommen"?`<br><label><input type="checkbox" ${a.has(x.id)?"checked":""} onchange="MON['520'].tg('an','${x.id}',this.checked)"> annehmen</label>`:""}
@@ -2329,6 +2355,7 @@ MON["520"]={
   tg(was,id,an){const s=this.set(this.E[was]);an?s.add(id):s.delete(id);if(an)this.set(this.E[was=="an"?"satz":"an"]).delete(id);this.neuZeichnen();},
   rg(k,v){if(Math.abs(v-M.daten.regler[k])<1e-9)delete this.E.regler[k];else this.E.regler[k]=+(+v).toFixed(4);this.zf();},
   zf(){const E=this.E,t=[];
+    for(const [k,o] of Object.entries(E.ov))if(Object.keys(o).length)t.push(`${k}: ${Object.keys(o).length} Sprechtext neu vertonen (Kostenfreigabe bis ${Math.min(5,Math.max(0.5,0.15*Object.keys(o).length)).toFixed(2)} $)`);
     for(const [k,s] of Object.entries(E.satz))if(s.size)t.push(`${k}: ${s.size} neu bauen`);
     for(const [k,s] of Object.entries(E.an))if(s.size)t.push(`${k}: ${s.size} annehmen`);
     for(const [lg,v] of Object.entries(E.tempo))t.push(`Tempo ${lg} ${v}`);
@@ -2336,12 +2363,14 @@ MON["520"]={
     const el=$("zf520");if(el)el.textContent=t.join(" · ");},
   los(trocken){
     const E=this.E,d=M.daten,e={};
-    const ks=[...new Set([...Object.entries(E.satz),...Object.entries(E.an)].filter(([,s])=>s.size).map(([k])=>k))];
+    const ks=[...new Set([...Object.entries(E.satz),...Object.entries(E.an)].filter(([,s])=>s.size).map(([k])=>k)
+      .concat(Object.entries(E.ov).filter(([,o])=>Object.keys(o).length).map(([k])=>k)))];
     if(ks.length>1){alert("Hörliste in mehreren Sprachen/Spuren geändert: bitte einzeln übernehmen.");return;}
     if(ks.length){const s=d.spuren[ks[0]];e.lang=s.sprache;e.spur=s.spur;
       const n=[...(E.satz[ks[0]]||[])],a=[...(E.an[ks[0]]||[])];
       if(a.length){if(!E.grund.trim()){alert("Annehmen braucht einen Grund");return;}e.annehmen=a;e.grund=E.grund.trim();}
-      if(n.length)e.satz=n;}
+      if(n.length)e.satz=n;
+      const o=E.ov[ks[0]]||{};if(Object.keys(o).length&&!trocken)e.sprechtext=o;}
     const tp={};for(const [lg,v] of Object.entries(E.tempo)){const alt=d.regler.tempo[lg];if(alt==null||Math.abs(alt-v)>1e-9)tp[lg]=v;}
     if(Object.keys(tp).length)e.tempo=tp;Object.assign(e,E.regler);if(E.nv!=null)e.nachvertonen=E.nv;
     if(trocken){delete e.annehmen;delete e.grund;e.trocken=true;}

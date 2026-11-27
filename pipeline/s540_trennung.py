@@ -283,6 +283,8 @@ def plan_sprache(werk, lg, stufe, c, data, spr, m510, rg):
     texte = s530.saetze_text(data, lg)
     # Korrektur 510 = casting (sonst ist die Hoerspielspur veraltet)
     fig510 = ((m510.meta.get("je_sprache") or {}).get(lg) or {}).get("figuren") or {}
+    if not isinstance(fig510, dict):                   # Fish-VC (511) schreibt nur eine Namensliste, keine Korrekturstufe
+        fig510 = {}
     abw = [f for f, x in fig510.items() if f in ens and _korr({"korrektur": x.get("korrektur")}) != _korr(ens[f])]
     if abw:
         p["fehler"].append((f"korrektur_{lg}", f"{lg}: Korrekturstufe in casting.json neuer als die Hoerspielspur 510 "

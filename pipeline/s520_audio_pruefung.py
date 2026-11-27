@@ -24,6 +24,9 @@ Kosten:       usage_log Stage 520 (Modal-Sekunden FA + Whisper, je Sprache); CPU
 Regler:       book.json pruefung_regler: --tempo [LG=]F (Standard: Chatterbox Adapter-Tempo, Gemini 1,0), --vor/--nach S,
               --rand-max, --lufs, --lufs-tol, --peak-max, --fa modal|cpu, --sprache modal|cpu|aus, --stichprobe P (%),
               --cer-verdacht, --p-min, --kurz-s, --verdacht-max, --ohne-fa-max, --versuche, --nachvertonen an|aus;
+              Segment-Lautheit (pipeline/lautheit.py, 27.11.2026): --segment-lautheit an|aus (Standard aus; an -> peak_max
+              hoechstens -3 dBTP, CSV work/520_lautheit_<lg>_<spur>.csv), --segment-lufs (-19), --segment-kurz-s (3),
+              --segment-gain-max (10), --master an|aus (Kompression);
               dazu --satz ID (neu), --kapitel c001,c002, --lang, --spur hoerbuch|hoerspiel, --neu, --trocken;
               --annehmen ID --grund TEXT (mit --lang/--spur; Vermerk work/520_entscheidungen.json, gilt bei gleicher
               Endfassung).
@@ -55,6 +58,7 @@ from pipeline import s420_sprecher as s420
 from pipeline import s500_vertonung_gemini as s500
 from pipeline import s502_vertonung_chatterbox as cb
 from pipeline import s510_hoerspiel_hybrid as s510
+from pipeline import lautheit as L
 
 STAGE = "520"
 SR = 24000
@@ -72,7 +76,12 @@ GAIN_MAX = 20.0                  # dB
 REGLER_STD = {"tempo": {}, "vor": 0.05, "nach": 0.12, "rand_max": 0.15, "lufs": -18.0, "lufs_tol": 1.0,
               "peak_max": -1.0, "fa": "modal", "sprache": "modal", "stichprobe": 100, "cer_verdacht": 0.35,
               "p_min": 0.5, "kurz_s": 1.0, "verdacht_max": 0.02, "ohne_fa_max": 0.01, "versuche": 2,
-              "nachvertonen": True}
+              "nachvertonen": True,
+              # AP Lautheit 27.11.2026 (pipeline/lautheit.py): Segmente vor dem Zusammenfuegen auf segment_lufs,
+              # Kapitel-Mastering (Kompression + True-Peak-Limiter peak_max). Aus = bisheriger Weg, bitgleich.
+              "segment_lautheit": False, "segment_lufs": -19.0, "segment_kurz_s": 3.0, "segment_gain_max": 10.0,
+              "master": True}
+SEGMENT_PEAK = -3.0              # peak_max, wenn segment_lautheit an und das Werk keinen eigenen Wert setzt
 WHISPER_CPU = getattr(config, "WHISPER_CPU_MODELL", "small")
 
 
@@ -153,11 +162,12 @@ def lautheit(y):
     return f(i), f(p)
 
 
-def begrenzen(y, grenze_db, halb_ms=2.0):
+def begrenzen(y, grenze_db, halb_ms=2.0, spitzen=None):
     """Spitzenbegrenzer: Verstaerkung je Sample <= grenze/|y|, gegen Nachbarn (Minimum +-2w) und geglaettet
-    (Mittel +-w) – an jeder Spitze bleibt die Verstaerkung <= noetig, ohne harte Spruenge."""
+    (Mittel +-w) – an jeder Spitze bleibt die Verstaerkung <= noetig, ohne harte Spruenge.
+    spitzen: optional |Spitze| je Sample (z. B. True Peak aus lautheit.true_peaks) statt |y|."""
     lim = 10 ** (grenze_db / 20)
-    a = np.abs(y)
+    a = np.abs(y) if spitzen is None else np.asarray(spitzen, np.float32)
     if not len(y) or a.max() <= lim:
         return y
     w = max(1, int(halb_ms / 1000 * SR))
@@ -210,23 +220,25 @@ def klang(x, w):
     return (min(anf, w[0]), max(ende, w[1]))
 
 
-def schneiden(x, w, vor, nach, tempo):
+def schneiden(x, w, vor, nach, tempo, mit_start=False):
     """Satz auf Klanganteil schneiden; Raender so, dass sie nach dem Tempo vor/nach s betragen (gemessen ab
-    Klanganfang/-ende, nicht ab FA-Wortgrenze – Auslaute bleiben ganz, 21.11.2026)."""
+    Klanganfang/-ende, nicht ab FA-Wortgrenze – Auslaute bleiben ganz, 21.11.2026).
+    mit_start: zusaetzlich Schnittanfang in s (Abbildung der Spannen auf die Endfassung, Segment-Lautheit)."""
     if not w:
-        return x, None
+        return (x, None, 0.0) if mit_start else (x, None)
     w = klang(x, w)
     a = max(0, int((w[0] - vor * tempo) * SR))
     b = min(len(x), int((w[1] + nach * tempo) * SR))
     if b - a < int(0.1 * SR):
-        return x, None
+        return (x, None, 0.0) if mit_start else (x, None)
     y = x[a:b].astype(np.float32).copy()
     fi, fo = min(int(EIN * SR), len(y)), min(int(AUS * SR), len(y))
     y[:fi] *= np.linspace(0, 1, fi, dtype=np.float32)
     y[len(y) - fo:] *= np.linspace(1, 0, fo, dtype=np.float32)
     r_vor = (w[0] - a / SR) / tempo
     r_nach = (b / SR - w[1]) / tempo
-    return y, (round(r_vor, 3), round(r_nach, 3))
+    rand = (round(r_vor, 3), round(r_nach, 3))
+    return (y, rand, a / SR) if mit_start else (y, rand)
 
 
 # ============================================================ Werkzeuge (patchbar)
@@ -365,10 +377,87 @@ def namen(saetze):
     return {k: v for k, v in z.most_common(10) if v >= 3}
 
 
+AUSSPRACHE_MIN = 2          # je Form mindestens so oft, damit "uneinheitlich" (Einzelfall = Whisper-Rauschen)
+AUSSPRACHE_AEHNLICH = 0.6   # Mindest-Aehnlichkeit des Whisper-Ausschnitts zum Begriff
+AUSSPRACHE_GLEICH = 1       # Formen mit hoechstens so vielen Buchstaben Abstand = Schreibvariante (zusammengefasst);
+                            # 2 trennt Ferraio/Ferracho (i -> ch), 1 fasst Morel/Morell, Danglar/Danglas zusammen
+
+
+def _abstand(a, b):
+    """Levenshtein-Abstand (kurze Woerter)."""
+    v = list(range(len(b) + 1))
+    for i, ca in enumerate(a, 1):
+        w = [i]
+        for j, cb_ in enumerate(b, 1):
+            w.append(min(v[j] + 1, w[j - 1] + 1, v[j - 1] + (ca != cb_)))
+        v = w
+    return v[-1]
+
+
+def _grund(s):
+    """_norm ohne Akzente (Whisper schreibt Dantès/Dantes beliebig)."""
+    s = unicodedata.normalize("NFKD", _norm(s))
+    return "".join(c for c in s if not unicodedata.combining(c))
+
+
+def begriffe_aussprache(data, lg, lex):
+    """Fremde Namen/Begriffe aus dem Profil (400_regie meta.profile): Figuren (Zielform) + Unuebersetztes, wie im
+    Sprechtext (Lexikon angewandt). -> {Begriff: Sprechform}."""
+    prof = (data.get("meta") or {}).get("profile") or {}
+    out = {}
+    for k, e in (prof.get("characters") or {}).items():
+        n = (e.get(lg) if isinstance(e, dict) else None) or k
+        out[n] = lex(n)
+    for k in prof.get("untranslated") or {}:
+        out[k] = lex(k)
+    return {k: v for k, v in out.items() if _grund(v)}
+
+
+def _form_im_asr(begriff, asr):
+    """Ausschnitt der Whisper-Abschrift, der dem Begriff am naechsten kommt (gleich viele Woerter +-1). -> str|None"""
+    b, w = _grund(begriff).split(), _grund(asr).split()
+    best, form = 0.0, None
+    for n in {max(1, len(b) - 1), len(b), len(b) + 1}:
+        for i in range(len(w) - n + 1):
+            kand = " ".join(w[i:i + n])
+            r = difflib.SequenceMatcher(None, " ".join(b), kand, autojunk=False).ratio()
+            if r > best:
+                best, form = r, kand
+    return form if best >= AUSSPRACHE_AEHNLICH else None
+
+
+def aussprache_varianten(saetze, begriffe):
+    """Werkweit je Begriff: wie hat Whisper ihn in den Saetzen gehoert, die ihn enthalten (27.11.2026, CK:
+    "Porto-Ferrajo" 10x Ferraio, 5x Ferracho, 3x Ferrajo gehoert). saetze: {tid: (sprechtext, whisper_text)}.
+    -> [{begriff, formen {form: n}, ids {form: [tid]}}] fuer Begriffe mit >= 2 Formen je >= AUSSPRACHE_MIN."""
+    out = []
+    for name, sprech in begriffe.items():
+        muster = re.compile(r"(?<!\w)" + re.escape(_grund(sprech)) + r"(?!\w)")
+        roh = collections.defaultdict(list)
+        for t, (soll, ist) in saetze.items():
+            if ist and muster.search(_grund(soll)):
+                f = _form_im_asr(sprech, ist)
+                if f:
+                    roh[f.replace(" ", "")].append(t)     # Worttrennung ist Whisper-Sache, keine Aussprache
+        formen = {}
+        for f, ids in sorted(roh.items(), key=lambda x: -len(x[1])):
+            gleich = next((h for h in formen if _abstand(h, f) <= AUSSPRACHE_GLEICH), None)
+            formen.setdefault(gleich or f, []).extend(ids)
+        haeufig = {f: ids for f, ids in formen.items() if len(ids) >= AUSSPRACHE_MIN}
+        if len(haeufig) >= 2:
+            out.append({"begriff": name, "formen": {f: len(ids) for f, ids in sorted(formen.items(),
+                                                                                    key=lambda x: -len(x[1]))},
+                        "ids": {f: ids[:5] for f, ids in haeufig.items()}})
+    return out
+
+
 # ============================================================ Regler
 def _regler(roh):
     rg = json.loads(json.dumps(REGLER_STD))
-    rg.update({k: v for k, v in (roh.get("pruefung_regler") or {}).items() if k in REGLER_STD})
+    eigen = roh.get("pruefung_regler") or {}
+    rg.update({k: v for k, v in eigen.items() if k in REGLER_STD})
+    if rg["segment_lautheit"] and ("peak_max" not in eigen or float(rg["peak_max"]) > SEGMENT_PEAK):
+        rg["peak_max"] = SEGMENT_PEAK
     return rg
 
 
@@ -390,7 +479,10 @@ def _regler_gueltig(rg):
                 and -6 <= float(rg["peak_max"]) <= 0 and 0 <= int(rg["stichprobe"]) <= 100
                 and 0 < float(rg["cer_verdacht"]) <= 1 and 0 <= float(rg["p_min"]) <= 1
                 and 0 <= float(rg["verdacht_max"]) <= 1 and 0 <= float(rg["ohne_fa_max"]) <= 1
-                and 0 <= int(rg["versuche"]) <= 3)
+                and 0 <= int(rg["versuche"]) <= 3
+                and isinstance(rg["segment_lautheit"], bool) and isinstance(rg["master"], bool)
+                and -30 <= float(rg["segment_lufs"]) <= -10 and 0.5 <= float(rg["segment_kurz_s"]) <= 10
+                and 0 <= float(rg["segment_gain_max"]) <= 20)
     except (KeyError, TypeError, ValueError):
         return False
 
@@ -436,6 +528,8 @@ def run(werk, wer=None, regler=None, saetze=None, kapitel=None, nur_lang=None, n
     rg = _regler(dict(b.roh))
     if regler and any(v is not None for v in regler.values()):
         rg = regler_anwenden(rg, regler)
+        if rg.get("segment_lautheit") and float(rg["peak_max"]) > SEGMENT_PEAK:
+            rg["peak_max"] = SEGMENT_PEAK
         if not trocken:
             b = bestellung.feld_setzen(werk, pruefung_regler=rg)
     sp = _spuren(b)
@@ -494,7 +588,7 @@ def run(werk, wer=None, regler=None, saetze=None, kapitel=None, nur_lang=None, n
                                                      "r": [rg["vor"], rg["nach"]], "v": VERSION, "s": SCHNITT})}
             auswahl = {t for t in ids if kap_von(t) in kap or t in saetze} if (kap or saetze) else None
             plan[(lg, spur)] = {"m": m, "ids": ids, "fehlt": fehlt, "mock": mocks, "soll": soll, "tempo": tempo,
-                                "auswahl": auswahl}
+                                "auswahl": auswahl, "begriffe": begriffe_aussprache(data, lg, lex)}
 
     # ---- Werkzeuge vor jeder Ausgabe
     def offen_fa(p, lg, spur):
@@ -593,6 +687,72 @@ def _soll_neu(p, mq, lg, rg):
                                         "r": [rg["vor"], rg["nach"]], "v": VERSION, "s": SCHNITT}))
 
 
+# ============================================================ Segment-Lautheit (AP Lautheit 27.11.2026)
+def lautheit_csv(werk, lg, spur):
+    return os.path.join(config.work_dir(werk), f"520_lautheit_{lg}_{spur}.csv")
+
+
+def segment_kontext(werk, lg, spur, rg, quellen=None):
+    """Spannen-Quellen (500/510), Offset-Tabelle und Offsets je Beitrag (430) fuer eine Sprache x Spur."""
+    q = quellen or _quellen(werk)
+    tab = L.offset_tabelle(bestellung.lesen(werk).roh)
+    return {"lg": lg, "spur": spur, "m5": q["hoerbuch"], "m51": q["hoerspiel"], "tab": tab,
+            "off": L.offsets_laden(werk, lg, tab)}
+
+
+def _e(m, k):
+    return (m.get(k) if m else None) or {}
+
+
+def seg_spannen(seg, t, dauer_s):
+    k = f"{seg['lg']}/{t}"
+    if seg["spur"] == "hoerbuch":
+        return L.spannen_hoerbuch(_e(seg["m5"], k), dauer_s)
+    return L.spannen_hoerspiel(_e(seg["m5"], k), _e(seg["m51"], k), dauer_s)
+
+
+def seg_hash(seg, tids, rg):
+    """Eingang der Segment-Lautheit je Kapitel: Regler, Offsets, Spannen 500/510."""
+    k = lambda t: f"{seg['lg']}/{t}"
+    sp = [(t, _e(seg["m5"], k(t)).get("spannen"), _e(seg["m51"], k(t)).get("schnitt") if seg["spur"] == "hoerspiel"
+           else None) for t in tids]
+    ids = {s["id"] for _t, s5, _s in sp for s in (s5 or [])}
+    return manifest.hash_obj({"r": [rg[x] for x in ("segment_lufs", "segment_kurz_s", "segment_gain_max", "master")],
+                              "tab": seg["tab"], "kal": getattr(config, "LAUTHEIT_KALIB_STD", 2.5),
+                              "komp": getattr(config, "LAUTHEIT_KOMPRESSOR", {}),
+                              "off": {i: v for i, v in seg["off"].items() if i in ids}, "sp": sp, "v": L.VERSION})
+
+
+def segmente_kapitel(seg, roh_x, rg):
+    """{tid: Roh-WAV} eines Kapitels -> ({tid: normiert}, info {kal, saetze: {tid: {prot, vor, seg, spannen}}})."""
+    sp = {t: seg_spannen(seg, t, len(x) / SR) for t, x in roh_x.items()}
+    stuecke = [(s["fig"], x[int(s["a"] * SR):int(s["b"] * SR)]) for t, x in roh_x.items() for s in sp[t]]
+    kal = L.kalibrierung(stuecke, float(rg["segment_kurz_s"]))
+    out, saetze = {}, {}
+    for t, x in roh_x.items():
+        y, prot = L.segmente_normieren(x, sp[t], kal, seg["off"], rg)
+        out[t] = y
+        saetze[t] = {"prot": prot, "vor": x, "seg": y, "spannen": sp[t]}
+    return out, {"kal": kal, "saetze": saetze}
+
+
+def segment_report(k, tids, sp_info, stuecke, info, ges, tempo, rg):
+    """CSV-Zeilen eines Kapitels: je Segment vorher (roh), nach Segmentnorm (roh), nach Master (Endfassung:
+    Spanne -> (t - Schnittanfang) / Tempo)."""
+    segs, pos = [], 0
+    for t in tids:
+        n = len(stuecke[t])
+        st = info[t].get("start") or 0.0
+        s_t = sp_info["saetze"][t]
+        for s in s_t["spannen"]:
+            a, b = int(s["a"] * SR), int(s["b"] * SR)
+            ma = pos + max(0, min(n, int((s["a"] - st) / tempo * SR)))
+            mb = pos + max(0, min(n, int((s["b"] - st) / tempo * SR)))
+            segs.append({"fig": s["fig"], "vor": s_t["vor"][a:b], "seg": s_t["seg"][a:b], "master": ges[ma:mb]})
+        pos += n
+    return L.report_zeilen(k, segs, sp_info["kal"], rg)
+
+
 def _bauen(werk, lg, spur, p, rg, saetze, kap, neu):
     """FA fuer offene Saetze, dann je betroffenem Kapitel: schneiden, Tempo, Lautheit -> Endfassung."""
     m, soll, tempo = p["m"], p["soll"], p["tempo"]
@@ -612,12 +772,17 @@ def _bauen(werk, lg, spur, p, rg, saetze, kap, neu):
             kapitel.setdefault(kap_von(t), []).append(t)
     km = m.meta.setdefault("kapitel", {})
     m_sperre = threading.Lock()                     # Manifest: Eintraege + Speichern je Kapitel unter Sperre
+    seg = segment_kontext(werk, lg, spur, rg) if rg.get("segment_lautheit") else None
+    report = {}
     offen_k = []
     for k, tids in kapitel.items():
         if kap and k not in kap and not (set(tids) & saetze):
             continue
-        kh = manifest.hash_obj({"s": [(t, soll[t]["ein"]) for t in tids],
-                                "l": [rg["lufs"], rg["peak_max"]], "v": VERSION, "schnitt": SCHNITT})
+        hk = {"s": [(t, soll[t]["ein"]) for t in tids],
+              "l": [rg["lufs"], rg["peak_max"]], "v": VERSION, "schnitt": SCHNITT}
+        if seg:                                      # nur wenn an: Altwerke behalten ihren Kapitel-Hash
+            hk["seg"] = seg_hash(seg, tids, rg)
+        kh = manifest.hash_obj(hk)
         alt = km.get(f"{spur}/{k}") or {}
         aktuell = all(m.get(f"{spur}/{t}") and m.datei_aktuell(f"{spur}/{t}") for t in tids)
         if alt.get("hash") == kh and aktuell and not neu and not (set(tids) & saetze) and not (set(tids) & set(fa)):
@@ -628,22 +793,33 @@ def _bauen(werk, lg, spur, p, rg, saetze, kap, neu):
         """Ein Kapitel (eine Spur): schneiden, Tempo (ffmpeg je Satz), Lautheit -> Endfassungen; sichert sofort."""
         k, tids, kh = a
         stuecke, info = {}, {}
+        roh_x = {t: s510.lesen(soll[t]["quelle"]) for t in tids}
+        if seg:
+            roh_x, sp_info = segmente_kapitel(seg, roh_x, rg)
         for t in tids:
             e = m.get(f"{spur}/{t}") or {}
             w = fa[t] if t in fa else (tuple(e["w"]) if e.get("w") else None)
-            x = s510.lesen(soll[t]["quelle"])
-            y, rand = schneiden(x, w, float(rg["vor"]), float(rg["nach"]), tempo)
+            y, rand, start = schneiden(roh_x[t], w, float(rg["vor"]), float(rg["nach"]), tempo, mit_start=True)
             y = tempo_anwenden(y, tempo)
             stuecke[t] = y
-            info[t] = {"w": list(w) if w else None, "rand": rand}
+            info[t] = {"w": list(w) if w else None, "rand": rand, "start": start}
         roh = np.concatenate([stuecke[t] for t in tids]) if tids else np.zeros(0, np.float32)
-        lu, pk = lautheit(roh)
-        gain = max(-GAIN_MAX, min(GAIN_MAX, float(rg["lufs"]) - lu))
-        ges = roh * 10 ** (gain / 20)
-        begrenzt = pk + gain > float(rg["peak_max"])
-        if begrenzt:
-            ges = begrenzen(ges, float(rg["peak_max"]) - 1.0)
-        lu2, pk2 = lautheit(ges)
+        seg_meta = None
+        if seg:
+            ges, mi = L.mastern(roh, float(rg["lufs"]), float(rg["peak_max"]), rg)
+            lu, gain, lu2, pk2, begrenzt = mi["lufs_vor"], mi["gain_db"], mi["lufs"], mi["peak"], mi["begrenzt"]
+            report[k] = segment_report(k, tids, sp_info, stuecke, info, ges, tempo, rg)
+            seg_meta = {"segmente": sum(len(v["prot"]) for v in sp_info["saetze"].values()),
+                        "kalibrierung": round(sp_info["kal"].get(None, 0.0), 2), "kompression": mi["kompression"],
+                        "peak_vor": mi["peak_vor"]}
+        else:
+            lu, pk = lautheit(roh)
+            gain = max(-GAIN_MAX, min(GAIN_MAX, float(rg["lufs"]) - lu))
+            ges = roh * 10 ** (gain / 20)
+            begrenzt = pk + gain > float(rg["peak_max"])
+            if begrenzt:
+                ges = begrenzen(ges, float(rg["peak_max"]) - 1.0)
+            lu2, pk2 = lautheit(ges)
         pos, neu_e = 0, []
         for t in tids:
             y = ges[pos:pos + len(stuecke[t])]
@@ -659,11 +835,16 @@ def _bauen(werk, lg, spur, p, rg, saetze, kap, neu):
                          dauer=dauer, sprache=alt_e.get("sprache"))
             km[f"{spur}/{k}"] = {"hash": kh, "lufs_vor": round(lu, 2), "gain_db": round(gain, 2), "begrenzt": begrenzt,
                                  "lufs": round(lu2, 2), "peak": round(pk2, 2), "saetze": len(tids)}
+            if seg_meta:
+                km[f"{spur}/{k}"].update(segment=seg_meta, master=True)
             m.speichern()
 
     from pipeline import spuren as SP
     SP.parallel(werk, STAGE, offen_k, kapitel_job, SP.anzahl(stage=STAGE), einheit=f"Kapitel {lg}/{spur}",
                 gewicht=[len(tids) for _k, tids, _h in offen_k])
+    if seg and report:
+        L.csv_schreiben(lautheit_csv(werk, lg, spur), [z for k in sorted(report) for z in report[k]],
+                        ersetzt_kapitel=list(report))
     # Verwaiste Endfassungen (Satz nicht mehr in der Spur)
     for key in [k for k in m.eintraege if k.startswith(f"{spur}/")]:
         t = key.split("/", 1)[1]
@@ -752,12 +933,19 @@ def _gate_spur(g, werk, lg, spur, p, rg, trocken, teil):
         if nm:
             g.hinweis(f"namen_{lg}_{spur}", False, wert=nm, text=f"{pre}: wiederholte Namen in Verdachtssaetzen "
                       f"{', '.join(nm)} – Aussprache in 400 pruefen")
+    # Aussprache werkweit (Whisper-Abschrift; nur Hinweis, Whisper hoert nicht fehlerfrei -> Hoerliste)
+    av = aussprache_varianten({t: (p["soll"][t]["text"], sp[t].get("text")) for t in gepr}, p.get("begriffe") or {})
+    if rg["sprache"] != "aus":
+        g.hinweis(f"aussprache_{lg}_{spur}", not av, wert=len(av), text=f"{pre}: Aussprache uneinheitlich {len(av)}" + (
+            " – " + "; ".join(f"{x['begriff']}: " + ", ".join(f"{f} {n}x" for f, n in list(x["formen"].items())[:3])
+                              for x in av[:5]) + " – feste Lautschreibung in work/aussprache_" + lg + ".json"
+            if av else ""))
     zeile = lambda t: {"id": t, "text": p["soll"][t]["text"], "datei": (m.get(f"{spur}/{t}") or {}).get("datei"),
                        "sprache": sp.get(t)}
     return {"gekippt": [zeile(t) for t in gek], "verdacht": [zeile(t) for t in ver][:200],
             "angenommen": [dict(zeile(t), **{k: ent[f"{lg}/{spur}/{t}"].get(k) for k in ("wer", "wann", "grund")})
                            for t in sorted(angen)][:200],
-            "ohne_fa": ohne_fa[:200], "kapitel_lufs": aus_l, "kapitel_spitze": aus_p, "fehlt": p["fehlt"][:200],
+            "aussprache": av, "ohne_fa": ohne_fa[:200], "kapitel_lufs": aus_l, "kapitel_spitze": aus_p, "fehlt": p["fehlt"][:200],
             "nachvertont": dict(m.meta.get("nachvertont") or {})}
 
 
@@ -775,6 +963,10 @@ def main(argv=None):
     ap.add_argument("--fa", choices=("modal", "cpu"))
     ap.add_argument("--sprache", choices=("modal", "cpu", "aus"))
     ap.add_argument("--nachvertonen", choices=("an", "aus"))
+    ap.add_argument("--segment-lautheit", choices=("an", "aus"))
+    ap.add_argument("--master", choices=("an", "aus"))
+    for k in ("segment-lufs", "segment-kurz-s", "segment-gain-max"):
+        ap.add_argument(f"--{k}", type=float)
     ap.add_argument("--satz", action="append")
     ap.add_argument("--kapitel")
     ap.add_argument("--lang")
@@ -794,7 +986,10 @@ def main(argv=None):
               "lufs_tol": a.lufs_tol, "peak_max": a.peak_max, "cer_verdacht": a.cer_verdacht, "p_min": a.p_min,
               "kurz_s": a.kurz_s, "verdacht_max": a.verdacht_max, "ohne_fa_max": a.ohne_fa_max,
               "stichprobe": a.stichprobe, "versuche": a.versuche, "fa": a.fa, "sprache": a.sprache,
-              "nachvertonen": None if a.nachvertonen is None else a.nachvertonen == "an"}
+              "nachvertonen": None if a.nachvertonen is None else a.nachvertonen == "an",
+              "segment_lautheit": None if a.segment_lautheit is None else a.segment_lautheit == "an",
+              "master": None if a.master is None else a.master == "an",
+              "segment_lufs": a.segment_lufs, "segment_kurz_s": a.segment_kurz_s, "segment_gain_max": a.segment_gain_max}
     wer = a.wer or "pipeline"
     try:
         if (a.annehmen or any(v is not None for v in regler.values())) and not a.trocken:

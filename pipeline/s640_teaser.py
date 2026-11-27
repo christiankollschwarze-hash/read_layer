@@ -199,10 +199,18 @@ def stimme_waehlen(werk, b, lg, meta, autor_json, rg):
         c = s410.laden(werk)
         if not s410.freigegeben(c):
             return None, "casting.json nicht freigegeben", "410"
-        info, fe = s500.stimme(c, lg, stufe, engine)
+        from pipeline import fish_motor
+        ist_fish = fish_motor.motor(b.roh, lg) == "fish"  # Fish-Werk: Teaser mit der Fish-Erzaehlerstimme (26.11.2026)
+        info, fe = s500.stimme(c, lg, stufe, "fish" if ist_fish else engine)
         if fe:
             return None, fe, "410"
         info.update(engine=engine, stufe=stufe, quelle="casting", grund=f"Erzaehler des Werks ({stufe})")
+        if ist_fish:
+            info["engine"] = "fish"
+            try:
+                info["fish_id"] = fish_motor.fish_id(info["stimme"], lg, anlegen=True)
+            except Exception as e:
+                return None, f"Fish-Stimme {info['stimme']}: {e}", "410"
         if engine == "chatterbox":
             fa = s500.adapter_pruefen(info.get("adapter"))
             if fa:
@@ -251,6 +259,8 @@ def kosten(info, zeichen):
         return 0.0
     if info["engine"] == "chatterbox":
         return MODAL_LAUF_USD
+    if info["engine"] == "fish":
+        return round(zeichen * 1.2 / 1e6 * float(getattr(config, "FISH_USD_JE_MIO_BYTES", 15.0)), 6)
     return s500.kosten("gemini", zeichen)
 
 
@@ -263,6 +273,25 @@ def synth_gemini(werk, lg, jobs, info):
             os.makedirs(os.path.dirname(ziel), exist_ok=True)
             if s500._synth_retry(text, st, ziel, info["gemini_id"], lg, f"{lg} {tid}"):
                 out[tid] = ziel
+    return out
+
+
+def synth_fish(werk, lg, jobs, info):
+    """jobs [(id, text, stil, ziel)] -> {id: pfad} (Fish-API, Satz fuer Satz; Klammern raus wie in 500)."""
+    from pipeline import fish_motor
+    from pipeline.s430_fish_regie import klammern_weg
+    out = {}
+    with usage_log.kontext(werk, STAGE, sprache=lg):
+        for tid, text, _, ziel in jobs:
+            os.makedirs(os.path.dirname(ziel), exist_ok=True)
+            try:
+                wav, _i = fish_motor.tts_einfach(klammern_weg(text), info["fish_id"])
+            except Exception as e:
+                print(f"[640] {lg} {tid}: Fish-Fehler {e}")
+                continue
+            with open(ziel, "wb") as f:
+                f.write(wav)
+            out[tid] = ziel
     return out
 
 
@@ -432,7 +461,7 @@ def run(werk, wer=None, nur=None, neu=False, satz=None, nur_kosten=False, trocke
                       else f"Autor-Aussprache {wirkung}")
         basis = stil(rg, lg, meta, info["engine"])
         tempo = _tempo(rg, lg, info)
-        stimm_kern = {k_: info.get(k_) for k_ in ("stimme", "engine", "gemini_id", "referenz")}
+        stimm_kern = {k_: info.get(k_) for k_ in ("stimme", "engine", "gemini_id", "referenz", "fish_id")}
         stimm_kern["adapter"] = (info.get("adapter") or {}).get("name"), (info.get("adapter") or {}).get("version")
         text_dir, audio_dir = blurb_dirs(werk, lg)
         rd = roh_dir(werk, lg)
@@ -491,6 +520,8 @@ def run(werk, wer=None, nur=None, neu=False, satz=None, nur_kosten=False, trocke
                     fertig = {x["id"]: x["roh"] for x in zu_vertonen}
                 elif info["engine"] == "chatterbox":
                     fertig, befund = synth_chatterbox(werk, lg, jobs, info, rd)
+                elif info["engine"] == "fish":
+                    fertig = synth_fish(werk, lg, jobs, info)
                 else:
                     fertig = synth_gemini(werk, lg, jobs, info)
                 for x in zu_vertonen:

@@ -44,6 +44,9 @@ def bauen(werk, lg="de"):
     if os.path.exists(ziel) and json.load(open(ziel, encoding="utf-8")).get("freigegeben") and not FORCE:
         return "freigegeben_bleibt"
     prof = json.load(open(pp, encoding="utf-8")).get("meta", {}).get("profile", {})
+    # "fest": von Hand gesetzte Lautschreibungen, ueberstehen jeden Neubau und schlagen LLM/Profil (27.11.2026, CK:
+    # "Porto-Ferrajo" in Monte Cristo 1 mal Ferraio, mal Ferracho gesprochen)
+    fest = (json.load(open(ziel, encoding="utf-8")).get("fest") or {}) if os.path.exists(ziel) else {}
     begriffe, ersatz = [], {}
     for k in ("characters", "untranslated"):
         for name, e in (prof.get(k) or {}).items():
@@ -51,6 +54,8 @@ def bauen(werk, lg="de"):
                 continue
             if k == "characters" and e.get(lg) and e[lg] != name:
                 continue                       # Name wird uebersetzt -> keine Fremdaussprache
+            if name in fest:
+                continue
             t = (e.get(f"tts_{lg}") or "").strip()
             if t and t != name:
                 ersatz[name] = t
@@ -77,10 +82,11 @@ def bauen(werk, lg="de"):
         for k, v in (api_layer.parse_json(roh) or {}).items():
             if k in begriffe and isinstance(v, str) and v.strip() and v.strip() != k:
                 ersatz[k] = v.strip()
+    ersatz.update({k: v for k, v in fest.items() if v})
     daten = {"hinweis": "Lautschreibung NUR fuer die Vertonung (TTS-Text). Eintrag loeschen = Wort bleibt wie im Text. "
                         "Laengere Eintraege gelten vor kuerzeren. Nach Hoerprobe 'freigegeben': true setzen.",
              "stand": time.strftime("%Y-%m-%d") + ", automatisch aus 210_profil (tools/aussprache_lexikon.py)",
-             "freigegeben": False, "ersatz": dict(sorted(ersatz.items()))}
+             "freigegeben": False, "fest": fest, "ersatz": dict(sorted(ersatz.items()))}
     tmp = ziel + ".tmp"
     json.dump(daten, open(tmp, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     os.replace(tmp, ziel)

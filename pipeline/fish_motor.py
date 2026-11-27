@@ -288,7 +288,11 @@ def fish_id(stimme, lg, anlegen=False):
         from pipeline import voice_registry as vr
         texte = os.path.join(vr.STIMMEN_DIR, "_texte", "nordwind.json")
         text = ""
-        if os.path.exists(texte):
+        steck = os.path.join(os.path.dirname(wav), "steckbrief.json")   # Qwen-Stimmen: Transkript des Auszugs
+        if os.path.basename(wav) == f"klon_{lg}.wav" and os.path.exists(steck):
+            with open(steck, encoding="utf-8") as f:
+                text = ((json.load(f).get("referenzen") or {}).get(lg) or {}).get("text") or ""
+        if not text and os.path.exists(texte):
             with open(texte, encoding="utf-8") as f:
                 t = json.load(f).get(lg) or ""
             text = " ".join(t) if isinstance(t, list) else t
