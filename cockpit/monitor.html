@@ -1377,7 +1377,7 @@ MON["095"]={
     if(id=="hsx")return "Hörspiel gibt es nur in der TÆLLA App";
     if(id=="text"&&!this.erlaubt("text",null).includes("taella"))return "nicht erlaubt";
     if(id=="epub"&&!this.erlaubt("text",null).includes("epub"))return "nicht erlaubt";
-    if(this.HBK[id]){const st=e.hb.stufe||"basic";if(!this.erlaubt("hoerbuch",st).includes(this.HBK[id]))return `${id=="epub3"?"EPUB3":"Dieser Kanal"} geht mit Hörbuch nur in Stufe basic (gewählt: ${st})`;}
+    if(this.HBK[id]){const st=e.hb.stufe||"basic";if(!this.erlaubt("hoerbuch",st).includes(this.HBK[id]))return `${id=="epub3"?"EPUB3":"Dieser Kanal"} ist mit der Hörbuch-Stimme dieses Werks (${st}) nicht möglich`;}
     return "";},
   empfehlen(d){for(const lg of this.sprachen(d)){const e=this.S(lg);if(!e.text.includes("taella"))e.text.push("taella");
       if(d.eignung.urteil=="geeignet"&&!e.hs.stufe)e.hs.stufe=["premium","drama"].includes(d.eignung.stufe)?d.eignung.stufe:"premium";}},
@@ -1391,14 +1391,12 @@ MON["095"]={
     return {K,G,summe:a.summe};},
   eur(usd){const k=M.daten.eur_je_usd;if(usd==null||!k)return "–";const x=usd*k;
     return x>0&&x<0.005?"< 0,01":x.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2});},
-  stufeWahl(lg,art){const e=this.S(lg),akt=art=="hb"?e.hb.stufe:e.hs.stufe,l=art=="hb"?["basic","premium"]:["premium","drama"];
-    return `<select title="Stufe" onchange="MON['095'].stufe('${lg}','${art}',this.value)">${l.map(s=>`<option ${akt==s?"selected":""}>${s}</option>`).join("")}</select>`;},
   tabelle(d){
     const L=this.sprachen(d),k=this.kosten(),intern=this.intern(),sp=1+2*L.length;
     const zelle=(z,lg)=>{const s=this.sperre(z.id,lg),an=this.an(z.id,lg),fest=["teaser","hsx"].includes(z.id)||(!!s&&!an),e=this.S(lg);
       let x="";
-      if(an&&z.id=="hb")x=this.stufeWahl(lg,"hb");
-      if(an&&z.id=="hs"){x=this.stufeWahl(lg,"hs");
+      // Stufen-Auswahl entfernt (CK 27.11.2026): Stufe folgt der Produktionslinie, nicht der Bestellung
+      if(an&&z.id=="hs"){
         if(intern)x+=`<label class="klein"><input type="checkbox" ${e.hs.beta?"checked":""} onchange="MON['095'].E['${lg}'].hs.beta=this.checked;MON['095'].vorschau()"> Sound-Carpet <span class="z mensch">BETA</span></label>`;}
       const tip=s||(an?"bestellt – Klick: abbestellen":"nicht bestellt – Klick: bestellen");
       const kv=!an?"":["teaser","hook"].includes(z.id)?"inkl.":k?(k.K[z.id+"/"+lg]!=null?this.eur(k.K[z.id+"/"+lg]):"inkl."):"–";
@@ -1426,7 +1424,7 @@ MON["095"]={
      <div id="tab095">${this.tabelle(d)}</div>
      <div id="vs095" class="klein" style="margin-top:8px"></div></div>
     <div class="box"><h2>Empfehlung Hörspiel</h2><div class="feld">
-      <span>Urteil</span><span><span class="z ${farbe}">${esc(ei.urteil)}</span>${ei.stufe?` · empfohlene Stufe <b>${esc(ei.stufe)}</b>`:""}</span>
+      <span>Urteil</span><span><span class="z ${farbe}">${esc(ei.urteil)}</span></span>
       ${intern?`<span>Gründe</span><span class="klein">${ei.gruende.map(esc).join("<br>")}</span>`:""}</div>
       ${intern?`<div class="klein">Messung am Rohtext (wörtliche Rede, wiederkehrende Sprecher, Bühnenform), 0 $. Empfehlung, keine Sperre: Hörspiel trotz „ungeeignet“ geht, wird dann im Popup eigens bestätigt.</div>`:""}</div>
     <div class="box"><h2>Abschluss</h2>
@@ -1452,12 +1450,6 @@ MON["095"]={
       else{const ei=M.daten.eignung;e.hs.stufe=["premium","drama"].includes(ei.stufe)?ei.stufe:"premium";
         if(ei.urteil=="ungeeignet")alert("Hinweis: Das Werk ist laut Empfehlung für ein Hörspiel ungeeignet ("+ei.gruende.join("; ")+").");}}
     this.zeichnen();},
-  stufe(lg,art,s){const e=this.S(lg);
-    if(art=="hb"){const weg=e.hb.kan.filter(k=>!this.erlaubt("hoerbuch",s).includes(k));
-      if(weg.length&&!confirm(`Stufe ${s} gibt es nicht für ${weg.map(k=>({epub:"EPUB3",extern:"Audio-Book",taella:"TÆLLA App"})[k]).join(", ")} – diese(s) Format(e) abbestellen?`)){this.zeichnen();return;}
-      e.hb.stufe=s;e.hb.kan=e.hb.kan.filter(k=>!weg.includes(k));if(!e.hb.kan.length)e.hb.kan=[this.erlaubt("hoerbuch",s)[0]];}
-    else e.hs.stufe=s;
-    this.zeichnen();},
   vorschau(){clearTimeout(this.tm);this.tm=setTimeout(async()=>{
     const d=M.daten,pr=this.produkte(),el=$("vs095");if(!el)return;
     if(!pr.length){this.V=null;el.innerHTML='<span class="err">Mindestens ein Format bestellen.</span>';const t=$("tab095");if(t)t.innerHTML=this.tabelle(d);return;}
@@ -1466,7 +1458,7 @@ MON["095"]={
     this.V=r;const t=$("tab095");if(t)t.innerHTML=this.tabelle(d);
     if(r.fehler.length){el.innerHTML=`<span class="err">Ungültige Kombination: ${r.fehler.map(esc).join("<br>")}</span>`;return;}
     const h=[];
-    if(r.ergaenzt.length)h.push(`<span class="z mensch">automatisch ergänzt</span> Hörspiel braucht die Hörbuch-Erzählerspur (premium): ${esc(r.ergaenzt.join(", "))}`);
+    if(r.ergaenzt.length)h.push(`<span class="z mensch">automatisch ergänzt</span> Hörspiel braucht die Hörbuch-Erzählerspur derselben Sprache: ${esc(r.ergaenzt.map(x=>x.split(":")[0]).join(", "))}`);
     if(this.intern()){const alt=new Set(d.laeuft),neu=new Set(r.stages),nm=s=>`${s} ${esc(d.namen[s]||"")}`;
       const dazu=r.stages.filter(s=>!alt.has(s)),weg=d.laeuft.filter(s=>!neu.has(s));
       h.push(`Kette: ${r.stages.length} Stages${dazu.length?` · <b>neu:</b> ${dazu.map(nm).join(", ")}`:""}${weg.length?` · <b>entfällt:</b> ${weg.map(nm).join(", ")}`:""}${!dazu.length&&!weg.length?" · unverändert":""}`);
@@ -1478,7 +1470,7 @@ MON["095"]={
   beschreibung(){const out=[];
     for(const lg of Object.keys(this.E)){const n=[];
       for(const z of this.ZEILEN){if(!this.an(z.id,lg))continue;
-        const e=this.S(lg),st=z.id=="hb"||z.id=="ab"||z.id=="epub3"?` (Stufe ${e.hb.stufe})`:z.id=="hs"?` (Stufe ${e.hs.stufe}${e.hs.beta?", Sound-Carpet BETA":""})`:"";
+        const e=this.S(lg),st=z.id=="hs"&&e.hs.beta?" (Sound-Carpet BETA)":"";
         n.push(z.n+(z.g=="i"&&z.id!="teaser"?" in der TÆLLA App":"")+st);}
       if(n.length)out.push(`<li><b>${esc(this.sn(lg))}:</b> ${n.map(esc).join(", ")}</li>`);}
     return out.join("");},
@@ -1491,7 +1483,7 @@ MON["095"]={
     const m=document.createElement("div");m.className="modal095";m.id="modal095";
     m.innerHTML=`<div class="karte" role="dialog" aria-modal="true" aria-labelledby="t095"><h2 id="t095">Bestellung bestätigen</h2>
       <p>Du bestellst für <b>${esc(d.titel)}</b>:</p><ul>${this.beschreibung()}</ul>
-      ${V.ergaenzt.length?`<p class="klein">Für das Hörspiel wird automatisch die Hörbuch-Erzählerspur (Stufe premium) mitbestellt.</p>`:""}
+      ${V.ergaenzt.length?`<p class="klein">Für das Hörspiel wird automatisch die Hörbuch-Erzählerspur mitbestellt.</p>`:""}
       <p class="gross">Geschätzte Kosten: <b>${k?"ca. "+sum+" €":"noch nicht berechenbar"}</b></p>
       <p class="klein">Das ist eine Schätzung. Liegen die tatsächlichen Kosten in der Produktion mehr als 20 % darüber, fragen wir noch einmal nach – sonst läuft alles ohne weitere Rückfrage.</p>
       ${hs&&d.eignung.urteil=="ungeeignet"?`<p class="err">Achtung: Laut Empfehlung eignet sich das Werk kaum für ein Hörspiel. Mit „Ja“ bestellst du es trotzdem.</p>`:""}

@@ -1,5 +1,12 @@
 # PROJEKTSTAND — Read Layer
 
+## 095 ohne Stufen-Auswahl – ERLEDIGT 27.11.2026 (CK)
+ENTSCHIEDEN (CK): Stufen-Schalter Hoerbuch basic/premium und Hoerspiel premium/drama aus Monitor 095 entfernt – Stufe folgt der Produktionslinie
+  (Fish Audio Drama 3 entwickeln; Hoerspiel mit QWEN-Stimmen ueber Chatterbox-VC), nicht der Bestellung. Datenmodell unveraendert:
+  neue Hoerbuch-Bestellung = basic, Hoerspiel = Stufe aus Eignung, sonst premium; bestehende Bestellungen behalten ihre Stufe.
+  Popup und Hinweise ohne Stufenangabe; Sound-Carpet BETA bleibt (intern). Monitor-Test Smoke: keine Auswahlfelder, Bestellung gueltig.
+OFFEN: Standardstufe Hoerspiel auf die neue Linie (Fish Drama 3 / QWEN + Chatterbox-VC) umstellen, sobald diese steht.
+
 ## AP Hook als Produkt – CODE ERLEDIGT 27.11.2026 (Entscheidung CK; Sicherung archive/2026-11-27_095_hook/)
 ENTSCHIEDEN (CK): Hook = „Teaser vor dem Trailer“ fuer das Durchblaettern = Koeder-Block des Klappentexts (600, woertliches Werkzitat)
   + dessen Saetze aus dem Teaser-Audio (640). Kein neuer LLM-/TTS-Aufwand; bei uebernommenem Klappentext (EPUB/Verlag) wird der Koeder trotzdem gebaut.
