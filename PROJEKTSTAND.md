@@ -13,7 +13,7 @@ Monitor 095: Hook-Zeile schaltbar (Kosten „inkl.“), Teaser gilt auch mit Hoo
 TEST: test_bestellung/kette/s095/s600/s710/kunde/cockpit_werk gruen; test_s700 2 Fehler schon vorher (Import tests.test_s615/650, fremdes Paket).
   Smoke (Probe, nichts geschrieben): 600 Uebernehmen + Hook -> Koeder en/de, keine Befunde; 700 meldet ohne neuen 600-Lauf „Koeder fehlt“ (richtig).
 OFFEN: (1) App muss manifest.hook lesen (Frontend). (2) Hook auf Bestandswerken: nach Bestellung 600 + 640 neu (640 vertont nur neue Koeder-Saetze).
-  (3) Kurs 0,86 €/$ weiter offen.
+  (3) Kurs 0,86 €/$ von CK bestaetigt (27.11.2026).
 
 ## AP Stage-Feintuning 095 Produktwahl – ERLEDIGT 27.11.2026 (Skript CK docs/Stage95 Skript.docx; Sicherung archive/2026-11-27_095/)
 IST VORHER: Gate-Kopf mit „095 neu pruefen“ + mitlaufenden 080/090, Kasten „Naechster Schritt“, Box „1 Anzeigen“ (Werk-Zeile Quelle/Sprache/
@@ -33,7 +33,7 @@ werk_api._m095_daten: + titel, quelle_text, mandant_text (Somnio -> „Somnio Pu
 config.ANGEBOT_EUR_JE_USD = 0,86 (aus Vertrieb/Pricing-Simulator). Kosten je Zelle = Posten aus s095.angebot (Selbstkosten $) x Kurs.
 TEST Smoke u-smoketest-the-mirror-sisters (Server-Kopie Port 8767): Tabelle, Kostensumme = Zellsumme, EPUB3-Sperre, Hoerspiel-Ergaenzung,
   Popup Nein/Ja; Ja -> 095 frei, Sprung 150; Bestellinhalt unveraendert (nur Reihenfolge nach Sprache). Keine Konsolenfehler. 0 $.
-OFFEN (CK): (1) Kurs 0,86 €/$ bestaetigen. (2) Hook: siehe AP Hook als Produkt. Teaser: kein eigenes Produkt,
+OFFEN (CK): (1) Kurs 0,86 €/$ bestaetigt (27.11.2026). (2) Hook: siehe AP Hook als Produkt. Teaser: kein eigenes Produkt,
   kommt mit TAELLA (640) -> gesperrt, „inkl.“. Hoerspiel (ext.): Matrix erlaubt nur TAELLA -> gesperrt. (3) Gate-Kopf zeigt fuer verlag weiter den
   Pipeline-Grund „~x $ Selbstkosten“ (Kunden nutzen /kunde). (4) Laufender Cockpit-Server 8765 braucht Neustart fuer werk_api-Aenderung.
 

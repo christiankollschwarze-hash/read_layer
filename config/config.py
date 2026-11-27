@@ -286,7 +286,7 @@ ANGEBOT_USD_100K = {
     "wortzeiten": 0.05,         # je TAELLA-Audiosprache: 530/520
 }
 ANGEBOT_GEMINI_FAKTOR_AB = ("2027-01-01", 2.0)
-ANGEBOT_EUR_JE_USD = 0.86   # Anzeige Monitor 095 in € (Wert aus Vertrieb/Pricing-Simulator, 27.11.2026; von CK bestaetigen)
+ANGEBOT_EUR_JE_USD = 0.86   # Anzeige Monitor 095 in € (Wert aus Vertrieb/Pricing-Simulator; von CK bestaetigt 27.11.2026)
 STUECKPREISE = {
     "gemini-voice-design": None,   # Voice Design (Stimme anlegen); Muster-TTS laeuft ueber gemini-3.8-flash-tts
     "gcs_upload_gb": 0.0,          # Stage 710: Upload-Eingang kostenlos; Bytes werden fuer Speicher/Abfluss mitgeloggt
