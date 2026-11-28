@@ -35,5 +35,110 @@
     }
   ],
   "librivox_geprueft": "keine",
-  "librivox_geprueft_am": "2026-10-10T19:26:34"
+  "librivox_geprueft_am": "2026-10-10T19:26:34",
+  "mandant": "somnio",
+  "besitzer": "somnio",
+  "quelle": "gutenberg",
+  "rechte": {
+    "art": "gemeinfrei",
+    "bearbeitung": true,
+    "drm_frei": true,
+    "versichert": null,
+    "hinweis": null
+  },
+  "produkte": [
+    {
+      "sprache": "en",
+      "inhalt": "text",
+      "stufe": null,
+      "kanaele": [
+        "taella",
+        "epub"
+      ],
+      "zusatz": []
+    },
+    {
+      "sprache": "en",
+      "inhalt": "hook",
+      "stufe": null,
+      "kanaele": [
+        "taella"
+      ],
+      "zusatz": []
+    },
+    {
+      "sprache": "en",
+      "inhalt": "hoerbuch",
+      "stufe": "basic",
+      "kanaele": [
+        "epub",
+        "extern",
+        "taella"
+      ],
+      "zusatz": []
+    },
+    {
+      "sprache": "en",
+      "inhalt": "hoerspiel",
+      "stufe": "premium",
+      "kanaele": [
+        "taella"
+      ],
+      "zusatz": []
+    },
+    {
+      "sprache": "de",
+      "inhalt": "text",
+      "stufe": null,
+      "kanaele": [
+        "taella"
+      ],
+      "zusatz": []
+    },
+    {
+      "sprache": "de",
+      "inhalt": "hook",
+      "stufe": null,
+      "kanaele": [
+        "taella"
+      ],
+      "zusatz": []
+    },
+    {
+      "sprache": "de",
+      "inhalt": "hoerbuch",
+      "stufe": "basic",
+      "kanaele": [
+        "taella"
+      ],
+      "zusatz": []
+    },
+    {
+      "sprache": "de",
+      "inhalt": "hoerspiel",
+      "stufe": "premium",
+      "kanaele": [
+        "taella"
+      ],
+      "zusatz": []
+    },
+    {
+      "sprache": "en",
+      "inhalt": "hoerbuch",
+      "stufe": "premium",
+      "kanaele": [
+        "taella"
+      ],
+      "zusatz": []
+    },
+    {
+      "sprache": "de",
+      "inhalt": "hoerbuch",
+      "stufe": "premium",
+      "kanaele": [
+        "taella"
+      ],
+      "zusatz": []
+    }
+  ]
 }
